@@ -19,11 +19,11 @@ const assertNoConsoleErrors = async t => {
 fixture`Home Page`.page('../../app/app.html').afterEach(assertNoConsoleErrors);
 
 test('e2e', async t => {
-  await t.expect(getPageTitle()).eql('Hello Electron React!');
+  await t.expect(getPageTitle()).eql('StatWrap');
 });
 
 test('should open window and contain expected page title', async t => {
-  await t.expect(getPageTitle()).eql('Hello Electron React!');
+  await t.expect(getPageTitle()).eql('StatWrap');
 });
 
 test(

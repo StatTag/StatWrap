@@ -1,0 +1,12 @@
+.container {
+  vertical-align: top;
+  width: 100%;
+}
+
+.container .title {
+  color: #fff;
+  background-color: #4c72be;
+  font-size: 1.5rem;
+  text-align: center;
+  padding: 5px;
+}

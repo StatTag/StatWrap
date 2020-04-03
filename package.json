@@ -266,6 +266,7 @@
     "react-router-dom": "^5.1.2",
     "redux": "^4.0.4",
     "redux-thunk": "^2.3.0",
+    "resizable-panels-react": "^2.0.8",
     "source-map-support": "^0.5.16"
   },
   "devEngines": {

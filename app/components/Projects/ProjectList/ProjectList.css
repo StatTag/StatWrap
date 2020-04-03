@@ -1,0 +1,15 @@
+.container {
+  width: 100%;
+  display: inline-block;
+  margin: 0;
+  padding-bottom: 10px;
+  background-color: #dbe2f1;
+}
+
+.title {
+  font-size: 1.25rem;
+  text-align: center;
+  background-color: #94aad8;
+  padding: 2px 5px;
+  border: solid 1px #34528b;
+}

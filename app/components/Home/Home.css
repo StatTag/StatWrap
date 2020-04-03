@@ -1,0 +1,19 @@
+.container {
+}
+
+.container h2 {
+  font-size: 5rem;
+}
+
+.container a {
+  font-size: 1.4rem;
+}
+
+.rightToolbar {
+  margin-left: auto;
+  margin-right: -12px;
+}
+.menuButton {
+  margin-right: 16px;
+  margin-left: -12px;
+}
