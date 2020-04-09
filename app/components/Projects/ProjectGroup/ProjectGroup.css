@@ -13,3 +13,12 @@
   padding: 7px 5px;
   border: solid 1px #34528b;
 }
+
+.emptyMessage {
+  font-style: italic;
+  color: #222;
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 10px 5px;
+  vertical-align: middle;
+}

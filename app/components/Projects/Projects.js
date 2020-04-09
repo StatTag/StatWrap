@@ -31,7 +31,9 @@ export default class Projects extends Component<Props> {
             display: 'flex'
           }}
         >
-          <ProjectGroup title="Favorites" />
+          <ProjectGroup title="Favorites"
+            emptyMessage="You haven't marked any projects as a 'Favorite'"
+          />
         </div>
         <div
           style={{
@@ -41,7 +43,9 @@ export default class Projects extends Component<Props> {
             display: 'flex'
           }}
         >
-          <ProjectGroup title="Recent" />
+          <ProjectGroup title="Recent"
+            emptyMessage="No recent projects to display."
+          />
         </div>
         <div
           style={{
@@ -51,7 +55,9 @@ export default class Projects extends Component<Props> {
             display: 'flex'
           }}
         >
-          <ProjectGroup title="By Category" />
+          <ProjectGroup title="By Category"
+            emptyMessage="You don't have any projects assigned to a category."
+          />
         </div>
       </ResizablePanels>
     );
