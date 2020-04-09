@@ -3,10 +3,22 @@
   width: 100%;
 }
 
-.container .title {
-  color: #fff;
+.titleContainer {
   background-color: #4c72be;
+  text-align: center;
+  vertical-align: middle;
+  padding: 5px;
+  overflow: hidden;
+}
+
+.title {
+  color: #fff;
   font-size: 1.5rem;
   text-align: center;
-  padding: 5px;
+  padding: 8px;
+}
+
+.titleContainer button {
+  float: right;
+  margin-left: -50%;
 }
