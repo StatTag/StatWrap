@@ -31,7 +31,8 @@ export default class Projects extends Component<Props> {
             display: 'flex'
           }}
         >
-          <ProjectGroup title="Favorites"
+          <ProjectGroup
+            title="Favorites"
             emptyMessage="You haven't marked any projects as a 'Favorite'"
           />
         </div>
@@ -43,7 +44,8 @@ export default class Projects extends Component<Props> {
             display: 'flex'
           }}
         >
-          <ProjectGroup title="Recent"
+          <ProjectGroup
+            title="Recent"
             emptyMessage="No recent projects to display."
           />
         </div>
@@ -55,7 +57,8 @@ export default class Projects extends Component<Props> {
             display: 'flex'
           }}
         >
-          <ProjectGroup title="By Category"
+          <ProjectGroup
+            title="By Category"
             emptyMessage="You don't have any projects assigned to a category."
           />
         </div>
@@ -65,10 +68,10 @@ export default class Projects extends Component<Props> {
     return (
       <div className={styles.container} data-tid="container">
         <div className={styles.titleContainer}>
+          <div className={styles.title}>Projects</div>
           <IconButton color="inherit">
             <AddCircle />
           </IconButton>
-          <div className={styles.title}>Projects</div>
         </div>
         {projects}
       </div>
