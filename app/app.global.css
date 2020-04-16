@@ -6,10 +6,10 @@
 
 body {
   position: relative;
-  color: white;
+  color: #000;
   height: 100vh;
   width: 100%;
-  background-color: #000;
+  background-color: #fff;
   font-family: Arial, Helvetica, Helvetica Neue, serif;
   overflow-y: hidden;
   margin: 0;

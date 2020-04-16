@@ -1,16 +1,12 @@
-import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux';
-import Configuration from '../../components/Configuration/Configuration';
-import * as CounterActions from '../../actions/counter';
+import React, { Component } from 'react';
+import styles from './ConfigurationPage.css';
 
-function mapStateToProps(state) {
-  return {
-    config: state.config
-  };
+export default class ConfigurationPage extends Component {
+  render() {
+    return (
+      <div className={styles.container} data-tid="container">
+        <h1>Configuration</h1>
+      </div>
+    );
+  }
 }
-
-function mapDispatchToProps(dispatch) {
-  return bindActionCreators(CounterActions, dispatch);
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(Configuration);

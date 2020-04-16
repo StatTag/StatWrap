@@ -11,7 +11,8 @@
   text-align: center;
   background-color: #94aad8;
   padding: 7px 5px;
-  border: solid 1px #34528b;
+  border-top: solid 1px #34528b;
+  border-bottom: solid 1px #34528b;
 }
 
 .emptyMessage {
@@ -21,4 +22,9 @@
   text-align: center;
   padding: 10px 5px;
   vertical-align: middle;
+}
+
+.menuButton {
+  margin-right: 16px;
+  margin-left: -12px;
 }

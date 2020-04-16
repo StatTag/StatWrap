@@ -1,31 +1,14 @@
 // @flow
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
-//import { AppBar, Toolbar, Typography, IconButton } from '@material-ui/core';
-//import SettingsIcon from '@material-ui/icons/Settings';
 import ResizablePanels from 'resizable-panels-react';
-import Projects from '../Projects/Projects';
-import Project from '../Project/Project';
-import routes from '../../constants/routes.json';
-import styles from './Home.css';
+import Projects from '../../components/Projects/Projects';
+import Project from '../../components/Project/Project';
+import styles from './ProjectPage.css';
 
 type Props = {};
 
-export default class Home extends Component<Props> {
+export default class ProjectPage extends Component<Props> {
   props: Props;
-
-  /* <AppBar position="static">
-    <Toolbar>
-      <Typography variant="h6" className={styles.title}>
-        StatWrap
-      </Typography>
-      <section className={styles.rightToolbar}>
-        <IconButton aria-label="settings">
-          <SettingsIcon />
-        </IconButton>
-      </section>
-    </Toolbar>
-  </AppBar> */
 
   render() {
     return (
