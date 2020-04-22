@@ -1,0 +1,28 @@
+.container {
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.container:hover {
+  opacity: 0.7;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.path {
+  font-size: 0.8rem;
+  color: #333;
+  padding-left: 15px;
+}
+.icon {
+  padding-right: 5px;
+  padding-bottom: 2px;
+}
+.name {
+  display: inline-block;
+}
+.tag {
+  font-size: 0.6rem;
+  color: #555;
+  padding-right: 5px;
+  white-space: nowrap;
+}

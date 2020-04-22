@@ -10,16 +10,22 @@
  *
  * @flow
  */
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
+import path from 'path';
 import log from 'electron-log';
 import MenuBuilder from './menu';
+import ProjectService, { DefaultProjectListFile } from './services/project';
+import {
+  LOAD_PROJECT_LIST_REQUEST,
+  LOAD_PROJECT_LIST_RESPONSE
+} from './constants/messages';
 
 export default class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
     autoUpdater.logger = log;
-    autoUpdater.checkForUpdatesAndNotify();
+    // autoUpdater.checkForUpdatesAndNotify();
   }
 }
 
@@ -56,7 +62,7 @@ const createWindow = async () => {
   }
 
   mainWindow = new BrowserWindow({
-    show: false,
+    show: true, // Default was false, but setting to true.  We have a sporadic issue where the window wasn't displaying.  Let's see if this fixes it.
     width: 1024,
     height: 728,
     webPreferences: {
@@ -87,9 +93,9 @@ const createWindow = async () => {
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
 
-  // Remove this if your app does not use auto updates
+  // Remove this for now because we don't have auto-updates.
   // eslint-disable-next-line
-  new AppUpdater();
+  //new AppUpdater();
 };
 
 /**
@@ -110,4 +116,13 @@ app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) createWindow();
+});
+
+ipcMain.on(LOAD_PROJECT_LIST_REQUEST, async event => {
+  const homePath = app.getPath('home');
+  const service = new ProjectService();
+  const projects = service.loadListFromFile(
+    path.join(homePath, DefaultProjectListFile)
+  );
+  event.sender.send(LOAD_PROJECT_LIST_RESPONSE, projects);
 });

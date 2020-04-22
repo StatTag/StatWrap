@@ -4,6 +4,8 @@ import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import { AppBar, Toolbar, Typography, IconButton } from '@material-ui/core';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SearchIcon from '@material-ui/icons/Search';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faFolder, faTag } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import routes from '../constants/routes.json';
 import styles from './App.css';
@@ -11,6 +13,10 @@ import styles from './App.css';
 type Props = {
   children: React.Node
 };
+
+// This is where we register all of our font-awesome icons that are used throughout the app.
+// See https://github.com/FortAwesome/react-fontawesome#build-a-library-to-reference-icons-throughout-your-app-more-conveniently
+library.add(faFolder, faTag);
 
 export default class App extends React.Component<Props> {
   props: Props;

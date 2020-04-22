@@ -1,16 +1,12 @@
-// @flow
 import React, { Component } from 'react';
 import ResizablePanels from 'resizable-panels-react';
 import IconButton from '@material-ui/core/IconButton';
 import AddCircle from '@material-ui/icons/AddCircle';
+import RefreshIcon from '@material-ui/icons/Refresh';
 import ProjectGroup from './ProjectGroup/ProjectGroup';
 import styles from './Projects.css';
 
-type Props = {};
-
-export default class Projects extends Component<Props> {
-  props: Props;
-
+export default class Projects extends Component {
   render() {
     const projects = (
       <ResizablePanels
@@ -34,6 +30,7 @@ export default class Projects extends Component<Props> {
           <ProjectGroup
             title="Favorites"
             emptyMessage="You haven't marked any projects as a 'Favorite'"
+            projects={this.props.projects.filter(p => p.favorite)}
           />
         </div>
         <div
@@ -47,6 +44,7 @@ export default class Projects extends Component<Props> {
           <ProjectGroup
             title="Recent"
             emptyMessage="No recent projects to display."
+            projects={this.props.projects.filter(p => p.lastAccessed)}
           />
         </div>
         <div
@@ -60,6 +58,7 @@ export default class Projects extends Component<Props> {
           <ProjectGroup
             title="By Category"
             emptyMessage="You don't have any projects assigned to a category."
+            projects={this.props.projects}
           />
         </div>
       </ResizablePanels>
@@ -71,6 +70,9 @@ export default class Projects extends Component<Props> {
           <div className={styles.title}>Projects</div>
           <IconButton color="inherit">
             <AddCircle />
+          </IconButton>
+          <IconButton color="inherit" onClick={this.props.onRefresh}>
+            <RefreshIcon />
           </IconButton>
         </div>
         {projects}
