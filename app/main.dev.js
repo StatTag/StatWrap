@@ -119,10 +119,10 @@ app.on('activate', () => {
 });
 
 ipcMain.on(LOAD_PROJECT_LIST_REQUEST, async event => {
-  const homePath = app.getPath('home');
+  const userDataPath = app.getPath('userData');
   const service = new ProjectService();
   const projects = service.loadListFromFile(
-    path.join(homePath, DefaultProjectListFile)
+    path.join(userDataPath, DefaultProjectListFile)
   );
   event.sender.send(LOAD_PROJECT_LIST_RESPONSE, projects);
 });
