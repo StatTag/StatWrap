@@ -28,9 +28,11 @@ The list of projects will be stored in the user's application data folder, in a 
 
 ### Overview
 
-StatWrap approaches projects as having one higher-level container (e.g., a folder) that serves as the base for the project. Not everything must live in that folder, it is just the unit of organization that StatTag uses. The project file then provides the metadata to describe the project, and can be shipped along with the project even if the recipient doesn't use StatWrap.
+StatWrap approaches projects as having one higher-level container that serves as the base for the project. For most projects this will be a folder, but we will refer to it here as a "container" just to provide a more general name. Not everything must live in that container, it is just the unit of organization that StatTag uses. The project file then provides the metadata to describe the project, and can be shipped along with the project even if the recipient doesn't use StatWrap.
 
 ### File Location
+
+For each project, within the root of the project container, there will be a file called `.statwrap-project.json`.
 
 ### Attributes
 
