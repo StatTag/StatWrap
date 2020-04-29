@@ -3,22 +3,25 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import styles from './ProjectEntry.css';
 
 const projectEntry = props => {
-  let tags = null;
-  if (props.project.tags && props.project.tags.length > 0) {
-    tags = props.project.tags.map((item, index) => (
-      <span className={styles.tag} key={index}>
-        <FontAwesomeIcon className={styles.icon} icon="tag" size="xs" />
-        {item}
-      </span>
-    ));
+  const iconClasses = [styles.icon];
+  if (!props.project.favorite) {
+    iconClasses.push(styles.placeholder);
   }
 
   return (
     <div className={styles.container} data-tid="container">
-      <FontAwesomeIcon className={styles.icon} icon="folder" size="xs" />
-      <div className={styles.name}>{props.project.name}</div>
+      <div className={styles.name}>
+        <span>
+          <FontAwesomeIcon
+            className={iconClasses.join(' ')}
+            icon="thumbtack"
+            size="xs"
+            onClick={props.onFavoriteClick}
+          />
+          {props.project.name}
+        </span>
+      </div>
       <div className={styles.path}>{props.project.path}</div>
-      {tags}
     </div>
   );
 };

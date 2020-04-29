@@ -4,11 +4,10 @@
 }
 
 .titleContainer {
-  background-color: #4c72be;
-  padding: 5px;
-  display: flex;
-  align-items: stretch;
-  justify-content: space-between;
+  background-color: #eee;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
 }
 
 .titleContainer * {
@@ -16,15 +15,20 @@
 }
 
 .title {
-  color: #fff;
-  font-size: 1.5rem;
-  text-align: center;
-  padding: 8px;
+  color: #000;
+  font-size: 1rem;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 2px 5px 2px 10px;
   display: inline-block;
-  flex-grow: 10;
 }
 
 .titleContainer button {
   display: inline-block;
-  flex-grow: 1;
+  padding: 5px;
+}
+
+.projectDivider {
+  margin-top: 10px;
+  margin-bottom: 10px;
 }

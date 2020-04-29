@@ -120,6 +120,7 @@ app.on('activate', () => {
 
 ipcMain.on(LOAD_PROJECT_LIST_REQUEST, async event => {
   const userDataPath = app.getPath('userData');
+  console.log(userDataPath);
   const service = new ProjectService();
   const projects = service.loadListFromFile(
     path.join(userDataPath, DefaultProjectListFile)

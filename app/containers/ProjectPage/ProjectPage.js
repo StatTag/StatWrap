@@ -5,6 +5,7 @@
 import React, { Component } from 'react';
 import { ipcRenderer } from 'electron';
 import ResizablePanels from 'resizable-panels-react';
+import Drawer from '@material-ui/core/Drawer';
 import Projects from '../../components/Projects/Projects';
 import Project from '../../components/Project/Project';
 import styles from './ProjectPage.css';
