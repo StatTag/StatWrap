@@ -122,8 +122,14 @@ ipcMain.on(LOAD_PROJECT_LIST_REQUEST, async event => {
   const userDataPath = app.getPath('userData');
   console.log(userDataPath);
   const service = new ProjectService();
-  const projects = service.loadListFromFile(
+  const projects = service.loadListFromFileStub();
+
+  // Not doing a lot with this at the moment, just because we're leveraging the
+  // stubbed file
+  const projectsFromFile = service.loadListFromFile(
     path.join(userDataPath, DefaultProjectListFile)
   );
+  console.log(projectsFromFile);
+
   event.sender.send(LOAD_PROJECT_LIST_RESPONSE, projects);
 });

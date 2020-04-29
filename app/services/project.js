@@ -8,25 +8,26 @@ const DefaultProjectFile = '.statwrap-project.json';
 export { DefaultProjectListFile, DefaultProjectFile };
 
 export default class ProjectService {
-  loadListStub() {
+  loadListFromFileStub() {
     return [
       {
         id: 'd01d2925-f6ff-4f8e-988f-fca2ee193427',
-        name: 'Test 1',
+        name: 'Local project using relative path',
         favorite: true,
         lastAccessed: '2020-04-21T21:21:27.041Z',
-        path: '~/Development/projects/test1'
+        path: '~/Development/StatTag/StatWrapProjects/project1'
       },
       {
         id: '6ff79e02-4f24-4948-ac77-f3f1b67064e5',
-        name: 'Test 2',
+        name: 'XuS_775 - Shared drive',
         favorite: false,
         lastAccessed: '2020-04-21T21:21:27.041Z',
-        path: 'smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2'
+        // eslint-disable-next-line prettier/prettier
+        path: 'smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/NUCATS/NUCATS_Shared/BERDShared/StatWrap/Test folders/XuS_775'
       },
       {
         id: '6ff79e02-4f24-4948-ac77-f3f1b67064e6',
-        name: 'Test 3',
+        name: 'Invalid project',
         favorite: false,
         lastAccessed: '2020-04-21T21:21:27.041Z',
         path: 'smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Project3'
