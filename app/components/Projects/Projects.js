@@ -1,18 +1,42 @@
 /* eslint-disable react/prop-types */
 import React, { Component } from 'react';
-import { IconButton } from '@material-ui/core';
+import { IconButton, CircularProgress } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
 import ProjectEntry from './ProjectEntry/ProjectEntry';
+import Error from '../Error/Error';
 import styles from './Projects.css';
 
 export default class Projects extends Component {
   render() {
-    const pinnedProjects = this.props.projects
-      .filter(x => x.favorite)
-      .map(item => <ProjectEntry key={item.id} project={item} />);
-    const projects = this.props.projects
-      .filter(x => !x.favorite)
-      .map(item => <ProjectEntry key={item.id} project={item} />);
+    let projectDetails = <CircularProgress className={styles.progress} />;
+    if (this.props.loaded) {
+      if (this.props.error) {
+        projectDetails = (
+          <>
+            <Error>
+              {this.props.errorMessage}
+              <button type="button" onClick={this.props.onRefresh}>
+                Reload Projects
+              </button>
+            </Error>
+          </>
+        );
+      } else {
+        const pinnedProjects = this.props.projects
+          .filter(x => x.favorite)
+          .map(item => <ProjectEntry key={item.id} project={item} />);
+        const projects = this.props.projects
+          .filter(x => !x.favorite)
+          .map(item => <ProjectEntry key={item.id} project={item} />);
+        projectDetails = (
+          <>
+            {pinnedProjects}
+            <hr className={styles.projectDivider} />
+            {projects}
+          </>
+        );
+      }
+    }
 
     return (
       <div className={styles.container} data-tid="container">
@@ -22,9 +46,7 @@ export default class Projects extends Component {
             <AddIcon />
           </IconButton>
         </div>
-        {pinnedProjects}
-        <hr className={styles.projectDivider} />
-        {projects}
+        {projectDetails}
       </div>
     );
   }

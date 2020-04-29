@@ -119,17 +119,31 @@ app.on('activate', () => {
 });
 
 ipcMain.on(LOAD_PROJECT_LIST_REQUEST, async event => {
-  const userDataPath = app.getPath('userData');
-  console.log(userDataPath);
-  const service = new ProjectService();
-  const projects = service.loadListFromFileStub();
+  const response = {
+    projects: null,
+    error: false,
+    errorMessage: ''
+  };
 
-  // Not doing a lot with this at the moment, just because we're leveraging the
-  // stubbed file
-  const projectsFromFile = service.loadListFromFile(
-    path.join(userDataPath, DefaultProjectListFile)
-  );
-  console.log(projectsFromFile);
+  try {
+    const userDataPath = app.getPath('userData');
+    console.log(userDataPath);
+    const service = new ProjectService();
+    // response.projects = service.loadListFromFileStub();
+    // Not doing a lot with this at the moment, just because we're leveraging the
+    // stubbed file
+    const projectsFromFile = service.loadListFromFile(
+      path.join(userDataPath, DefaultProjectListFile)
+    );
+    console.log(projectsFromFile);
+    response.projects = projectsFromFile;
+    response.error = false;
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = `The projects file is corrupt or invalid.  You may need to delete the file before StatWrap will work properly again.`;
+    console.log(e);
+  }
 
-  event.sender.send(LOAD_PROJECT_LIST_RESPONSE, projects);
+  // TODO Take out this stub and enable the real project loader below
+  event.sender.send(LOAD_PROJECT_LIST_RESPONSE, response);
 });
