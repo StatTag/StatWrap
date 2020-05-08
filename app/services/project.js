@@ -1,5 +1,6 @@
 /* eslint-disable class-methods-use-this */
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const DefaultProjectListFile = '.statwrap-projects.json';
@@ -52,7 +53,10 @@ export default class ProjectService {
   }
 
   loadFromFile(dir) {
-    const filePath = path.join(dir, DefaultProjectFile);
+    const filePath = path.join(
+      dir.replace('~', os.homedir),
+      DefaultProjectFile
+    );
     if (!fs.existsSync(filePath)) {
       return null;
     }

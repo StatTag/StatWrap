@@ -43,9 +43,23 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .tag {
   font-size: 0.6rem;
   color: #555;
   padding-right: 5px;
   white-space: nowrap;
+}
+
+.offline {
+  font-size: 0.6rem;
+  font-weight: bold;
+  vertical-align: top;
+}
+
+.offlineIcon svg {
+  color: rgb(180, 82, 37);
+  float: left;
+  width: 16px;
+  height: 16px;
 }

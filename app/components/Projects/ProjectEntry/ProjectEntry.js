@@ -1,8 +1,8 @@
 /* eslint-disable react/destructuring-assignment */
-/* eslint-disable react/prop-types */
 import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { Tooltip } from '@material-ui/core';
+import PortableWifiOffIcon from '@material-ui/icons/PortableWifiOff';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import styles from './ProjectEntry.css';
 
@@ -22,6 +22,19 @@ const projectEntry = props => {
     iconClasses.push(styles.placeholder);
   }
 
+  let offlineIndicator = null;
+  let offlineMessage = null;
+  if (props.project.loadError) {
+    offlineIndicator = (
+      <div className={styles.offlineIcon}>
+        <PortableWifiOffIcon fontSize="small" />
+      </div>
+    );
+    offlineMessage = (
+      <div className={styles.offline}>{offlineIndicator}Project is offline</div>
+    );
+  }
+
   return (
     <HtmlTooltip
       arrow
@@ -29,11 +42,13 @@ const projectEntry = props => {
       title={
         <>
           <div className={styles.name}>{props.project.name}</div>
+          {offlineMessage}
           <div className={styles.tooltipPath}>{props.project.path}</div>
         </>
       }
     >
       <div className={styles.container} data-tid="container">
+        {offlineIndicator}
         <div className={styles.name}>
           <span>
             <FontAwesomeIcon

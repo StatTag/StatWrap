@@ -15,7 +15,10 @@ import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import log from 'electron-log';
 import MenuBuilder from './menu';
-import ProjectService, { DefaultProjectListFile } from './services/project';
+import ProjectService, {
+  DefaultProjectListFile,
+  DefaultProjectFile
+} from './services/project';
 import {
   LOAD_PROJECT_LIST_REQUEST,
   LOAD_PROJECT_LIST_RESPONSE
@@ -129,13 +132,30 @@ ipcMain.on(LOAD_PROJECT_LIST_REQUEST, async event => {
     const userDataPath = app.getPath('userData');
     console.log(userDataPath);
     const service = new ProjectService();
-    // response.projects = service.loadListFromFileStub();
-    // Not doing a lot with this at the moment, just because we're leveraging the
-    // stubbed file
-    const projectsFromFile = service.loadListFromFile(
+    let projectsFromFile = service.loadListFromFile(
       path.join(userDataPath, DefaultProjectListFile)
     );
     console.log(projectsFromFile);
+
+    // For all of the projects we have in our list, load the additional information that exists
+    // within the project's local metadata file itself.
+    projectsFromFile = projectsFromFile.map(project => {
+      const metadata = service.loadFromFile(project.path);
+      console.log(metadata);
+      // TODO What if the IDs don't match?  Handle that.  Also handle if file not found, file invalid, etc.
+      // Remember that if the file can't be loaded, it may be because we're offline and the project is in
+      // a network directory.
+      const fullProject = { ...project };
+      if (metadata == null) {
+        fullProject.loadError = true;
+      } else {
+        fullProject.name = metadata.name;
+        fullProject.tags = metadata.tags;
+        fullProject.loadError = false;
+      }
+      return fullProject;
+    });
+
     response.projects = projectsFromFile;
     response.error = false;
   } catch (e) {
@@ -144,6 +164,5 @@ ipcMain.on(LOAD_PROJECT_LIST_REQUEST, async event => {
     console.log(e);
   }
 
-  // TODO Take out this stub and enable the real project loader below
   event.sender.send(LOAD_PROJECT_LIST_RESPONSE, response);
 });

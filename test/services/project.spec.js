@@ -1,7 +1,12 @@
 import fs from 'fs';
+import os from 'os';
 import ProjectService from '../../app/services/project';
 
 jest.mock('fs');
+jest.mock('os');
+
+const TEST_USER_HOME_PATH = '/User/test/';
+os.homedir.mockReturnValue(TEST_USER_HOME_PATH);
 
 const projectListString = `[
   {
@@ -76,24 +81,33 @@ describe('services', () => {
     });
 
     describe('loadFromFile', () => {
-      it('should return the project details', () => {
+      it('should resolve the ~ home path', () => {
         fs.existsSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(projectString);
         const project = new ProjectService().loadFromFile('~/Test/Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith(
-          '~/Test/Path/.statwrap-project.json'
+          `${TEST_USER_HOME_PATH}Test/Path/.statwrap-project.json`
+        );
+      });
+      it('should return the project details', () => {
+        fs.existsSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectString);
+        const project = new ProjectService().loadFromFile('/Test/Path');
+        expect(project).not.toBeNull();
+        expect(fs.readFileSync).toHaveBeenCalledWith(
+          '/Test/Path/.statwrap-project.json'
         );
       });
       it('should throw an exception if the JSON is invalid', () => {
         fs.existsSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(invalidProjectString);
         // eslint-disable-next-line prettier/prettier
-        expect(() => new ProjectService().loadFromFile('~/Test/Path')).toThrow(SyntaxError);
+        expect(() => new ProjectService().loadFromFile('/Test/Path')).toThrow(SyntaxError);
       });
       it('should return null if the file path does not exist', () => {
         fs.existsSync.mockReturnValue(false);
-        const project = new ProjectService().loadFromFile('~/Test/Path');
+        const project = new ProjectService().loadFromFile('/Test/Path');
         expect(project).toBeNull();
         expect(fs.readFileSync).not.toHaveBeenCalled();
       });
