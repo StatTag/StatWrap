@@ -42,7 +42,7 @@ export default class Projects extends Component {
       <div className={styles.container} data-tid="container">
         <div className={styles.titleContainer}>
           <div className={styles.title}>Projects</div>
-          <IconButton color="inherit">
+          <IconButton color="inherit" onClick={this.props.onAddProject}>
             <AddIcon />
           </IconButton>
         </div>

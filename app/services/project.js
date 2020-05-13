@@ -1,4 +1,6 @@
 /* eslint-disable class-methods-use-this */
+import projectTypes from '../constants/project-types.json';
+
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -62,5 +64,10 @@ export default class ProjectService {
     }
     const data = fs.readFileSync(filePath);
     return JSON.parse(data.toString());
+  }
+
+  loadProjectTypes() {
+    // TODO: Can merge in user-defined project types later.  Right now just our pre-defined ones
+    return projectTypes;
   }
 }

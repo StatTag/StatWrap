@@ -19,10 +19,7 @@ import ProjectService, {
   DefaultProjectListFile,
   DefaultProjectFile
 } from './services/project';
-import {
-  LOAD_PROJECT_LIST_REQUEST,
-  LOAD_PROJECT_LIST_RESPONSE
-} from './constants/messages';
+import Messages from './constants/messages';
 
 export default class AppUpdater {
   constructor() {
@@ -121,7 +118,7 @@ app.on('activate', () => {
   if (mainWindow === null) createWindow();
 });
 
-ipcMain.on(LOAD_PROJECT_LIST_REQUEST, async event => {
+ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
   const response = {
     projects: null,
     error: false,
@@ -158,11 +155,33 @@ ipcMain.on(LOAD_PROJECT_LIST_REQUEST, async event => {
 
     response.projects = projectsFromFile;
     response.error = false;
+    response.errorMessage = '';
   } catch (e) {
     response.error = true;
     response.errorMessage = `The projects file is corrupt or invalid.  You may need to delete the file before StatWrap will work properly again.`;
     console.log(e);
   }
 
-  event.sender.send(LOAD_PROJECT_LIST_RESPONSE, response);
+  event.sender.send(Messages.LOAD_PROJECT_LIST_RESPONSE, response);
+});
+
+ipcMain.on(Messages.LOAD_PROJECT_TYPES_REQUEST, async event => {
+  const response = {
+    projectTypes: null,
+    error: false,
+    errorMessage: ''
+  };
+
+  try {
+    const service = new ProjectService();
+    response.projectTypes = service.loadProjectTypes();
+    response.error = false;
+    response.errorMessage = '';
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = 'There was an unexpected error when loading the list of project types';
+    console.log(e);
+  }
+
+  event.sender.send(Messages.LOAD_PROJECT_TYPES_RESPONSE, response);
 });

@@ -19,6 +19,9 @@ export default class App extends React.Component {
     const theme = createMuiTheme({
       palette: {
         type: 'light'
+      },
+      typography: {
+        fontSize: 12
       }
     });
     return (

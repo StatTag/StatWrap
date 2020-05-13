@@ -112,5 +112,12 @@ describe('services', () => {
         expect(fs.readFileSync).not.toHaveBeenCalled();
       });
     });
+
+    describe('loadProjectTypes', () => {
+      it('should return the list of default project types', () => {
+        const projectTypes = new ProjectService().loadProjectTypes();
+        expect(projectTypes.length).toBe(1);
+      });
+    });
   });
 });
