@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import projectTypes from '../constants/project-types.json';
+import projectTypes from '../constants/project-templates.json';
 
 const fs = require('fs');
 const os = require('os');

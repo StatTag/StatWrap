@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Button } from '@material-ui/core';
 import { remote } from 'electron';
+import PropTypes from 'prop-types';
 import Error from '../../../components/Error/Error';
 import styles from './ExistingDirectory.css';
 
@@ -52,10 +53,19 @@ class ExistingDirectory extends Component {
             Browse...
           </Button>
         </fieldset>
+        <fieldset>
+          <legend>Project name:</legend>
+          <input type="text" value={this.props.name} />
+        </fieldset>
         {validation}
       </div>
     );
   }
 }
+
+ExistingDirectory.propTypes = {
+  name: PropTypes.string.isRequired,
+  directory: PropTypes.string.isRequired
+};
 
 export default ExistingDirectory;

@@ -3,6 +3,7 @@
  *        See https://github.com/webpack-contrib/sass-loader#imports
  */
 @import '~@fortawesome/fontawesome-free/css/all.css';
+@import '~react-checkbox-tree/lib/react-checkbox-tree.css';
 
 body {
   position: relative;

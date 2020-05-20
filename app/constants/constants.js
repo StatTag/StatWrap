@@ -1,4 +1,9 @@
+// Collection of constant values
+
 module.exports = {
-  NEW_PROJECT_TYPE: 'New',
-  EXISTING_PROJECT_TYPE: 'Existing'
+  ProjectType: {
+    NEW_PROJECT_TYPE: 'New',
+    EXISTING_PROJECT_TYPE: 'Existing',
+    CLONE_PROJECT_TYPE: 'Clone'
+  }
 };

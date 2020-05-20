@@ -1,0 +1,23 @@
+[
+  {
+    "id": "STATWRAP-EMPTY",
+    "name": "Empty project",
+    "description": "An empty project folder"
+  },
+  {
+    "id": "STATWRAP-BASIC",
+    "name": "Basic project",
+    "description": "An basic project template with placeholders for code and data",
+    "assets": [
+      {
+        "type": "folder",
+        "name": "data",
+        "children": [
+          { "type": "folder", "name": "raw" },
+          { "type": "folder", "name": "processed" }
+        ]
+      },
+      { "type": "folder", "name": "code" }
+    ]
+  }
+]

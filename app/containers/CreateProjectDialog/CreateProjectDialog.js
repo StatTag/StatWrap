@@ -1,6 +1,8 @@
+/* eslint-disable react/forbid-prop-types */
 /* eslint-disable object-shorthand */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import Draggable from 'react-draggable';
 import {
   Dialog,
@@ -14,6 +16,7 @@ import Constants from '../../constants/constants';
 import CreateProject from './CreateProject/CreateProject';
 import NewDirectory from './NewDirectory/NewDirectory';
 import ExistingDirectory from './ExistingDirectory/ExistingDirectory';
+import CloneDirectory from './CloneDirectory/CloneDirectory';
 import styles from './CreateProjectDialog.css';
 
 function PaperComponent(props) {
@@ -32,8 +35,10 @@ class CreateProjectDialog extends Component {
     super(props);
     this.state = {
       step: 1,
+      selectedTemplate: null,
       project: {
         type: null,
+        name: '',
         directory: ''
       },
       canCreateProject: false
@@ -43,6 +48,8 @@ class CreateProjectDialog extends Component {
     this.handleDirectoryChanged = this.handleDirectoryChanged.bind(this);
     this.handleBack = this.handleBack.bind(this);
     this.handleCreateProject = this.handleCreateProject.bind(this);
+    this.handleSelectProjectTemplate = this.handleSelectProjectTemplate.bind(this);
+    this.handleFinalizeProjectTemplate = this.handleFinalizeProjectTemplate.bind(this);
   }
 
   handleSelectAddProject(type) {
@@ -54,11 +61,14 @@ class CreateProjectDialog extends Component {
       }
     }));
     switch (type) {
-      case Constants.NEW_PROJECT_TYPE:
+      case Constants.ProjectType.NEW_PROJECT_TYPE:
         this.setState({ step: 2 });
         break;
-      case Constants.EXISTING_PROJECT_TYPE:
+      case Constants.ProjectType.EXISTING_PROJECT_TYPE:
         this.setState({ step: 3 });
+        break;
+      case Constants.ProjectType.CLONE_PROJECT_TYPE:
+        this.setState({ step: 4 });
         break;
       default:
         this.setState({ step: 1 });
@@ -72,6 +82,15 @@ class CreateProjectDialog extends Component {
   handleCreateProject() {
     console.log(this.state.project);
     this.props.onClose();
+  }
+
+  handleSelectProjectTemplate(template) {
+    console.log(template);
+    this.setState({ selectedTemplate: template });
+  }
+
+  handleFinalizeProjectTemplate(template) {
+    console.log(template);
   }
 
   handleDirectoryChanged(dir) {
@@ -107,7 +126,12 @@ class CreateProjectDialog extends Component {
       case 2: {
         dialogTitle = 'Select Project Type';
         displayComponent = (
-          <NewDirectory projectTypes={this.props.projectTypes} />
+          <NewDirectory
+            projectTemplates={this.props.projectTemplates}
+            selectedTemplate={this.state.selectedTemplate}
+            onSelectProjectTemplate={this.handleSelectProjectTemplate}
+            onFinalizeProjectTemplate={this.handleFinalizeProjectTemplate}
+          />
         );
         break;
       }
@@ -116,6 +140,17 @@ class CreateProjectDialog extends Component {
         dialogTitle = 'Create Project from Existing Directory';
         displayComponent = (
           <ExistingDirectory
+            onDirectoryChanged={this.handleDirectoryChanged}
+            directory={projectDirectory}
+          />
+        );
+        break;
+      }
+      case 4: {
+        const projectDirectory = this.state.project.directory;
+        dialogTitle = 'Clone Project from Existing Directory';
+        displayComponent = (
+          <CloneDirectory
             onDirectoryChanged={this.handleDirectoryChanged}
             directory={projectDirectory}
           />
@@ -155,5 +190,15 @@ class CreateProjectDialog extends Component {
     );
   }
 }
+
+CreateProjectDialog.propTypes = {
+  projectTemplates: PropTypes.array.isRequired,
+  onClose: PropTypes.func.isRequired,
+  open: PropTypes.bool
+};
+
+CreateProjectDialog.defaultProps = {
+  open: false
+};
 
 export default CreateProjectDialog;

@@ -16,7 +16,7 @@ class ProjectPage extends Component {
     super(props);
     this.state = {
       addingProject: false,
-      projectTypes: {},
+      projectTypes: [],
       projects: [],
       loaded: false,
       error: false,
@@ -40,6 +40,7 @@ class ProjectPage extends Component {
 
   componentWillUnmount() {
     ipcRenderer.removeListener(Messages.LOAD_PROJECT_LIST_RESPONSE, this.handleLoadProjectListResponse);
+    ipcRenderer.removeListener(Messages.LOAD_PROJECT_TYPES_RESPONSE, this.handleLoadProjectTypesResponse);
   }
 
   handleLoadProjectListResponse(sender, response) {
@@ -86,7 +87,7 @@ class ProjectPage extends Component {
           <Project name="My Amazing Project" />
         </ResizablePanels>
         <CreateProjectDialog
-          projectTypes={this.state.projectTypes}
+          projectTemplates={this.state.projectTypes}
           open={this.state.addingProject}
           onClose={this.handleCloseAddProject} />
       </div>

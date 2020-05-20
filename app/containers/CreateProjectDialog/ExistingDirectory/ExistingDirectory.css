@@ -10,8 +10,7 @@ input {
 
 .browse {
   margin-left: 15px !important;
-  padding: 7px;
-  line-height: 1;
+  line-height: 1 !important;
 }
 
 fieldset {
