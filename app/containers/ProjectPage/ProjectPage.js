@@ -16,39 +16,45 @@ class ProjectPage extends Component {
     super(props);
     this.state = {
       addingProject: false,
-      projectTypes: [],
+      projectTemplates: [],
       projects: [],
       loaded: false,
       error: false,
-      errorMessage: ''
+      errorMessage: '',
+
+      // This key is part of a trick to get React to throw out and recreate the Create Project
+      // dialog when we have disposed of it - either by creating a project or cancelling.  This
+      // tracks a sequential number that, when changed, signals React that the dialog can be
+      // recreated. We don't care what this key is, it just has to change.
+      createProjectDialogKey: 0
     };
 
     this.handleLoadProjectListResponse = this.handleLoadProjectListResponse.bind(this);
     this.refreshProjectsHandler = this.refreshProjectsHandler.bind(this);
     this.handleAddProject = this.handleAddProject.bind(this);
     this.handleCloseAddProject = this.handleCloseAddProject.bind(this);
-    this.handleLoadProjectTypesResponse = this.handleLoadProjectTypesResponse.bind(this);
+    this.handleLoadProjectTemplatesResponse = this.handleLoadProjectTemplatesResponse.bind(this);
   }
 
   componentDidMount() {
     ipcRenderer.send(Messages.LOAD_PROJECT_LIST_REQUEST);
     ipcRenderer.on(Messages.LOAD_PROJECT_LIST_RESPONSE, this.handleLoadProjectListResponse);
 
-    ipcRenderer.send(Messages.LOAD_PROJECT_TYPES_REQUEST);
-    ipcRenderer.on(Messages.LOAD_PROJECT_TYPES_RESPONSE, this.handleLoadProjectTypesResponse);
+    ipcRenderer.send(Messages.LOAD_PROJECT_TEMPLATES_REQUEST);
+    ipcRenderer.on(Messages.LOAD_PROJECT_TEMPLATES_RESPONSE, this.handleLoadProjectTemplatesResponse);
   }
 
   componentWillUnmount() {
     ipcRenderer.removeListener(Messages.LOAD_PROJECT_LIST_RESPONSE, this.handleLoadProjectListResponse);
-    ipcRenderer.removeListener(Messages.LOAD_PROJECT_TYPES_RESPONSE, this.handleLoadProjectTypesResponse);
+    ipcRenderer.removeListener(Messages.LOAD_PROJECT_TEMPLATES_RESPONSE, this.handleLoadProjectTemplatesResponse);
   }
 
   handleLoadProjectListResponse(sender, response) {
     this.setState({...response, loaded: true});
   }
 
-  handleLoadProjectTypesResponse(sender, response) {
-    this.setState({projectTypes: response.projectTypes});
+  handleLoadProjectTemplatesResponse(sender, response) {
+    this.setState({projectTemplates: response.projectTemplates});
   }
 
   refreshProjectsHandler() {
@@ -60,8 +66,18 @@ class ProjectPage extends Component {
     this.setState({addingProject: true});
   }
 
-  handleCloseAddProject() {
-    this.setState({addingProject: false});
+  handleCloseAddProject(refresh) {
+    console.log(this.state);
+    this.setState(prevState => (
+      {
+        addingProject: false,
+        createProjectDialogKey: prevState.createProjectDialogKey + 1
+      }
+    ));
+
+    if (refresh) {
+      this.refreshProjectsHandler();
+    }
   }
 
   render() {
@@ -87,7 +103,8 @@ class ProjectPage extends Component {
           <Project name="My Amazing Project" />
         </ResizablePanels>
         <CreateProjectDialog
-          projectTemplates={this.state.projectTypes}
+          key={this.state.createProjectDialogKey}
+          projectTemplates={this.state.projectTemplates}
           open={this.state.addingProject}
           onClose={this.handleCloseAddProject} />
       </div>

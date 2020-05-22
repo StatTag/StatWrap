@@ -7,7 +7,7 @@
   {
     "id": "STATWRAP-BASIC",
     "name": "Basic project",
-    "description": "An basic project template with placeholders for code and data",
+    "description": "A basic project template with placeholders for code and data",
     "assets": [
       {
         "type": "folder",
@@ -18,6 +18,29 @@
         ]
       },
       { "type": "folder", "name": "code" }
+    ]
+  },
+  {
+    "id": "STATWRAP-NUBCC",
+    "name": "Biostats Collaboration Core",
+    "description": "The Northwestern BCC Template",
+    "assets": [
+      { "type": "folder", "name": "Abstract_Poster" },
+      {
+        "type": "folder",
+        "name": "Analysis",
+        "children": [
+          { "type": "folder", "name": "Code" },
+          { "type": "folder", "name": "Data" },
+          { "type": "folder", "name": "Documentation" },
+          { "type": "folder", "name": "Output_results" }
+        ]
+      },
+      { "type": "folder", "name": "Literature" },
+      { "type": "folder", "name": "Manuscript_Proposal" },
+      { "type": "folder", "name": "Memos_Emails" },
+      { "type": "folder", "name": "Presentations_Lectures" },
+      { "type": "folder", "name": "Readme" }
     ]
   }
 ]

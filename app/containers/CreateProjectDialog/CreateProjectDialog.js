@@ -12,12 +12,16 @@ import {
   Paper
 } from '@material-ui/core';
 import ArrowBackIcon from '@material-ui/icons/ArrowBackIos';
+import ArrowForwardIcon from '@material-ui/icons/ArrowForwardIos';
+import { ipcRenderer } from 'electron';
 import Constants from '../../constants/constants';
 import CreateProject from './CreateProject/CreateProject';
-import NewDirectory from './NewDirectory/NewDirectory';
-import ExistingDirectory from './ExistingDirectory/ExistingDirectory';
+import SelectProjectTemplate from '../../components/SelectProjectTemplate/SelectProjectTemplate';
+import ExistingDirectory from '../../components/ExistingDirectory/ExistingDirectory';
+import NewDirectory from '../../components/NewDirectory/NewDirectory';
 import CloneDirectory from './CloneDirectory/CloneDirectory';
 import styles from './CreateProjectDialog.css';
+import Messages from '../../constants/messages';
 
 function PaperComponent(props) {
   return (
@@ -31,29 +35,89 @@ function PaperComponent(props) {
 }
 
 class CreateProjectDialog extends Component {
+  static validateProjectDirectory(step, directory, name) {
+    const hasDirectory = directory && directory !== '';
+    // We are ignoring name validation for existing directories, otherwise
+    // we will apply the validation rules.
+    const hasName =
+      step === 'ExistingProjectDetails' ? true : name && name !== '';
+    return hasDirectory && hasName;
+  }
+
   constructor(props) {
     super(props);
     this.state = {
-      step: 1,
+      step: 'SelectProjectType',
       selectedTemplate: null,
       project: {
         type: null,
         name: '',
         directory: ''
       },
-      canCreateProject: false
+      canProgress: false
     };
 
     this.handleSelectAddProject = this.handleSelectAddProject.bind(this);
     this.handleDirectoryChanged = this.handleDirectoryChanged.bind(this);
+    this.handleNameChanged = this.handleNameChanged.bind(this);
     this.handleBack = this.handleBack.bind(this);
+    this.handleNext = this.handleNext.bind(this);
     this.handleCreateProject = this.handleCreateProject.bind(this);
     this.handleSelectProjectTemplate = this.handleSelectProjectTemplate.bind(this);
-    this.handleFinalizeProjectTemplate = this.handleFinalizeProjectTemplate.bind(this);
+    this.handleProjectCreated = this.handleProjectCreated.bind(this);
   }
 
+  componentDidMount() {
+    ipcRenderer.on(Messages.CREATE_PROJECT_RESPONSE, this.handleProjectCreated);
+  }
+
+  componentWillUnmount() {
+    ipcRenderer.removeListener(Messages.CREATE_PROJECT_RESPONSE, this.handleProjectCreated);
+  }
+
+  static steps = [
+    // This is the starting dialog that can take the user down one of three paths, represented
+    // by states below:
+    //  1. New Directory
+    //  2. Existing Directory
+    //  3. Clone Directory
+    {
+      step: 'SelectProjectType'
+    },
+
+    // Progression for New Project
+    {
+      step: 'SelectNewProjectTemplate',
+      next: 'NewProjectDetails',
+      prev: 'SelectProjectType'
+    },
+    {
+      step: 'NewProjectDetails',
+      next: 'Create',
+      prev: 'SelectNewProjectTemplate'
+    },
+
+    // Progression for Existing Directory
+    {
+      step: 'ExistingProjectDetails',
+      next: 'Create',
+      prev: 'SelectProjectType'
+    },
+
+    // Progression for Clone Directory
+    {
+      step: 'CloneProjectDetails',
+      next: 'SelectAssets',
+      prev: 'SelectProjectType'
+    },
+    {
+      step: 'SelectAssets',
+      next: 'Create',
+      prev: 'CloneProjectDetails'
+    }
+  ];
+
   handleSelectAddProject(type) {
-    console.log(type);
     this.setState(prevState => ({
       project: {
         ...prevState.project,
@@ -62,56 +126,112 @@ class CreateProjectDialog extends Component {
     }));
     switch (type) {
       case Constants.ProjectType.NEW_PROJECT_TYPE:
-        this.setState({ step: 2 });
+        this.setState({ step: 'SelectNewProjectTemplate' });
         break;
       case Constants.ProjectType.EXISTING_PROJECT_TYPE:
-        this.setState({ step: 3 });
+        this.setState({ step: 'ExistingProjectDetails' });
         break;
       case Constants.ProjectType.CLONE_PROJECT_TYPE:
-        this.setState({ step: 4 });
+        this.setState({ step: 'CloneProjectDetails' });
         break;
       default:
-        this.setState({ step: 1 });
+        this.setState({ step: 'SelectProjectType' });
     }
   }
 
   handleBack() {
-    this.setState({ step: 1 });
+    const currentStep = this.state.step;
+    const stepDetails = CreateProjectDialog.steps.find(
+      x => x.step === currentStep
+    );
+    this.setState({ step: stepDetails.prev, canProgress: false });
+  }
+
+  handleNext() {
+    const currentStep = this.state.step;
+    const stepDetails = CreateProjectDialog.steps.find(
+      x => x.step === currentStep
+    );
+    this.setState({ step: stepDetails.next, canProgress: false });
+  }
+
+  handleProjectCreated(sender, response) {
+    console.log(response);
+    if (response && !response.error) {
+      this.props.onClose(true);
+    }
   }
 
   handleCreateProject() {
-    console.log(this.state.project);
-    this.props.onClose();
+    const project = {
+      ...this.state.project,
+      template: this.state.selectedTemplate
+    };
+    console.log(project);
+    ipcRenderer.send(Messages.CREATE_PROJECT_REQUEST, project);
   }
 
   handleSelectProjectTemplate(template) {
-    console.log(template);
-    this.setState({ selectedTemplate: template });
-  }
-
-  handleFinalizeProjectTemplate(template) {
-    console.log(template);
+    this.setState({ selectedTemplate: template, canProgress: true });
   }
 
   handleDirectoryChanged(dir) {
-    const canCreateProject = (dir !== null && dir !== '');
     this.setState(prevState => ({
       project: {
         ...prevState.project,
         directory: dir
       },
-      canCreateProject: canCreateProject
+      canProgress: CreateProjectDialog.validateProjectDirectory(
+        prevState.step,
+        dir,
+        prevState.project.name
+      )
+    }));
+  }
+
+  handleNameChanged(name) {
+    this.setState(prevState => ({
+      project: {
+        ...prevState.project,
+        name: name
+      },
+      canProgress: CreateProjectDialog.validateProjectDirectory(
+        prevState.step,
+        prevState.project.directory,
+        name
+      )
     }));
   }
 
   render() {
+    const currentStep = this.state.step;
+    const stepDetails = CreateProjectDialog.steps.find(x => x.step === currentStep);
+    const hasNextStep = (stepDetails.next !== null && stepDetails.next !== undefined);
     let displayComponent = null;
     let dialogTitle = null;
-    const createProject = this.state.canCreateProject ? (
-      <Button color="primary" onClick={this.handleCreateProject}>
-        Create Project
-      </Button>
-    ) : null;
+    let progressButton = null;
+    if (hasNextStep) {
+      progressButton =
+        stepDetails.next === 'Create' ? (
+          <Button
+            color="primary"
+            disabled={!this.state.canProgress}
+            onClick={this.handleCreateProject}
+          >
+            Create Project
+            <ArrowForwardIcon />
+          </Button>
+        ) : (
+          <Button
+            color="primary"
+            disabled={!this.state.canProgress}
+            onClick={this.handleNext}
+          >
+            Next
+            <ArrowForwardIcon />
+          </Button>
+        );
+    }
     let backButton = (
       <Button
         onClick={this.handleBack}
@@ -123,10 +243,11 @@ class CreateProjectDialog extends Component {
       </Button>
     );
     switch (this.state.step) {
-      case 2: {
+      case 'SelectNewProjectTemplate': {
         dialogTitle = 'Select Project Type';
         displayComponent = (
-          <NewDirectory
+          <SelectProjectTemplate
+            key={this.state.selectedTemplate}
             projectTemplates={this.props.projectTemplates}
             selectedTemplate={this.state.selectedTemplate}
             onSelectProjectTemplate={this.handleSelectProjectTemplate}
@@ -135,7 +256,20 @@ class CreateProjectDialog extends Component {
         );
         break;
       }
-      case 3: {
+      case 'NewProjectDetails': {
+        const projectDirectory = this.state.project.directory;
+        dialogTitle = 'About Your New Project';
+        displayComponent = (
+          <NewDirectory
+            onDirectoryChanged={this.handleDirectoryChanged}
+            onNameChanged={this.handleNameChanged}
+            directory={projectDirectory}
+            name={this.state.project.name}
+          />
+        );
+        break;
+      }
+      case 'ExistingProjectDetails': {
         const projectDirectory = this.state.project.directory;
         dialogTitle = 'Create Project from Existing Directory';
         displayComponent = (
@@ -146,7 +280,18 @@ class CreateProjectDialog extends Component {
         );
         break;
       }
-      case 4: {
+      case 'CloneProjectDetails': {
+        const projectDirectory = this.state.project.directory;
+        dialogTitle = 'Clone Project from Existing Directory';
+        displayComponent = (
+          <CloneDirectory
+            onDirectoryChanged={this.handleDirectoryChanged}
+            directory={projectDirectory}
+          />
+        );
+        break;
+      }
+      case 'SelectAssets': {
         const projectDirectory = this.state.project.directory;
         dialogTitle = 'Clone Project from Existing Directory';
         displayComponent = (
@@ -176,12 +321,12 @@ class CreateProjectDialog extends Component {
         maxWidth="md"
       >
         <DialogTitle classes={{ root: styles.title }} id="project-dialog-title">
-          {backButton}
           {dialogTitle}
         </DialogTitle>
         {displayComponent}
         <DialogActions>
-          {createProject}
+          {backButton}
+          {progressButton}
           <Button color="primary" onClick={this.props.onClose}>
             Cancel
           </Button>

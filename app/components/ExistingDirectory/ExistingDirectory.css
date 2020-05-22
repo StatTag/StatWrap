@@ -9,12 +9,14 @@ input {
 }
 
 .browse {
-  margin-left: 15px !important;
+  margin-left: 10px !important;
   line-height: 1 !important;
+  width: 15%;
 }
 
 fieldset {
   border: none;
+  margin-bottom: 10px;
 }
 
 legend {

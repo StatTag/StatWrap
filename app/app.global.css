@@ -48,3 +48,9 @@ a:hover {
   color: #fff !important;
   background-color: #173164 !important;
 }
+
+.MuiDialogTitle-root {
+  background-color: #3f51b5;
+  margin-bottom: 10px !important;
+  padding: 10px 16px !important;
+}

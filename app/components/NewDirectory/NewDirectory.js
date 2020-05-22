@@ -2,13 +2,14 @@ import React, { Component } from 'react';
 import { Button } from '@material-ui/core';
 import { remote } from 'electron';
 import PropTypes from 'prop-types';
-import Error from '../../../components/Error/Error';
-import styles from './ExistingDirectory.css';
+import Error from '../Error/Error';
+import styles from './NewDirectory.css';
 
-class ExistingDirectory extends Component {
+class NewDirectory extends Component {
   constructor(props) {
     super(props);
     this.handleBrowseDirectory = this.handleBrowseDirectory.bind(this);
+    this.handleNameChanged = this.handleNameChanged.bind(this);
     this.state = {
       validationErrorMessage: null
     };
@@ -34,6 +35,10 @@ class ExistingDirectory extends Component {
       });
   };
 
+  handleNameChanged = e => {
+    this.props.onNameChanged(e.target.value);
+  };
+
   render() {
     let validation = null;
     if (this.state.validationErrorMessage) {
@@ -43,7 +48,11 @@ class ExistingDirectory extends Component {
     return (
       <div className={styles.container} data-tid="container">
         <fieldset>
-          <legend>Project root directory:</legend>
+          <legend>Directory name:</legend>
+          <input type="text" onChange={this.handleNameChanged} value={this.props.name} />
+        </fieldset>
+        <fieldset>
+          <legend>Create project as subdirectory of:</legend>
           <input readOnly type="text" value={this.props.directory} />
           <Button
             className={styles.browse}
@@ -53,19 +62,17 @@ class ExistingDirectory extends Component {
             Browse...
           </Button>
         </fieldset>
-        <fieldset>
-          <legend>Project name:</legend>
-          <input type="text" value={this.props.name} />
-        </fieldset>
         {validation}
       </div>
     );
   }
 }
 
-ExistingDirectory.propTypes = {
+NewDirectory.propTypes = {
   name: PropTypes.string.isRequired,
-  directory: PropTypes.string.isRequired
+  directory: PropTypes.string.isRequired,
+  onDirectoryChanged: PropTypes.func.isRequired,
+  onNameChanged: PropTypes.func.isRequired
 };
 
-export default ExistingDirectory;
+export default NewDirectory;

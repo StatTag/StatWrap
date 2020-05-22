@@ -165,16 +165,16 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
   event.sender.send(Messages.LOAD_PROJECT_LIST_RESPONSE, response);
 });
 
-ipcMain.on(Messages.LOAD_PROJECT_TYPES_REQUEST, async event => {
+ipcMain.on(Messages.LOAD_PROJECT_TEMPLATES_REQUEST, async event => {
   const response = {
-    projectTypes: null,
+    projectTemplates: null,
     error: false,
     errorMessage: ''
   };
 
   try {
     const service = new ProjectService();
-    response.projectTypes = service.loadProjectTypes();
+    response.projectTemplates = service.loadProjectTemplates();
     response.error = false;
     response.errorMessage = '';
   } catch (e) {
@@ -183,5 +183,36 @@ ipcMain.on(Messages.LOAD_PROJECT_TYPES_REQUEST, async event => {
     console.log(e);
   }
 
-  event.sender.send(Messages.LOAD_PROJECT_TYPES_RESPONSE, response);
+  event.sender.send(Messages.LOAD_PROJECT_TEMPLATES_RESPONSE, response);
+});
+
+ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
+  const response = {
+    projectId: null,
+    error: false,
+    errorMessage: ''
+  };
+
+  try {
+    const service = new ProjectService();
+    const validationReport = service.convertAndValidateProject(project);
+    if (validationReport.isValid) {
+      response.projectId = validationReport.project.id;
+
+      const userDataPath = app.getPath('userData');
+      service.appendAndSaveProjectToList(
+        validationReport.project,
+        path.join(userDataPath, DefaultProjectListFile)
+      );
+    } else {
+      response.error = true;
+      response.errorMessage = validationReport.details;
+    }
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = 'There was an unexpected error when trying to create the project';
+    console.log(e);
+  }
+
+  event.sender.send(Messages.CREATE_PROJECT_RESPONSE, response);
 });

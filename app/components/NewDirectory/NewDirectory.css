@@ -1,0 +1,25 @@
+.container {
+  margin-left: 15px;
+  margin-right: 15px;
+  font-size: 0.75rem;
+}
+
+input {
+  width: 80%;
+}
+
+.browse {
+  margin-left: 10px !important;
+  line-height: 1 !important;
+  width: 15%;
+}
+
+fieldset {
+  border: none;
+  margin-bottom: 10px;
+}
+
+legend {
+  font-weight: bold;
+  font-size: 0.8rem;
+}
