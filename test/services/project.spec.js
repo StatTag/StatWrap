@@ -24,6 +24,7 @@ const projectListString = `[
   }
 ]`;
 
+// Used just for testing the sorting of the project list.
 const unsortedProjectListString = `[
   {
     "id": "1",
@@ -71,56 +72,52 @@ describe('services', () => {
       jest.clearAllMocks();
     });
 
-    describe('loadListFromFile', () => {
+    describe('loadProjectListFromFile', () => {
       it('should return the list of projects', () => {
         fs.existsSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(projectListString);
-        const projects = new ProjectService().loadListFromFile(
-          'test-project-list.json'
-        );
+        const projects = new ProjectService().loadProjectListFromFile('test-project-list.json');
         expect(projects.length).toBe(2);
         expect(fs.readFileSync).toHaveBeenCalledWith('test-project-list.json');
       });
       it('should sort the list of project names', () => {
         fs.existsSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(unsortedProjectListString);
-        const projects = new ProjectService().loadListFromFile(
-          'test-project-list.json'
-        );
+        const projects = new ProjectService().loadProjectListFromFile('test-project-list.json');
         expect(projects.length).toBe(5);
-        expect(projects[0].id).toBe("3"); // "(Unnamed Project)"
-        expect(projects[1].id).toBe("5"); // "a test"
-        expect(projects[2].id).toBe("4"); // "A Test Project"
-        expect(projects[3].id).toBe("2"); // "Project Number Two"
-        expect(projects[4].id).toBe("1"); // "Test Project"
+        expect(projects[0].id).toBe('3'); // "(Unnamed Project)"
+        expect(projects[1].id).toBe('5'); // "a test"
+        expect(projects[2].id).toBe('4'); // "A Test Project"
+        expect(projects[3].id).toBe('2'); // "Project Number Two"
+        expect(projects[4].id).toBe('1'); // "Test Project"
       });
       it('should throw an exception if the JSON is invalid', () => {
         fs.existsSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(invalidProjectListString);
         expect(() =>
-          new ProjectService().loadListFromFile('test-project-list.json')
+          new ProjectService().loadProjectListFromFile('test-project-list.json')
         ).toThrow(SyntaxError);
       });
       it('should use the default file name when no parameter is specified', () => {
         fs.existsSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(projectListString);
-        const projects = new ProjectService().loadListFromFile();
+        const projects = new ProjectService().loadProjectListFromFile();
         expect(projects.length).toBe(2);
         expect(fs.readFileSync).toHaveBeenCalledWith('.statwrap-projects.json');
       });
       it('should return an empty array if no file is found', () => {
         fs.existsSync.mockReturnValue(false);
-        const projects = new ProjectService().loadListFromFile();
+        const projects = new ProjectService().loadProjectListFromFile();
         expect(projects.length).toBe(0);
         expect(fs.readFileSync).not.toHaveBeenCalled();
       });
     });
 
-    describe('loadFromFile', () => {
+    describe('loadProjectFile', () => {
       it('should resolve the ~ home path', () => {
         fs.existsSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(projectString);
-        const project = new ProjectService().loadFromFile('~/Test/Path');
+        const project = new ProjectService().loadProjectFile('~/Test/Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith(
           `${TEST_USER_HOME_PATH}Test/Path/.statwrap-project.json`
@@ -129,22 +126,54 @@ describe('services', () => {
       it('should return the project details', () => {
         fs.existsSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(projectString);
-        const project = new ProjectService().loadFromFile('/Test/Path');
+        const project = new ProjectService().loadProjectFile('/Test/Path');
         expect(project).not.toBeNull();
-        expect(fs.readFileSync).toHaveBeenCalledWith(
-          '/Test/Path/.statwrap-project.json'
-        );
+        expect(fs.readFileSync).toHaveBeenCalledWith('/Test/Path/.statwrap-project.json');
       });
       it('should throw an exception if the JSON is invalid', () => {
         fs.existsSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(invalidProjectString);
         // eslint-disable-next-line prettier/prettier
-        expect(() => new ProjectService().loadFromFile('/Test/Path')).toThrow(SyntaxError);
+        expect(() => new ProjectService().loadProjectFile('/Test/Path')).toThrow(SyntaxError);
       });
       it('should return null if the file path does not exist', () => {
         fs.existsSync.mockReturnValue(false);
-        const project = new ProjectService().loadFromFile('/Test/Path');
+        const project = new ProjectService().loadProjectFile('/Test/Path');
         expect(project).toBeNull();
+        expect(fs.readFileSync).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('saveProjectFile', () => {
+      it('should resolve the ~ home path', () => {
+        fs.existsSync.mockReturnValue(true);
+        new ProjectService().saveProjectFile('~/Test/Path', { id: '1' });
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+          `${TEST_USER_HOME_PATH}Test/Path/.statwrap-project.json`,
+          '{"id":"1"}'
+        );
+      });
+      it('should save the project details', () => {
+        fs.existsSync.mockReturnValue(true);
+        new ProjectService().saveProjectFile('/Test/Path', { id: '1' });
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+          '/Test/Path/.statwrap-project.json',
+          '{"id":"1"}'
+        );
+      });
+      it('should throw an error if the project path is invalid', () => {
+        fs.existsSync.mockReturnValue(false);
+        expect(() =>
+          new ProjectService().saveProjectFile('/Invalid/Test/Path', { id: '1' })
+        ).toThrow(Error);
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+      });
+      it('should throw an error if the project is not defined with at least an ID', () => {
+        fs.existsSync.mockReturnValue(true);
+        const service = new ProjectService();
+        expect(() => service.saveProjectFile('/Test/Path', null)).toThrow(Error);
+        expect(() => service.saveProjectFile('/Test/Path', undefined)).toThrow(Error);
+        expect(() => service.saveProjectFile('/Test/Path', {})).toThrow(Error);
         expect(fs.readFileSync).not.toHaveBeenCalled();
       });
     });
@@ -205,25 +234,21 @@ describe('services', () => {
       });
 
       it('should flag an unknown project type as invalid', () => {
-        const validationReport = new ProjectService().convertAndValidateProject(
-          {
-            directory: '/Test/Path',
-            name: 'My Test Project',
-            type: 'Invalid'
-          }
-        );
+        const validationReport = new ProjectService().convertAndValidateProject({
+          directory: '/Test/Path',
+          name: 'My Test Project',
+          type: 'Invalid'
+        });
         expect(validationReport.isValid).toBe(false);
         expect(validationReport.details).toBe('An unknown project type (Invalid) was specified.');
       });
 
       it('should create transform and create new ID and lastAccessed for a new project', () => {
-        const validationReport = new ProjectService().convertAndValidateProject(
-          {
-            directory: '/Test/Path',
-            name: 'My Test Project',
-            type: Constants.ProjectType.NEW_PROJECT_TYPE
-          }
-        );
+        const validationReport = new ProjectService().convertAndValidateProject({
+          directory: '/Test/Path',
+          name: 'My Test Project',
+          type: Constants.ProjectType.NEW_PROJECT_TYPE
+        });
         expect(validationReport.isValid).toBe(true);
         expect(validationReport.details).toBe('');
         expect(validationReport.project).not.toBeNull();
@@ -237,36 +262,30 @@ describe('services', () => {
       });
 
       it('should transform a relative root directory for a new project', () => {
-        const validationReport = new ProjectService().convertAndValidateProject(
-          {
-            directory: '~',
-            name: 'My Test Project',
-            type: Constants.ProjectType.NEW_PROJECT_TYPE
-          }
-        );
-        expect(validationReport.project.path).toBe(TEST_USER_HOME_PATH + 'My Test Project');
+        const validationReport = new ProjectService().convertAndValidateProject({
+          directory: '~',
+          name: 'My Test Project',
+          type: Constants.ProjectType.NEW_PROJECT_TYPE
+        });
+        expect(validationReport.project.path).toBe(`${TEST_USER_HOME_PATH}My Test Project`);
       });
 
       it('should strip invalid characters from a new project name for the path', () => {
         const folderWithInvalidChars = '.My: Test** Project ??';
-        const validationReport = new ProjectService().convertAndValidateProject(
-          {
-            directory: '/Test/Path',
-            name: folderWithInvalidChars,
-            type: Constants.ProjectType.NEW_PROJECT_TYPE
-          }
-        );
+        const validationReport = new ProjectService().convertAndValidateProject({
+          directory: '/Test/Path',
+          name: folderWithInvalidChars,
+          type: Constants.ProjectType.NEW_PROJECT_TYPE
+        });
         expect(validationReport.project.name).toBe(folderWithInvalidChars);
         expect(validationReport.project.path).toBe('/Test/Path/My Test Project');
       });
 
       it('should create transform and create new ID and lastAccessed for an existing project', () => {
-        const validationReport = new ProjectService().convertAndValidateProject(
-          {
-            directory: '/Test/Path/My Test Project',
-            type: Constants.ProjectType.EXISTING_PROJECT_TYPE
-          }
-        );
+        const validationReport = new ProjectService().convertAndValidateProject({
+          directory: '/Test/Path/My Test Project',
+          type: Constants.ProjectType.EXISTING_PROJECT_TYPE
+        });
         expect(validationReport.isValid).toBe(true);
         expect(validationReport.details).toBe('');
         expect(validationReport.project).not.toBeNull();
@@ -280,9 +299,83 @@ describe('services', () => {
       });
     });
 
+    describe('validateProjectListEntry', () => {
+      it('should throw an error if the project is null or undefined', () => {
+        const service = new ProjectService();
+        expect(() => service.validateProjectListEntry(null)).toThrow(Error);
+        expect(() => service.validateProjectListEntry(undefined)).toThrow(Error);
+      });
+
+      it('should throw an error if the project ID is not defined', () => {
+        const service = new ProjectService();
+        expect(() => service.validateProjectListEntry({ path: '/Test/Path' })).toThrow(Error);
+        expect(() => service.validateProjectListEntry({ id: null, path: '/Test/Path' })).toThrow(Error);
+        expect(() =>
+          service.validateProjectListEntry({ id: undefined, path: '/Test/Path' })
+        ).toThrow(Error);
+        expect(() => service.validateProjectListEntry({ id: '', path: '/Test/Path' })).toThrow(Error);
+        expect(() => service.validateProjectListEntry({ id: '   ', path: '/Test/Path' })).toThrow(Error);
+      });
+
+      it('should throw an error if the project path is not defined', () => {
+        const service = new ProjectService();
+        expect(() => service.validateProjectListEntry({ id: '1' })).toThrow(Error);
+        expect(() => service.validateProjectListEntry({ id: '1', path: null })).toThrow(Error);
+        expect(() => service.validateProjectListEntry({ id: '1', path: undefined })).toThrow(Error);
+        expect(() => service.validateProjectListEntry({ id: '1', path: '' })).toThrow(Error);
+        expect(() => service.validateProjectListEntry({ id: '1', path: '   ' })).toThrow(Error);
+      });
+
+      it('should not throw an error if the ID and path are specified', () => {
+        const service = new ProjectService();
+        expect(() => service.validateProjectListEntry({ id: '1', path: '/Test/Path' })).not.toThrow(Error);
+      });
+    });
+
     describe('appendAndSaveProjectToList', () => {
+      it('should not try to save if the project is invalid', () => {
+        fs.existsSync.mockReturnValue(false);
+        const service = new ProjectService();
+        expect(() => service.appendAndSaveProjectToList(null)).toThrow(Error);
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+      });
+
+      it('should not save if the project is a duplicate based on ID or path', () => {
+        fs.existsSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListString);
+        const service = new ProjectService();
+        // Exact same id and path
+        service.appendAndSaveProjectToList({
+          id: 'd01d2925-f6ff-4f8e-988f-fca2ee193427',
+          path: '~/Development/projects/test1'
+        });
+        // Same id, different path
+        service.appendAndSaveProjectToList({
+          id: 'd01d2925-f6ff-4f8e-988f-fca2ee193427',
+          path: '~/Development/projects/test2'
+        });
+        // Same path, different id
+        service.appendAndSaveProjectToList({
+          id: 'd01d2925-f6ff-4f8e-988f-fca2ee193428',
+          path: '~/Development/projects/test1'
+        });
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+      });
+
       it('should initialize and save the file if it does not exist', () => {
         fs.existsSync.mockReturnValue(false);
+        const service = new ProjectService();
+        service.appendAndSaveProjectToList({
+          id: '12345',
+          name: 'Test',
+          path: '/Test/Project/Path'
+        });
+        expect(fs.writeFileSync).toHaveBeenCalled();
+      });
+
+      it('should append to the existing file', () => {
+        fs.existsSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListString);
         const service = new ProjectService();
         service.appendAndSaveProjectToList({
           id: '12345',

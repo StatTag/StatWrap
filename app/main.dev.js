@@ -15,10 +15,7 @@ import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import log from 'electron-log';
 import MenuBuilder from './menu';
-import ProjectService, {
-  DefaultProjectListFile,
-  DefaultProjectFile
-} from './services/project';
+import ProjectService, { DefaultProjectListFile, DefaultProjectFile } from './services/project';
 import Messages from './constants/messages';
 
 export default class AppUpdater {
@@ -36,10 +33,7 @@ if (process.env.NODE_ENV === 'production') {
   sourceMapSupport.install();
 }
 
-if (
-  process.env.NODE_ENV === 'development' ||
-  process.env.DEBUG_PROD === 'true'
-) {
+if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true') {
   require('electron-debug')();
 }
 
@@ -54,10 +48,7 @@ const installExtensions = async () => {
 };
 
 const createWindow = async () => {
-  if (
-    process.env.NODE_ENV === 'development' ||
-    process.env.DEBUG_PROD === 'true'
-  ) {
+  if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true') {
     await installExtensions();
   }
 
@@ -129,7 +120,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
     const userDataPath = app.getPath('userData');
     console.log(userDataPath);
     const service = new ProjectService();
-    let projectsFromFile = service.loadListFromFile(
+    let projectsFromFile = service.loadProjectListFromFile(
       path.join(userDataPath, DefaultProjectListFile)
     );
     console.log(projectsFromFile);
@@ -137,7 +128,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
     // For all of the projects we have in our list, load the additional information that exists
     // within the project's local metadata file itself.
     projectsFromFile = projectsFromFile.map(project => {
-      const metadata = service.loadFromFile(project.path);
+      const metadata = service.loadProjectFile(project.path);
       console.log(metadata);
       // TODO What if the IDs don't match?  Handle that.  Also handle if file not found, file invalid, etc.
       // Remember that if the file can't be loaded, it may be because we're offline and the project is in
@@ -198,6 +189,22 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
     const validationReport = service.convertAndValidateProject(project);
     if (validationReport.isValid) {
       response.projectId = validationReport.project.id;
+
+      // Let's see if a StatWrap project configuration file already exists at that location.
+      // If so, we want to pick up the ID and details there, not replace it with anything new.
+      // Note that it must at minimum have an id attribute to be considered valid.
+      let projectConfig = service.loadProjectFile(validationReport.project.path);
+      if (projectConfig && projectConfig.id) {
+        validationReport.project.id = projectConfig.id;
+        validationReport.project.name = projectConfig.name;
+      } else {
+        projectConfig = {
+          id: validationReport.project.id,
+          name: validationReport.project.name,
+          categories: []
+        };
+        service.saveProjectFile(validationReport.project.path, projectConfig);
+      }
 
       const userDataPath = app.getPath('userData');
       service.appendAndSaveProjectToList(

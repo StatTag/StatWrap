@@ -141,17 +141,13 @@ class CreateProjectDialog extends Component {
 
   handleBack() {
     const currentStep = this.state.step;
-    const stepDetails = CreateProjectDialog.steps.find(
-      x => x.step === currentStep
-    );
+    const stepDetails = CreateProjectDialog.steps.find(x => x.step === currentStep);
     this.setState({ step: stepDetails.prev, canProgress: false });
   }
 
   handleNext() {
     const currentStep = this.state.step;
-    const stepDetails = CreateProjectDialog.steps.find(
-      x => x.step === currentStep
-    );
+    const stepDetails = CreateProjectDialog.steps.find(x => x.step === currentStep);
     this.setState({ step: stepDetails.next, canProgress: false });
   }
 
