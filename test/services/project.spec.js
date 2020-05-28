@@ -398,5 +398,94 @@ describe('services', () => {
         expect(fs.writeFileSync).not.toHaveBeenCalled();
       });
     });
+
+    describe('initializeNewProject', () => {
+      it('should not try to initialize if the project is invalid', () => {
+        const service = new ProjectService();
+        expect(() => service.initializeNewProject(null)).toThrow(Error);
+        expect(fs.mkdir).not.toHaveBeenCalled();
+      });
+
+      it('should throw an error if the project folder failed to create', () => {
+        fs.existsSync.mockReturnValue(false);
+        fs.mkdirSync = jest.fn().mockImplementationOnce(() => {
+          throw new Error('Failed to create');
+        });
+        const service = new ProjectService();
+        const saveProjectFile = jest.spyOn(service, 'saveProjectFile');
+        expect(() =>
+          service.initializeNewProject({
+            id: '1',
+            name: 'Test',
+            path: '/Invalid/dir'
+          })
+        ).toThrow(Error);
+        expect(saveProjectFile).not.toHaveBeenCalled();
+      });
+
+      it('should not try to make the directory if it already exists', () => {
+        fs.existsSync.mockReturnValue(true);
+        const mkdirSync = jest.spyOn(fs, 'mkdirSync');
+
+        const service = new ProjectService();
+        expect(() =>
+          service.initializeNewProject({
+            id: '1',
+            name: 'Test',
+            path: '/Invalid/dir'
+          })
+        ).toThrow(Error);
+        expect(mkdirSync).not.toHaveBeenCalled();
+      });
+
+      it('should not try to save the project config if one exists containing at least an ID', () => {
+        fs.existsSync.mockReturnValue(true);
+        const mkdirSync = jest.spyOn(fs, 'mkdirSync');
+
+        const service = new ProjectService();
+        const saveProjectFile = jest.spyOn(service, 'saveProjectFile');
+        service.loadProjectFile = jest.fn().mockReturnValue({ id: '1' });
+        service.initializeNewProject({
+          id: '1',
+          name: 'Test',
+          path: '/Invalid/dir'
+        });
+        expect(mkdirSync).not.toHaveBeenCalled();
+        expect(saveProjectFile).not.toHaveBeenCalled();
+      });
+
+      it('should save the configuration file if a project folder exists, but the config is invalid', () => {
+        fs.existsSync.mockReturnValue(true);
+        const mkdirSync = jest.spyOn(fs, 'mkdirSync');
+
+        const service = new ProjectService();
+        const saveProjectFile = jest.spyOn(service, 'saveProjectFile');
+        service.loadProjectFile = jest.fn().mockReturnValue(null);
+        service.initializeNewProject({
+          id: '1',
+          name: 'Test',
+          path: '/Test/Path'
+        });
+        expect(saveProjectFile).toHaveBeenCalled();
+        expect(mkdirSync).not.toHaveBeenCalled();
+      });
+
+      it('should create the directory and save the configuration file for a new, valid project', () => {
+        // Multiple mocks - first time to say the project folder doesn't exist, the second to
+        // say the folder DOES exist (because it should have been created).
+        fs.existsSync.mockReturnValueOnce(false).mockReturnValueOnce(true);
+        const mkdirSync = jest.spyOn(fs, 'mkdirSync');
+
+        const service = new ProjectService();
+        const saveProjectFile = jest.spyOn(service, 'saveProjectFile');
+        service.initializeNewProject({
+          id: '1',
+          name: 'Test',
+          path: '/Test/Path'
+        });
+        expect(saveProjectFile).toHaveBeenCalled();
+        expect(mkdirSync).toHaveBeenCalled();
+      });
+    });
   });
 });

@@ -82,6 +82,34 @@ export default class ProjectService {
     }
   }
 
+  // Create a new project and initialize it with configuration files and template
+  // entries, if applicable.
+  initializeNewProject(project) {
+    // If the project is invalid, we won't initialize it
+    if (!project) {
+      throw new Error('The project is empty or undefined');
+    }
+
+    // Only attempt to create if it doesn't exist.  This will handle if someone is
+    // trying to configure what they think is a new project, but already exists
+    if (!fs.existsSync(project.path)) {
+      fs.mkdirSync(project.path, { recursive: true });
+    } else {
+      // Determine if a project config file already exists.  If so, stop processing
+      // the directory and just accept what's there.
+      const existingConfig = this.loadProjectFile(project.path);
+      if (existingConfig && existingConfig.id) {
+        return;
+      }
+    }
+
+    this.saveProjectFile(project.path, {
+      id: project.id,
+      name: project.name,
+      categories: []
+    });
+  }
+
   // Add a project to the user's list of projects.
   appendAndSaveProjectToList(project, filePath = DefaultProjectListFile) {
     // If the project is invalid, we won't append it to the list

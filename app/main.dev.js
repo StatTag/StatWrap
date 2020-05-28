@@ -17,6 +17,8 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import ProjectService, { DefaultProjectListFile, DefaultProjectFile } from './services/project';
 import Messages from './constants/messages';
+import Constants from './constants/constants';
+import { fstat } from 'fs';
 
 export default class AppUpdater {
   constructor() {
@@ -190,27 +192,47 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
     if (validationReport.isValid) {
       response.projectId = validationReport.project.id;
 
-      // Let's see if a StatWrap project configuration file already exists at that location.
-      // If so, we want to pick up the ID and details there, not replace it with anything new.
-      // Note that it must at minimum have an id attribute to be considered valid.
-      let projectConfig = service.loadProjectFile(validationReport.project.path);
-      if (projectConfig && projectConfig.id) {
-        validationReport.project.id = projectConfig.id;
-        validationReport.project.name = projectConfig.name;
-      } else {
-        projectConfig = {
-          id: validationReport.project.id,
-          name: validationReport.project.name,
-          categories: []
-        };
-        service.saveProjectFile(validationReport.project.path, projectConfig);
+      switch (project.type) {
+        case Constants.ProjectType.NEW_PROJECT_TYPE: {
+          service.initializeNewProject(validationReport.project);
+          break;
+        }
+        case Constants.ProjectType.EXISTING_PROJECT_TYPE: {
+          // Let's see if a StatWrap project configuration file already exists at that location.
+          // If so, we want to pick up the ID and details there, not replace it with anything new.
+          // Note that it must at minimum have an id attribute to be considered valid.
+          let projectConfig = service.loadProjectFile(validationReport.project.path);
+          if (projectConfig && projectConfig.id) {
+            validationReport.project.id = projectConfig.id;
+            validationReport.project.name = projectConfig.name;
+          } else {
+            projectConfig = {
+              id: validationReport.project.id,
+              name: validationReport.project.name,
+              categories: []
+            };
+            service.saveProjectFile(validationReport.project.path, projectConfig);
+          }
+          break;
+        }
+        // case Constants.ProjectType.CLONE_PROJECT_TYPE: {
+        //   response.error = true;
+        //   response.errorMessage = 'Not yet implemented';
+        //   break;
+        // }
+        default:
+          response.error = true;
+          response.errorMessage = `StatWrap is not able to create projects with a type of ${project.type}`;
+          break;
       }
 
-      const userDataPath = app.getPath('userData');
-      service.appendAndSaveProjectToList(
-        validationReport.project,
-        path.join(userDataPath, DefaultProjectListFile)
-      );
+      if (!response.error) {
+        const userDataPath = app.getPath('userData');
+        service.appendAndSaveProjectToList(
+          validationReport.project,
+          path.join(userDataPath, DefaultProjectListFile)
+        );
+      }
     } else {
       response.error = true;
       response.errorMessage = validationReport.details;
