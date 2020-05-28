@@ -15,10 +15,9 @@ import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import log from 'electron-log';
 import MenuBuilder from './menu';
-import ProjectService, { DefaultProjectListFile, DefaultProjectFile } from './services/project';
+import ProjectService, { DefaultProjectListFile } from './services/project';
 import Messages from './constants/messages';
 import Constants from './constants/constants';
-import { fstat } from 'fs';
 
 export default class AppUpdater {
   constructor() {
