@@ -20,6 +20,8 @@ import SelectProjectTemplate from '../../components/SelectProjectTemplate/Select
 import ExistingDirectory from '../../components/ExistingDirectory/ExistingDirectory';
 import NewDirectory from '../../components/NewDirectory/NewDirectory';
 import CloneDirectory from './CloneDirectory/CloneDirectory';
+import Error from '../../components/Error/Error';
+
 import styles from './CreateProjectDialog.css';
 import Messages from '../../constants/messages';
 
@@ -39,8 +41,7 @@ class CreateProjectDialog extends Component {
     const hasDirectory = directory && directory !== '';
     // We are ignoring name validation for existing directories, otherwise
     // we will apply the validation rules.
-    const hasName =
-      step === 'ExistingProjectDetails' ? true : name && name !== '';
+    const hasName = step === 'ExistingProjectDetails' ? true : name && name !== '';
     return hasDirectory && hasName;
   }
 
@@ -54,7 +55,8 @@ class CreateProjectDialog extends Component {
         name: '',
         directory: ''
       },
-      canProgress: false
+      canProgress: false,
+      errorMessage: null
     };
 
     this.handleSelectAddProject = this.handleSelectAddProject.bind(this);
@@ -155,6 +157,8 @@ class CreateProjectDialog extends Component {
     console.log(response);
     if (response && !response.error) {
       this.props.onClose(true);
+    } else {
+      this.setState({ errorMessage: response.errorMessage });
     }
   }
 
@@ -301,10 +305,13 @@ class CreateProjectDialog extends Component {
       default: {
         backButton = null;
         dialogTitle = 'Add Project';
-        displayComponent = (
-          <CreateProject onSelect={this.handleSelectAddProject} />
-        );
+        displayComponent = <CreateProject onSelect={this.handleSelectAddProject} />;
       }
+    }
+
+    let error = null;
+    if (this.state.errorMessage) {
+      error = <Error>{this.state.errorMessage}</Error>;
     }
 
     return (
@@ -320,6 +327,7 @@ class CreateProjectDialog extends Component {
           {dialogTitle}
         </DialogTitle>
         {displayComponent}
+        {error}
         <DialogActions>
           {backButton}
           {progressButton}
