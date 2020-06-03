@@ -15,7 +15,9 @@ import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import log from 'electron-log';
 import MenuBuilder from './menu';
-import ProjectService, { DefaultProjectListFile } from './services/project';
+import ProjectService from './services/project';
+import ProjectListService, { DefaultProjectListFile } from './services/projectList';
+import ProjectTemplateService from './services/projectTemplate';
 import Messages from './constants/messages';
 import Constants from './constants/constants';
 
@@ -121,16 +123,15 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
     const userDataPath = app.getPath('userData');
     console.log(userDataPath);
     const service = new ProjectService();
-    let projectsFromFile = service.loadProjectListFromFile(
+    const listService = new ProjectListService();
+    let projectsFromFile = listService.loadProjectListFromFile(
       path.join(userDataPath, DefaultProjectListFile)
     );
-    console.log(projectsFromFile);
 
     // For all of the projects we have in our list, load the additional information that exists
     // within the project's local metadata file itself.
     projectsFromFile = projectsFromFile.map(project => {
       const metadata = service.loadProjectFile(project.path);
-      console.log(metadata);
       // TODO What if the IDs don't match?  Handle that.  Also handle if file not found, file invalid, etc.
       // Remember that if the file can't be loaded, it may be because we're offline and the project is in
       // a network directory.
@@ -165,7 +166,7 @@ ipcMain.on(Messages.LOAD_PROJECT_TEMPLATES_REQUEST, async event => {
   };
 
   try {
-    const service = new ProjectService();
+    const service = new ProjectTemplateService();
     response.projectTemplates = service.loadProjectTemplates();
     response.error = false;
     response.errorMessage = '';
@@ -186,14 +187,15 @@ ipcMain.on(Messages.TOGGLE_PROJECT_FAVORITE_REQUEST, async (event, projectId) =>
   };
 
   try {
-    const service = new ProjectService();
+    const service = new ProjectListService();
     const userDataPath = app.getPath('userData');
     service.toggleProjectFavorite(projectId, path.join(userDataPath, DefaultProjectListFile));
     response.error = false;
     response.errorMessage = '';
   } catch (e) {
     response.error = true;
-    response.errorMessage = 'There was an unexpected error when updating the project on the Favorite list';
+    response.errorMessage =
+      'There was an unexpected error when updating the project on the Favorite list';
     console.log(e);
   }
 
@@ -248,8 +250,9 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
       }
 
       if (!response.error) {
+        const listService = new ProjectListService();
         const userDataPath = app.getPath('userData');
-        service.appendAndSaveProjectToList(
+        listService.appendAndSaveProjectToList(
           validationReport.project,
           path.join(userDataPath, DefaultProjectListFile)
         );

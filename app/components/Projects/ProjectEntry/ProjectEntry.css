@@ -1,7 +1,7 @@
 .container {
   padding: 5px 10px;
   cursor: pointer;
-  grid-template-columns: 1fr 30px;
+  grid-template-columns: 1fr 16px;
   grid-template-rows: 1fr 1fr;
   display: grid;
 }
