@@ -34,6 +34,7 @@ class ProjectPage extends Component {
     this.handleAddProject = this.handleAddProject.bind(this);
     this.handleCloseAddProject = this.handleCloseAddProject.bind(this);
     this.handleLoadProjectTemplatesResponse = this.handleLoadProjectTemplatesResponse.bind(this);
+    this.handleToggleProjectFavoriteResponse = this.handleToggleProjectFavoriteResponse.bind(this);
   }
 
   componentDidMount() {
@@ -42,11 +43,14 @@ class ProjectPage extends Component {
 
     ipcRenderer.send(Messages.LOAD_PROJECT_TEMPLATES_REQUEST);
     ipcRenderer.on(Messages.LOAD_PROJECT_TEMPLATES_RESPONSE, this.handleLoadProjectTemplatesResponse);
+
+    ipcRenderer.on(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.handleToggleProjectFavoriteResponse);
   }
 
   componentWillUnmount() {
     ipcRenderer.removeListener(Messages.LOAD_PROJECT_LIST_RESPONSE, this.handleLoadProjectListResponse);
     ipcRenderer.removeListener(Messages.LOAD_PROJECT_TEMPLATES_RESPONSE, this.handleLoadProjectTemplatesResponse);
+    ipcRenderer.removeListener(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.handleToggleProjectFavoriteResponse);
   }
 
   handleLoadProjectListResponse(sender, response) {
@@ -60,6 +64,10 @@ class ProjectPage extends Component {
   refreshProjectsHandler() {
     this.setState({loaded: false});
     ipcRenderer.send(Messages.LOAD_PROJECT_LIST_REQUEST);
+  }
+
+  handleFavoriteClick(id) {
+    ipcRenderer.send(Messages.TOGGLE_PROJECT_FAVORITE_REQUEST, id);
   }
 
   handleAddProject() {
@@ -78,6 +86,10 @@ class ProjectPage extends Component {
     if (refresh) {
       this.refreshProjectsHandler();
     }
+  }
+
+  handleToggleProjectFavoriteResponse() {
+    this.refreshProjectsHandler();
   }
 
   render() {
@@ -99,7 +111,8 @@ class ProjectPage extends Component {
             error={this.state.error}
             errorMessage={this.state.errorMessage}
             onRefresh={this.refreshProjectsHandler}
-            onAddProject={this.handleAddProject} />
+            onAddProject={this.handleAddProject}
+            onFavoriteClick={this.handleFavoriteClick} />
           <Project name="My Amazing Project" />
         </ResizablePanels>
         <CreateProjectDialog

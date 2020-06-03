@@ -1,6 +1,9 @@
 .container {
   padding: 5px 10px;
   cursor: pointer;
+  grid-template-columns: 1fr 30px;
+  grid-template-rows: 1fr 1fr;
+  display: grid;
 }
 
 .container:hover {
@@ -12,11 +15,17 @@
 .tooltipPath {
   font-size: 0.6rem;
   color: #333;
-  padding-left: 15px;
   vertical-align: top;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.path {
+  grid-column-start: 1;
+  grid-column-end: 1;
+  grid-row-start: 2;
+  grid-row-end: 2;
 }
 
 .tooltipPath {
@@ -24,8 +33,8 @@
   overflow: visible;
 }
 
-.icon {
-  padding-right: 5px;
+.favoriteIcon {
+  padding-left: 10px;
   padding-bottom: 2px;
 }
 
@@ -34,6 +43,7 @@
 }
 .container:hover .placeholder {
   visibility: visible;
+  color: #333;
 }
 
 .name {
@@ -42,6 +52,10 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  grid-column-start: 1;
+  grid-column-end: 1;
+  grid-row-start: 1;
+  grid-row-end: 1;
 }
 
 .tag {
@@ -51,15 +65,14 @@
   white-space: nowrap;
 }
 
-.offline {
-  font-size: 0.6rem;
+.offlineIcon {
+  color: rgb(180, 82, 37);
+  padding-left: 10px;
   font-weight: bold;
-  vertical-align: top;
+  vertical-align: middle;
 }
 
 .offlineIcon svg {
-  color: rgb(180, 82, 37);
-  float: left;
   width: 16px;
   height: 16px;
 }

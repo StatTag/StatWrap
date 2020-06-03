@@ -24,10 +24,22 @@ export default class Projects extends Component {
       } else {
         const pinnedProjects = this.props.projects
           .filter(x => x.favorite)
-          .map(item => <ProjectEntry key={item.id} project={item} />);
+          .map(item => (
+            <ProjectEntry
+              key={item.id}
+              project={item}
+              onFavoriteClick={() => this.props.onFavoriteClick(item.id)}
+            />
+          ));
         const projects = this.props.projects
           .filter(x => !x.favorite)
-          .map(item => <ProjectEntry key={item.id} project={item} />);
+          .map(item => (
+            <ProjectEntry
+              key={item.id}
+              project={item}
+              onFavoriteClick={() => this.props.onFavoriteClick(item.id)}
+            />
+          ));
         projectDetails = (
           <>
             {pinnedProjects}

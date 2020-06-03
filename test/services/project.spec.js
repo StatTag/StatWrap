@@ -18,7 +18,6 @@ const projectListString = `[
   },
   {
     "id": "6ff79e02-4f24-4948-ac77-f3f1b67064e5",
-    "favorite": false,
     "lastAccessed": "2020-04-21T21:21:27.041Z",
     "path": "smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2"
   }
@@ -394,6 +393,58 @@ describe('services', () => {
             name: 'Test',
             path: '/Test/Project/Path'
           })
+        ).toThrow(SyntaxError);
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('toggleProjectFavorite', () => {
+      it('should not try to save if the project list does not exist', () => {
+        fs.existsSync.mockReturnValue(false);
+        const service = new ProjectService();
+        expect(service.toggleProjectFavorite('d01d2925-f6ff-4f8e-988f-fca2ee193427')).toBe(false);
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+        expect(fs.readFileSync).not.toHaveBeenCalled();
+      });
+
+      it('should not try to save if the project ID is invalid', () => {
+        fs.existsSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListString);
+
+        const service = new ProjectService();
+        // Undefined as in 'not properly specified'
+        expect(service.toggleProjectFavorite(null)).toBe(false);
+        expect(service.toggleProjectFavorite(undefined)).toBe(false);
+
+        // Also undefined as in 'can't find the ID'
+        expect(service.toggleProjectFavorite('1-2-3-4')).toBe(false);
+
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+      });
+
+      it('should update an existing project entry that has the favorite attribute', () => {
+        fs.existsSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListString);
+        const service = new ProjectService();
+        service.toggleProjectFavorite('d01d2925-f6ff-4f8e-988f-fca2ee193427');
+        // Flip from 'true' to 'false'
+        expect(fs.writeFileSync).toHaveBeenCalledWith(".statwrap-projects.json", "[{\"id\":\"d01d2925-f6ff-4f8e-988f-fca2ee193427\",\"favorite\":false,\"lastAccessed\":\"2020-04-21T21:21:27.041Z\",\"path\":\"~/Development/projects/test1\"},{\"id\":\"6ff79e02-4f24-4948-ac77-f3f1b67064e5\",\"lastAccessed\":\"2020-04-21T21:21:27.041Z\",\"path\":\"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2\"}]");
+      });
+
+      it('should update an existing project entry that does not have the favorite attribute', () => {
+        fs.existsSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListString);
+        const service = new ProjectService();
+        service.toggleProjectFavorite('6ff79e02-4f24-4948-ac77-f3f1b67064e5');
+        // Initialize as 'true'
+        expect(fs.writeFileSync).toHaveBeenCalledWith(".statwrap-projects.json", "[{\"id\":\"d01d2925-f6ff-4f8e-988f-fca2ee193427\",\"favorite\":true,\"lastAccessed\":\"2020-04-21T21:21:27.041Z\",\"path\":\"~/Development/projects/test1\"},{\"id\":\"6ff79e02-4f24-4948-ac77-f3f1b67064e5\",\"lastAccessed\":\"2020-04-21T21:21:27.041Z\",\"path\":\"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2\",\"favorite\":true}]");
+      });
+
+      it('should throw an error and fail to save if the file is invalid', () => {
+        fs.existsSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(invalidProjectListString);
+        expect(() =>
+          new ProjectService().toggleProjectFavorite('d01d2925-f6ff-4f8e-988f-fca2ee193427')
         ).toThrow(SyntaxError);
         expect(fs.writeFileSync).not.toHaveBeenCalled();
       });

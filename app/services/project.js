@@ -183,6 +183,26 @@ export default class ProjectService {
       : sanitizedName;
   }
 
+  // Toggle the status of a project on our list as a 'Favorite' project
+  // return: true if the project was updated, false otherwise
+  toggleProjectFavorite(projectId, filePath = DefaultProjectListFile) {
+    let projectList = [];
+    if (!fs.existsSync(filePath)) {
+      return false;
+    }
+
+    const data = fs.readFileSync(filePath);
+    projectList = JSON.parse(data.toString());
+    const project = projectList.find(x => x.id === projectId);
+    if (!project) {
+      return false;
+    }
+
+    project.favorite = !project.favorite;
+    fs.writeFileSync(filePath, JSON.stringify(projectList));
+    return true;
+  }
+
   // Given a project definition from user input, convert it into a project definition that will be
   // saved to our project list.
   convertAndValidateProject(project) {

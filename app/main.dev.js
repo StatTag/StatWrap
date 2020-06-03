@@ -178,6 +178,28 @@ ipcMain.on(Messages.LOAD_PROJECT_TEMPLATES_REQUEST, async event => {
   event.sender.send(Messages.LOAD_PROJECT_TEMPLATES_RESPONSE, response);
 });
 
+ipcMain.on(Messages.TOGGLE_PROJECT_FAVORITE_REQUEST, async (event, projectId) => {
+  const response = {
+    projectId,
+    error: false,
+    errorMessage: ''
+  };
+
+  try {
+    const service = new ProjectService();
+    const userDataPath = app.getPath('userData');
+    service.toggleProjectFavorite(projectId, path.join(userDataPath, DefaultProjectListFile));
+    response.error = false;
+    response.errorMessage = '';
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = 'There was an unexpected error when updating the project on the Favorite list';
+    console.log(e);
+  }
+
+  event.sender.send(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, response);
+});
+
 ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
   const response = {
     projectId: null,

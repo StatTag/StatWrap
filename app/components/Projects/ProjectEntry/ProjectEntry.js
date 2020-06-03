@@ -17,7 +17,7 @@ const HtmlTooltip = withStyles(theme => ({
 }))(Tooltip);
 
 const projectEntry = props => {
-  const iconClasses = [styles.icon];
+  const iconClasses = [styles.favoriteIicon];
   if (!props.project.favorite) {
     iconClasses.push(styles.placeholder);
   }
@@ -25,14 +25,8 @@ const projectEntry = props => {
   let offlineIndicator = null;
   let offlineMessage = null;
   if (props.project.loadError) {
-    offlineIndicator = (
-      <div className={styles.offlineIcon}>
-        <PortableWifiOffIcon fontSize="small" />
-      </div>
-    );
-    offlineMessage = (
-      <div className={styles.offline}>{offlineIndicator}Project is offline</div>
-    );
+    offlineIndicator = <PortableWifiOffIcon className={styles.offlineIcon} fontSize="small" />;
+    offlineMessage = <div className={styles.offline}>{offlineIndicator}Project is offline</div>;
   }
 
   return (
@@ -48,19 +42,19 @@ const projectEntry = props => {
       }
     >
       <div className={styles.container} data-tid="container">
-        {offlineIndicator}
         <div className={styles.name}>
           <span>
-            <FontAwesomeIcon
-              className={iconClasses.join(' ')}
-              icon="thumbtack"
-              size="xs"
-              onClick={props.onFavoriteClick}
-            />
             {props.project.name}
+            {offlineIndicator}
           </span>
         </div>
         <div className={styles.path}>{props.project.path}</div>
+        <FontAwesomeIcon
+          className={iconClasses.join(' ')}
+          icon="thumbtack"
+          size="xs"
+          onClick={props.onFavoriteClick}
+        />
       </div>
     </HtmlTooltip>
   );
