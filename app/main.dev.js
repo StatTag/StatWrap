@@ -202,6 +202,29 @@ ipcMain.on(Messages.TOGGLE_PROJECT_FAVORITE_REQUEST, async (event, projectId) =>
   event.sender.send(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, response);
 });
 
+ipcMain.on(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, async (event, projectId) => {
+  const response = {
+    projectId,
+    error: false,
+    errorMessage: ''
+  };
+
+  try {
+    const service = new ProjectListService();
+    const userDataPath = app.getPath('userData');
+    service.removeProjectEntry(projectId, path.join(userDataPath, DefaultProjectListFile));
+    response.error = false;
+    response.errorMessage = '';
+  } catch (e) {
+    response.error = true;
+    response.errorMessage =
+      'There was an unexpected error when removing the project from your project list';
+    console.log(e);
+  }
+
+  event.sender.send(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, response);
+});
+
 ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
   const response = {
     projectId: null,

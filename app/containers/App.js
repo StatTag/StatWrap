@@ -4,14 +4,14 @@ import { AppBar, Toolbar, Typography, IconButton } from '@material-ui/core';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SearchIcon from '@material-ui/icons/Search';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faFolder, faTag, faThumbtack } from '@fortawesome/free-solid-svg-icons';
+import { faFolder, faTag, faThumbtack, faEllipsisH } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import routes from '../constants/routes.json';
 import styles from './App.css';
 
 // This is where we register all of our font-awesome icons that are used throughout the app.
 // See https://github.com/FortAwesome/react-fontawesome#build-a-library-to-reference-icons-throughout-your-app-more-conveniently
-library.add(faFolder, faTag, faThumbtack);
+library.add(faFolder, faTag, faThumbtack, faEllipsisH);
 
 export default class App extends React.Component {
   render() {

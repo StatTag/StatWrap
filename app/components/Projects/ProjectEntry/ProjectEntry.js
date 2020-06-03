@@ -55,6 +55,12 @@ const projectEntry = props => {
           size="xs"
           onClick={props.onFavoriteClick}
         />
+        <FontAwesomeIcon
+          className={[styles.placeholder, styles.menuIcon].join(' ')}
+          icon="ellipsis-h"
+          size="xs"
+          onClick={props.onMenuClick}
+        />
       </div>
     </HtmlTooltip>
   );

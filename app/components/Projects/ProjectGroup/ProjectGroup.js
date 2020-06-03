@@ -6,10 +6,9 @@ import ProjectEntry from '../ProjectEntry/ProjectEntry';
 import styles from './ProjectGroup.css';
 
 const projectGroup = props => {
-  console.log("ProjectGroup ", props);
   let projectList = <div className={styles.emptyMessage}>{props.emptyMessage}</div>;
   if (props.projects && props.projects.length > 0) {
-    projectList = props.projects.map((item, index) => <ProjectEntry key={item.id} project={item}></ProjectEntry>);
+    projectList = props.projects.map(item => <ProjectEntry key={item.id} project={item} />);
   }
 
   return (

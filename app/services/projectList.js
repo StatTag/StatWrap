@@ -28,6 +28,24 @@ export default class ProjectListService {
     return true;
   }
 
+  removeProjectEntry(projectId, filePath = DefaultProjectListFile) {
+    let projectList = [];
+    if (!fs.existsSync(filePath)) {
+      return false;
+    }
+
+    const data = fs.readFileSync(filePath);
+    projectList = JSON.parse(data.toString());
+    const index = projectList.findIndex(x => x.id === projectId);
+    if (index === -1) {
+      return false;
+    }
+
+    projectList.splice(index, 1);
+    fs.writeFileSync(filePath, JSON.stringify(projectList));
+    return true;
+  }
+
   // Add a project to the user's list of projects.
   appendAndSaveProjectToList(project, filePath = DefaultProjectListFile) {
     // If the project is invalid, we won't append it to the list

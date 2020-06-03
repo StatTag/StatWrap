@@ -8,5 +8,8 @@ module.exports = {
   CREATE_PROJECT_RESPONSE: 'statwrap-create-project-response',
 
   TOGGLE_PROJECT_FAVORITE_REQUEST: 'statwrap-toggle-project-favorite-request',
-  TOGGLE_PROJECT_FAVORITE_RESPONSE: 'statwrap-toggle-project-favorite-response'
+  TOGGLE_PROJECT_FAVORITE_RESPONSE: 'statwrap-toggle-project-favorite-response',
+
+  REMOVE_PROJECT_LIST_ENTRY_REQUEST: 'statwrap-remove-project-list-entry-request',
+  REMOVE_PROJECT_LIST_ENTRY_RESPONSE: 'statwrap-remove-project-list-entry-response'
 };

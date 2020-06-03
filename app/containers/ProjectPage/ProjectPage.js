@@ -7,6 +7,7 @@ import ResizablePanels from 'resizable-panels-react';
 import Projects from '../../components/Projects/Projects';
 import Project from '../../components/Project/Project';
 import CreateProjectDialog from '../CreateProjectDialog/CreateProjectDialog';
+import ProjectListEntryMenu from '../../components/Projects/ProjectListEntryMenu/ProjectListEntryMenu';
 import styles from './ProjectPage.css';
 
 import Messages from '../../constants/messages';
@@ -21,6 +22,7 @@ class ProjectPage extends Component {
       loaded: false,
       error: false,
       errorMessage: '',
+      projectListMenuAnchor: null,
 
       // This key is part of a trick to get React to throw out and recreate the Create Project
       // dialog when we have disposed of it - either by creating a project or cancelling.  This
@@ -34,7 +36,9 @@ class ProjectPage extends Component {
     this.handleAddProject = this.handleAddProject.bind(this);
     this.handleCloseAddProject = this.handleCloseAddProject.bind(this);
     this.handleLoadProjectTemplatesResponse = this.handleLoadProjectTemplatesResponse.bind(this);
-    this.handleToggleProjectFavoriteResponse = this.handleToggleProjectFavoriteResponse.bind(this);
+    this.handleProjectListEntryMenu = this.handleProjectListEntryMenu.bind(this);
+    this.handleCloseProjectListMenu = this.handleCloseProjectListMenu.bind(this);
+    this.handleClickProjectListMenu = this.handleClickProjectListMenu.bind(this);
   }
 
   componentDidMount() {
@@ -44,13 +48,15 @@ class ProjectPage extends Component {
     ipcRenderer.send(Messages.LOAD_PROJECT_TEMPLATES_REQUEST);
     ipcRenderer.on(Messages.LOAD_PROJECT_TEMPLATES_RESPONSE, this.handleLoadProjectTemplatesResponse);
 
-    ipcRenderer.on(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.handleToggleProjectFavoriteResponse);
+    ipcRenderer.on(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.refreshProjectsHandler);
+    ipcRenderer.on(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
   }
 
   componentWillUnmount() {
     ipcRenderer.removeListener(Messages.LOAD_PROJECT_LIST_RESPONSE, this.handleLoadProjectListResponse);
     ipcRenderer.removeListener(Messages.LOAD_PROJECT_TEMPLATES_RESPONSE, this.handleLoadProjectTemplatesResponse);
-    ipcRenderer.removeListener(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.handleToggleProjectFavoriteResponse);
+    ipcRenderer.removeListener(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.refreshProjectsHandler);
+    ipcRenderer.removeListener(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
   }
 
   handleLoadProjectListResponse(sender, response) {
@@ -88,8 +94,26 @@ class ProjectPage extends Component {
     }
   }
 
-  handleToggleProjectFavoriteResponse() {
-    this.refreshProjectsHandler();
+  handleProjectListEntryMenu(element, project) {
+    this.setState({ projectListMenuAnchor: { element, project } });
+  }
+
+  handleCloseProjectListMenu() {
+    this.setState({ projectListMenuAnchor: null });
+  }
+
+  handleClickProjectListMenu(event, projectId) {
+    switch(event) {
+      case Messages.TOGGLE_PROJECT_FAVORITE_REQUEST:
+        this.handleFavoriteClick(projectId);
+        break;
+      case Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST:
+        ipcRenderer.send(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, projectId);
+        break;
+      default:
+        console.log(`Unknown project list entry menu event: ${event}`);
+    }
+    this.setState({ projectListMenuAnchor: null });
   }
 
   render() {
@@ -112,7 +136,8 @@ class ProjectPage extends Component {
             errorMessage={this.state.errorMessage}
             onRefresh={this.refreshProjectsHandler}
             onAddProject={this.handleAddProject}
-            onFavoriteClick={this.handleFavoriteClick} />
+            onFavoriteClick={this.handleFavoriteClick}
+            onMenuClick={this.handleProjectListEntryMenu}/>
           <Project name="My Amazing Project" />
         </ResizablePanels>
         <CreateProjectDialog
@@ -120,6 +145,12 @@ class ProjectPage extends Component {
           projectTemplates={this.state.projectTemplates}
           open={this.state.addingProject}
           onClose={this.handleCloseAddProject} />
+        <ProjectListEntryMenu
+          anchorElement={this.state.projectListMenuAnchor ? this.state.projectListMenuAnchor.element : null}
+          project={this.state.projectListMenuAnchor ? this.state.projectListMenuAnchor.project : null}
+          onClose={this.handleCloseProjectListMenu}
+          onMenuClick={this.handleClickProjectListMenu}
+        />
       </div>
     );
   }

@@ -29,6 +29,7 @@ export default class Projects extends Component {
               key={item.id}
               project={item}
               onFavoriteClick={() => this.props.onFavoriteClick(item.id)}
+              onMenuClick={event => this.props.onMenuClick(event.currentTarget, item)}
             />
           ));
         const projects = this.props.projects
@@ -38,6 +39,7 @@ export default class Projects extends Component {
               key={item.id}
               project={item}
               onFavoriteClick={() => this.props.onFavoriteClick(item.id)}
+              onMenuClick={event => this.props.onMenuClick(event.currentTarget, item)}
             />
           ));
         projectDetails = (
