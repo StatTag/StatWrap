@@ -42,10 +42,14 @@ export default class Projects extends Component {
               onMenuClick={event => this.props.onMenuClick(event.currentTarget, item)}
             />
           ));
+        const divider =
+          projects.length > 0 && pinnedProjects.length > 0 ? (
+            <hr className={styles.projectDivider} />
+          ) : null;
         projectDetails = (
           <>
             {pinnedProjects}
-            <hr className={styles.projectDivider} />
+            {divider}
             {projects}
           </>
         );
