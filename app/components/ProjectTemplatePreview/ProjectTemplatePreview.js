@@ -4,13 +4,13 @@ import PropTypes from 'prop-types';
 import CheckboxTree from 'react-checkbox-tree';
 import styles from './ProjectTemplatePreview.css';
 
-function assetsToNodes(assets) {
+function contentsToNodes(assets) {
   if (assets) {
     return assets.map(x => ({
       value: x.name,
       label: x.name,
-      icon: (x.type === "folder" ? <i className="fa fa-folder" /> : <i className="fa fa-file" />),
-      children: (x.children) ? assetsToNodes(x.children) : null
+      icon: x.type === 'folder' ? <i className="fa fa-folder" /> : <i className="fa fa-file" />,
+      children: x.contents ? contentsToNodes(x.contents) : null
     }));
   }
 
@@ -32,16 +32,16 @@ class ProjectTemplatePreview extends Component {
       <div className={styles.placeholder}>Please select a template from a list on the left</div>
     );
     if (this.props.template) {
-      let templateAssets = [];
-      if (this.props.template.assets) {
-        templateAssets = assetsToNodes(this.props.template.assets);
+      let templateContents = [];
+      if (this.props.template.contents) {
+        templateContents = contentsToNodes(this.props.template.contents);
       }
       const templateNodes = [
         {
           value: 'Project Root',
           label: 'Project Root',
           showCheckbox: false,
-          children: templateAssets
+          children: templateContents
         }
       ];
       preview = (

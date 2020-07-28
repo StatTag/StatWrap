@@ -31,6 +31,8 @@ export default class AppUpdater {
 
 let mainWindow = null;
 
+const projectTemplateService = new ProjectTemplateService();
+
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
@@ -166,8 +168,9 @@ ipcMain.on(Messages.LOAD_PROJECT_TEMPLATES_REQUEST, async event => {
   };
 
   try {
-    const service = new ProjectTemplateService();
-    response.projectTemplates = service.loadProjectTemplates();
+    response.projectTemplates = projectTemplateService.loadProjectTemplates(
+      path.join(__dirname, './templates')
+    );
     response.error = false;
     response.errorMessage = '';
   } catch (e) {
@@ -241,6 +244,10 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
       switch (project.type) {
         case Constants.ProjectType.NEW_PROJECT_TYPE: {
           service.initializeNewProject(validationReport.project);
+          projectTemplateService.createTemplateContents(
+            validationReport.project.path,
+            project.template
+          );
           break;
         }
         case Constants.ProjectType.EXISTING_PROJECT_TYPE: {
