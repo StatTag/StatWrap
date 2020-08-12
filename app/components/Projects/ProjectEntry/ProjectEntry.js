@@ -41,7 +41,7 @@ const projectEntry = props => {
         </>
       }
     >
-      <div className={styles.container} data-tid="container">
+      <div className={styles.container} data-tid="container" onClick={props.onSelect}>
         <div className={styles.name}>
           <span>
             {props.project.name}

@@ -12,12 +12,12 @@
 }
 
 .titleContainer {
-  padding: 30px 10px;
+  padding: 10px 10px;
   color: #fff;
 }
 
 .title {
-  font-size: 1.5em;
+  font-size: 1.2rem;
   display: inline-block;
   vertical-align: middle;
 }
@@ -27,17 +27,12 @@
   margin-left: 10px;
 }
 
-.tabsBorder {
-  /* border-bottom: solid 1px black; */
-  width: 100%;
+.tabPanel {
   margin: 0;
-  padding: 0;
-  position: absolute;
-  left: 0;
+  padding: 10px;
 }
 
-.tab {
-  background-color: #4c72be;
-  border: solid 1px #89affc;
-  color: #fff;
+.editableLabel {
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-size: 1rem;
 }

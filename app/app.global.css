@@ -4,6 +4,8 @@
  */
 @import '~@fortawesome/fontawesome-free/css/all.css';
 @import '~react-checkbox-tree/lib/react-checkbox-tree.css';
+/* @import '~draft-js/dist/Draft.css'; */
+@import '~react-tagsinput/react-tagsinput.css';
 
 body {
   position: relative;
@@ -44,13 +46,19 @@ a:hover {
   cursor: pointer;
 }
 
-.MuiTab-textColorSecondary.Mui-selected {
-  color: #fff !important;
-  background-color: #173164 !important;
-}
-
 .MuiDialogTitle-root {
   background-color: #3f51b5;
   margin-bottom: 10px !important;
   padding: 10px 16px !important;
+}
+
+.react-tagsinput .react-tagsinput-tag {
+  background-color: #3f51b5;
+  border: #1f3195;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.react-tagsinput--focused {
+  border: solid 1px #1f3195 !important;
 }

@@ -23,6 +23,7 @@ class ProjectPage extends Component {
       error: false,
       errorMessage: '',
       projectListMenuAnchor: null,
+      selectedProject: null,
 
       // This key is part of a trick to get React to throw out and recreate the Create Project
       // dialog when we have disposed of it - either by creating a project or cancelling.  This
@@ -39,6 +40,7 @@ class ProjectPage extends Component {
     this.handleProjectListEntryMenu = this.handleProjectListEntryMenu.bind(this);
     this.handleCloseProjectListMenu = this.handleCloseProjectListMenu.bind(this);
     this.handleClickProjectListMenu = this.handleClickProjectListMenu.bind(this);
+    this.handleSelectProjectListItem = this.handleSelectProjectListItem.bind(this);
   }
 
   componentDidMount() {
@@ -116,6 +118,11 @@ class ProjectPage extends Component {
     this.setState({ projectListMenuAnchor: null });
   }
 
+  handleSelectProjectListItem(project) {
+    console.log(project);
+    this.setState({ selectedProject: project });
+  }
+
   render() {
     return (
       <div className={styles.container} data-tid="container">
@@ -127,7 +134,7 @@ class ProjectPage extends Component {
           panelsSize={[25, 75]}
           sizeUnitMeasure="%"
           resizerColor="#000"
-          resizerSize="5px"
+          resizerSize="4px"
         >
           <Projects
             projects={this.state.projects}
@@ -137,8 +144,9 @@ class ProjectPage extends Component {
             onRefresh={this.refreshProjectsHandler}
             onAddProject={this.handleAddProject}
             onFavoriteClick={this.handleFavoriteClick}
-            onMenuClick={this.handleProjectListEntryMenu}/>
-          <Project name="My Amazing Project" />
+            onMenuClick={this.handleProjectListEntryMenu}
+            onSelect={this.handleSelectProjectListItem}/>
+          <Project project={this.state.selectedProject} />
         </ResizablePanels>
         <CreateProjectDialog
           key={this.state.createProjectDialogKey}
