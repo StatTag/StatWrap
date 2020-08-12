@@ -1,12 +1,12 @@
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
-import EditableLabel from 'react-inline-editing';
-import { Tabs, Tab } from '@material-ui/core';
+import { Tab } from '@material-ui/core';
 import { TabPanel, TabContext, TabList } from '@material-ui/lab';
 import { withStyles } from '@material-ui/core/styles/';
 import IconButton from '@material-ui/core/IconButton';
 import { Star, StarBorder } from '@material-ui/icons';
 import PropTypes from 'prop-types';
+import EditableLabel from '../EditableLabel/EditableLabel';
 import Welcome from '../Welcome/Welcome';
 import About from './About/About';
 import styles from './Project.css';
@@ -55,8 +55,10 @@ class Project extends Component<Props> {
 
     let content = <Welcome />;
     if (this.props.project) {
+      console.log(`** ${this.props.project.name}`);
       const about = this.props.project ? <About project={this.props.project} /> : null;
-      const name = this.props.project ? (<EditableLabel
+      const name = this.props.project ? (
+        <EditableLabel
           text={this.props.project.name}
           labelFontWeight="bold"
           inputFontWeight="bold"
