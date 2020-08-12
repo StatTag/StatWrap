@@ -1,3 +1,7 @@
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
+/* eslint-disable jsx-a11y/label-has-associated-control */
+
 /*
   This is the react-inline-editing component from: https://github.com/bfischer/react-inline-editing
   Original license included at the bottom of this file.
@@ -37,34 +41,28 @@ export default class EditableLabel extends React.Component {
   }
 
   isTextValueValid = () => {
-    return typeof this.state.text != 'undefined' && this.state.text.trim().length > 0;
+    return typeof this.state.text !== 'undefined' && this.state.text.trim().length > 0;
   };
 
   handleFocus = () => {
-    if (this.state.isEditing) {
-      if (typeof this.props.onFocusOut === 'function') {
-        this.props.onFocusOut(this.state.text);
-      }
-    } else {
-      if (typeof this.props.onFocus === 'function') {
-        this.props.onFocus(this.state.text);
-      }
+    if (this.state.isEditing && typeof this.props.onFocusOut === 'function') {
+      this.props.onFocusOut(this.state.text);
+    } else if (typeof this.props.onFocus === 'function') {
+      this.props.onFocus(this.state.text);
     }
 
     if (this.isTextValueValid()) {
       this.setState({
         isEditing: !this.state.isEditing
       });
+    } else if (this.state.isEditing) {
+      this.setState({
+        isEditing: this.props.emptyEdit || false
+      });
     } else {
-      if (this.state.isEditing) {
-        this.setState({
-          isEditing: this.props.emptyEdit || false
-        });
-      } else {
-        this.setState({
-          isEditing: true
-        });
-      }
+      this.setState({
+        isEditing: true
+      });
     }
   };
 
@@ -108,7 +106,6 @@ export default class EditableLabel extends React.Component {
             maxLength={this.props.inputMaxLength}
             placeholder={this.props.inputPlaceHolder}
             tabIndex={this.props.inputTabIndex}
-            autoFocus
           />
         </div>
       );
@@ -156,6 +153,29 @@ EditableLabel.propTypes = {
 
   onFocus: PropTypes.func,
   onFocusOut: PropTypes.func
+};
+
+EditableLabel.defaultProps = {
+  isEditing: false,
+  emptyEdit: false,
+
+  labelClassName: null,
+  labelFontSize: null,
+  labelFontWeight: null,
+  labelPlaceHolder: null,
+
+  inputMaxLength: 524288,
+  inputPlaceHolder: null,
+  inputTabIndex: 0,
+  inputWidth: null,
+  inputHeight: null,
+  inputFontSize: null,
+  inputFontWeight: null,
+  inputClassName: null,
+  inputBorderWidth: null,
+
+  onFocus: null,
+  onFocusOut: null
 };
 
 /*

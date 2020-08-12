@@ -55,7 +55,6 @@ class Project extends Component<Props> {
 
     let content = <Welcome />;
     if (this.props.project) {
-      console.log(`** ${this.props.project.name}`);
       const about = this.props.project ? <About project={this.props.project} /> : null;
       const name = this.props.project ? (
         <EditableLabel
