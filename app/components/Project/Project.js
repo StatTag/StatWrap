@@ -62,6 +62,7 @@ class Project extends Component<Props> {
           labelFontWeight="bold"
           inputFontWeight="bold"
           inputClassName={styles.editableLabel}
+          inputWidth="100%"
         />
       ) : null;
 
@@ -86,7 +87,7 @@ class Project extends Component<Props> {
               <Tab label="About" value="about" classes={tabStyle} />
               <Tab label="Assets" value="assets" classes={tabStyle} />
               <Tab label="Workflows" value="workflows" classes={tabStyle} />
-              <Tab label="Collaborators" value="collaborators" classes={tabStyle} />
+              <Tab label="People" value="people" classes={tabStyle} />
               <Tab label="References" value="references" classes={tabStyle} />
               <Tab label="Notifications" value="notifications" classes={tabStyle} />
             </TabList>
@@ -100,7 +101,7 @@ class Project extends Component<Props> {
           <TabPanel value="workflows" classes={tabPanelStyle}>
             TBD
           </TabPanel>
-          <TabPanel value="collaborators" classes={tabPanelStyle}>
+          <TabPanel value="people" classes={tabPanelStyle}>
             TBD
           </TabPanel>
           <TabPanel value="references" classes={tabPanelStyle}>
