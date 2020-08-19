@@ -1,7 +1,8 @@
 module.exports = {
   extends: 'erb',
   rules: {
-    'react/destructuring-assignment': 0
+    'react/destructuring-assignment': 0,
+    'class-methods-use-this': 'off'
   },
   settings: {
     'import/resolver': {

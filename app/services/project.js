@@ -30,7 +30,7 @@ export default class ProjectService {
 
     // Only attempt to create if it doesn't exist.  This will handle if someone is
     // trying to configure what they think is a new project, but already exists
-    if (!fs.existsSync(project.path)) {
+    if (!fs.accessSync(project.path)) {
       fs.mkdirSync(project.path, { recursive: true });
     } else {
       // Determine if a project config file already exists.  If so, stop processing
@@ -53,7 +53,7 @@ export default class ProjectService {
   // name should not be specified as part of projectPath.
   loadProjectFile(projectPath) {
     const filePath = path.join(projectPath.replace('~', os.homedir), DefaultProjectFile);
-    if (!fs.existsSync(filePath)) {
+    if (!fs.accessSync(filePath)) {
       return null;
     }
     const data = fs.readFileSync(filePath);
@@ -67,7 +67,7 @@ export default class ProjectService {
   // the project parameter should include all of the project attributes.
   saveProjectFile(projectPath, project) {
     // If the path to the project doesn't exist, we can't proceed
-    if (!fs.existsSync(projectPath)) {
+    if (!fs.accessSync(projectPath)) {
       throw new Error(`Unable to access the project directory: ${projectPath}`);
     }
 

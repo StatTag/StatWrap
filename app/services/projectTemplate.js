@@ -95,7 +95,7 @@ export default class ProjectTemplateService {
   createTemplateContents = (baseDirectory, templateId) => {
     if (!baseDirectory) {
       throw new Error(`You must specify a base directory to create the template in`);
-    } else if (!fs.existsSync(baseDirectory)) {
+    } else if (!fs.accessSync(baseDirectory)) {
       throw new Error(`The base directory ${baseDirectory} does not exist`);
     }
 

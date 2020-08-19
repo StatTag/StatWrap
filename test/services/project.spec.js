@@ -28,7 +28,7 @@ describe('services', () => {
 
     describe('loadProjectFile', () => {
       it('should resolve the ~ home path', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(projectString);
         const project = new ProjectService().loadProjectFile('~/Test/Path');
         expect(project).not.toBeNull();
@@ -37,20 +37,20 @@ describe('services', () => {
         );
       });
       it('should return the project details', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(projectString);
         const project = new ProjectService().loadProjectFile('/Test/Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith('/Test/Path/.statwrap-project.json');
       });
       it('should throw an exception if the JSON is invalid', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(invalidProjectString);
         // eslint-disable-next-line prettier/prettier
         expect(() => new ProjectService().loadProjectFile('/Test/Path')).toThrow(SyntaxError);
       });
       it('should return null if the file path does not exist', () => {
-        fs.existsSync.mockReturnValue(false);
+        fs.accessSync.mockReturnValue(false);
         const project = new ProjectService().loadProjectFile('/Test/Path');
         expect(project).toBeNull();
         expect(fs.readFileSync).not.toHaveBeenCalled();
@@ -59,7 +59,7 @@ describe('services', () => {
 
     describe('saveProjectFile', () => {
       it('should resolve the ~ home path', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         new ProjectService().saveProjectFile('~/Test/Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           `${TEST_USER_HOME_PATH}Test/Path/.statwrap-project.json`,
@@ -67,7 +67,7 @@ describe('services', () => {
         );
       });
       it('should save the project details', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         new ProjectService().saveProjectFile('/Test/Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           '/Test/Path/.statwrap-project.json',
@@ -75,14 +75,14 @@ describe('services', () => {
         );
       });
       it('should throw an error if the project path is invalid', () => {
-        fs.existsSync.mockReturnValue(false);
+        fs.accessSync.mockReturnValue(false);
         expect(() =>
           new ProjectService().saveProjectFile('/Invalid/Test/Path', { id: '1' })
         ).toThrow(Error);
         expect(fs.writeFileSync).not.toHaveBeenCalled();
       });
       it('should throw an error if the project is not defined with at least an ID', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         const service = new ProjectService();
         expect(() => service.saveProjectFile('/Test/Path', null)).toThrow(Error);
         expect(() => service.saveProjectFile('/Test/Path', undefined)).toThrow(Error);
@@ -213,7 +213,7 @@ describe('services', () => {
       });
 
       it('should throw an error if the project folder failed to create', () => {
-        fs.existsSync.mockReturnValue(false);
+        fs.accessSync.mockReturnValue(false);
         fs.mkdirSync = jest.fn().mockImplementationOnce(() => {
           throw new Error('Failed to create');
         });
@@ -230,7 +230,7 @@ describe('services', () => {
       });
 
       it('should not try to make the directory if it already exists', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         const mkdirSync = jest.spyOn(fs, 'mkdirSync');
 
         const service = new ProjectService();
@@ -245,7 +245,7 @@ describe('services', () => {
       });
 
       it('should not try to save the project config if one exists containing at least an ID', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         const mkdirSync = jest.spyOn(fs, 'mkdirSync');
 
         const service = new ProjectService();
@@ -261,7 +261,7 @@ describe('services', () => {
       });
 
       it('should save the configuration file if a project folder exists, but the config is invalid', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         const mkdirSync = jest.spyOn(fs, 'mkdirSync');
 
         const service = new ProjectService();
@@ -279,7 +279,7 @@ describe('services', () => {
       it('should create the directory and save the configuration file for a new, valid project', () => {
         // Multiple mocks - first time to say the project folder doesn't exist, the second to
         // say the folder DOES exist (because it should have been created).
-        fs.existsSync.mockReturnValueOnce(false).mockReturnValueOnce(true);
+        fs.accessSync.mockReturnValueOnce(false).mockReturnValueOnce(true);
         const mkdirSync = jest.spyOn(fs, 'mkdirSync');
 
         const service = new ProjectService();

@@ -62,14 +62,14 @@ describe('services', () => {
 
     describe('loadProjectListFromFile', () => {
       it('should return the list of projects', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(projectListString);
         const projects = new ProjectListService().loadProjectListFromFile('test-project-list.json');
         expect(projects.length).toBe(2);
         expect(fs.readFileSync).toHaveBeenCalledWith('test-project-list.json');
       });
       it('should sort the list of project names', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(unsortedProjectListString);
         const projects = new ProjectListService().loadProjectListFromFile('test-project-list.json');
         expect(projects.length).toBe(5);
@@ -80,21 +80,21 @@ describe('services', () => {
         expect(projects[4].id).toBe('1'); // "Test Project"
       });
       it('should throw an exception if the JSON is invalid', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(invalidProjectListString);
         expect(() =>
           new ProjectListService().loadProjectListFromFile('test-project-list.json')
         ).toThrow(SyntaxError);
       });
       it('should use the default file name when no parameter is specified', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(projectListString);
         const projects = new ProjectListService().loadProjectListFromFile();
         expect(projects.length).toBe(2);
         expect(fs.readFileSync).toHaveBeenCalledWith('.statwrap-projects.json');
       });
       it('should return an empty array if no file is found', () => {
-        fs.existsSync.mockReturnValue(false);
+        fs.accessSync.mockReturnValue(false);
         const projects = new ProjectListService().loadProjectListFromFile();
         expect(projects.length).toBe(0);
         expect(fs.readFileSync).not.toHaveBeenCalled();
@@ -140,14 +140,14 @@ describe('services', () => {
 
     describe('appendAndSaveProjectToList', () => {
       it('should not try to save if the project is invalid', () => {
-        fs.existsSync.mockReturnValue(false);
+        fs.accessSync.mockReturnValue(false);
         const service = new ProjectListService();
         expect(() => service.appendAndSaveProjectToList(null)).toThrow(Error);
         expect(fs.writeFileSync).not.toHaveBeenCalled();
       });
 
       it('should not save if the project is a duplicate based on ID or path', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(projectListString);
         const service = new ProjectListService();
         // Exact same id and path
@@ -169,7 +169,7 @@ describe('services', () => {
       });
 
       it('should initialize and save the file if it does not exist', () => {
-        fs.existsSync.mockReturnValue(false);
+        fs.accessSync.mockReturnValue(false);
         const service = new ProjectListService();
         service.appendAndSaveProjectToList({
           id: '12345',
@@ -180,7 +180,7 @@ describe('services', () => {
       });
 
       it('should append to the existing file', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(projectListString);
         const service = new ProjectListService();
         service.appendAndSaveProjectToList({
@@ -192,7 +192,7 @@ describe('services', () => {
       });
 
       it('should throw an error and fail to save if the file is invalid', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(invalidProjectListString);
         expect(() =>
           new ProjectListService().appendAndSaveProjectToList({
@@ -207,7 +207,7 @@ describe('services', () => {
 
     describe('toggleProjectFavorite', () => {
       it('should not try to save if the project list does not exist', () => {
-        fs.existsSync.mockReturnValue(false);
+        fs.accessSync.mockReturnValue(false);
         const service = new ProjectListService();
         expect(service.toggleProjectFavorite('d01d2925-f6ff-4f8e-988f-fca2ee193427')).toBe(false);
         expect(fs.writeFileSync).not.toHaveBeenCalled();
@@ -215,7 +215,7 @@ describe('services', () => {
       });
 
       it('should not try to save if the project ID is invalid', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(projectListString);
 
         const service = new ProjectListService();
@@ -230,7 +230,7 @@ describe('services', () => {
       });
 
       it('should update an existing project entry that has the favorite attribute', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(projectListString);
         const service = new ProjectListService();
         service.toggleProjectFavorite('d01d2925-f6ff-4f8e-988f-fca2ee193427');
@@ -242,7 +242,7 @@ describe('services', () => {
       });
 
       it('should update an existing project entry that does not have the favorite attribute', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(projectListString);
         const service = new ProjectListService();
         service.toggleProjectFavorite('6ff79e02-4f24-4948-ac77-f3f1b67064e5');
@@ -254,7 +254,7 @@ describe('services', () => {
       });
 
       it('should throw an error and fail to save if the file is invalid', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(invalidProjectListString);
         expect(() =>
           new ProjectListService().toggleProjectFavorite('d01d2925-f6ff-4f8e-988f-fca2ee193427')
@@ -265,7 +265,7 @@ describe('services', () => {
 
     describe('removeProjectEntry', () => {
       it('should not try to save if the project list does not exist', () => {
-        fs.existsSync.mockReturnValue(false);
+        fs.accessSync.mockReturnValue(false);
         const service = new ProjectListService();
         expect(service.removeProjectEntry('d01d2925-f6ff-4f8e-988f-fca2ee193427')).toBe(false);
         expect(fs.writeFileSync).not.toHaveBeenCalled();
@@ -273,7 +273,7 @@ describe('services', () => {
       });
 
       it('should not try to save if the project ID is invalid', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(projectListString);
 
         const service = new ProjectListService();
@@ -288,7 +288,7 @@ describe('services', () => {
       });
 
       it('should remove an existing project entry', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(projectListString);
         const service = new ProjectListService();
         service.removeProjectEntry('d01d2925-f6ff-4f8e-988f-fca2ee193427');
@@ -299,7 +299,7 @@ describe('services', () => {
       });
 
       it('should throw an error and fail to save if the file is invalid', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(invalidProjectListString);
         expect(() =>
           new ProjectListService().removeProjectEntry('d01d2925-f6ff-4f8e-988f-fca2ee193427')

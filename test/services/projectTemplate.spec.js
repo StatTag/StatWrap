@@ -54,7 +54,7 @@ describe('services', () => {
 
     describe('createTemplateContents', () => {
       it('should throw an exception when the target directory is not specified', () => {
-        fs.existsSync.mockReturnValue(false);
+        fs.accessSync.mockReturnValue(false);
         expect(() => new ProjectTemplateService().createTemplateContents(null, {})).toThrow(Error);
         expect(() =>
           new ProjectTemplateService().createTemplateContents(undefined, {})
@@ -62,14 +62,14 @@ describe('services', () => {
       });
 
       it('should throw an exception when the target directory does not exist', () => {
-        fs.existsSync.mockReturnValue(false);
+        fs.accessSync.mockReturnValue(false);
         expect(() =>
           new ProjectTemplateService().createTemplateContents('Invalid/Dir', 'STATWRAP-EMPTY')
         ).toThrow(Error);
       });
 
       it('should throw an exception a template is not specified', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         expect(() =>
           new ProjectTemplateService().createTemplateContents('/Project/Dir', null)
         ).toThrow(Error);
@@ -79,7 +79,7 @@ describe('services', () => {
       });
 
       it('should throw an exception when the template ID does not exist', () => {
-        fs.existsSync.mockReturnValue(true);
+        fs.accessSync.mockReturnValue(true);
         expect(() =>
           new ProjectTemplateService().createTemplateContents('/Project/Dir', 'INVALID-PROJECT-ID')
         ).toThrow(Error);
