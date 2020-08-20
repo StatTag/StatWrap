@@ -56,9 +56,7 @@ describe('services', () => {
       it('should throw an exception when the target directory is not specified', () => {
         fs.accessSync.mockReturnValue(false);
         expect(() => new ProjectTemplateService().createTemplateContents(null, {})).toThrow(Error);
-        expect(() =>
-          new ProjectTemplateService().createTemplateContents(undefined, {})
-        ).toThrow(Error);
+        expect(() => new ProjectTemplateService().createTemplateContents(undefined, {})).toThrow(Error);
       });
 
       it('should throw an exception when the target directory does not exist', () => {
