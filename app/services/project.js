@@ -30,15 +30,17 @@ export default class ProjectService {
 
     // Only attempt to create if it doesn't exist.  This will handle if someone is
     // trying to configure what they think is a new project, but already exists
-    if (!fs.accessSync(project.path)) {
+    try {
+      fs.accessSync(project.path);
+    } catch (err) {
       fs.mkdirSync(project.path, { recursive: true });
-    } else {
-      // Determine if a project config file already exists.  If so, stop processing
-      // the directory and just accept what's there.
-      const existingConfig = this.loadProjectFile(project.path);
-      if (existingConfig && existingConfig.id) {
-        return;
-      }
+    }
+
+    // Determine if a project config file already exists.  If so, stop processing
+    // the directory and just accept what's there.
+    const existingConfig = this.loadProjectFile(project.path);
+    if (existingConfig && existingConfig.id) {
+      return;
     }
 
     this.saveProjectFile(project.path, {
@@ -53,9 +55,12 @@ export default class ProjectService {
   // name should not be specified as part of projectPath.
   loadProjectFile(projectPath) {
     const filePath = path.join(projectPath.replace('~', os.homedir), DefaultProjectFile);
-    if (!fs.accessSync(filePath)) {
+    try {
+      fs.accessSync(filePath);
+    } catch {
       return null;
     }
+
     const data = fs.readFileSync(filePath);
     return JSON.parse(data.toString());
   }
@@ -66,10 +71,9 @@ export default class ProjectService {
   // Note that this entirely overwrites the project configuration file, so
   // the project parameter should include all of the project attributes.
   saveProjectFile(projectPath, project) {
-    // If the path to the project doesn't exist, we can't proceed
-    if (!fs.accessSync(projectPath)) {
-      throw new Error(`Unable to access the project directory: ${projectPath}`);
-    }
+    // If the path to the project doesn't exist, we can't proceed.  accessSync will
+    // throw an exception if there's a failure
+    fs.accessSync(projectPath);
 
     // If the project doesn't at least have an ID, we won't save it.
     if (!project || !project.id) {
