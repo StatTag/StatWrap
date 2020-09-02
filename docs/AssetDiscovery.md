@@ -11,7 +11,7 @@ We shouldn't assume that only one handler applies to any one given file. This wi
 
 Every handler should implement the following interface:
 
-| Function | Parameters     | Return | Description                                                                                                                                  |
-| -------- | -------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `scan`   | `uri` (string) | ??     | Performs the main work of the asset handler in identifying relevant metadata and other information for a specific asset identified by `uri`. |
-| `id`     | (None)         | string | Returns a descriptive identifier for the handler, used to track which handler produced specific results.                                     |
+| Function | Parameters     | Return | Description                                                                                                                                                                                                                                                          |
+| -------- | -------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scan`   | `uri` (string) | Object | Performs the main work of the asset handler in identifying relevant metadata and other information for a specific asset identified by `uri`. Each handler will return its own metadata, but it is expected to include an `id` attribute that is the value of `id()`. |
+| `id`     | (None)         | string | Returns a descriptive identifier for the handler, used to track which handler produced specific results.                                                                                                                                                             |

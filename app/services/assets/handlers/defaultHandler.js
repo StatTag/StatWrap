@@ -1,4 +1,6 @@
 const fs = require('fs');
+const path = require('path');
+
 /**
  * Results:
  * {
@@ -67,6 +69,20 @@ export default class DefaultHandler {
     result.lastModified = details.mtime;
     result.lastStatusChange = details.ctime;
     result.created = details.birthtime;
+
+    // If this is a directory, we are going to traverse and get details
+    // about the contained files and sub-folders
+    if (result.assetType === 'directory') {
+      const self = this;
+      const files = fs.readdirSync(uri);
+      const children = [];
+      files.forEach(function eachFile(file) {
+        const filePath = path.join(uri, file);
+        children.push(self.scan(filePath));
+      });
+
+      result.children = children;
+    }
 
     return result;
   }

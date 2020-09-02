@@ -1,5 +1,6 @@
 import fs from 'fs';
 import os from 'os';
+import path from 'path';
 import DefaultHandler from '../../../../app/services/assets/handlers/defaultHandler';
 
 jest.mock('fs');
@@ -117,6 +118,69 @@ describe('services', () => {
           lastModified: stat.mtime,
           lastStatusChange: stat.ctime,
           created: stat.birthtime
+        });
+      });
+
+      it('should traverse a directory hierarchy', () => {
+        // Our fake directory structure is under /Some/Valid/Folder
+        // Subdir1/
+        //         File1
+        // File2
+        fs.accessSync.mockReturnValue(true);
+        fs.readdirSync.mockReturnValueOnce(['Subdir1', 'File2']).mockReturnValueOnce(['File1']);
+        const stat = new fs.Stats();
+        stat.isDirectory
+          .mockReturnValueOnce(true)
+          .mockReturnValueOnce(true)
+          .mockReturnValueOnce(false)
+          .mockReturnValueOnce(false);
+        stat.isFile.mockReturnValueOnce(true).mockReturnValueOnce(true);
+        fs.statSync.mockReturnValue(stat);
+        const testUri = '/Some/Valid/Folder';
+        const response = new DefaultHandler().scan(testUri);
+        expect(response).toEqual({
+          id: 'DefaultHandler',
+          uri: testUri,
+          assetType: 'directory',
+          size: undefined,
+          lastAccessed: undefined,
+          lastModified: undefined,
+          lastStatusChange: undefined,
+          created: undefined,
+          children: [
+            {
+              id: 'DefaultHandler',
+              uri: path.join(testUri, 'Subdir1'),
+              assetType: 'directory',
+              size: undefined,
+              lastAccessed: undefined,
+              lastModified: undefined,
+              lastStatusChange: undefined,
+              created: undefined,
+              children: [
+                {
+                  id: 'DefaultHandler',
+                  uri: path.join(testUri, 'Subdir1', 'File1'),
+                  assetType: 'file',
+                  size: undefined,
+                  lastAccessed: undefined,
+                  lastModified: undefined,
+                  lastStatusChange: undefined,
+                  created: undefined
+                }
+              ]
+            },
+            {
+              id: 'DefaultHandler',
+              uri: path.join(testUri, 'File2'),
+              assetType: 'file',
+              size: undefined,
+              lastAccessed: undefined,
+              lastModified: undefined,
+              lastStatusChange: undefined,
+              created: undefined
+            }
+          ]
         });
       });
     });
