@@ -23,39 +23,46 @@ export default class FileHandler {
    * @param {string} uri - A string containing the URI that the asset can be found at
    * @return {object} A JS object containing the details about the specified asset
    */
-  scan(uri) {
-    const result = { id: this.id() };
-    if (!fs.accessSync(uri)) {
-      result.error = 'Unable to access asset';
-      return result;
+  scan(originalAsset) {
+    const asset = { ...originalAsset };
+    // If we have an invalid asset, just move along.
+    if (!asset || asset === undefined || !asset.type) {
+      return asset;
     }
 
-    const details = fs.statSync(uri);
+    // Only handle files and directories
+    if (asset.type !== 'file' && asset.type !== 'directory') {
+      return asset;
+    }
+
+    const metadata = { id: this.id() };
+    if (!fs.accessSync(asset)) {
+      metadata.error = 'Unable to access asset';
+      asset.metadata.push(metadata);
+      return asset;
+    }
+
+    const details = fs.statSync(asset);
     if (!details) {
-      result.error = 'No information could be found for this asset';
-      return result;
+      metadata.error = 'No information could be found for this asset';
+      asset.metadata.push(metadata);
+      return asset;
     }
 
-    result.size = details.size;
-    result.lastAccessed = details.atime;
-    result.lastModified = details.mtime;
-    result.lastStatusChange = details.ctime;
-    result.created = details.birthtime;
+    metadata.size = details.size;
+    metadata.lastAccessed = details.atime;
+    metadata.lastModified = details.mtime;
+    metadata.lastStatusChange = details.ctime;
+    metadata.created = details.birthtime;
 
-    // // If this is a directory, we are going to traverse and get details
-    // // about the contained files and sub-folders
-    // if (result.assetType === 'directory') {
-    //   const self = this;
-    //   const files = fs.readdirSync(uri);
-    //   const children = [];
-    //   files.forEach(function eachFile(file) {
-    //     const filePath = path.join(uri, file);
-    //     children.push(self.scan(filePath));
-    //   });
-
-    //   result.children = children;
-    // }
-
-    return result;
+    // If this is a directory, we are going to traverse and get details
+    // about the contained files and sub-folders
+    if (asset.type === 'directory' && asset.children) {
+      const self = this;
+      // eslint-disable-next-line no-return-assign
+      asset.children.forEach((child, index) => (asset.children[index] = self.scan(child)));
+    }
+    asset.metadata.push(metadata);
+    return asset;
   }
 }
