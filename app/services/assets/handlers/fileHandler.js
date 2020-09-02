@@ -3,7 +3,7 @@ const fs = require('fs');
 /**
  * Metadata:
  * {
- *   id: 'DefaultHandler',
+ *   id: 'StatWrap.FileHandler',
  *   size: 123456 (in bytes),
  *   lastAccessed: Date,
  *   lastModified: Date,
@@ -11,11 +11,11 @@ const fs = require('fs');
  *   created: Date,
  * }
  */
-export default class DefaultHandler {
-  static id = 'DefaultHandler';
+export default class FileHandler {
+  static id = 'StatWrap.FileHandler';
 
   id() {
-    return DefaultHandler.id;
+    return FileHandler.id;
   }
 
   /**
