@@ -39,9 +39,8 @@ export default class AssetService {
   }
 
   scan(uri) {
-    if (!fs.accessSync(uri)) {
-      throw new Error(`Unable to scan for assets in "${uri}"`);
-    }
+    // This will throw an error if it can't access the uri
+    fs.accessSync(uri);
 
     // TODO: When we move past file/folder assets, this will need to account for
     // other types of assets that aren't reachable via the file system.

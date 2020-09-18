@@ -9,5 +9,11 @@ module.exports = {
 
   UndefinedDefaults: {
     PROJECT: '(Unnamed Project)'
+  },
+
+  AssetType: {
+    DIRECTORY: 'directory',
+    FOLDER: 'directory', // 'DIRECTORY' is the preferred name, but we know we'll use this sometimes
+    FILE: 'file'
   }
 };

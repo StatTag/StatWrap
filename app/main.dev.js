@@ -18,6 +18,7 @@ import MenuBuilder from './menu';
 import ProjectService from './services/project';
 import ProjectListService, { DefaultProjectListFile } from './services/projectList';
 import ProjectTemplateService from './services/projectTemplate';
+import AssetService from './services/assets/asset';
 import Messages from './constants/messages';
 import Constants from './constants/constants';
 
@@ -126,12 +127,14 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
     console.log(userDataPath);
     const service = new ProjectService();
     const listService = new ProjectListService();
+    console.log(path.join(userDataPath, DefaultProjectListFile));
     let projectsFromFile = listService.loadProjectListFromFile(
       path.join(userDataPath, DefaultProjectListFile)
     );
-
+    console.log('1');
     // For all of the projects we have in our list, load the additional information that exists
     // within the project's local metadata file itself.
+    console.log(projectsFromFile);
     projectsFromFile = projectsFromFile.map(project => {
       const metadata = service.loadProjectFile(project.path);
       // TODO What if the IDs don't match?  Handle that.  Also handle if file not found, file invalid, etc.
@@ -298,4 +301,35 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
   }
 
   event.sender.send(Messages.CREATE_PROJECT_RESPONSE, response);
+});
+
+// const sleep = milliseconds => {
+//   return new Promise(resolve => setTimeout(resolve, milliseconds));
+// };
+
+// Given a project, scan the details of that project, which includes scanning all assets registered
+// with the project for information.
+ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
+  const response = {
+    project,
+    assets: null,
+    error: false,
+    errorMessage: ''
+  };
+
+  try {
+    const service = new AssetService();
+    response.assets = service.scan(project.path);
+    response.error = false;
+    response.errorMessage = '';
+  } catch (e) {
+    response.error = true;
+    response.errorMessage =
+      'There was an unexpected error when scanning the project for additional information';
+    console.log(e);
+  }
+
+  // console.log(response);
+  // await sleep(5000);
+  event.sender.send(Messages.SCAN_PROJECT_RESPONSE, response);
 });

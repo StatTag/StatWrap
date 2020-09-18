@@ -12,7 +12,9 @@ export default class ProjectListService {
   // return: true if the project was updated, false otherwise
   toggleProjectFavorite(projectId, filePath = DefaultProjectListFile) {
     let projectList = [];
-    if (!fs.accessSync(filePath)) {
+    try {
+      fs.accessSync(filePath);
+    } catch {
       return false;
     }
 
@@ -30,7 +32,9 @@ export default class ProjectListService {
 
   removeProjectEntry(projectId, filePath = DefaultProjectListFile) {
     let projectList = [];
-    if (!fs.accessSync(filePath)) {
+    try {
+      fs.accessSync(filePath);
+    } catch {
       return false;
     }
 
@@ -52,10 +56,14 @@ export default class ProjectListService {
     this.validateProjectListEntry(project);
 
     let projectList = [];
-    if (fs.accessSync(filePath)) {
-      const data = fs.readFileSync(filePath);
-      projectList = JSON.parse(data.toString());
+    try {
+      fs.accessSync(filePath);
+    } catch {
+      /* Do nothing if there's an error, it just means file path is invalid */
     }
+
+    const data = fs.readFileSync(filePath);
+    projectList = JSON.parse(data.toString());
 
     // If we have a match based on ID or path, don't add it again.
     if (!projectList.some(x => x.id === project.id || x.path === project.path)) {
@@ -79,9 +87,12 @@ export default class ProjectListService {
   }
 
   loadProjectListFromFile(filePath = DefaultProjectListFile) {
-    if (!fs.accessSync(filePath)) {
+    try {
+      fs.accessSync(filePath);
+    } catch {
       return [];
     }
+
     const data = fs.readFileSync(filePath);
     const projects = JSON.parse(data.toString());
     if (!projects) {

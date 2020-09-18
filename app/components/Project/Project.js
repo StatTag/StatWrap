@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 import EditableLabel from '../EditableLabel/EditableLabel';
 import Welcome from '../Welcome/Welcome';
 import About from './About/About';
+import Assets from './Assets/Assets';
 import styles from './Project.css';
 
 type Props = {};
@@ -56,6 +57,7 @@ class Project extends Component<Props> {
     let content = <Welcome />;
     if (this.props.project) {
       const about = this.props.project ? <About project={this.props.project} /> : null;
+      const assets = <Assets project={this.props.project} />;
       const name = this.props.project ? (
         <EditableLabel
           text={this.props.project.name}
@@ -96,7 +98,7 @@ class Project extends Component<Props> {
             {about}
           </TabPanel>
           <TabPanel value="assets" classes={tabPanelStyle}>
-            TBD
+            {assets}
           </TabPanel>
           <TabPanel value="workflows" classes={tabPanelStyle}>
             TBD

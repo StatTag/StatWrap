@@ -94,7 +94,9 @@ describe('services', () => {
         expect(fs.readFileSync).toHaveBeenCalledWith('.statwrap-projects.json');
       });
       it('should return an empty array if no file is found', () => {
-        fs.accessSync.mockReturnValue(false);
+        fs.accessSync.mockImplementation(() => {
+          throw new Error();
+        });
         const projects = new ProjectListService().loadProjectListFromFile();
         expect(projects.length).toBe(0);
         expect(fs.readFileSync).not.toHaveBeenCalled();
@@ -207,7 +209,9 @@ describe('services', () => {
 
     describe('toggleProjectFavorite', () => {
       it('should not try to save if the project list does not exist', () => {
-        fs.accessSync.mockReturnValue(false);
+        fs.accessSync.mockImplementation(() => {
+          throw new Error();
+        });
         const service = new ProjectListService();
         expect(service.toggleProjectFavorite('d01d2925-f6ff-4f8e-988f-fca2ee193427')).toBe(false);
         expect(fs.writeFileSync).not.toHaveBeenCalled();
@@ -265,7 +269,9 @@ describe('services', () => {
 
     describe('removeProjectEntry', () => {
       it('should not try to save if the project list does not exist', () => {
-        fs.accessSync.mockReturnValue(false);
+        fs.accessSync.mockImplementation(() => {
+          throw new Error();
+        });
         const service = new ProjectListService();
         expect(service.removeProjectEntry('d01d2925-f6ff-4f8e-988f-fca2ee193427')).toBe(false);
         expect(fs.writeFileSync).not.toHaveBeenCalled();

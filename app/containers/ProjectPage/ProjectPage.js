@@ -41,6 +41,7 @@ class ProjectPage extends Component {
     this.handleCloseProjectListMenu = this.handleCloseProjectListMenu.bind(this);
     this.handleClickProjectListMenu = this.handleClickProjectListMenu.bind(this);
     this.handleSelectProjectListItem = this.handleSelectProjectListItem.bind(this);
+    this.handleScanProjectResponse = this.handleScanProjectResponse.bind(this);
   }
 
   componentDidMount() {
@@ -52,6 +53,7 @@ class ProjectPage extends Component {
 
     ipcRenderer.on(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.on(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
+    ipcRenderer.on(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
   }
 
   componentWillUnmount() {
@@ -59,6 +61,7 @@ class ProjectPage extends Component {
     ipcRenderer.removeListener(Messages.LOAD_PROJECT_TEMPLATES_RESPONSE, this.handleLoadProjectTemplatesResponse);
     ipcRenderer.removeListener(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.removeListener(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
+    ipcRenderer.removeListener(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
   }
 
   handleLoadProjectListResponse(sender, response) {
@@ -72,6 +75,26 @@ class ProjectPage extends Component {
   refreshProjectsHandler() {
     this.setState({loaded: false});
     ipcRenderer.send(Messages.LOAD_PROJECT_LIST_REQUEST);
+  }
+
+  handleScanProjectResponse(sender, response) {
+    console.log(response);
+    if (!response || !response.project) {
+      return;
+    }
+
+    const {selectedProject} = this.state;
+    // If the currently selected project doesn't match the scan request, it may be related to
+    // a previously selected project.  In this case, we will just ignore the response and not
+    // do any updates to the UI.
+    if (selectedProject.id !== response.project.id) {
+      console.warn('Scan result for project does not match currently selected project');
+      return;
+    }
+
+    const projectWithAssets = {...selectedProject, assets: response.error ? {error: response.error, errorMessage: response.errorMessage} : response.assets};
+    console.log(projectWithAssets);
+    this.setState({ selectedProject: projectWithAssets });
   }
 
   handleFavoriteClick(id) {
@@ -121,6 +144,7 @@ class ProjectPage extends Component {
   handleSelectProjectListItem(project) {
     console.log(project);
     this.setState({ selectedProject: project });
+    ipcRenderer.send(Messages.SCAN_PROJECT_REQUEST, project);
   }
 
   render() {
