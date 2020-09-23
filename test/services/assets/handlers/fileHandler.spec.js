@@ -17,6 +17,30 @@ describe('services', () => {
       });
     });
 
+    describe('includeFile', () => {
+      it('should exclude invalid URIs', () => {
+        const handler = new FileHandler();
+        expect(handler.includeFile(null)).toBeFalsy();
+        expect(handler.includeFile(undefined)).toBeFalsy();
+        expect(handler.includeFile('')).toBeFalsy();
+        expect(handler.includeFile('   ')).toBeFalsy();
+      });
+
+      it('should exclude files we want to skip', () => {
+        const handler = new FileHandler();
+        expect(handler.includeFile('/User/test/Project/.DS_Store')).toBeFalsy();
+        expect(handler.includeFile('C:/test/Project/Thumbs.db')).toBeFalsy();
+        expect(handler.includeFile('.statwrap-project.json')).toBeFalsy();
+      });
+
+      it('should include allowable files and folders', () => {
+        const handler = new FileHandler();
+        expect(handler.includeFile('/User/test/Project/DS/Store')).toBeTruthy();
+        expect(handler.includeFile('C:/test/Project/Thumbnail-1.jpg')).toBeTruthy();
+        expect(handler.includeFile('Manuscript-v1.docx')).toBeTruthy();
+      });
+    });
+
     describe('scan', () => {
       it('should return a response with just the handler name if the file is not accessible', () => {
         fs.accessSync.mockReturnValue(false);
@@ -86,7 +110,8 @@ describe('services', () => {
           lastAccessed: stat.atime,
           lastModified: stat.mtime,
           lastStatusChange: stat.ctime,
-          created: stat.birthtime
+          created: stat.birthtime,
+          include: true
         });
       });
 
@@ -138,7 +163,8 @@ describe('services', () => {
           lastAccessed: stat.atime,
           lastModified: stat.mtime,
           lastStatusChange: stat.ctime,
-          created: stat.birthtime
+          created: stat.birthtime,
+          include: true
         };
         expect(response.metadata[0]).toEqual(expectedMetadata);
         expect(response.children[0].metadata[0]).toEqual(expectedMetadata);
