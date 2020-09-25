@@ -70,6 +70,10 @@ export default class AssetService {
       return result;
     }
 
+    if (this.handlers.length === 0) {
+      console.warn('There are no handlers registered');
+    }
+
     let assetEntry = result;
     for (let index = 0; index < this.handlers.length; index++) {
       assetEntry = this.handlers[index].scan(assetEntry);

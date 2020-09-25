@@ -19,6 +19,7 @@ import ProjectService from './services/project';
 import ProjectListService, { DefaultProjectListFile } from './services/projectList';
 import ProjectTemplateService from './services/projectTemplate';
 import AssetService from './services/assets/asset';
+import FileHandler from './services/assets/handlers/fileHandler';
 import Messages from './constants/messages';
 import Constants from './constants/constants';
 
@@ -318,7 +319,7 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
   };
 
   try {
-    const service = new AssetService();
+    const service = new AssetService([new FileHandler()]);
     response.assets = service.scan(project.path);
     response.error = false;
     response.errorMessage = '';

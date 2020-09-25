@@ -42,8 +42,31 @@ describe('services', () => {
     });
 
     describe('scan', () => {
+      it('should only add the metadata once', () => {
+        fs.accessSync.mockImplementationOnce(() => {
+          throw new Error();
+        });
+        const handler = new FileHandler();
+        const testAsset = {
+          uri: '/Some/Invalid/Path',
+          type: 'file',
+          metadata: [
+            {
+              id: handler.id(),
+              size: 1234
+            }
+          ]
+        };
+        let response = handler.scan(testAsset);
+        expect(response.metadata.length).toEqual(1);
+        response = handler.scan(response);
+        expect(response.metadata.length).toEqual(1);
+      });
+
       it('should return a response with just the handler name if the file is not accessible', () => {
-        fs.accessSync.mockReturnValue(false);
+        fs.accessSync.mockImplementationOnce(() => {
+          throw new Error();
+        });
         const testAsset = {
           uri: '/Some/Invalid/Path',
           type: 'file',
@@ -166,7 +189,9 @@ describe('services', () => {
           created: stat.birthtime,
           include: true
         };
+        expect(response.metadata.length).toEqual(1);
         expect(response.metadata[0]).toEqual(expectedMetadata);
+        expect(response.children[0].metadata.length).toEqual(1);
         expect(response.children[0].metadata[0]).toEqual(expectedMetadata);
         expect(response.children[1].metadata[0]).toEqual(expectedMetadata);
         expect(response.children[1].children[0].metadata[0]).toEqual(expectedMetadata);

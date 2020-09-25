@@ -2,6 +2,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import AssetNode from './AssetNode/AssetNode';
+import MetadataUtil from '../../utils/metadata';
 import styles from './AssetTree.css';
 
 // This implementation borrows heavily from: https://github.com/davidtran/simple-treeview
@@ -26,7 +27,6 @@ class AssetTree extends Component {
     const { nodes } = this.state;
     const foundNode = this.uriNodeMap.find(x => x.uri === node.uri);
     if (foundNode) {
-      console.log(foundNode);
       foundNode.isOpen = !node.isOpen;
       foundNode.node.isOpen = foundNode.isOpen;
       this.setState({ nodes });
@@ -34,11 +34,15 @@ class AssetTree extends Component {
   };
 
   render() {
-    const assetTree = !this.props.project.assets
+    const filteredAssets = !this.props.project.assets
       ? null
-      : this.props.project.assets.children.map(child => (
-          <AssetNode key={child.uri} node={child} onToggle={this.onToggle} />
-        ));
+      : MetadataUtil.filterIncludedFileAssets(this.props.project.assets);
+    const assetTree =
+      !filteredAssets || !filteredAssets.children
+        ? null
+        : filteredAssets.children.map(child => (
+            <AssetNode key={child.uri} node={child} onToggle={this.onToggle} />
+          ));
 
     return <div className={styles.container}>{assetTree}</div>;
   }

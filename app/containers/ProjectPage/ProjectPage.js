@@ -78,7 +78,6 @@ class ProjectPage extends Component {
   }
 
   handleScanProjectResponse(sender, response) {
-    console.log(response);
     if (!response || !response.project) {
       return;
     }
@@ -93,7 +92,6 @@ class ProjectPage extends Component {
     }
 
     const projectWithAssets = {...selectedProject, assets: response.error ? {error: response.error, errorMessage: response.errorMessage} : response.assets};
-    console.log(projectWithAssets);
     this.setState({ selectedProject: projectWithAssets });
   }
 
