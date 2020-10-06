@@ -1,0 +1,25 @@
+.container {
+  margin: 0;
+  padding: 2px;
+  background-color: #ffe;
+  width: 100%;
+}
+
+.metadata {
+  padding-bottom: 5px;
+  font-size: 0.7rem;
+  font-style: italic;
+}
+
+.content {
+  white-space: pre-wrap
+}
+
+.icon {
+  padding-left: 10px;
+}
+
+.delete {
+  float: right;
+  cursor: pointer
+}

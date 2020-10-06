@@ -1,0 +1,32 @@
+[
+  {
+    "uri": "/Some/Path/sw-test/data",
+    "notes": [
+      {
+        "author": "Luke Rasmussen",
+        "updated": "September 24, 2020 10:38 AM",
+        "content": "Some information goes here"
+      }
+    ]
+  },
+  {
+    "uri": "/Some/Path/sw-test/data/processed",
+    "notes": [
+      {
+        "author": "Luke Rasmussen",
+        "updated": "September 24, 2020 10:38 AM",
+        "content": "Some more information goes here"
+      }
+    ]
+  },
+  {
+    "uri": "https://github.com/project/remote-data.csv",
+    "notes": [
+      {
+        "author": "Luke Rasmussen",
+        "updated": "September 24, 2020 10:38 AM",
+        "content": "This is a remote file in my project"
+      }
+    ]
+  }
+]

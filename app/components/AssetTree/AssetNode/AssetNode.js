@@ -19,6 +19,7 @@ const StyledTreeNode = styled.div`
   align-items: center;
   padding: 5px 8px;
   padding-left: ${props => getPaddingLeft(props.level)}px;
+  ${props => (props.selected ? 'background-color: #eee;' : null)}
 `;
 
 const NodeIcon = styled.div`
@@ -29,11 +30,19 @@ const NodeIcon = styled.div`
 const getNodeLabel = node => last(node.uri.split('/'));
 
 const AssetNode = props => {
-  const { node, level, onToggle } = props;
-
+  const { node, selectedAsset, level, onToggle, onRightClick, onClick } = props;
   return (
     <>
-      <StyledTreeNode level={level} type={node.type}>
+      <StyledTreeNode
+        level={level}
+        type={node.type}
+        selected={node && selectedAsset && node.uri === selectedAsset.uri}
+        onContextMenu={e => onRightClick(e)}
+        onClick={e => {
+          e.stopPropagation();
+          onClick(node);
+        }}
+      >
         <NodeIcon onClick={() => onToggle(node)}>
           {node.type === Constants.AssetType.DIRECTORY &&
             (node.isOpen ? <FaChevronDown /> : <FaChevronRight />)}
@@ -56,7 +65,10 @@ const AssetNode = props => {
                 key={childNode.uri}
                 node={childNode}
                 level={level + 1}
+                selectedAsset={selectedAsset}
                 onToggle={onToggle}
+                onClick={onClick}
+                onRightClick={onRightClick}
               />
             )))}
     </>
@@ -65,13 +77,19 @@ const AssetNode = props => {
 
 AssetNode.propTypes = {
   node: PropTypes.object.isRequired,
+  selectedAsset: PropTypes.object,
   level: PropTypes.number,
-  onToggle: PropTypes.func
+  onToggle: PropTypes.func,
+  onRightClick: PropTypes.func,
+  onClick: PropTypes.func
 };
 
 AssetNode.defaultProps = {
   onToggle: null,
-  level: 0
+  onRightClick: null,
+  onClick: null,
+  level: 0,
+  selectedAsset: null
 };
 
 export default AssetNode;

@@ -1,0 +1,25 @@
+.container {
+}
+
+.title {
+  margin-bottom: 10px;
+  border-bottom: solid 1px black;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.heading {
+  background-color: #eee !important;
+  padding: 0 5px !important;
+}
+
+.headingTitle {
+  font-size: 1.0rem !important;
+  padding: 0px 5px !important;
+}
+
+.details {
+  padding: 5px;
+}
