@@ -4,7 +4,6 @@
 .title {
   margin-bottom: 10px;
   border-bottom: solid 1px black;
-
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -17,7 +16,7 @@
 
 .headingTitle {
   font-size: 1.0rem !important;
-  padding: 0px 5px !important;
+  padding: 0 5px !important;
 }
 
 .details {

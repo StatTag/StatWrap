@@ -8,6 +8,8 @@
 
   The version imported via yarn was not working, and so we needed to get the most recent version from
   GitHub.  This will also allow local customization when/if needed.
+
+  2020-10-06 - Started customizing for our use.  This includes a multiline mode.
 */
 
 import React from 'react';
@@ -73,7 +75,8 @@ export default class EditableLabel extends React.Component {
   };
 
   handleKeyDown = e => {
-    if (e.keyCode === ENTER_KEY_CODE) {
+    // We only allow enter-completion when this is a single line editor.
+    if (e.keyCode === ENTER_KEY_CODE && !this.props.multiline) {
       this.handleEnterKey();
     }
   };
@@ -84,9 +87,37 @@ export default class EditableLabel extends React.Component {
 
   render() {
     if (this.state.isEditing) {
+      if (this.props.multiline) {
+        return (
+          <div>
+            <textarea
+              autoFocus
+              className={this.props.inputClassName}
+              ref={input => {
+                this.textInput = input;
+              }}
+              value={this.state.text}
+              onChange={this.handleChange}
+              onBlur={this.handleFocus}
+              style={{
+                width: this.props.inputWidth,
+                height: this.props.inputHeight,
+                fontSize: this.props.inputFontSize,
+                fontWeight: this.props.inputFontWeight,
+                borderWidth: this.props.inputBorderWidth
+              }}
+              maxLength={this.props.inputMaxLength}
+              placeholder={this.props.inputPlaceHolder}
+              tabIndex={this.props.inputTabIndex}
+            />
+          </div>
+        );
+      }
+
       return (
         <div>
           <input
+            autoFocus
             type="text"
             className={this.props.inputClassName}
             ref={input => {
@@ -135,6 +166,7 @@ EditableLabel.propTypes = {
   text: PropTypes.string.isRequired,
   isEditing: PropTypes.bool,
   emptyEdit: PropTypes.bool,
+  multiline: PropTypes.bool,
 
   labelClassName: PropTypes.string,
   labelFontSize: PropTypes.string,
@@ -158,6 +190,7 @@ EditableLabel.propTypes = {
 EditableLabel.defaultProps = {
   isEditing: false,
   emptyEdit: false,
+  multiline: false,
 
   labelClassName: null,
   labelFontSize: null,

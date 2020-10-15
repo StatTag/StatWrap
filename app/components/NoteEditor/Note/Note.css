@@ -12,7 +12,12 @@
 }
 
 .content {
-  white-space: pre-wrap
+  white-space: pre-wrap;
+  font-size: 0.9rem;
+}
+
+.contentEditor {
+  min-height: 100px;
 }
 
 .icon {

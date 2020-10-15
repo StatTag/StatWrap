@@ -1,5 +1,6 @@
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
+import { ipcRenderer } from 'electron';
 import { Tab } from '@material-ui/core';
 import { TabPanel, TabContext, TabList } from '@material-ui/lab';
 import { withStyles } from '@material-ui/core/styles/';
@@ -11,6 +12,8 @@ import Welcome from '../Welcome/Welcome';
 import About from './About/About';
 import Assets from './Assets/Assets';
 import styles from './Project.css';
+
+import Messages from '../../constants/messages';
 
 type Props = {};
 
@@ -44,10 +47,45 @@ class Project extends Component<Props> {
   constructor(props) {
     super(props);
     this.state = { selectedTab: 'about' };
+
+    //this.handleUpdateAssetMetadata = this.handleUpdateAssetMetadata.bind(this);
   }
+
+  componentDidMount() {
+    //ipcRenderer.on(Messages.UPDATE_ASSET_METADATA_RESPONSE, this.handleUpdateAssetMetadataResponse);
+  }
+
+  componentWillUnmount() {
+    ipcRenderer.removeListener(
+      Messages.UPDATE_ASSET_METADATA_RESPONSE,
+      this.handleUpdateAssetMetadataResponse
+    );
+  }
+
+  handleUpdateAssetMetadataResponse = (asset) => {
+    console.log('handleUpdateAssetMetadataResponse');
+    console.log(asset);
+  };
 
   changeHandler = (event, id) => {
     this.setState({ selectedTab: id });
+  };
+
+  assetUpdateNoteHandler = (asset, note) => {
+    // const assetsCopy = [...this.props.project.assets];
+    // ipcRenderer.send(Messages.UPDATE_PROJECT_ASSETS_NOTES);
+  };
+
+  assetAddNoteHandler = (asset, note) => {
+    // const assetsCopy = [...this.props.project.assets];
+    // const existingAsset = assetsCopy.find(x => x.uri === asset.uri);
+    // if (existingAsset) {
+    //   existingAsset.notes.push(note);
+    //   ipcRenderer.send(Messages.UPDATE_PROJECT_ASSETS_NOTES);
+    // }
+    // else {
+    //   // TODO: Error handler
+    // }
   };
 
   render() {
@@ -57,7 +95,13 @@ class Project extends Component<Props> {
     let content = <Welcome />;
     if (this.props.project) {
       const about = this.props.project ? <About project={this.props.project} /> : null;
-      const assets = <Assets project={this.props.project} />;
+      const assets = this.props.project ? (
+        <Assets
+          project={this.props.project}
+          onAddedAssetNote={this.assetUpdateHandler}
+          onUpdatedAssetNote={this.assetUpdateHandler}
+        />
+      ) : null;
       const name = this.props.project ? (
         <EditableLabel
           text={this.props.project.name}

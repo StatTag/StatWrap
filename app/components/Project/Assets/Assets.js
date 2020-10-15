@@ -6,11 +6,18 @@ import Loading from '../../Loading/Loading';
 import styles from './Assets.css';
 
 const assets = props => {
+  const { onAddedAssetNote, onUpdatedAssetNote } = props;
   const [selectedAsset, setSelectedAsset] = useState();
   let assetDisplay = null;
   if (props.project) {
     assetDisplay = <Loading>Please wait for the list of assets to finish loading...</Loading>;
-    const assetDetails = selectedAsset ? <AssetDetails asset={selectedAsset} /> : null;
+    const assetDetails = selectedAsset ? (
+      <AssetDetails
+        asset={selectedAsset}
+        onAddedNote={onAddedAssetNote}
+        onUpdatedNote={onUpdatedAssetNote}
+      />
+    ) : null;
     if (props.project.assets) {
       assetDisplay = props.project.assets.error ? (
         <Error>{props.project.assets.errorMessage}</Error>
