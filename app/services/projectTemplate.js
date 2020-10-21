@@ -50,10 +50,14 @@ function createAllTemplateItems(dirPath, contents) {
 // For a given template, find the list of files and folders that have been defined
 function getTemplateContents(template, templateRoot) {
   const templateDirs = fs.readdirSync(templateRoot);
-  if (templateDirs.includes(template.id)) {
-    const fullTemplate = { ...template };
-    fullTemplate.contents = getAllFiles(path.join(templateRoot, '/', template.id));
-    return fullTemplate;
+  if (templateDirs && templateDirs.includes(template.id)) {
+    // The template exists, now confirm that the specific version exists.
+    const templateVersions = fs.readdirSync(path.join(templateRoot, template.id));
+    if (templateVersions && templateVersions.includes(template.version)) {
+      const fullTemplate = { ...template };
+      fullTemplate.contents = getAllFiles(path.join(templateRoot, template.id, template.version));
+      return fullTemplate;
+    }
   }
 
   return null;
@@ -92,19 +96,28 @@ export default class ProjectTemplateService {
   // Instantiate baseDirectory (assumed to be the root of the project we want the
   // template created in) with all files and folders stored in the template identified
   // by templateId
-  createTemplateContents = (baseDirectory, templateId) => {
+  createTemplateContents = (baseDirectory, templateId, templateVersion) => {
     if (!baseDirectory) {
       throw new Error(`You must specify a base directory to create the template in`);
-    } else if (!fs.accessSync(baseDirectory)) {
+    }
+
+    try {
+      fs.accessSync(baseDirectory);
+    } catch (err) {
       throw new Error(`The base directory ${baseDirectory} does not exist`);
     }
 
     if (!templateId) {
       throw new Error(`You must specify the template ID to create`);
     }
-    const template = this.projectTemplates.find(t => t.id === templateId);
+    if (!templateVersion) {
+      throw new Error('You must specify the version of the template to create');
+    }
+    const template = this.projectTemplates.find(
+      t => t.id === templateId && t.version === templateVersion
+    );
     if (!template) {
-      throw new Error(`The template ID ${templateId} does not exist`);
+      throw new Error(`The template ID ${templateId} ${templateVersion} does not exist`);
     }
 
     createAllTemplateItems(baseDirectory, template.contents);

@@ -9,9 +9,9 @@ import styles from './SelectProjectTemplate.css';
 class SelectProjectTemplate extends Component {
   render() {
     let template = null;
-    if (this.props.projectTemplates) {
+    if (this.props.projectTemplates && this.props.selectedTemplate) {
       template = this.props.projectTemplates.find(
-        x => x.id === this.props.selectedTemplate
+        x => x.id === this.props.selectedTemplate.id && x.version === this.props.selectedTemplate.version
       );
     }
     return (
@@ -36,7 +36,7 @@ class SelectProjectTemplate extends Component {
 
 SelectProjectTemplate.propTypes = {
   projectTemplates: PropTypes.array.isRequired,
-  selectedTemplate: PropTypes.string,
+  selectedTemplate: PropTypes.object,
   onSelectProjectTemplate: PropTypes.func.isRequired
 };
 

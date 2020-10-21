@@ -17,7 +17,16 @@ describe('services', () => {
 
     describe('loadProjectTemplates', () => {
       it('should return the list of project templates', () => {
-        fs.readdirSync.mockReturnValue(['STATWRAP-EMPTY', 'STATWRAP-BASIC', 'STATWRAP-NUBCC']);
+        fs.readdirSync
+          .mockReturnValueOnce(['STATWRAP-EMPTY', 'STATWRAP-BASIC', 'STATWRAP-NUBCC'])
+          .mockReturnValueOnce(['1'])
+          .mockReturnValueOnce([])
+          .mockReturnValueOnce(['STATWRAP-EMPTY', 'STATWRAP-BASIC', 'STATWRAP-NUBCC'])
+          .mockReturnValueOnce(['1'])
+          .mockReturnValueOnce([])
+          .mockReturnValueOnce(['STATWRAP-EMPTY', 'STATWRAP-BASIC', 'STATWRAP-NUBCC'])
+          .mockReturnValueOnce(['1'])
+          .mockReturnValueOnce([]);
         fs.statSync.mockReturnValue(new fs.Stats());
         const projectTemplates = new ProjectTemplateService().loadProjectTemplates(
           '/path/templates'
@@ -26,7 +35,14 @@ describe('services', () => {
       });
 
       it('should filter out templates that are not found on disk', () => {
-        fs.readdirSync.mockReturnValue(['STATWRAP-BASIC', 'STATWRAP-NUBCC', 'test']);
+        fs.readdirSync
+          .mockReturnValueOnce(['STATWRAP-BASIC', 'STATWRAP-NUBCC', 'test'])
+          .mockReturnValueOnce(['STATWRAP-BASIC', 'STATWRAP-NUBCC', 'test'])
+          .mockReturnValueOnce(['1'])
+          .mockReturnValueOnce([])
+          .mockReturnValueOnce(['STATWRAP-BASIC', 'STATWRAP-NUBCC', 'test'])
+          .mockReturnValueOnce(['1'])
+          .mockReturnValueOnce([]);
         fs.statSync.mockReturnValue(new fs.Stats());
         const projectTemplates = new ProjectTemplateService().loadProjectTemplates(
           '/path/templates'
@@ -34,11 +50,28 @@ describe('services', () => {
         expect(projectTemplates.length).toBe(2);
       });
 
+      it('should filter out templates where the current version is not found on disk', () => {
+        fs.readdirSync
+          .mockReturnValueOnce(['STATWRAP-EMPTY', 'STATWRAP-BASIC', 'STATWRAP-NUBCC'])
+          .mockReturnValueOnce(['0'])
+          .mockReturnValueOnce(['STATWRAP-EMPTY', 'STATWRAP-BASIC', 'STATWRAP-NUBCC'])
+          .mockReturnValueOnce(['1'])
+          .mockReturnValueOnce([])
+          .mockReturnValueOnce(['STATWRAP-EMPTY', 'STATWRAP-BASIC', 'STATWRAP-NUBCC'])
+          .mockReturnValueOnce(['v1']);
+        fs.statSync.mockReturnValue(new fs.Stats());
+        const projectTemplates = new ProjectTemplateService().loadProjectTemplates(
+          '/path/templates'
+        );
+        expect(projectTemplates.length).toBe(1);
+      });
+
       it('should filter out files that are to be excluded', () => {
         fs.readdirSync = jest
           .fn(() => [])
           // I know it's not really an empty project, we're just using it this way for our test
           .mockImplementationOnce(() => ['STATWRAP-EMPTY'])
+          .mockImplementationOnce(() => ['1'])
           .mockImplementationOnce(() => ['.DS_Store', 'file1', 'dir1']);
 
         fs.statSync.mockReturnValue(new fs.Stats());
@@ -66,7 +99,7 @@ describe('services', () => {
         ).toThrow(Error);
       });
 
-      it('should throw an exception a template is not specified', () => {
+      it('should throw an exception when a template is not specified', () => {
         fs.accessSync.mockReturnValue(true);
         expect(() =>
           new ProjectTemplateService().createTemplateContents('/Project/Dir', null)
@@ -76,17 +109,43 @@ describe('services', () => {
         ).toThrow(Error);
       });
 
-      it('should throw an exception when the template ID does not exist', () => {
+      it('should throw an exception when a template version is not specified', () => {
         fs.accessSync.mockReturnValue(true);
         expect(() =>
-          new ProjectTemplateService().createTemplateContents('/Project/Dir', 'INVALID-PROJECT-ID')
+          new ProjectTemplateService().createTemplateContents('/Project/Dir', 'Test', null)
+        ).toThrow(Error);
+        expect(() =>
+          new ProjectTemplateService().createTemplateContents('/Project/Dir', 'Test', undefined)
         ).toThrow(Error);
       });
 
-      it('should create the template for a valid template ID and base directory', () => {
+      it('should throw an exception when the template ID does not exist', () => {
+        fs.accessSync.mockReturnValue(true);
+        expect(() =>
+          new ProjectTemplateService().createTemplateContents(
+            '/Project/Dir',
+            'INVALID-PROJECT-ID',
+            '1'
+          )
+        ).toThrow(Error);
+      });
+
+      it('should throw an exception when the template version does not exist', () => {
+        fs.accessSync.mockReturnValue(true);
+        expect(() =>
+          new ProjectTemplateService().createTemplateContents(
+            '/Project/Dir',
+            'STATWRAP-EMPTY',
+            '110000000'
+          )
+        ).toThrow(Error);
+      });
+
+      it('should create the template for a valid template and base directory', () => {
         fs.readdirSync
           .mockReturnValueOnce(['STATWRAP-BASIC'])
           .mockReturnValueOnce(['STATWRAP-BASIC'])
+          .mockReturnValueOnce(['1'])
           .mockReturnValueOnce(['README', 'code', 'data']) // Template dir contents
           .mockReturnValueOnce([]) // 'code' dir is empty
           .mockReturnValueOnce(['raw', 'processed']); // 'data' dir has two sub-dirs
@@ -100,7 +159,7 @@ describe('services', () => {
         fs.statSync.mockReturnValue(stat);
         const service = new ProjectTemplateService();
         service.loadProjectTemplates('/path/templates');
-        service.createTemplateContents('/Project/Dir', 'STATWRAP-BASIC');
+        service.createTemplateContents('/Project/Dir', 'STATWRAP-BASIC', '1');
         expect(fs.copyFileSync).toHaveBeenCalledTimes(1);
         expect(fs.mkdirSync).toHaveBeenCalledTimes(4);
       });

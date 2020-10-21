@@ -7,6 +7,9 @@ module.exports = {
   CREATE_PROJECT_REQUEST: 'statwrap-create-project-request',
   CREATE_PROJECT_RESPONSE: 'statwrap-create-project-response',
 
+  UPDATE_PROJECT_REQUEST: 'statwrap-update-project-request',
+  UPDATE_PROJECT_RESPONSE: 'statwrap-update-project-response',
+
   SCAN_PROJECT_REQUEST: 'statwrap-scan-project-request',
   SCAN_PROJECT_RESPONSE: 'statwrap-scan-project-response',
 

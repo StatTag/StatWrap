@@ -33,6 +33,7 @@ export default class ProjectService {
     try {
       fs.accessSync(project.path);
     } catch (err) {
+      console.log(`CREATING: ${project.path} ERR: ${err}`);
       fs.mkdirSync(project.path, { recursive: true });
     }
 

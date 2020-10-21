@@ -1,3 +1,4 @@
+/* eslint-disable no-lonely-if */
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
 import { ipcRenderer } from 'electron';
@@ -48,45 +49,82 @@ class Project extends Component<Props> {
     super(props);
     this.state = { selectedTab: 'about' };
 
-    //this.handleUpdateAssetMetadata = this.handleUpdateAssetMetadata.bind(this);
+    // this.handleUpdateAssetMetadata = this.handleUpdateAssetMetadata.bind(this);
   }
 
   componentDidMount() {
-    //ipcRenderer.on(Messages.UPDATE_ASSET_METADATA_RESPONSE, this.handleUpdateAssetMetadataResponse);
+    ipcRenderer.on(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
   }
 
   componentWillUnmount() {
-    ipcRenderer.removeListener(
-      Messages.UPDATE_ASSET_METADATA_RESPONSE,
-      this.handleUpdateAssetMetadataResponse
-    );
+    ipcRenderer.removeListener(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
   }
 
-  handleUpdateAssetMetadataResponse = (asset) => {
-    console.log('handleUpdateAssetMetadataResponse');
-    console.log(asset);
+  handleUpdateProjectResponse = project => {
+    console.log('handleUpdateProjectResponse');
+    console.log(project);
   };
 
   changeHandler = (event, id) => {
     this.setState({ selectedTab: id });
   };
 
-  assetUpdateNoteHandler = (asset, note) => {
-    // const assetsCopy = [...this.props.project.assets];
-    // ipcRenderer.send(Messages.UPDATE_PROJECT_ASSETS_NOTES);
+  assetUpsertNoteHandler = (asset, note) => {
+    const project = { ...this.props.project };
+    console.log(project);
+    const assetsCopy = { ...project.assets };
+    const existingAsset = assetsCopy.find(x => x.uri === asset.uri);
+    if (!existingAsset) {
+      // No existing asset, so we are going to register a new entry
+      const newAsset = { ...asset };
+      if (!newAsset.notes) {
+        newAsset.notes = [];
+      }
+      newAsset.notes.push(note);
+      assetsCopy.push(newAsset);
+    } else {
+      // We already have the asset, so manage updating the note
+
+      // This is unexpected, but we will silently recover from it.  Because we
+      // are updating a note, if there is no notes collection we obviously don't
+      // have anything to update.  Instead we'll just treat it like adding a new
+      // note.
+      if (!existingAsset.notes) {
+        console.warn('Project - creating note collection because no notes available when updating');
+        existingAsset.notes = [];
+        existingAsset.notes.push(note);
+      } else {
+        const existingNote = existingAsset.notes.find(x => x.id === note.id);
+
+        // This is also an unexpected situation, but one we can recover from.  We
+        // expect that there is a note already, but we couldn't find it by the ID.
+        // We will recover by simply adding it as a new note.
+        if (!existingNote) {
+          console.warn('Project - creating a new note instead of updating note');
+          console.log(note);
+          existingAsset.notes.push(note);
+        } else {
+          existingNote.content = note;
+          existingNote.updated = Date.now();
+        }
+      }
+    }
+    project.assets = assetsCopy;
+    ipcRenderer.send(Messages.UPDATE_PROJECT, project);
   };
 
-  assetAddNoteHandler = (asset, note) => {
-    // const assetsCopy = [...this.props.project.assets];
-    // const existingAsset = assetsCopy.find(x => x.uri === asset.uri);
-    // if (existingAsset) {
-    //   existingAsset.notes.push(note);
-    //   ipcRenderer.send(Messages.UPDATE_PROJECT_ASSETS_NOTES);
-    // }
-    // else {
-    //   // TODO: Error handler
-    // }
-  };
+  // assetAddNoteHandler = (asset, note) => {
+  //   const project = { ...this.props.project };
+  //   const assetsCopy = [...project.assets];
+  //   const existingAsset = assetsCopy.find(x => x.uri === asset.uri);
+  //   if (existingAsset) {
+  //     existingAsset.notes.push(note);
+  //     ipcRenderer.send(Messages.UPDATE_PROJECT, project);
+  //   }
+  //   else {
+  //     // TODO: Error handler
+  //   }
+  // };
 
   render() {
     const tabStyle = { root: this.props.classes.tabRoot, selected: this.props.classes.tabSelected };
@@ -98,8 +136,8 @@ class Project extends Component<Props> {
       const assets = this.props.project ? (
         <Assets
           project={this.props.project}
-          onAddedAssetNote={this.assetUpdateHandler}
-          onUpdatedAssetNote={this.assetUpdateHandler}
+          onAddedAssetNote={this.assetUpsertNoteHandler}
+          onUpdatedAssetNote={this.assetUpsertNoteHandler}
         />
       ) : null;
       const name = this.props.project ? (

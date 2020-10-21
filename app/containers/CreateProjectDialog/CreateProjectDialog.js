@@ -4,13 +4,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Draggable from 'react-draggable';
-import {
-  Dialog,
-  DialogActions,
-  DialogTitle,
-  Button,
-  Paper
-} from '@material-ui/core';
+import { Dialog, DialogActions, DialogTitle, Button, Paper } from '@material-ui/core';
 import ArrowBackIcon from '@material-ui/icons/ArrowBackIos';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForwardIos';
 import { ipcRenderer } from 'electron';
@@ -27,10 +21,7 @@ import Messages from '../../constants/messages';
 
 function PaperComponent(props) {
   return (
-    <Draggable
-      handle="#project-dialog-title"
-      cancel={'[class*="MuiDialogContent-root"]'}
-    >
+    <Draggable handle="#project-dialog-title" cancel={'[class*="MuiDialogContent-root"]'}>
       <Paper {...props} />
     </Draggable>
   );
@@ -171,8 +162,12 @@ class CreateProjectDialog extends Component {
     ipcRenderer.send(Messages.CREATE_PROJECT_REQUEST, project);
   }
 
-  handleSelectProjectTemplate(template) {
-    this.setState({ selectedTemplate: template, canProgress: true });
+  handleSelectProjectTemplate(templateId, templateVersion) {
+    console.log(`${templateId} - ${templateVersion}`);
+    this.setState({
+      selectedTemplate: { id: templateId, version: templateVersion },
+      canProgress: true
+    });
   }
 
   handleDirectoryChanged(dir) {
@@ -206,7 +201,7 @@ class CreateProjectDialog extends Component {
   render() {
     const currentStep = this.state.step;
     const stepDetails = CreateProjectDialog.steps.find(x => x.step === currentStep);
-    const hasNextStep = (stepDetails.next !== null && stepDetails.next !== undefined);
+    const hasNextStep = stepDetails.next !== null && stepDetails.next !== undefined;
     let displayComponent = null;
     let dialogTitle = null;
     let progressButton = null;
@@ -222,22 +217,14 @@ class CreateProjectDialog extends Component {
             <ArrowForwardIcon />
           </Button>
         ) : (
-          <Button
-            color="primary"
-            disabled={!this.state.canProgress}
-            onClick={this.handleNext}
-          >
+          <Button color="primary" disabled={!this.state.canProgress} onClick={this.handleNext}>
             Next
             <ArrowForwardIcon />
           </Button>
         );
     }
     let backButton = (
-      <Button
-        onClick={this.handleBack}
-        color="primary"
-        className={styles.backButton}
-      >
+      <Button onClick={this.handleBack} color="primary" className={styles.backButton}>
         <ArrowBackIcon />
         Back
       </Button>
@@ -247,7 +234,7 @@ class CreateProjectDialog extends Component {
         dialogTitle = 'Select Project Type';
         displayComponent = (
           <SelectProjectTemplate
-            key={this.state.selectedTemplate}
+            // key={this.state.selectedTemplate.id}
             projectTemplates={this.props.projectTemplates}
             selectedTemplate={this.state.selectedTemplate}
             onSelectProjectTemplate={this.handleSelectProjectTemplate}

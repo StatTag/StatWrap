@@ -3,16 +3,19 @@
   "templates": [
     {
       "id": "STATWRAP-EMPTY",
+      "version": "1",
       "name": "Empty project",
       "description": "An empty project folder"
     },
     {
       "id": "STATWRAP-BASIC",
+      "version": "1",
       "name": "Basic project",
       "description": "A basic project template with placeholders for code and data"
     },
     {
       "id": "STATWRAP-NUBCC",
+      "version": "1",
       "name": "Biostats Collaboration Core",
       "description": "The Northwestern BCC Template"
     }

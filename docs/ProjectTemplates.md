@@ -8,7 +8,8 @@ There are a set of pre-defined templates that come packaged with StatWrap. These
 
 ```
 {
-  "id": "Unique identifier (name, UUID, etc.)",
+  "id": "Unique identifier for the template (name, UUID, etc.)",
+  "version": "Specific version of the template identified by ID",
   "name": "User-friendly display name",
   "description": "(Optional) Description of the template"
 }
@@ -19,12 +20,15 @@ For example, the `Empty project` template is defined as follows:
 ```
 {
   "id": "STATWRAP-EMPTY",
+  "version": "1",
   "name": "Empty project",
   "description": "An empty project folder"
 }
 ```
 
-This is just the registry of available templates, however. The actual template content is found under `app/templates` in a directory tied to the `id`. This is to make the process of creating and applying templates more straightforward.
+This is just the registry of available templates, however. The actual template content is found under `app/templates` in a directory tied to the `id` and `version`. This is to make the process of creating and applying templates more straightforward (e.g., `STATWRAP-EMPTY/1` for version 1 of the `STATWRAP-EMPTY` template).
+
+Note that a template is then uniquely identified by `id` + `version`, and this is intended to represent the ID along with the **active** version of the template. The reason we are associating a version with the template in addition to a unique ID is to allow future detection if a template has been updated and there is some future action we may want to trigger in that event. For example, we could allow the user to import missing items, if they wished. The other versions of the template could still be around for reference. At this time no specific features are planned, but we want this level of data to be available.
 
 ### TODO
 

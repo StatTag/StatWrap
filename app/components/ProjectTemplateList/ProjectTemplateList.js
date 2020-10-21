@@ -3,15 +3,19 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { List, ListItem, ListItemText } from '@material-ui/core';
 
-function SelectProjectTemplate(props) {
+function ProjectTemplateList(props) {
   let projectTypeList = null;
   if (props.templates !== null) {
     projectTypeList = props.templates.map(type => (
       <ListItem
         button
-        selected={type.id === props.selectedTemplate}
+        selected={
+          props.selectedTemplate &&
+          type.id === props.selectedTemplate.id &&
+          type.version === props.selectedTemplate.version
+        }
         key={type.id}
-        onClick={() => props.onSelect(type.id)}
+        onClick={() => props.onSelect(type.id, type.version)}
       >
         <ListItemText primary={type.name} secondary={type.description} />
       </ListItem>
@@ -21,14 +25,14 @@ function SelectProjectTemplate(props) {
   return <List dense>{projectTypeList}</List>;
 }
 
-SelectProjectTemplate.defaultProps = {
-  selectedTemplate: ''
+ProjectTemplateList.defaultProps = {
+  selectedTemplate: null
 };
 
-SelectProjectTemplate.propTypes = {
+ProjectTemplateList.propTypes = {
   templates: PropTypes.array.isRequired,
-  selectedTemplate: PropTypes.string,
+  selectedTemplate: PropTypes.object,
   onSelect: PropTypes.func.isRequired
 };
 
-export default SelectProjectTemplate;
+export default ProjectTemplateList;

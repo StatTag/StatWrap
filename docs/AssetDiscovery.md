@@ -15,6 +15,7 @@ The list of assets that's built internally will be of this general structure:
 
 ```
 {
+  id: 'uuid',  - Assigned by StatWrap when added/indexed within the project
   uri: 'the provided uri to scan',
   type: 'file | directory | socket | symlink | ... others TBD ... | other | unknown',
   metadata: Array,

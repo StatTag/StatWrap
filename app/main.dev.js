@@ -248,10 +248,17 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
       switch (project.type) {
         case Constants.ProjectType.NEW_PROJECT_TYPE: {
           service.initializeNewProject(validationReport.project);
-          projectTemplateService.createTemplateContents(
-            validationReport.project.path,
-            project.template
-          );
+          console.log(project.template);
+          if (!project.template) {
+            response.error = true;
+            response.errorMessage = `No project template was specified or selected`;
+          } else {
+            projectTemplateService.createTemplateContents(
+              validationReport.project.path,
+              project.template.id,
+              project.template.version
+            );
+          }
           break;
         }
         case Constants.ProjectType.EXISTING_PROJECT_TYPE: {
@@ -333,4 +340,35 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
   // console.log(response);
   // await sleep(5000);
   event.sender.send(Messages.SCAN_PROJECT_RESPONSE, response);
+});
+
+// Given a project, update its information and save that information to the project configuration
+// file.
+ipcMain.on(Messages.UPDATE_PROJECT_REQUEST, async (event, project) => {
+  const response = {
+    project,
+    error: false,
+    errorMessage: ''
+  };
+
+  try {
+    const service = new ProjectService();
+    console.log(project);
+    if (project && project.id && project.path) {
+      let projectConfig = service.loadProjectFile(project.path);
+      service.saveProjectFile(project.path, projectConfig);
+    } else {
+      response.error = true;
+      response.errorMessage =
+        'No project was specified to be updated - this is an unexpected internal error.';
+    }
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = 'There was an unexpected error when trying to create the project';
+    console.log(e);
+  }
+
+  // console.log(response);
+  // await sleep(5000);
+  event.sender.send(Messages.UPDATE_PROJECT_RESPONSE, response);
 });
