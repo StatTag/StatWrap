@@ -11,7 +11,9 @@ class SelectProjectTemplate extends Component {
     let template = null;
     if (this.props.projectTemplates && this.props.selectedTemplate) {
       template = this.props.projectTemplates.find(
-        x => x.id === this.props.selectedTemplate.id && x.version === this.props.selectedTemplate.version
+        x =>
+          x.id === this.props.selectedTemplate.id &&
+          x.version === this.props.selectedTemplate.version
       );
     }
     return (
@@ -45,34 +47,3 @@ SelectProjectTemplate.defaultProps = {
 };
 
 export default SelectProjectTemplate;
-
-/*
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import Select from 'react-select';
-import styles from './NewDirectory.css';
-
-class NewDirectory extends Component {
-  render() {
-    let projectTypeList = [];
-    if (this.props.projectTypes !== null) {
-      projectTypeList = this.props.projectTypes.map(type => ({
-        value: type.id,
-        label: type.name
-      }));
-    }
-    return (
-      <div className={styles.container} data-tid="container">
-        <Select options={projectTypeList} />
-      </div>
-    );
-  }
-}
-
-NewDirectory.propTypes = {
-  projectTypes: PropTypes.array.isRequired
-};
-
-export default NewDirectory;
-
-*/

@@ -11,7 +11,7 @@ The main entrypoint for `AssetService` is via `scan()`, which takes the root pro
 
 The `AssetService` is responsible for first navigating the list of **all** assets in a given project. As noted above, this will start with just files and folders, but can extend to other types of assets (e.g., URLs, databases) in the future. From a design standpoint, it seems to make sense to have this class be the one responsible for identifying all assets. A potential downside we will need to watch out for is if there's a lot of duplicate code in this class and in other asset handler classes.
 
-The list of assets that's built internally will be of this general structure:
+The list of assets that are built internally will be of this general structure:
 
 ```
 {

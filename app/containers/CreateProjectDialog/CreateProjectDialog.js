@@ -234,7 +234,6 @@ class CreateProjectDialog extends Component {
         dialogTitle = 'Select Project Type';
         displayComponent = (
           <SelectProjectTemplate
-            // key={this.state.selectedTemplate.id}
             projectTemplates={this.props.projectTemplates}
             selectedTemplate={this.state.selectedTemplate}
             onSelectProjectTemplate={this.handleSelectProjectTemplate}
