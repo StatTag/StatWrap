@@ -12,6 +12,7 @@ import EditableLabel from '../EditableLabel/EditableLabel';
 import Welcome from '../Welcome/Welcome';
 import About from './About/About';
 import Assets from './Assets/Assets';
+import AssetUtil from '../../utils/asset';
 import styles from './Project.css';
 
 type Props = {};
@@ -66,10 +67,7 @@ class Project extends Component<Props> {
 
     // When searching for the existing asset, remember that assets is an object and the top-level item is
     // in the root of the object.  Start there before looking at the children.
-    const existingAsset =
-      assetsCopy.uri === asset.uri
-        ? assetsCopy.uri
-        : assetsCopy.children.find(x => x.uri === asset.uri);
+    const existingAsset = AssetUtil.findDescendantAssetByUri(assetsCopy, asset.uri);
     if (!existingAsset) {
       console.log('No existing asset found in project data');
       // No existing asset, so we are going to register a new entry

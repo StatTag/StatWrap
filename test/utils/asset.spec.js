@@ -234,12 +234,12 @@ describe('services', () => {
     });
 
     describe('findChildAssetByUri', () => {
-      it('should return null the asset is not specified', () => {
+      it('should return null if the asset is not specified', () => {
         expect(AssetUtil.findChildAssetByUri(null, '/Test')).toBeNull();
         expect(AssetUtil.findChildAssetByUri(undefined, '/Test')).toBeNull();
       });
 
-      it('should return null the URI is not specified', () => {
+      it('should return null if the URI is not specified', () => {
         expect(AssetUtil.findChildAssetByUri({}, null)).toBeNull();
         expect(AssetUtil.findChildAssetByUri({}, undefined)).toBeNull();
       });
@@ -270,6 +270,70 @@ describe('services', () => {
         expect(AssetUtil.findChildAssetByUri(asset, '/Test1').test).toBe(1);
         expect(AssetUtil.findChildAssetByUri(asset, '/Test2').test).toBe(2);
         expect(AssetUtil.findChildAssetByUri(asset, '/Test3').test).toBe(3);
+      });
+    });
+
+    describe('findDescendantAssetByUri', () => {
+      it('should return null if the asset is not specified', () => {
+        expect(AssetUtil.findDescendantAssetByUri(null, '/Test')).toBeNull();
+        expect(AssetUtil.findDescendantAssetByUri(undefined, '/Test')).toBeNull();
+      });
+
+      it('should return null if the URI is not specified', () => {
+        expect(AssetUtil.findDescendantAssetByUri({}, null)).toBeNull();
+        expect(AssetUtil.findDescendantAssetByUri({}, undefined)).toBeNull();
+      });
+
+      it('should return a match if the root asset matches', () => {
+        expect(AssetUtil.findDescendantAssetByUri({ uri: '/Test' }, '/Test')).not.toBeNull();
+      });
+
+      it('should return null if the asset children collection is not specified', () => {
+        expect(AssetUtil.findDescendantAssetByUri({}, '/Test')).toBeNull();
+        expect(AssetUtil.findDescendantAssetByUri({ children: null }, '/Test')).toBeNull();
+        expect(AssetUtil.findDescendantAssetByUri({ children: undefined }, '/Test')).toBeNull();
+      });
+
+      it('should should return null if there is no matching descendant', () => {
+        expect(AssetUtil.findDescendantAssetByUri({ children: [] }, '/Test')).toBeNull();
+        expect(
+          AssetUtil.findDescendantAssetByUri({ children: [{ uri: '/Test2' }] }, '/Test')
+        ).toBeNull();
+        // We expect case to match exactly for URI
+        expect(
+          AssetUtil.findDescendantAssetByUri({ children: [{ uri: '/TeST' }] }, '/Test')
+        ).toBeNull();
+      });
+
+      it('should should return the descendant when matched on URI', () => {
+        const asset = {
+          children: [
+            {
+              uri: '/Test1',
+              test: 1,
+              children: [
+                { uri: '/Test1/a', test: 4 },
+                { uri: '/Test1/b', test: 5 }
+              ]
+            },
+            { uri: '/Test2', test: 2 },
+            {
+              uri: '/Test3',
+              test: 3,
+              children: [
+                { uri: '/Test3/a', test: 6 },
+                { uri: '/Test3/b', test: 7 }
+              ]
+            }
+          ]
+        };
+        expect(AssetUtil.findDescendantAssetByUri(asset, '/Test1').test).toBe(1);
+        expect(AssetUtil.findDescendantAssetByUri(asset, '/Test2').test).toBe(2);
+        expect(AssetUtil.findDescendantAssetByUri(asset, '/Test3').test).toBe(3);
+        expect(AssetUtil.findDescendantAssetByUri(asset, '/Test1/a').test).toBe(4);
+        expect(AssetUtil.findDescendantAssetByUri(asset, '/Test1/b').test).toBe(5);
+        expect(AssetUtil.findDescendantAssetByUri(asset, '/Test3/a').test).toBe(6);
+        expect(AssetUtil.findDescendantAssetByUri(asset, '/Test3/b').test).toBe(7);
       });
     });
   });

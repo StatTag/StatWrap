@@ -72,7 +72,35 @@ export default class AssetUtil {
     return child || null;
   }
 
+  /**
+   * Find the descendant asset for the asset parameter, based on the specified URI.  This requires
+   * the URI to match exactly (case-sensitive).  Note that the descendant can include the root asset
+   * itself, as well as any children, or further descendants.
+   * @param {object} asset The asset object whose children we want to search
+   * @param {string} uri The URI to search for
+   */
   static findDescendantAssetByUri(asset, uri) {
-    return this.findChildAssetByUri(asset, uri);
+    if (!asset || !uri) {
+      return null;
+    }
+
+    // We can match the root asset
+    if (asset.uri === uri) {
+      return asset;
+    }
+
+    // Are there any children?  If not, we can stop trying to further match.
+    if (!asset.children) {
+      return null;
+    }
+
+    for (let index = 0; index < asset.children.length; index++) {
+      const found = AssetUtil.findDescendantAssetByUri(asset.children[index], uri);
+      if (found) {
+        return found;
+      }
+    }
+
+    return null;
   }
 }
