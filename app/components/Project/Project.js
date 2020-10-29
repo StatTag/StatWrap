@@ -1,7 +1,6 @@
 /* eslint-disable no-lonely-if */
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
-// import { ipcRenderer } from 'electron';
 import { v4 as uuid } from 'uuid';
 import { Tab } from '@material-ui/core';
 import { TabPanel, TabContext, TabList } from '@material-ui/lab';
@@ -14,8 +13,6 @@ import Welcome from '../Welcome/Welcome';
 import About from './About/About';
 import Assets from './Assets/Assets';
 import styles from './Project.css';
-
-// import Messages from '../../constants/messages';
 
 type Props = {};
 
@@ -49,22 +46,7 @@ class Project extends Component<Props> {
   constructor(props) {
     super(props);
     this.state = { selectedTab: 'about' };
-
-    // this.handleUpdateAssetMetadata = this.handleUpdateAssetMetadata.bind(this);
   }
-
-  // componentDidMount() {
-  //   ipcRenderer.on(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
-  // }
-
-  // componentWillUnmount() {
-  //   ipcRenderer.removeListener(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
-  // }
-
-  // handleUpdateProjectResponse = (sender, response) => {
-  //   console.log('handleUpdateProjectResponse');
-  //   console.log(response);
-  // };
 
   changeHandler = (event, id) => {
     this.setState({ selectedTab: id });
@@ -81,7 +63,6 @@ class Project extends Component<Props> {
   assetUpsertNoteHandler = (asset, text, note) => {
     const project = { ...this.props.project };
     const assetsCopy = { ...project.assets };
-    console.log(assetsCopy);
 
     // When searching for the existing asset, remember that assets is an object and the top-level item is
     // in the root of the object.  Start there before looking at the children.
@@ -118,7 +99,6 @@ class Project extends Component<Props> {
           console.log('Adding a new note');
           const newNote = { id: uuid(), author: '', updated: Date.now(), content: text };
           existingAsset.notes.push(newNote);
-          console.log(existingAsset);
         } else if (existingNote.content === note) {
           console.log('Note is unchanged - no update');
         } else {
@@ -135,12 +115,8 @@ class Project extends Component<Props> {
   };
 
   assetDeleteNoteHandler = (asset, note) => {
-    console.log(asset);
-    console.log(note);
-
     const project = { ...this.props.project };
     const assetsCopy = { ...project.assets };
-    console.log(assetsCopy);
     // When searching for the existing asset, remember that assets is an object and the top-level item is
     // in the root of the object.  Start there before looking at the children.
     const existingAsset =

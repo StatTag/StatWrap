@@ -8,21 +8,10 @@ import styles from './AssetTree.css';
 // This implementation borrows heavily from: https://github.com/davidtran/simple-treeview
 // Many thanks to davidtran for the implementation to get us started!
 
-const mapNode = node => {
-  return [{ uri: node.uri, node }, ...mapNodeChildren(node.children)];
-};
-
-const mapNodeChildren = (children = []) => {
-  return children.flatMap(c => mapNode(c));
-};
-
 class AssetTree extends Component {
   constructor(props) {
     super(props);
-    this.uriNodeMap = mapNode(props.project.assets);
-    this.state = {
-      nodes: props.project.assets
-    };
+    this.state = { expandedNodes: [] };
   }
 
   handleClick = node => {
@@ -30,13 +19,17 @@ class AssetTree extends Component {
   };
 
   onToggle = node => {
-    const { nodes } = this.state;
-    const foundNode = this.uriNodeMap.find(x => x.uri === node.uri);
-    if (foundNode) {
-      foundNode.isOpen = !node.isOpen;
-      foundNode.node.isOpen = foundNode.isOpen;
-      this.setState({ nodes });
-    }
+    this.setState(prevState => {
+      const expandedNodes = [...prevState.expandedNodes];
+      const index = expandedNodes.indexOf(node.uri);
+      if (index === -1) {
+        expandedNodes.push(node.uri);
+      } else {
+        expandedNodes.splice(index, 1);
+      }
+      console.log(expandedNodes);
+      return { expandedNodes };
+    });
   };
 
   render() {
@@ -51,6 +44,7 @@ class AssetTree extends Component {
               onClick={this.handleClick}
               key={child.uri}
               node={child}
+              openNodes={this.state.expandedNodes}
               selectedAsset={this.props.selectedAsset}
               onToggle={this.onToggle}
             />

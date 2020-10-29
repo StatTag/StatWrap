@@ -30,7 +30,8 @@ const NodeIcon = styled.div`
 const getNodeLabel = node => last(node.uri.split('/'));
 
 const AssetNode = props => {
-  const { node, selectedAsset, level, onToggle, onRightClick, onClick } = props;
+  const { node, openNodes, selectedAsset, level, onToggle, onRightClick, onClick } = props;
+  const isOpen = openNodes.includes(node.uri);
   return (
     <>
       <StyledTreeNode
@@ -45,19 +46,19 @@ const AssetNode = props => {
       >
         <NodeIcon onClick={() => onToggle(node)}>
           {node.type === Constants.AssetType.DIRECTORY &&
-            (node.isOpen ? <FaChevronDown /> : <FaChevronRight />)}
+            (isOpen ? <FaChevronDown /> : <FaChevronRight />)}
         </NodeIcon>
 
         <NodeIcon marginRight={10}>
           {node.type === Constants.AssetType.FILE && <FaFile />}
-          {node.type === Constants.AssetType.DIRECTORY && node.isOpen === true && <FaFolderOpen />}
-          {node.type === Constants.AssetType.DIRECTORY && !node.isOpen && <FaFolder />}
+          {node.type === Constants.AssetType.DIRECTORY && isOpen === true && <FaFolderOpen />}
+          {node.type === Constants.AssetType.DIRECTORY && !isOpen && <FaFolder />}
         </NodeIcon>
 
         <span role="button">{getNodeLabel(node)}</span>
       </StyledTreeNode>
 
-      {node.isOpen &&
+      {isOpen &&
         (!node.children
           ? null
           : node.children.map(childNode => (
@@ -66,6 +67,7 @@ const AssetNode = props => {
                 node={childNode}
                 level={level + 1}
                 selectedAsset={selectedAsset}
+                openNodes={openNodes}
                 onToggle={onToggle}
                 onClick={onClick}
                 onRightClick={onRightClick}
@@ -81,7 +83,8 @@ AssetNode.propTypes = {
   level: PropTypes.number,
   onToggle: PropTypes.func,
   onRightClick: PropTypes.func,
-  onClick: PropTypes.func
+  onClick: PropTypes.func,
+  openNodes: PropTypes.array
 };
 
 AssetNode.defaultProps = {
@@ -89,7 +92,8 @@ AssetNode.defaultProps = {
   onRightClick: null,
   onClick: null,
   level: 0,
-  selectedAsset: null
+  selectedAsset: null,
+  openNodes: []
 };
 
 export default AssetNode;
