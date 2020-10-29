@@ -1,7 +1,7 @@
 /* eslint-disable no-lonely-if */
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
-import { ipcRenderer } from 'electron';
+// import { ipcRenderer } from 'electron';
 import { v4 as uuid } from 'uuid';
 import { Tab } from '@material-ui/core';
 import { TabPanel, TabContext, TabList } from '@material-ui/lab';
@@ -15,7 +15,7 @@ import About from './About/About';
 import Assets from './Assets/Assets';
 import styles from './Project.css';
 
-import Messages from '../../constants/messages';
+// import Messages from '../../constants/messages';
 
 type Props = {};
 
@@ -53,18 +53,18 @@ class Project extends Component<Props> {
     // this.handleUpdateAssetMetadata = this.handleUpdateAssetMetadata.bind(this);
   }
 
-  componentDidMount() {
-    ipcRenderer.on(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
-  }
+  // componentDidMount() {
+  //   ipcRenderer.on(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
+  // }
 
-  componentWillUnmount() {
-    ipcRenderer.removeListener(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
-  }
+  // componentWillUnmount() {
+  //   ipcRenderer.removeListener(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
+  // }
 
-  handleUpdateProjectResponse = (sender, response) => {
-    console.log('handleUpdateProjectResponse');
-    console.log(response);
-  };
+  // handleUpdateProjectResponse = (sender, response) => {
+  //   console.log('handleUpdateProjectResponse');
+  //   console.log(response);
+  // };
 
   changeHandler = (event, id) => {
     this.setState({ selectedTab: id });
@@ -129,7 +129,41 @@ class Project extends Component<Props> {
       }
     }
     project.assets = assetsCopy;
-    ipcRenderer.send(Messages.UPDATE_PROJECT_REQUEST, project);
+    if (this.props.onUpdated) {
+      this.props.onUpdated(project);
+    }
+    //ipcRenderer.send(Messages.UPDATE_PROJECT_REQUEST, project);
+  };
+
+  assetDeleteNoteHandler = (asset, note) => {
+    console.log(asset);
+    console.log(note);
+
+    const project = { ...this.props.project };
+    const assetsCopy = { ...project.assets };
+    console.log(assetsCopy);
+    // When searching for the existing asset, remember that assets is an object and the top-level item is
+    // in the root of the object.  Start there before looking at the children.
+    const existingAsset =
+      assetsCopy.uri === asset.uri
+        ? assetsCopy.uri
+        : assetsCopy.children.find(x => x.uri === asset.uri);
+    if (!existingAsset) {
+      console.warn('Could not find the asset to delete its note');
+    } else {
+      // Try to find the existing note, if an existing note was provided.
+      const index = existingAsset.notes.findIndex(x => x.id === note.id);
+      if (index === -1) {
+        console.warn(`Could not find the note with ID ${note.id} for this asset to delete it`);
+      } else {
+        existingAsset.notes.splice(index, 1);
+      }
+    }
+
+    project.assets = assetsCopy;
+    if (this.props.onUpdated) {
+      this.props.onUpdated(project);
+    }
   };
 
   // assetAddNoteHandler = (asset, note) => {
@@ -146,6 +180,8 @@ class Project extends Component<Props> {
   // };
 
   render() {
+    console.log('** RENDER **');
+    console.log(this.props.project);
     const tabStyle = { root: this.props.classes.tabRoot, selected: this.props.classes.tabSelected };
     const tabPanelStyle = { root: this.props.classes.tabPanel };
 
@@ -157,6 +193,7 @@ class Project extends Component<Props> {
           project={this.props.project}
           onAddedAssetNote={this.assetUpsertNoteHandler}
           onUpdatedAssetNote={this.assetUpsertNoteHandler}
+          onDeletedAssetNote={this.assetDeleteNoteHandler}
         />
       ) : null;
       const name = this.props.project ? (
@@ -226,12 +263,14 @@ class Project extends Component<Props> {
 
 Project.propTypes = {
   project: PropTypes.object,
-  classes: PropTypes.object
+  classes: PropTypes.object,
+  onUpdated: PropTypes.func
 };
 
 Project.defaultProps = {
   project: null,
-  classes: null
+  classes: null,
+  onUpdated: null
 };
 
 export default withStyles(muiStyles)(Project);

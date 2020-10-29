@@ -42,6 +42,8 @@ class ProjectPage extends Component {
     this.handleClickProjectListMenu = this.handleClickProjectListMenu.bind(this);
     this.handleSelectProjectListItem = this.handleSelectProjectListItem.bind(this);
     this.handleScanProjectResponse = this.handleScanProjectResponse.bind(this);
+    this.handleProjectUpdate = this.handleProjectUpdate.bind(this);
+    this.handleUpdateProjectResponse = this.handleUpdateProjectResponse.bind(this);
   }
 
   componentDidMount() {
@@ -54,6 +56,7 @@ class ProjectPage extends Component {
     ipcRenderer.on(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.on(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.on(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
+    ipcRenderer.on(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
   }
 
   componentWillUnmount() {
@@ -62,6 +65,7 @@ class ProjectPage extends Component {
     ipcRenderer.removeListener(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.removeListener(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.removeListener(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
+    ipcRenderer.removeListener(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
   }
 
   handleLoadProjectListResponse(sender, response) {
@@ -145,6 +149,21 @@ class ProjectPage extends Component {
     ipcRenderer.send(Messages.SCAN_PROJECT_REQUEST, project);
   }
 
+  handleProjectUpdate(project) {
+    ipcRenderer.send(Messages.UPDATE_PROJECT_REQUEST, project);
+  }
+
+  handleUpdateProjectResponse(sender, response) {
+     console.log('handleUpdateProjectResponse');
+     console.log(response);
+     if (response.error) {
+        console.log(response.errorMessage);
+     }
+     else {
+       this.setState({ selectedProject: response.project });
+     }
+  }
+
   render() {
     return (
       <div className={styles.container} data-tid="container">
@@ -168,7 +187,7 @@ class ProjectPage extends Component {
             onFavoriteClick={this.handleFavoriteClick}
             onMenuClick={this.handleProjectListEntryMenu}
             onSelect={this.handleSelectProjectListItem}/>
-          <Project project={this.state.selectedProject} />
+          <Project project={this.state.selectedProject} onUpdated={this.handleProjectUpdate} />
         </ResizablePanels>
         <CreateProjectDialog
           key={this.state.createProjectDialogKey}

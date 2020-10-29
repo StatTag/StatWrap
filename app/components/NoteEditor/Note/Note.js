@@ -6,7 +6,7 @@ import EditableLabel from '../../EditableLabel/EditableLabel';
 import styles from './Note.css';
 
 const noteDetails = props => {
-  const { note, onEditingComplete } = props;
+  const { note, onEditingComplete, onDelete } = props;
   const metadata = note ? (
     <div className={styles.metadata}>
       {note.author} @ {note.updated}
@@ -14,6 +14,9 @@ const noteDetails = props => {
         className={[styles.icon, styles.delete].join(' ')}
         icon="trash-alt"
         size="xs"
+        onClick={() => {
+          if (onDelete) { onDelete(note); }
+        }}
       />
     </div>
   ) : null;
@@ -24,7 +27,7 @@ const noteDetails = props => {
         labelClassName={styles.content}
         inputClassName={styles.contentEditor}
         text={note ? note.content : ''}
-        labelPlaceHolder="Click to enter your note"
+        labelPlaceHolder="Click to enter a new note"
         inputWidth="100%"
         multiline
         onFocusOut={text => onEditingComplete(note, text)}
@@ -35,12 +38,14 @@ const noteDetails = props => {
 
 noteDetails.propTypes = {
   note: PropTypes.object,
-  onEditingComplete: PropTypes.func
+  onEditingComplete: PropTypes.func,
+  onDelete: PropTypes.func
 };
 
 noteDetails.defaultProps = {
   note: null,
-  onEditingComplete: null
+  onEditingComplete: null,
+  onDelete: null
 };
 
 export default noteDetails;

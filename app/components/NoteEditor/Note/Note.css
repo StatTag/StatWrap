@@ -1,8 +1,9 @@
 .container {
   margin: 0;
-  padding: 2px;
+  margin-bottom: 7px;
+  padding: 5px;
   background-color: #ffe;
-  width: 100%;
+  border: solid 1px #ff0;
 }
 
 .metadata {
@@ -26,5 +27,5 @@
 
 .delete {
   float: right;
-  cursor: pointer
+  cursor: pointer;
 }

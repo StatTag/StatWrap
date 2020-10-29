@@ -6,26 +6,29 @@ import Loading from '../../Loading/Loading';
 import styles from './Assets.css';
 
 const assets = props => {
-  const { onAddedAssetNote, onUpdatedAssetNote } = props;
+  const { project, onAddedAssetNote, onUpdatedAssetNote, onDeletedAssetNote } = props;
   const [selectedAsset, setSelectedAsset] = useState();
   let assetDisplay = null;
-  if (props.project) {
+  if (project) {
+    console.log('*** RENDER ***');
+    console.log(project);
     assetDisplay = <Loading>Please wait for the list of assets to finish loading...</Loading>;
     const assetDetails = selectedAsset ? (
       <AssetDetails
         asset={selectedAsset}
         onAddedNote={onAddedAssetNote}
         onUpdatedNote={onUpdatedAssetNote}
+        onDeletedNote={onDeletedAssetNote}
       />
     ) : null;
-    if (props.project.assets) {
-      assetDisplay = props.project.assets.error ? (
-        <Error>{props.project.assets.errorMessage}</Error>
+    if (project.assets) {
+      assetDisplay = project.assets.error ? (
+        <Error>{project.assets.errorMessage}</Error>
       ) : (
         <>
           <div className={styles.tree}>
             <AssetTree
-              project={props.project}
+              project={project}
               onSelectAsset={asset => setSelectedAsset(asset)}
               selectedAsset={selectedAsset}
             />
