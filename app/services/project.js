@@ -1,19 +1,23 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable class-methods-use-this */
 import { v4 as uuid } from 'uuid';
 import Constants from '../constants/constants';
+import AssetUtil from '../utils/asset';
 
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
 const DefaultProjectFile = '.statwrap-project.json';
+const ProjectFileFormatVersion = '1';
 const MaximumFolderNameLength = 255;
 
-export { DefaultProjectFile };
+export { DefaultProjectFile, ProjectFileFormatVersion };
 
 export default class ProjectService {
   loadStub() {
     return {
+      formatVersion: ProjectFileFormatVersion,
       id: '6ff79e02-4f24-4948-ac77-f3f1b67064e6',
       name: 'Test 3',
       tags: ['NIH', 'Grant', 'Team Science']
@@ -22,7 +26,7 @@ export default class ProjectService {
 
   // Create a new project and initialize it with configuration files and template
   // entries, if applicable.
-  initializeNewProject(project) {
+  initializeNewProject(project, template) {
     // If the project is invalid, we won't initialize it
     if (!project) {
       throw new Error('The project is empty or undefined');
@@ -33,7 +37,6 @@ export default class ProjectService {
     try {
       fs.accessSync(project.path);
     } catch (err) {
-      console.log(`CREATING: ${project.path} ERR: ${err}`);
       fs.mkdirSync(project.path, { recursive: true });
     }
 
@@ -44,11 +47,19 @@ export default class ProjectService {
       return;
     }
 
-    this.saveProjectFile(project.path, {
+    const projectConfig = {
+      formatVersion: ProjectFileFormatVersion,
       id: project.id,
       name: project.name,
       categories: []
-    });
+    };
+
+    if (template && template.id && template.version) {
+      projectConfig.template = { id: template.id, version: template.version };
+    }
+
+    this.saveProjectFile(project.path, projectConfig);
+    return projectConfig;
   }
 
   // Load the project configuration file from a given project's directory.
@@ -64,6 +75,14 @@ export default class ProjectService {
 
     const data = fs.readFileSync(filePath);
     return JSON.parse(data.toString());
+  }
+
+  // Utility function that takes a project object as input, and returns a copy that excludes
+  // any extra attributes that shouldn't be saved to the config file.  This will allow us to
+  // externally enrich the project object and not worry about that data being saved off.
+  stripExtraProjectData(project) {
+    // const cleanProject = { formatVersion: project.formatVersion, id: project.id, uri: project.uri, lastAccessed: project.lastAccessed }
+    return project;
   }
 
   // Save the project configuration file to a given project's directory.
@@ -84,7 +103,7 @@ export default class ProjectService {
     }
 
     const filePath = path.join(projectPath.replace('~', os.homedir), DefaultProjectFile);
-    fs.writeFileSync(filePath, JSON.stringify(project));
+    fs.writeFileSync(filePath, JSON.stringify(this.stripExtraProjectData(project)));
   }
 
   // Utility function to sanitize the name of a folder by removing invalid macOS and Windows characters
@@ -121,6 +140,7 @@ export default class ProjectService {
     // Regardless of how the project was established, there are some fields we want
     // to initialize consistently.
     validationReport.project = {
+      formatVersion: ProjectFileFormatVersion,
       id: uuid(),
       favorite: false,
       lastAccessed: new Date().toJSON()
@@ -158,5 +178,41 @@ export default class ProjectService {
     }
 
     return validationReport;
+  }
+
+  /**
+   * Given two assets objects, take the notes from assetsWithNotes and add those notes into the assets object.  This
+   * will modify the assets object directly, but will also return the assets object.
+   *
+   * @param {object} assets The assets object to merge notes into.  Any notes already in the assets will be replaced.
+   * @param {object} assetsWithNotes The assets with notes that we will read notes from.
+   */
+  addNotesToAssets(assets, assetsWithNotes) {
+    if (!assets) {
+      throw new Error('The assets object must be specified');
+    } else if (!assetsWithNotes) {
+      throw new Error('The assets object with notes must be specified');
+    }
+
+    // First, add in any notes for the root asset. If they are not specified, create an
+    // empty array.
+    assets.notes = assetsWithNotes.notes || [];
+
+    // If there are children, process those next.  We will only do this if there is a
+    // corresponding child in the assetsWithNotes object.  We anticipate there can be
+    // mismatch in these objects, so this situation is not an error.
+    if (assets.children) {
+      for (let index = 0; index < assets.children.length; index++) {
+        const childAsset = assets.children[index];
+        const childAssetWithNotes = AssetUtil.findChildAssetByUri(assetsWithNotes, childAsset.uri);
+        if (childAssetWithNotes) {
+          this.addNotesToAssets(assets.children[index], childAssetWithNotes);
+        } else {
+          assets.children[index].notes = [];
+        }
+      }
+    }
+
+    return assets;
   }
 }

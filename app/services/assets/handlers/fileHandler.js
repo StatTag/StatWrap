@@ -1,7 +1,7 @@
 // The cycle established is just to make accessible constant values, so we are not concerned with it
 // in this case.
 // eslint-disable-next-line import/no-cycle
-import MetadataUtil from '../../../utils/metadata';
+import AssetUtil from '../../../utils/asset';
 
 const fs = require('fs');
 const path = require('path');
@@ -63,7 +63,7 @@ export default class FileHandler {
     }
 
     // If we already have scanned this asset, we won't do it again.
-    const existingMetadata = MetadataUtil.getHandlerMetadata(FileHandler.id, asset.metadata);
+    const existingMetadata = AssetUtil.getHandlerMetadata(FileHandler.id, asset.metadata);
     if (existingMetadata) {
       return asset;
     }

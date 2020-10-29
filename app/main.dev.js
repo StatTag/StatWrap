@@ -15,7 +15,7 @@ import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import log from 'electron-log';
 import MenuBuilder from './menu';
-import ProjectService from './services/project';
+import ProjectService, { ProjectFileFormatVersion } from './services/project';
 import ProjectListService, { DefaultProjectListFile } from './services/projectList';
 import ProjectTemplateService from './services/projectTemplate';
 import AssetService from './services/assets/asset';
@@ -34,6 +34,7 @@ export default class AppUpdater {
 let mainWindow = null;
 
 const projectTemplateService = new ProjectTemplateService();
+const projectService = new ProjectService();
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -126,18 +127,16 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
   try {
     const userDataPath = app.getPath('userData');
     console.log(userDataPath);
-    const service = new ProjectService();
     const listService = new ProjectListService();
     console.log(path.join(userDataPath, DefaultProjectListFile));
     let projectsFromFile = listService.loadProjectListFromFile(
       path.join(userDataPath, DefaultProjectListFile)
     );
-    console.log('1');
+
     // For all of the projects we have in our list, load the additional information that exists
     // within the project's local metadata file itself.
-    console.log(projectsFromFile);
     projectsFromFile = projectsFromFile.map(project => {
-      const metadata = service.loadProjectFile(project.path);
+      const metadata = projectService.loadProjectFile(project.path);
       // TODO What if the IDs don't match?  Handle that.  Also handle if file not found, file invalid, etc.
       // Remember that if the file can't be loaded, it may be because we're offline and the project is in
       // a network directory.
@@ -147,6 +146,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
       } else {
         fullProject.name = metadata.name;
         fullProject.tags = metadata.tags;
+        fullProject.assets = metadata.assets;
         fullProject.loadError = false;
       }
       return fullProject;
@@ -240,24 +240,32 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
   };
 
   try {
-    const service = new ProjectService();
-    const validationReport = service.convertAndValidateProject(project);
+    const validationReport = projectService.convertAndValidateProject(project);
     if (validationReport.isValid) {
       response.projectId = validationReport.project.id;
 
       switch (project.type) {
         case Constants.ProjectType.NEW_PROJECT_TYPE: {
-          service.initializeNewProject(validationReport.project);
-          console.log(project.template);
+          // We expect there to be a template when creating a new project from StatWrap, even though
+          // it is optional for projects to have one.
           if (!project.template) {
             response.error = true;
             response.errorMessage = `No project template was specified or selected`;
           } else {
+            projectService.initializeNewProject(validationReport.project, project.template);
             projectTemplateService.createTemplateContents(
               validationReport.project.path,
               project.template.id,
               project.template.version
             );
+
+            // We are going to do just a FileHandler scan of the assets.  Even when we have more handlers, we don't
+            // need to store or cache those results in the project file (at least initially).  If that changes, we
+            // should see if we can have a single initialization of the AssetService instead of doing it here and
+            // elsewhere.
+            const assetService = new AssetService([new FileHandler()]);
+            validationReport.project.assets = assetService.scan(validationReport.project.path);
+            projectService.saveProjectFile(validationReport.project.path, validationReport.project);
           }
           break;
         }
@@ -265,17 +273,18 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
           // Let's see if a StatWrap project configuration file already exists at that location.
           // If so, we want to pick up the ID and details there, not replace it with anything new.
           // Note that it must at minimum have an id attribute to be considered valid.
-          let projectConfig = service.loadProjectFile(validationReport.project.path);
+          let projectConfig = projectService.loadProjectFile(validationReport.project.path);
           if (projectConfig && projectConfig.id) {
             validationReport.project.id = projectConfig.id;
             validationReport.project.name = projectConfig.name;
           } else {
             projectConfig = {
+              formatVersion: ProjectFileFormatVersion,
               id: validationReport.project.id,
               name: validationReport.project.name,
               categories: []
             };
-            service.saveProjectFile(validationReport.project.path, projectConfig);
+            projectService.saveProjectFile(validationReport.project.path, projectConfig);
           }
           break;
         }
@@ -328,6 +337,13 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
   try {
     const service = new AssetService([new FileHandler()]);
     response.assets = service.scan(project.path);
+
+    // We have decided (for now) to keep notes separate from other asset metadata.  Notes will be
+    // considered first-class attributes instead of being embedded in metadata.  Because of this
+    // decision, we are adding in the notes after the regular asset scanning & processing.
+    const projectConfig = projectService.loadProjectFile(project.path);
+    projectService.addNotesToAssets(response.assets, projectConfig.assets);
+
     response.error = false;
     response.errorMessage = '';
   } catch (e) {
@@ -352,11 +368,12 @@ ipcMain.on(Messages.UPDATE_PROJECT_REQUEST, async (event, project) => {
   };
 
   try {
-    const service = new ProjectService();
+    console.log('****** PROJECT DETAILS *******');
     console.log(project);
     if (project && project.id && project.path) {
-      let projectConfig = service.loadProjectFile(project.path);
-      service.saveProjectFile(project.path, projectConfig);
+      const projectConfig = projectService.loadProjectFile(project.path);
+      projectConfig.assets = project.assets;
+      projectService.saveProjectFile(project.path, projectConfig);
     } else {
       response.error = true;
       response.errorMessage =

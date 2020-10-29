@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import AssetNode from './AssetNode/AssetNode';
-import MetadataUtil from '../../utils/metadata';
+import AssetUtil from '../../utils/asset';
 import styles from './AssetTree.css';
 
 // This implementation borrows heavily from: https://github.com/davidtran/simple-treeview
@@ -42,7 +42,7 @@ class AssetTree extends Component {
   render() {
     const filteredAssets = !this.props.project.assets
       ? null
-      : MetadataUtil.filterIncludedFileAssets(this.props.project.assets);
+      : AssetUtil.filterIncludedFileAssets(this.props.project.assets);
     const assetTree =
       !filteredAssets || !filteredAssets.children
         ? null

@@ -3,7 +3,7 @@
 // eslint-disable-next-line import/no-cycle
 import FileHandler from '../services/assets/handlers/fileHandler';
 
-export default class MetadataUtil {
+export default class AssetUtil {
   static getHandlerMetadata(handler, metadata) {
     if (!metadata || metadata.length === 0) {
       return null;
@@ -33,7 +33,7 @@ export default class MetadataUtil {
     // Find the metadata associated with the FileHandler.  If that hasn't been applied, we
     // are (for now) still going to show the asset.  If we do have that metadata, only
     // include assets tagged that way.
-    const assetMetadata = MetadataUtil.getHandlerMetadata(FileHandler.id, asset.metadata);
+    const assetMetadata = AssetUtil.getHandlerMetadata(FileHandler.id, asset.metadata);
     if (assetMetadata && !assetMetadata.include) {
       return null;
     }
@@ -46,11 +46,29 @@ export default class MetadataUtil {
     // Explicitly clone the children array so we don't modify the original object.
     const filteredAsset = { ...asset, children: [...asset.children] };
     for (let index = 0; index < filteredAsset.children.length; index++) {
-      filteredAsset.children[index] = MetadataUtil.filterIncludedFileAssets(
+      filteredAsset.children[index] = AssetUtil.filterIncludedFileAssets(
         filteredAsset.children[index]
       );
     }
     filteredAsset.children = filteredAsset.children.filter(c => c);
     return filteredAsset;
+  }
+
+  /**
+   * Find the child asset for the asset parameter, based on the specified URI.  This requires
+   * the URI to match exactly (case-sensitive).
+   * @param {object} asset The asset object whose children we want to search
+   * @param {string} uri The URI to search for
+   */
+  static findChildAssetByUri(asset, uri) {
+    if (!asset || !uri || !asset.children) {
+      return null;
+    }
+
+    const child = asset.children.find(a => {
+      return a && a.uri === uri;
+    });
+
+    return child || null;
   }
 }

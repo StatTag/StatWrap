@@ -10,20 +10,20 @@ import styles from './AssetDetails.css';
 const assetDetails = props => {
   const { asset, onAddedNote, onUpdatedNote } = props;
 
-  asset.notes = [{id: '1', content: 'Here is a sample note that we are including for fun.\r\nThis hasn\'t been fully implemented yet.', updated: '2020-10-07 09:13:00am', author: 'Luke Rasmussen'}];
+  console.log(asset);
 
   const onFinishedEditingNote = (note, text) => {
     if (note) {
       console.log(note);
       console.log(text);
       if (onUpdatedNote) {
-        onUpdatedNote(note, text);
+        onUpdatedNote(asset, text, note);
       }
     } else {
       // A new note was added
       console.log('New note added');
       if (onAddedNote) {
-        onAddedNote(text);
+        onAddedNote(asset, text);
       }
     }
   };

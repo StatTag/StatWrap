@@ -1,7 +1,5 @@
-/* eslint-disable no-plusplus */
 const fs = require('fs');
 const path = require('path');
-// const DefaultHandler = require('./handlers/defaultHandler');
 
 export default class AssetService {
   // The list of handlers that are used for each asset.

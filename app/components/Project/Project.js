@@ -2,6 +2,7 @@
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
 import { ipcRenderer } from 'electron';
+import { v4 as uuid } from 'uuid';
 import { Tab } from '@material-ui/core';
 import { TabPanel, TabContext, TabList } from '@material-ui/lab';
 import { withStyles } from '@material-ui/core/styles/';
@@ -60,21 +61,36 @@ class Project extends Component<Props> {
     ipcRenderer.removeListener(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
   }
 
-  handleUpdateProjectResponse = project => {
+  handleUpdateProjectResponse = (sender, response) => {
     console.log('handleUpdateProjectResponse');
-    console.log(project);
+    console.log(response);
   };
 
   changeHandler = (event, id) => {
     this.setState({ selectedTab: id });
   };
 
-  assetUpsertNoteHandler = (asset, note) => {
+  /**
+   * General handler to either insert a new note for an asset or update an existing note for
+   * an asset.  It figures out the appropriate action to take depending on if the note parameter
+   * is provided or not.
+   * @param {object} asset The asset for which the note should be added/updated
+   * @param {string} text The note text
+   * @param {object} note Optional parameter if there is an existing note being updated.  If falsey, we assume this is a new note.
+   */
+  assetUpsertNoteHandler = (asset, text, note) => {
     const project = { ...this.props.project };
-    console.log(project);
     const assetsCopy = { ...project.assets };
-    const existingAsset = assetsCopy.find(x => x.uri === asset.uri);
+    console.log(assetsCopy);
+
+    // When searching for the existing asset, remember that assets is an object and the top-level item is
+    // in the root of the object.  Start there before looking at the children.
+    const existingAsset =
+      assetsCopy.uri === asset.uri
+        ? assetsCopy.uri
+        : assetsCopy.children.find(x => x.uri === asset.uri);
     if (!existingAsset) {
+      console.log('No existing asset found in project data');
       // No existing asset, so we are going to register a new entry
       const newAsset = { ...asset };
       if (!newAsset.notes) {
@@ -85,32 +101,35 @@ class Project extends Component<Props> {
     } else {
       // We already have the asset, so manage updating the note
 
-      // This is unexpected, but we will silently recover from it.  Because we
-      // are updating a note, if there is no notes collection we obviously don't
-      // have anything to update.  Instead we'll just treat it like adding a new
-      // note.
+      // Because we are updating a note, if there is no notes collection we obviously don't
+      // have anything to update.  Instead we'll just treat it like adding a new note.
       if (!existingAsset.notes) {
         console.warn('Project - creating note collection because no notes available when updating');
         existingAsset.notes = [];
-        existingAsset.notes.push(note);
+        const newNote = note
+          ? { ...note, text }
+          : { id: uuid(), author: '', updated: Date.now(), content: text };
+        existingAsset.notes.push(newNote);
       } else {
-        const existingNote = existingAsset.notes.find(x => x.id === note.id);
+        // Try to find the existing note, if an existing note was provided.
+        const existingNote = note ? existingAsset.notes.find(x => x.id === note.id) : null;
 
-        // This is also an unexpected situation, but one we can recover from.  We
-        // expect that there is a note already, but we couldn't find it by the ID.
-        // We will recover by simply adding it as a new note.
         if (!existingNote) {
-          console.warn('Project - creating a new note instead of updating note');
-          console.log(note);
-          existingAsset.notes.push(note);
+          console.log('Adding a new note');
+          const newNote = { id: uuid(), author: '', updated: Date.now(), content: text };
+          existingAsset.notes.push(newNote);
+          console.log(existingAsset);
+        } else if (existingNote.content === note) {
+          console.log('Note is unchanged - no update');
         } else {
-          existingNote.content = note;
+          console.log('Updating existing note');
+          existingNote.content = text;
           existingNote.updated = Date.now();
         }
       }
     }
     project.assets = assetsCopy;
-    ipcRenderer.send(Messages.UPDATE_PROJECT, project);
+    ipcRenderer.send(Messages.UPDATE_PROJECT_REQUEST, project);
   };
 
   // assetAddNoteHandler = (asset, note) => {
@@ -119,7 +138,7 @@ class Project extends Component<Props> {
   //   const existingAsset = assetsCopy.find(x => x.uri === asset.uri);
   //   if (existingAsset) {
   //     existingAsset.notes.push(note);
-  //     ipcRenderer.send(Messages.UPDATE_PROJECT, project);
+  //     ipcRenderer.send(Messages.UPDATE_PROJECT_REQUEST, project);
   //   }
   //   else {
   //     // TODO: Error handler

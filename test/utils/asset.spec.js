@@ -1,18 +1,18 @@
-import MetadataUtil from '../../app/utils/metadata';
+import AssetUtil from '../../app/utils/asset';
 
 describe('services', () => {
-  describe('MetadataUtil', () => {
+  describe('AssetUtil', () => {
     describe('getHandlerMetadata', () => {
       it('should return null when there is no metadata', () => {
-        expect(MetadataUtil.getHandlerMetadata('Test.Id', null)).toBeNull();
-        expect(MetadataUtil.getHandlerMetadata('Test.Id', undefined)).toBeNull();
-        expect(MetadataUtil.getHandlerMetadata('Test.Id', [])).toBeNull();
+        expect(AssetUtil.getHandlerMetadata('Test.Id', null)).toBeNull();
+        expect(AssetUtil.getHandlerMetadata('Test.Id', undefined)).toBeNull();
+        expect(AssetUtil.getHandlerMetadata('Test.Id', [])).toBeNull();
       });
 
       it('should return null when the handler ID is not defined', () => {
-        expect(MetadataUtil.getHandlerMetadata(null, [{}])).toBeNull();
-        expect(MetadataUtil.getHandlerMetadata(undefined, [{}])).toBeNull();
-        expect(MetadataUtil.getHandlerMetadata('', [{}])).toBeNull();
+        expect(AssetUtil.getHandlerMetadata(null, [{}])).toBeNull();
+        expect(AssetUtil.getHandlerMetadata(undefined, [{}])).toBeNull();
+        expect(AssetUtil.getHandlerMetadata('', [{}])).toBeNull();
       });
 
       it('should return a matching metadata entry by ID', () => {
@@ -27,15 +27,15 @@ describe('services', () => {
             value: false
           }
         ];
-        expect(MetadataUtil.getHandlerMetadata('Test.Id', metadata)).not.toBeNull();
-        expect(MetadataUtil.getHandlerMetadata('INVALID', metadata)).toBeNull();
+        expect(AssetUtil.getHandlerMetadata('Test.Id', metadata)).not.toBeNull();
+        expect(AssetUtil.getHandlerMetadata('INVALID', metadata)).toBeNull();
       });
     });
 
     describe('filterIncludedFileAssets', () => {
       it('should return null if no asset is provided', () => {
-        expect(MetadataUtil.filterIncludedFileAssets(null)).toBeNull();
-        expect(MetadataUtil.filterIncludedFileAssets(undefined)).toBeNull();
+        expect(AssetUtil.filterIncludedFileAssets(null)).toBeNull();
+        expect(AssetUtil.filterIncludedFileAssets(undefined)).toBeNull();
       });
 
       it('should return null if the asset is not included', () => {
@@ -48,7 +48,7 @@ describe('services', () => {
             }
           ]
         };
-        expect(MetadataUtil.filterIncludedFileAssets(asset)).toBeNull();
+        expect(AssetUtil.filterIncludedFileAssets(asset)).toBeNull();
       });
 
       it('should handle when the children collection is not defined', () => {
@@ -61,16 +61,16 @@ describe('services', () => {
             }
           ]
         };
-        expect(MetadataUtil.filterIncludedFileAssets(asset)).not.toBeNull();
+        expect(AssetUtil.filterIncludedFileAssets(asset)).not.toBeNull();
 
         asset.children = null;
-        expect(MetadataUtil.filterIncludedFileAssets(asset)).not.toBeNull();
+        expect(AssetUtil.filterIncludedFileAssets(asset)).not.toBeNull();
 
         asset.children = undefined;
-        expect(MetadataUtil.filterIncludedFileAssets(asset)).not.toBeNull();
+        expect(AssetUtil.filterIncludedFileAssets(asset)).not.toBeNull();
 
         asset.children = [];
-        expect(MetadataUtil.filterIncludedFileAssets(asset)).not.toBeNull();
+        expect(AssetUtil.filterIncludedFileAssets(asset)).not.toBeNull();
       });
 
       it('should return an empty children array if none are included', () => {
@@ -103,7 +103,7 @@ describe('services', () => {
             }
           ]
         };
-        expect(MetadataUtil.filterIncludedFileAssets(asset).children.length).toEqual(0);
+        expect(AssetUtil.filterIncludedFileAssets(asset).children.length).toEqual(0);
       });
 
       it('should return a children array that contains included items', () => {
@@ -145,7 +145,7 @@ describe('services', () => {
             }
           ]
         };
-        const filteredAsset = MetadataUtil.filterIncludedFileAssets(asset);
+        const filteredAsset = AssetUtil.filterIncludedFileAssets(asset);
         expect(filteredAsset.children.length).toEqual(2);
         expect(filteredAsset.children[0].uri).toEqual(asset.children[0].uri);
         expect(filteredAsset.children[1].uri).toEqual(asset.children[2].uri);
@@ -221,7 +221,7 @@ describe('services', () => {
             }
           ]
         };
-        const filteredAsset = MetadataUtil.filterIncludedFileAssets(asset);
+        const filteredAsset = AssetUtil.filterIncludedFileAssets(asset);
         expect(filteredAsset.children.length).toEqual(1);
         expect(filteredAsset.children[0].uri).toEqual(asset.children[2].uri);
         expect(filteredAsset.children[0].children.length).toEqual(1);
@@ -230,6 +230,46 @@ describe('services', () => {
         expect(filteredAsset.children[0].children[0].uri).toEqual(
           asset.children[2].children[1].uri
         );
+      });
+    });
+
+    describe('findChildAssetByUri', () => {
+      it('should return null the asset is not specified', () => {
+        expect(AssetUtil.findChildAssetByUri(null, '/Test')).toBeNull();
+        expect(AssetUtil.findChildAssetByUri(undefined, '/Test')).toBeNull();
+      });
+
+      it('should return null the URI is not specified', () => {
+        expect(AssetUtil.findChildAssetByUri({}, null)).toBeNull();
+        expect(AssetUtil.findChildAssetByUri({}, undefined)).toBeNull();
+      });
+
+      it('should return null if the asset children collection is not specified', () => {
+        expect(AssetUtil.findChildAssetByUri({}, '/Test')).toBeNull();
+        expect(AssetUtil.findChildAssetByUri({ children: null }, '/Test')).toBeNull();
+        expect(AssetUtil.findChildAssetByUri({ children: undefined }, '/Test')).toBeNull();
+      });
+
+      it('should should return null if there is no matching child', () => {
+        expect(AssetUtil.findChildAssetByUri({ children: [] }, '/Test')).toBeNull();
+        expect(
+          AssetUtil.findChildAssetByUri({ children: [{ uri: '/Test2' }] }, '/Test')
+        ).toBeNull();
+        // We expect case to match exactly for URI
+        expect(AssetUtil.findChildAssetByUri({ children: [{ uri: '/TeST' }] }, '/Test')).toBeNull();
+      });
+
+      it('should should return the child when matched on URI', () => {
+        const asset = {
+          children: [
+            { uri: '/Test1', test: 1 },
+            { uri: '/Test2', test: 2 },
+            { uri: '/Test3', test: 3 }
+          ]
+        };
+        expect(AssetUtil.findChildAssetByUri(asset, '/Test1').test).toBe(1);
+        expect(AssetUtil.findChildAssetByUri(asset, '/Test2').test).toBe(2);
+        expect(AssetUtil.findChildAssetByUri(asset, '/Test3').test).toBe(3);
       });
     });
   });

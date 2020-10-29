@@ -1,6 +1,6 @@
 import fs from 'fs';
 import os from 'os';
-import ProjectService from '../../app/services/project';
+import ProjectService, { ProjectFileFormatVersion } from '../../app/services/project';
 import Constants from '../../app/constants/constants';
 
 jest.mock('fs');
@@ -10,6 +10,7 @@ const TEST_USER_HOME_PATH = '/User/test/';
 os.homedir.mockReturnValue(TEST_USER_HOME_PATH);
 
 const projectString = `{
+  "formatVersion": "1",
   "id": "d01d2925-f6ff-4f8e-988f-fca2ee193427",
   "name": "Test 1",
   "tags": [ "tag1", "tag2", "tag3" ]
@@ -156,6 +157,7 @@ describe('services', () => {
         expect(validationReport.isValid).toBe(true);
         expect(validationReport.details).toBe('');
         expect(validationReport.project).not.toBeNull();
+        expect(validationReport.project.formatVersion).toBe(ProjectFileFormatVersion);
         expect(validationReport.project.id).not.toBe(null);
         expect(validationReport.project.id.length).toBe(36); // v4 UUID length, with hyphens
         expect(validationReport.project.path).toBe('/Test/Path/My Test Project');
@@ -193,6 +195,7 @@ describe('services', () => {
         expect(validationReport.isValid).toBe(true);
         expect(validationReport.details).toBe('');
         expect(validationReport.project).not.toBeNull();
+        expect(validationReport.project.formatVersion).toBe(ProjectFileFormatVersion);
         expect(validationReport.project.id).not.toBe(null);
         expect(validationReport.project.id.length).toBe(36); // v4 UUID length, with hyphens
         expect(validationReport.project.path).toBe('/Test/Path/My Test Project');
@@ -221,6 +224,7 @@ describe('services', () => {
         const saveProjectFile = jest.spyOn(service, 'saveProjectFile');
         expect(() =>
           service.initializeNewProject({
+            formatVersion: ProjectFileFormatVersion,
             id: '1',
             name: 'Test',
             path: '/Invalid/dir'
@@ -237,6 +241,7 @@ describe('services', () => {
         service.loadProjectFile = jest.fn().mockReturnValue({ id: '1' });
         expect(() =>
           service.initializeNewProject({
+            formatVersion: ProjectFileFormatVersion,
             id: '1',
             name: 'Test',
             path: '/Existing/Dir'
@@ -252,6 +257,7 @@ describe('services', () => {
         const saveProjectFile = jest.spyOn(service, 'saveProjectFile');
         service.loadProjectFile = jest.fn().mockReturnValue({ id: '1' });
         service.initializeNewProject({
+          formatVersion: ProjectFileFormatVersion,
           id: '1',
           name: 'Test',
           path: '/Invalid/dir'
@@ -267,6 +273,7 @@ describe('services', () => {
         const saveProjectFile = jest.spyOn(service, 'saveProjectFile');
         service.loadProjectFile = jest.fn().mockReturnValue(null);
         service.initializeNewProject({
+          formatVersion: ProjectFileFormatVersion,
           id: '1',
           name: 'Test',
           path: '/Test/Path'
@@ -287,12 +294,161 @@ describe('services', () => {
 
         service.loadProjectFile = jest.fn().mockReturnValue(null);
         service.initializeNewProject({
+          formatVersion: ProjectFileFormatVersion,
           id: '1',
           name: 'Test',
           path: '/Test/Path'
         });
         expect(saveProjectFile).toHaveBeenCalled();
         expect(mkdirSync).toHaveBeenCalled();
+      });
+
+      it('should not include template information if the template parameter is not fully specified', () => {
+        fs.accessSync.mockImplementationOnce(() => {
+          throw new Error();
+        });
+
+        const project = {
+          formatVersion: ProjectFileFormatVersion,
+          id: '1',
+          name: 'Test',
+          path: '/Test/Path'
+        };
+        const service = new ProjectService();
+        service.loadProjectFile = jest.fn().mockReturnValue(null);
+        expect(service.initializeNewProject(project).template).toBeUndefined();
+        expect(service.initializeNewProject(project, {}).template).toBeUndefined();
+        expect(service.initializeNewProject(project, { id: 1 }).template).toBeUndefined();
+        expect(service.initializeNewProject(project, { version: 1 }).template).toBeUndefined();
+      });
+
+      it('should include template information if the template parameter is specified', () => {
+        fs.accessSync.mockImplementationOnce(() => {
+          throw new Error();
+        });
+
+        const project = {
+          formatVersion: ProjectFileFormatVersion,
+          id: '1',
+          name: 'Test',
+          path: '/Test/Path'
+        };
+        const template = { id: 'test', version: '1' };
+        const service = new ProjectService();
+        service.loadProjectFile = jest.fn().mockReturnValue(null);
+        expect(service.initializeNewProject(project, template).template).toEqual(template);
+      });
+
+      it('should ignore non-id/version template information', () => {
+        fs.accessSync.mockImplementationOnce(() => {
+          throw new Error();
+        });
+
+        const project = {
+          formatVersion: ProjectFileFormatVersion,
+          id: '1',
+          name: 'Test',
+          path: '/Test/Path'
+        };
+        const template = { id: 'test', blah: 'test', version: '1', foo: 'bar' };
+        const service = new ProjectService();
+        service.loadProjectFile = jest.fn().mockReturnValue(null);
+        const projectConfig = service.initializeNewProject(project, template);
+        expect(projectConfig.template).not.toEqual(template);
+        expect(projectConfig.template.id).toEqual(template.id);
+        expect(projectConfig.template.version).toEqual(template.version);
+      });
+    });
+
+    describe('addNotesToAssets', () => {
+      it('should throw errors when the parameters are not defined', () => {
+        const service = new ProjectService();
+        expect(() => service.addNotesToAssets(null, null)).toThrow(
+          'The assets object must be specified'
+        );
+        expect(() => service.addNotesToAssets(undefined, undefined)).toThrow(
+          'The assets object must be specified'
+        );
+        expect(() => service.addNotesToAssets(null, {})).toThrow(
+          'The assets object must be specified'
+        );
+        expect(() => service.addNotesToAssets(undefined, {})).toThrow(
+          'The assets object must be specified'
+        );
+        expect(() => service.addNotesToAssets({}, null)).toThrow(
+          'The assets object with notes must be specified'
+        );
+        expect(() => service.addNotesToAssets({}, undefined)).toThrow(
+          'The assets object with notes must be specified'
+        );
+      });
+
+      it('will initialize the root asset notes even if it does not exist', () => {
+        const service = new ProjectService();
+        const assets = { uri: '/Test/Asset' };
+        const assetsWithNotes = { uri: '/Test/Asset ' };
+
+        // Test when notes isn't defined
+        let updatedAssets = service.addNotesToAssets(assets, assetsWithNotes);
+        expect(updatedAssets.notes).toBeDefined();
+        expect(updatedAssets.notes.length).toBe(0);
+
+        // Test when notes is explicitly null
+        assetsWithNotes.notes = null;
+        updatedAssets = service.addNotesToAssets(assets, assetsWithNotes);
+        expect(updatedAssets.notes).toBeDefined();
+        expect(updatedAssets.notes.length).toBe(0);
+
+        // Test when notes is explicitly undefined
+        assetsWithNotes.notes = undefined;
+        updatedAssets = service.addNotesToAssets(assets, assetsWithNotes);
+        expect(updatedAssets.notes).toBeDefined();
+        expect(updatedAssets.notes.length).toBe(0);
+      });
+
+      it('will copy over the notes for the root asset', () => {
+        const service = new ProjectService();
+        const assets = { uri: '/Test/Asset' };
+        const assetsWithNotes = { uri: '/Test/Asset ', notes: [{ id: '1', content: 'Test' }] };
+
+        const updatedAssets = service.addNotesToAssets(assets, assetsWithNotes);
+        expect(updatedAssets.notes).toBeDefined();
+        expect(updatedAssets.notes.length).toBe(1);
+        expect(updatedAssets.notes[0]).toEqual(assetsWithNotes.notes[0]);
+      });
+
+      it('will copy over the notes for the child and descendant assets', () => {
+        const service = new ProjectService();
+        const assets = {
+          uri: '/Test/Asset',
+          children: [
+            {
+              uri: '/Test/Asset/1',
+              children: [{ uri: '/Test/Asset/1/a' }]
+            },
+            {
+              uri: '/Test/Asset/2',
+              children: [{ uri: '/Test/Asset/2/a' }]
+            }
+          ]
+        };
+        const assetsWithNotes = {
+          uri: '/Test/Asset',
+          children: [
+            {
+              uri: '/Test/Asset/1',
+              children: [{ uri: '/Test/Asset/1/a', notes: [{ id: '3', content: 'Test 3' }] }],
+              notes: [{ id: '2', content: 'Test 2' }]
+            }
+          ]
+        };
+
+        const updatedAssets = service.addNotesToAssets(assets, assetsWithNotes);
+        expect(updatedAssets.children[0].notes[0]).toEqual(assetsWithNotes.children[0].notes[0]);
+        expect(updatedAssets.children[0].children[0].notes[0]).toEqual(
+          assetsWithNotes.children[0].children[0].notes[0]
+        );
+        expect(updatedAssets.children[1].notes.length).toBe(0);
       });
     });
   });
