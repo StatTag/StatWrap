@@ -132,7 +132,6 @@ class Project extends Component<Props> {
     if (this.props.onUpdated) {
       this.props.onUpdated(project);
     }
-    //ipcRenderer.send(Messages.UPDATE_PROJECT_REQUEST, project);
   };
 
   assetDeleteNoteHandler = (asset, note) => {
@@ -166,22 +165,7 @@ class Project extends Component<Props> {
     }
   };
 
-  // assetAddNoteHandler = (asset, note) => {
-  //   const project = { ...this.props.project };
-  //   const assetsCopy = [...project.assets];
-  //   const existingAsset = assetsCopy.find(x => x.uri === asset.uri);
-  //   if (existingAsset) {
-  //     existingAsset.notes.push(note);
-  //     ipcRenderer.send(Messages.UPDATE_PROJECT_REQUEST, project);
-  //   }
-  //   else {
-  //     // TODO: Error handler
-  //   }
-  // };
-
   render() {
-    console.log('** RENDER **');
-    console.log(this.props.project);
     const tabStyle = { root: this.props.classes.tabRoot, selected: this.props.classes.tabSelected };
     const tabPanelStyle = { root: this.props.classes.tabPanel };
 

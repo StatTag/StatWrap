@@ -71,4 +71,8 @@ export default class AssetUtil {
 
     return child || null;
   }
+
+  static findDescendantAssetByUri(asset, uri) {
+    return this.findChildAssetByUri(asset, uri);
+  }
 }
