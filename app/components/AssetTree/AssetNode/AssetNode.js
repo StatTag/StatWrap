@@ -2,6 +2,7 @@
 import React from 'react';
 import { FaFile, FaFolder, FaFolderOpen, FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import styled from 'styled-components';
+import path from 'path';
 import last from 'lodash/last';
 import PropTypes from 'prop-types';
 import Constants from '../../../constants/constants';
@@ -27,7 +28,7 @@ const NodeIcon = styled.div`
   margin-right: ${props => (props.marginRight ? props.marginRight : 5)}px;
 `;
 
-const getNodeLabel = node => last(node.uri.split('/'));
+const getNodeLabel = node => last(node.uri.split(path.sep));
 
 const AssetNode = props => {
   const { node, openNodes, selectedAsset, level, onToggle, onRightClick, onClick } = props;
