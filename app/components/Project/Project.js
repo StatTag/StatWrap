@@ -86,7 +86,7 @@ class Project extends Component<Props> {
       if (!existingAsset.notes) {
         console.warn('Project - creating note collection because no notes available when updating');
         existingAsset.notes = [];
-        const newNote = note ? { ...note, text } : AssetUtil.createNote(user, text); // { id: uuid(), author: user, updated: Date.now(), content: text };
+        const newNote = note ? { ...note, text } : AssetUtil.createNote(user, text);
         existingAsset.notes.push(newNote);
       } else {
         // Try to find the existing note, if an existing note was provided.
@@ -94,7 +94,6 @@ class Project extends Component<Props> {
 
         if (!existingNote) {
           console.log('Adding a new note');
-          // const newNote = { id: uuid(), author: user, updated: Date.now(), content: text };
           const newNote = AssetUtil.createNote(user, text);
           existingAsset.notes.push(newNote);
         } else if (existingNote.content === note) {
@@ -117,10 +116,7 @@ class Project extends Component<Props> {
     const assetsCopy = { ...project.assets };
     // When searching for the existing asset, remember that assets is an object and the top-level item is
     // in the root of the object.  Start there before looking at the children.
-    const existingAsset =
-      assetsCopy.uri === asset.uri
-        ? assetsCopy.uri
-        : assetsCopy.children.find(x => x.uri === asset.uri);
+    const existingAsset = AssetUtil.findDescendantAssetByUri(assetsCopy, asset.uri);
     if (!existingAsset) {
       console.warn('Could not find the asset to delete its note');
     } else {
