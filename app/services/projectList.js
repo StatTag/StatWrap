@@ -59,7 +59,9 @@ export default class ProjectListService {
     try {
       fs.accessSync(filePath);
     } catch {
-      /* Do nothing if there's an error, it just means file path is invalid */
+      // Do nothing if there's an error, it just means file path doesn't exist yet.
+      // We will initialize the file
+      fs.writeFileSync(filePath, '[]');
     }
 
     const data = fs.readFileSync(filePath);

@@ -171,14 +171,17 @@ describe('services', () => {
       });
 
       it('should initialize and save the file if it does not exist', () => {
-        fs.accessSync.mockReturnValue(false);
+        fs.accessSync.mockImplementation(() => {
+          throw new Error();
+        });
+
         const service = new ProjectListService();
         service.appendAndSaveProjectToList({
           id: '12345',
           name: 'Test',
           path: '/Test/Project/Path'
         });
-        expect(fs.writeFileSync).toHaveBeenCalled();
+        expect(fs.writeFileSync).toHaveBeenCalledTimes(2);
       });
 
       it('should append to the existing file', () => {
