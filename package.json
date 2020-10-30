@@ -282,6 +282,7 @@
     "rich-markdown-editor": "^10.5.0",
     "source-map-support": "^0.5.16",
     "styled-components": "^5.1.1",
+    "username": "^5.1.0",
     "uuid": "^8.1.0"
   },
   "devEngines": {

@@ -13,6 +13,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import path from 'path';
+import username from 'username';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import ProjectService, { ProjectFileFormatVersion } from './services/project';
@@ -388,4 +389,25 @@ ipcMain.on(Messages.UPDATE_PROJECT_REQUEST, async (event, project) => {
   // console.log(response);
   // await sleep(5000);
   event.sender.send(Messages.UPDATE_PROJECT_RESPONSE, response);
+});
+
+// Perform all system information gathering
+ipcMain.on(Messages.LOAD_SYSTEM_INFO_REQUEST, async event => {
+  const response = {
+    user: 'StatWrap',
+    error: false,
+    errorMessage: ''
+  };
+
+  (async () => {
+    try {
+      const user = await username();
+      response.user = user;
+    } catch (e) {
+      response.error = true;
+      response.errorMessage = 'There was an unexpected error when gathering system information';
+      console.log(e);
+    }
+    event.sender.send(Messages.LOAD_SYSTEM_INFO_RESPONSE, response);
+  })();
 });

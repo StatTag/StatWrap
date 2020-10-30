@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 // We do have a dependency cycle here, but it is just to grab a constant value.
 // No circular functions exist (and we need to make sure it stays that way).
 // eslint-disable-next-line import/no-cycle
@@ -102,5 +103,25 @@ export default class AssetUtil {
     }
 
     return null;
+  }
+
+  /**
+   * Return the current date and time formatted for display for asset notes
+   */
+  static getNoteDate() {
+    const date = new Date(Date.now());
+    const [day, time] = date.toISOString().split('T');
+    const formatted = `${day} ${time.split('.')[0]}`;
+    return formatted;
+  }
+
+  /**
+   * Create a new note object.  This will assign a new UUID and the updated timestamp as the current time
+   * @param {string} author The name of the note author
+   * @param {string} content The content of the note
+   */
+  static createNote(author, content) {
+    const note = { id: uuid(), author, updated: AssetUtil.getNoteDate(), content };
+    return note;
   }
 }

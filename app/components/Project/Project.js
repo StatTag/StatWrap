@@ -1,7 +1,6 @@
 /* eslint-disable no-lonely-if */
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
-import { v4 as uuid } from 'uuid';
 import { Tab } from '@material-ui/core';
 import { TabPanel, TabContext, TabList } from '@material-ui/lab';
 import { withStyles } from '@material-ui/core/styles/';
@@ -14,6 +13,7 @@ import About from './About/About';
 import Assets from './Assets/Assets';
 import AssetUtil from '../../utils/asset';
 import styles from './Project.css';
+import UserContext from '../User/User';
 
 type Props = {};
 
@@ -78,6 +78,7 @@ class Project extends Component<Props> {
       newAsset.notes.push(note);
       assetsCopy.push(newAsset);
     } else {
+      const user = this.context;
       // We already have the asset, so manage updating the note
 
       // Because we are updating a note, if there is no notes collection we obviously don't
@@ -85,9 +86,7 @@ class Project extends Component<Props> {
       if (!existingAsset.notes) {
         console.warn('Project - creating note collection because no notes available when updating');
         existingAsset.notes = [];
-        const newNote = note
-          ? { ...note, text }
-          : { id: uuid(), author: '', updated: Date.now(), content: text };
+        const newNote = note ? { ...note, text } : AssetUtil.createNote(user, text); // { id: uuid(), author: user, updated: Date.now(), content: text };
         existingAsset.notes.push(newNote);
       } else {
         // Try to find the existing note, if an existing note was provided.
@@ -95,14 +94,15 @@ class Project extends Component<Props> {
 
         if (!existingNote) {
           console.log('Adding a new note');
-          const newNote = { id: uuid(), author: '', updated: Date.now(), content: text };
+          // const newNote = { id: uuid(), author: user, updated: Date.now(), content: text };
+          const newNote = AssetUtil.createNote(user, text);
           existingAsset.notes.push(newNote);
         } else if (existingNote.content === note) {
           console.log('Note is unchanged - no update');
         } else {
           console.log('Updating existing note');
           existingNote.content = text;
-          existingNote.updated = Date.now();
+          existingNote.updated = AssetUtil.getNoteDate();
         }
       }
     }
@@ -230,5 +230,7 @@ Project.defaultProps = {
   classes: null,
   onUpdated: null
 };
+
+Project.contextType = UserContext;
 
 export default withStyles(muiStyles)(Project);

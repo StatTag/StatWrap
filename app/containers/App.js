@@ -13,7 +13,10 @@ import {
   faTrashAlt
 } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
+import { ipcRenderer } from 'electron';
+import Messages from '../constants/messages';
 import routes from '../constants/routes.json';
+import UserContext from '../components/User/User';
 import styles from './App.css';
 
 // This is where we register all of our font-awesome icons that are used throughout the app.
@@ -21,6 +24,30 @@ import styles from './App.css';
 library.add(faFolder, faTag, faThumbtack, faEllipsisH, faTrashAlt);
 
 export default class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { user: 'StatWrap' };
+
+    this.handleLoadSystemInfoResponse = this.handleLoadSystemInfoResponse.bind(this);
+  }
+
+  componentDidMount() {
+    ipcRenderer.send(Messages.LOAD_SYSTEM_INFO_REQUEST);
+    ipcRenderer.on(Messages.LOAD_SYSTEM_INFO_RESPONSE, this.handleLoadSystemInfoResponse);
+  }
+
+  componentWillUnmount() {
+    ipcRenderer.removeListener(
+      Messages.LOAD_SYSTEM_INFO_RESPONSE,
+      this.handleLoadSystemInfoResponse
+    );
+  }
+
+  handleLoadSystemInfoResponse(sender, response) {
+    console.log(response);
+    this.setState({ user: response.user });
+  }
+
   render() {
     const { children } = this.props;
     const theme = createMuiTheme({
@@ -33,28 +60,31 @@ export default class App extends React.Component {
     });
     return (
       <ThemeProvider theme={theme}>
-        <AppBar position="static">
-          <Toolbar>
-            <Link to={routes.HOME}>
-              <Typography variant="h6" className={styles.title}>
-                StatWrap
-              </Typography>
-            </Link>
-            <section className={styles.rightToolbar}>
-              <Link to={routes.SEARCH}>
-                <IconButton aria-label="search">
-                  <SearchIcon />
-                </IconButton>
+        <UserContext.Provider value={this.state.user}>
+          <AppBar position="static">
+            <Toolbar>
+              <Link to={routes.HOME}>
+                <Typography variant="h6" className={styles.title}>
+                  StatWrap
+                </Typography>
               </Link>
-              <Link to={routes.CONFIGURATION}>
-                <IconButton aria-label="settings">
-                  <SettingsIcon />
-                </IconButton>
-              </Link>
-            </section>
-          </Toolbar>
-        </AppBar>
-        {children}
+              <section className={styles.rightToolbar}>
+                <div className={styles.user}>{this.state.user}</div>
+                <Link to={routes.SEARCH}>
+                  <IconButton aria-label="search">
+                    <SearchIcon />
+                  </IconButton>
+                </Link>
+                <Link to={routes.CONFIGURATION}>
+                  <IconButton aria-label="settings">
+                    <SettingsIcon />
+                  </IconButton>
+                </Link>
+              </section>
+            </Toolbar>
+          </AppBar>
+          {children}
+        </UserContext.Provider>
       </ThemeProvider>
     );
   }

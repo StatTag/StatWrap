@@ -2,3 +2,8 @@
   margin-left: auto;
   margin-right: -12px;
 }
+
+.user {
+  text-align: right;
+  font-size: 0.8rem;
+}
