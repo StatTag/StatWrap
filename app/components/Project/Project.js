@@ -67,6 +67,7 @@ class Project extends Component<Props> {
 
     // When searching for the existing asset, remember that assets is an object and the top-level item is
     // in the root of the object.  Start there before looking at the children.
+    let actionDetails = '';
     const existingAsset = AssetUtil.findDescendantAssetByUri(assetsCopy, asset.uri);
     if (!existingAsset) {
       console.log('No existing asset found in project data');
@@ -76,6 +77,7 @@ class Project extends Component<Props> {
         newAsset.notes = [];
       }
       newAsset.notes.push(note);
+      actionDetails = `Added note ${JSON.stringify(note)} to asset ${asset.uri}`;
       assetsCopy.push(newAsset);
     } else {
       const user = this.context;
@@ -88,6 +90,7 @@ class Project extends Component<Props> {
         existingAsset.notes = [];
         const newNote = note ? { ...note, text } : AssetUtil.createNote(user, text);
         existingAsset.notes.push(newNote);
+        actionDetails = `Added note ${JSON.stringify(newNote)} to asset ${asset.uri}`;
       } else {
         // Try to find the existing note, if an existing note was provided.
         const existingNote = note ? existingAsset.notes.find(x => x.id === note.id) : null;
@@ -96,18 +99,23 @@ class Project extends Component<Props> {
           console.log('Adding a new note');
           const newNote = AssetUtil.createNote(user, text);
           existingAsset.notes.push(newNote);
+          actionDetails = `Added note ${JSON.stringify(newNote)} to asset ${asset.uri}`;
         } else if (existingNote.content === note) {
           console.log('Note is unchanged - no update');
         } else {
           console.log('Updating existing note');
+          const originalNote = { ...existingNote };
           existingNote.content = text;
           existingNote.updated = AssetUtil.getNoteDate();
+          actionDetails = `Updated note from ${JSON.stringify(originalNote)} to ${JSON.stringify(
+            existingNote
+          )} in asset ${asset.uri}`;
         }
       }
     }
     project.assets = assetsCopy;
     if (this.props.onUpdated) {
-      this.props.onUpdated(project);
+      this.props.onUpdated(project, actionDetails);
     }
   };
 
@@ -117,6 +125,7 @@ class Project extends Component<Props> {
     // When searching for the existing asset, remember that assets is an object and the top-level item is
     // in the root of the object.  Start there before looking at the children.
     const existingAsset = AssetUtil.findDescendantAssetByUri(assetsCopy, asset.uri);
+    let actionDetails = '';
     if (!existingAsset) {
       console.warn('Could not find the asset to delete its note');
     } else {
@@ -125,13 +134,14 @@ class Project extends Component<Props> {
       if (index === -1) {
         console.warn(`Could not find the note with ID ${note.id} for this asset to delete it`);
       } else {
+        actionDetails = `Deleting note ${JSON.stringify(note)} from asset ${asset.uri}`;
         existingAsset.notes.splice(index, 1);
       }
     }
 
     project.assets = assetsCopy;
     if (this.props.onUpdated) {
-      this.props.onUpdated(project);
+      this.props.onUpdated(project, actionDetails);
     }
   };
 

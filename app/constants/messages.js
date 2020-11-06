@@ -20,5 +20,7 @@ module.exports = {
   REMOVE_PROJECT_LIST_ENTRY_RESPONSE: 'statwrap-remove-project-list-entry-response',
 
   LOAD_SYSTEM_INFO_REQUEST: 'statwrap-load-system-info-request',
-  LOAD_SYSTEM_INFO_RESPONSE: 'statwrap-load-system-info-response'
+  LOAD_SYSTEM_INFO_RESPONSE: 'statwrap-load-system-info-response',
+
+  WRITE_PROJECT_LOG: 'statwrap-write-project-log'
 };

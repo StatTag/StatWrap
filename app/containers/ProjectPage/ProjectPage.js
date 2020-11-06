@@ -9,6 +9,7 @@ import Project from '../../components/Project/Project';
 import CreateProjectDialog from '../CreateProjectDialog/CreateProjectDialog';
 import ProjectListEntryMenu from '../../components/Projects/ProjectListEntryMenu/ProjectListEntryMenu';
 import styles from './ProjectPage.css';
+import UserContext from '../../components/User/User';
 
 import Messages from '../../constants/messages';
 
@@ -144,18 +145,20 @@ class ProjectPage extends Component {
   }
 
   handleSelectProjectListItem(project) {
-    console.log(project);
     this.setState({ selectedProject: project });
     ipcRenderer.send(Messages.SCAN_PROJECT_REQUEST, project);
   }
 
-  handleProjectUpdate(project) {
+  handleProjectUpdate(project, action) {
     ipcRenderer.send(Messages.UPDATE_PROJECT_REQUEST, project);
+
+    if (action && action !== '') {
+      const user = this.context;
+      ipcRenderer.send(Messages.WRITE_PROJECT_LOG, project.path, action, 'info', user);
+    }
   }
 
   handleUpdateProjectResponse(sender, response) {
-     console.log('handleUpdateProjectResponse');
-     console.log(response);
      if (response.error) {
         console.log(response.errorMessage);
      }
@@ -204,5 +207,7 @@ class ProjectPage extends Component {
     );
   }
 }
+
+ProjectPage.contextType = UserContext;
 
 export default ProjectPage;
