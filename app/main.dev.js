@@ -374,6 +374,37 @@ ipcMain.on(Messages.WRITE_PROJECT_LOG, async (event, projectPath, action, level,
   logger.close();
 });
 
+ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
+  const response = {
+    logs: null,
+    error: false,
+    errorMessage: ''
+  };
+  if (!project) {
+    response.error = true;
+    response.errorMessage = 'No project was selected';
+    event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
+    return;
+  }
+
+  const logger = winston.createLogger({
+    level: 'verbose',
+    transports: [
+      new winston.transports.File({ filename: path.join(project.path, 'statwrap-log.log') })
+    ]
+  });
+
+  logger.query({ start: -1 }, (error, logs) => {
+    if (error || !logs || !logs.file) {
+      response.error = true;
+      response.errorMessage = 'There was an error reading the project log';
+      event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
+    }
+    response.logs = logs.file;
+    event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
+  });
+});
+
 // Given a project, update its information and save that information to the project configuration
 // file.
 ipcMain.on(Messages.UPDATE_PROJECT_REQUEST, async (event, project) => {

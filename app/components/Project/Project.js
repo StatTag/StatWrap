@@ -11,6 +11,7 @@ import EditableLabel from '../EditableLabel/EditableLabel';
 import Welcome from '../Welcome/Welcome';
 import About from './About/About';
 import Assets from './Assets/Assets';
+import NewsFeed from '../NewsFeed/NewsFeed';
 import AssetUtil from '../../utils/asset';
 import styles from './Project.css';
 import UserContext from '../User/User';
@@ -170,6 +171,15 @@ class Project extends Component<Props> {
         />
       ) : null;
 
+      const newsFeed =
+        this.props.project && this.props.logs ? (
+          <NewsFeed
+            project={this.props.project}
+            error={this.props.logs.errorMessage}
+            feed={this.props.logs.logs}
+          />
+        ) : null;
+
       content = (
         <TabContext value={this.state.selectedTab}>
           <div className={styles.header}>
@@ -193,7 +203,7 @@ class Project extends Component<Props> {
               <Tab label="Workflows" value="workflows" classes={tabStyle} />
               <Tab label="People" value="people" classes={tabStyle} />
               <Tab label="References" value="references" classes={tabStyle} />
-              <Tab label="Notifications" value="notifications" classes={tabStyle} />
+              <Tab label="News Feed" value="newsFeed" classes={tabStyle} />
             </TabList>
           </div>
           <TabPanel value="about" classes={tabPanelStyle}>
@@ -211,8 +221,8 @@ class Project extends Component<Props> {
           <TabPanel value="references" classes={tabPanelStyle}>
             TBD
           </TabPanel>
-          <TabPanel value="notiifications" classes={tabPanelStyle}>
-            TBD
+          <TabPanel value="newsFeed" classes={tabPanelStyle}>
+            {newsFeed}
           </TabPanel>
         </TabContext>
       );
@@ -228,13 +238,15 @@ class Project extends Component<Props> {
 Project.propTypes = {
   project: PropTypes.object,
   classes: PropTypes.object,
-  onUpdated: PropTypes.func
+  onUpdated: PropTypes.func,
+  logs: PropTypes.array
 };
 
 Project.defaultProps = {
   project: null,
   classes: null,
-  onUpdated: null
+  onUpdated: null,
+  logs: null
 };
 
 Project.contextType = UserContext;

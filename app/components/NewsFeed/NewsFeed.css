@@ -1,0 +1,14 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.empty {
+  padding: 8px;
+  border-radius: 6px;
+  background-color: #eee;
+  border: solid 1px gray;
+  font-style: italic;
+  margin-top: 15px;
+}

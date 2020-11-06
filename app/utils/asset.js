@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid';
 // No circular functions exist (and we need to make sure it stays that way).
 // eslint-disable-next-line import/no-cycle
 import FileHandler from '../services/assets/handlers/fileHandler';
+import GeneralUtil from './general';
 
 export default class AssetUtil {
   static getHandlerMetadata(handler, metadata) {
@@ -110,9 +111,10 @@ export default class AssetUtil {
    */
   static getNoteDate() {
     const date = new Date(Date.now());
-    const [day, time] = date.toISOString().split('T');
-    const formatted = `${day} ${time.split('.')[0]}`;
-    return formatted;
+    return GeneralUtil.formatDateTime(date);
+    // const [day, time] = date.toISOString().split('T');
+    // const formatted = `${day} ${time.split('.')[0]}`;
+    // return formatted;
   }
 
   /**

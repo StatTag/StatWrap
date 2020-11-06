@@ -25,6 +25,7 @@ class ProjectPage extends Component {
       errorMessage: '',
       projectListMenuAnchor: null,
       selectedProject: null,
+      selectedProjectLogs: null,
 
       // This key is part of a trick to get React to throw out and recreate the Create Project
       // dialog when we have disposed of it - either by creating a project or cancelling.  This
@@ -45,6 +46,7 @@ class ProjectPage extends Component {
     this.handleScanProjectResponse = this.handleScanProjectResponse.bind(this);
     this.handleProjectUpdate = this.handleProjectUpdate.bind(this);
     this.handleUpdateProjectResponse = this.handleUpdateProjectResponse.bind(this);
+    this.handleLoadProjectLogResponse = this.handleLoadProjectLogResponse.bind(this);
   }
 
   componentDidMount() {
@@ -58,6 +60,8 @@ class ProjectPage extends Component {
     ipcRenderer.on(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.on(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
     ipcRenderer.on(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
+
+    ipcRenderer.on(Messages.LOAD_PROJECT_LOG_RESPONSE, this.handleLoadProjectLogResponse);
   }
 
   componentWillUnmount() {
@@ -67,6 +71,7 @@ class ProjectPage extends Component {
     ipcRenderer.removeListener(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.removeListener(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
     ipcRenderer.removeListener(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
+    ipcRenderer.removeListener(Messages.LOAD_PROJECT_LOG_RESPONSE, this.handleLoadProjectLogResponse);
   }
 
   handleLoadProjectListResponse(sender, response) {
@@ -75,6 +80,11 @@ class ProjectPage extends Component {
 
   handleLoadProjectTemplatesResponse(sender, response) {
     this.setState({projectTemplates: response.projectTemplates});
+  }
+
+  handleLoadProjectLogResponse(sender, response) {
+    console.log(response);
+    this.setState({selectedProjectLogs: response});
   }
 
   refreshProjectsHandler() {
@@ -109,7 +119,6 @@ class ProjectPage extends Component {
   }
 
   handleCloseAddProject(refresh) {
-    console.log(this.state);
     this.setState(prevState => (
       {
         addingProject: false,
@@ -147,6 +156,7 @@ class ProjectPage extends Component {
   handleSelectProjectListItem(project) {
     this.setState({ selectedProject: project });
     ipcRenderer.send(Messages.SCAN_PROJECT_REQUEST, project);
+    ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, project);
   }
 
   handleProjectUpdate(project, action) {
@@ -190,7 +200,7 @@ class ProjectPage extends Component {
             onFavoriteClick={this.handleFavoriteClick}
             onMenuClick={this.handleProjectListEntryMenu}
             onSelect={this.handleSelectProjectListItem}/>
-          <Project project={this.state.selectedProject} onUpdated={this.handleProjectUpdate} />
+          <Project project={this.state.selectedProject} logs={this.state.selectedProjectLogs} onUpdated={this.handleProjectUpdate} />
         </ResizablePanels>
         <CreateProjectDialog
           key={this.state.createProjectDialogKey}
