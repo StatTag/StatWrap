@@ -8,7 +8,7 @@ const path = require('path');
 
 // All file and folder names (exact match - currently not supporting regex patterns)
 // that we want to hide from view.
-const FILE_IGNORE_LIST = ['.DS_Store', 'Thumbs.db', '.statwrap-project.json'];
+const FILE_IGNORE_LIST = ['.DS_Store', 'Thumbs.db', '.statwrap-project.json', 'statwrap-log.log'];
 
 /**
  * Metadata:

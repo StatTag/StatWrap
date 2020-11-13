@@ -2,14 +2,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { ActionType } from '../../../constants/constants';
+import styles from './NoteAction.css';
 
 const noteAction = props => {
   const { data } = props;
   let content = null;
   if (data.type === ActionType.NOTE_ADDED || data.type === ActionType.NOTE_DELETED) {
     content = (
-      <div>
-        <div>{data.details.updated}</div>
+      <div className={styles.data}>
         <div>
           <b>Action:</b> {data.type}
         </div>
@@ -23,8 +23,7 @@ const noteAction = props => {
     );
   } else if (data.type === ActionType.NOTE_UPDATED) {
     content = (
-      <div>
-        <div>{data.details.new.updated}</div>
+      <div className={styles.data}>
         <div>
           <b>Action:</b> {data.type}
         </div>
@@ -40,7 +39,7 @@ const noteAction = props => {
       </div>
     );
   }
-  return <div>{content}</div>;
+  return <div className={styles.container}>{content}</div>;
 };
 
 noteAction.propTypes = {

@@ -248,6 +248,11 @@ Project.propTypes = {
   project: PropTypes.object,
   classes: PropTypes.object,
   onUpdated: PropTypes.func,
+  // This object has the following structure:
+  // {
+  //   logs: array<string>   - the actual log data
+  //   errorMessage: string? - if set, the logs collection should be assumed invalid due to a load failure
+  // }
   logs: PropTypes.object
 };
 
