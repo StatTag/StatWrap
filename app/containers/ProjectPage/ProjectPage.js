@@ -159,12 +159,12 @@ class ProjectPage extends Component {
     ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, project);
   }
 
-  handleProjectUpdate(project, action) {
+  handleProjectUpdate(project, type, description, details) {
     ipcRenderer.send(Messages.UPDATE_PROJECT_REQUEST, project);
 
-    if (action && action !== '') {
+    if (type && type !== '') {
       const user = this.context;
-      ipcRenderer.send(Messages.WRITE_PROJECT_LOG, project.path, action, 'info', user);
+      ipcRenderer.send(Messages.WRITE_PROJECT_LOG, project.path, type, description, details, 'info', user);
     }
   }
 

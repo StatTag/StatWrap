@@ -267,6 +267,7 @@
     "prop-types": "^15.7.2",
     "react": "^16.13.1",
     "react-checkbox-tree": "^1.6.0",
+    "react-data-table-component": "^6.11.6",
     "react-dom": "^16.13.1",
     "react-draggable": "^4.3.1",
     "react-hot-loader": "^4.12.18",
@@ -281,7 +282,7 @@
     "resizable-panels-react": "^2.0.8",
     "rich-markdown-editor": "^10.5.0",
     "source-map-support": "^0.5.16",
-    "styled-components": "^5.1.1",
+    "styled-components": "^5.2.1",
     "username": "^5.1.0",
     "uuid": "^8.1.0",
     "winston": "^3.3.3"

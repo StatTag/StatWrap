@@ -12,12 +12,14 @@ Logging is currently handled using the [`winston`](https://github.com/winstonjs/
 
 Across the entire application, we will centralize logging via an IPC call using `Messages.WRITE_PROJECT_LOG`. This message will take the following parameters:
 
-| parameter     | type    | description                                                                          |
-| ------------- | ------- | ------------------------------------------------------------------------------------ |
-| `projectPath` | string  | The fully qualified base path of the project this logged action is for.              |
-| `action`      | string  | The formatted action message to log                                                  |
-| `level`       | string? | If provided, the logging level to use. If not specified, this will default to `info` |
-| `user`        | string? | If provided, the name of the user under which the action was generated.              |
+| parameter     | type    | description                                                                             |
+| ------------- | ------- | --------------------------------------------------------------------------------------- |
+| `projectPath` | string  | The fully qualified base path of the project this logged action is for.                 |
+| `type`        | string  | The action type                                                                         |
+| `description` | string  | The formatted action message to log                                                     |
+| `details`     | object? | An optional object that contains the detailed information regarding the specific action |
+| `level`       | string? | If provided, the logging level to use. If not specified, this will default to `info`    |
+| `user`        | string? | If provided, the name of the user under which the action was generated.                 |
 
 ## Generating Actions
 
@@ -25,9 +27,11 @@ Within the React portion of StatWrap, project updates are managed by sending a c
 
 All React actions related to a project will ultimately be routed up through `ProjectPage.js`'s `handleProjectUpdate`. This takes two parameters:
 
-| parameter | type    | description                                              |
-| --------- | ------- | -------------------------------------------------------- |
-| `project` | object  | The updated project information that can be written.     |
-| `action`  | string? | An optional formatted message that describes the action. |
+| parameter     | type    | description                                                                              |
+| ------------- | ------- | ---------------------------------------------------------------------------------------- |
+| `project`     | object  | The updated project information that can be written.                                     |
+| `type`        | string? | An optional type of action.                                                              |
+| `description` | string? | An optional formatted message that describes the action.                                 |
+| `details`     | object? | An optional object that contains the detailed information regarding the specific action. |
 
-If the `action` parameter isn't specified or is empty, no action logging will take place.
+If the `description` parameter isn't specified or is empty, no action logging will take place. If `type` is null or empty, it will be set to 'StatWrap Event'.

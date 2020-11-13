@@ -360,19 +360,27 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
   event.sender.send(Messages.SCAN_PROJECT_RESPONSE, response);
 });
 
-ipcMain.on(Messages.WRITE_PROJECT_LOG, async (event, projectPath, action, level, user) => {
-  const logger = winston.createLogger({
-    level: 'verbose',
-    defaultMeta: { user },
-    format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
-    transports: [
-      new winston.transports.File({ filename: path.join(projectPath, 'statwrap-log.log') })
-    ]
-  });
+ipcMain.on(
+  Messages.WRITE_PROJECT_LOG,
+  async (event, projectPath, type, description, details, level, user) => {
+    const logger = winston.createLogger({
+      level: 'verbose',
+      defaultMeta: { user },
+      format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
+      transports: [
+        new winston.transports.File({ filename: path.join(projectPath, 'statwrap-log.log') })
+      ]
+    });
 
-  logger.log({ level: level || 'info', message: action });
-  logger.close();
-});
+    logger.log({
+      level: level || 'info',
+      type: type || Constants.UndefinedDefaults.ACTION_TYPE,
+      description,
+      details
+    });
+    logger.close();
+  }
+);
 
 ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
   const response = {
@@ -438,7 +446,7 @@ ipcMain.on(Messages.UPDATE_PROJECT_REQUEST, async (event, project) => {
 // Perform all system information gathering
 ipcMain.on(Messages.LOAD_SYSTEM_INFO_REQUEST, async event => {
   const response = {
-    user: 'StatWrap',
+    user: Constants.UndefinedDefaults.USER,
     error: false,
     errorMessage: ''
   };

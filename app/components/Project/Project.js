@@ -12,6 +12,7 @@ import Welcome from '../Welcome/Welcome';
 import About from './About/About';
 import Assets from './Assets/Assets';
 import NewsFeed from '../NewsFeed/NewsFeed';
+import { ActionType } from '../../constants/constants';
 import AssetUtil from '../../utils/asset';
 import styles from './Project.css';
 import UserContext from '../User/User';
@@ -68,7 +69,7 @@ class Project extends Component<Props> {
 
     // When searching for the existing asset, remember that assets is an object and the top-level item is
     // in the root of the object.  Start there before looking at the children.
-    let actionDetails = '';
+    const action = { type: '', description: '', details: null };
     const existingAsset = AssetUtil.findDescendantAssetByUri(assetsCopy, asset.uri);
     if (!existingAsset) {
       console.log('No existing asset found in project data');
@@ -78,7 +79,9 @@ class Project extends Component<Props> {
         newAsset.notes = [];
       }
       newAsset.notes.push(note);
-      actionDetails = `Added note ${JSON.stringify(note)} to asset ${asset.uri}`;
+      action.type = ActionType.NOTE_ADDED;
+      action.description = `Added note to asset ${asset.uri}`;
+      action.details = note;
       assetsCopy.push(newAsset);
     } else {
       const user = this.context;
@@ -91,7 +94,9 @@ class Project extends Component<Props> {
         existingAsset.notes = [];
         const newNote = note ? { ...note, text } : AssetUtil.createNote(user, text);
         existingAsset.notes.push(newNote);
-        actionDetails = `Added note ${JSON.stringify(newNote)} to asset ${asset.uri}`;
+        action.type = ActionType.NOTE_ADDED;
+        action.description = `${user} added note to asset ${asset.uri}`;
+        action.details = newNote;
       } else {
         // Try to find the existing note, if an existing note was provided.
         const existingNote = note ? existingAsset.notes.find(x => x.id === note.id) : null;
@@ -100,7 +105,9 @@ class Project extends Component<Props> {
           console.log('Adding a new note');
           const newNote = AssetUtil.createNote(user, text);
           existingAsset.notes.push(newNote);
-          actionDetails = `Added note ${JSON.stringify(newNote)} to asset ${asset.uri}`;
+          action.type = ActionType.NOTE_ADDED;
+          action.description = `${user} added note to asset ${asset.uri}`;
+          action.details = newNote;
         } else if (existingNote.content === note) {
           console.log('Note is unchanged - no update');
         } else {
@@ -108,15 +115,16 @@ class Project extends Component<Props> {
           const originalNote = { ...existingNote };
           existingNote.content = text;
           existingNote.updated = AssetUtil.getNoteDate();
-          actionDetails = `Updated note from ${JSON.stringify(originalNote)} to ${JSON.stringify(
-            existingNote
-          )} in asset ${asset.uri}`;
+
+          action.type = ActionType.NOTE_UPDATED;
+          action.description = `${user} updated note for asset ${asset.uri}`;
+          action.details = { old: originalNote, new: note };
         }
       }
     }
     project.assets = assetsCopy;
     if (this.props.onUpdated) {
-      this.props.onUpdated(project, actionDetails);
+      this.props.onUpdated(project, action.type, action.description, action.details);
     }
   };
 
@@ -126,7 +134,7 @@ class Project extends Component<Props> {
     // When searching for the existing asset, remember that assets is an object and the top-level item is
     // in the root of the object.  Start there before looking at the children.
     const existingAsset = AssetUtil.findDescendantAssetByUri(assetsCopy, asset.uri);
-    let actionDetails = '';
+    let actionDescription = '';
     if (!existingAsset) {
       console.warn('Could not find the asset to delete its note');
     } else {
@@ -135,14 +143,15 @@ class Project extends Component<Props> {
       if (index === -1) {
         console.warn(`Could not find the note with ID ${note.id} for this asset to delete it`);
       } else {
-        actionDetails = `Deleting note ${JSON.stringify(note)} from asset ${asset.uri}`;
+        const user = this.context;
+        actionDescription = `${user} deleted note from asset ${asset.uri}`;
         existingAsset.notes.splice(index, 1);
       }
     }
 
     project.assets = assetsCopy;
     if (this.props.onUpdated) {
-      this.props.onUpdated(project, actionDetails);
+      this.props.onUpdated(project, ActionType.NOTE_DELETED, actionDescription, note);
     }
   };
 
@@ -239,7 +248,7 @@ Project.propTypes = {
   project: PropTypes.object,
   classes: PropTypes.object,
   onUpdated: PropTypes.func,
-  logs: PropTypes.array
+  logs: PropTypes.object
 };
 
 Project.defaultProps = {
