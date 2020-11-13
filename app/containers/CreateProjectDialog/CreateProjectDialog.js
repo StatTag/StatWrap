@@ -15,6 +15,7 @@ import ExistingDirectory from '../../components/ExistingDirectory/ExistingDirect
 import NewDirectory from '../../components/NewDirectory/NewDirectory';
 import CloneDirectory from './CloneDirectory/CloneDirectory';
 import Error from '../../components/Error/Error';
+import UserContext from '../../components/User/User';
 
 import styles from './CreateProjectDialog.css';
 import Messages from '../../constants/messages';
@@ -147,6 +148,15 @@ class CreateProjectDialog extends Component {
   handleProjectCreated(sender, response) {
     console.log(response);
     if (response && !response.error) {
+      ipcRenderer.send(
+        Messages.WRITE_PROJECT_LOG,
+        response.project.path,
+        'Project Created',
+        `${this.context} created project ${response.project.name}`,
+        response.project,
+        'info',
+        this.context
+      );
       this.props.onClose(true);
     } else {
       this.setState({ errorMessage: response.errorMessage });
@@ -335,5 +345,7 @@ CreateProjectDialog.propTypes = {
 CreateProjectDialog.defaultProps = {
   open: false
 };
+
+CreateProjectDialog.contextType = UserContext;
 
 export default CreateProjectDialog;

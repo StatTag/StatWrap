@@ -10,32 +10,57 @@ const noteAction = props => {
   if (data.type === ActionType.NOTE_ADDED || data.type === ActionType.NOTE_DELETED) {
     content = (
       <div className={styles.data}>
-        <div>
-          <b>Action:</b> {data.type}
-        </div>
-        <div>
-          <b>User:</b> {data.details.author}
-        </div>
-        <div>
-          <b>Note text:</b> {data.details.content}
-        </div>
+        <table>
+          <tr>
+            <td>
+              <b>Action:</b>
+            </td>
+            <td>{data.type}</td>
+          </tr>
+          <tr>
+            <td>
+              <b>User:</b>
+            </td>
+            <td>{data.details.author}</td>
+          </tr>
+          <tr>
+            <td>
+              <b>Note text:</b>
+            </td>
+            <td>{data.details.content}</td>
+          </tr>
+        </table>
       </div>
     );
   } else if (data.type === ActionType.NOTE_UPDATED) {
     content = (
       <div className={styles.data}>
-        <div>
-          <b>Action:</b> {data.type}
-        </div>
-        <div>
-          <b>User:</b> {data.details.new.author}
-        </div>
-        <div>
-          <b>Old Note text:</b> {data.details.old.content}
-        </div>
-        <div>
-          <b>New Note text:</b> {data.details.new.content}
-        </div>
+        <table>
+          <tr>
+            <td>
+              <b>Action:</b>
+            </td>
+            <td>{data.type}</td>
+          </tr>
+          <tr>
+            <td>
+              <b>User:</b>
+            </td>
+            <td>{data.details.new.author}</td>
+          </tr>
+          <tr>
+            <td>
+              <b>Old Note text:</b>
+            </td>
+            <td>{data.details.old.content}</td>
+          </tr>
+          <tr>
+            <td>
+              <b>New Note text:</b>
+            </td>
+            <td>{data.details.new.content}</td>
+          </tr>
+        </table>
       </div>
     );
   }

@@ -244,7 +244,11 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
   try {
     const validationReport = projectService.convertAndValidateProject(project);
     if (validationReport.isValid) {
-      response.projectId = validationReport.project.id;
+      response.project = {
+        id: validationReport.project.id,
+        path: validationReport.project.path,
+        name: validationReport.project.name
+      };
 
       switch (project.type) {
         case Constants.ProjectType.NEW_PROJECT_TYPE: {
