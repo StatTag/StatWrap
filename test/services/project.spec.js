@@ -1,12 +1,13 @@
 import fs from 'fs';
 import os from 'os';
+import process from 'process';
 import ProjectService, { ProjectFileFormatVersion } from '../../app/services/project';
 import Constants from '../../app/constants/constants';
 
 jest.mock('fs');
 jest.mock('os');
 
-const TEST_USER_HOME_PATH = '/User/test/';
+const TEST_USER_HOME_PATH = (process.platform == 'win32' ? 'C:\\Users\\test\\' : '/User/test/');
 os.homedir.mockReturnValue(TEST_USER_HOME_PATH);
 
 const projectString = `{
@@ -28,7 +29,7 @@ describe('services', () => {
     });
 
     describe('loadProjectFile', () => {
-      it('should resolve the ~ home path', () => {
+      it.onMac('should resolve the ~ home path', () => {
         fs.readFileSync.mockReturnValue(projectString);
         const project = new ProjectService().loadProjectFile('~/Test/Path');
         expect(project).not.toBeNull();
@@ -36,11 +37,25 @@ describe('services', () => {
           `${TEST_USER_HOME_PATH}Test/Path/.statwrap-project.json`
         );
       });
-      it('should return the project details', () => {
+      it.onWindows('should resolve the ~ home path', () => {
+        fs.readFileSync.mockReturnValue(projectString);
+        const project = new ProjectService().loadProjectFile('~\\Test\\Path');
+        expect(project).not.toBeNull();
+        expect(fs.readFileSync).toHaveBeenCalledWith(
+          `${TEST_USER_HOME_PATH}Test\\Path\\.statwrap-project.json`
+        );
+      });
+      it.onMac('should return the project details', () => {
         fs.readFileSync.mockReturnValue(projectString);
         const project = new ProjectService().loadProjectFile('/Test/Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith('/Test/Path/.statwrap-project.json');
+      });
+      it.onWindows('should return the project details', () => {
+        fs.readFileSync.mockReturnValue(projectString);
+        const project = new ProjectService().loadProjectFile('C:\\Test\\Path');
+        expect(project).not.toBeNull();
+        expect(fs.readFileSync).toHaveBeenCalledWith('C:\\Test\\Path\\.statwrap-project.json');
       });
       it('should throw an exception if the JSON is invalid', () => {
         fs.readFileSync.mockReturnValue(invalidProjectString);
@@ -58,17 +73,31 @@ describe('services', () => {
     });
 
     describe('saveProjectFile', () => {
-      it('should resolve the ~ home path', () => {
+      it.onMac('should resolve the ~ home path', () => {
         new ProjectService().saveProjectFile('~/Test/Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           `${TEST_USER_HOME_PATH}Test/Path/.statwrap-project.json`,
           '{"id":"1"}'
         );
       });
-      it('should save the project details', () => {
+      it.onWindows('should resolve the ~ home path', () => {
+        new ProjectService().saveProjectFile('~\\Test\\Path', { id: '1' });
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+          `${TEST_USER_HOME_PATH}Test\\Path\\.statwrap-project.json`,
+          '{"id":"1"}'
+        );
+      });
+      it.onMac('should save the project details', () => {
         new ProjectService().saveProjectFile('/Test/Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           '/Test/Path/.statwrap-project.json',
+          '{"id":"1"}'
+        );
+      });
+      it.onWindows('should save the project details', () => {
+        new ProjectService().saveProjectFile('C:\\Test\\Path', { id: '1' });
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+          'C:\\Test\\Path\\.statwrap-project.json',
           '{"id":"1"}'
         );
       });
@@ -148,7 +177,7 @@ describe('services', () => {
         expect(validationReport.details).toBe('An unknown project type (Invalid) was specified.');
       });
 
-      it('should create transform and create new ID and lastAccessed for a new project', () => {
+      it.onMac('should create transform and create new ID and lastAccessed for a new project', () => {
         const validationReport = new ProjectService().convertAndValidateProject({
           directory: '/Test/Path',
           name: 'My Test Project',
@@ -166,6 +195,24 @@ describe('services', () => {
         expect(validationReport.project.favorite).toBe(false);
         expect(validationReport.project.name).toBe('My Test Project');
       });
+	  it.onWindows('should create transform and create new ID and lastAccessed for a new project', () => {
+        const validationReport = new ProjectService().convertAndValidateProject({
+          directory: 'C:\\Test\\Path',
+          name: 'My Test Project',
+          type: Constants.ProjectType.NEW_PROJECT_TYPE
+        });
+        expect(validationReport.isValid).toBe(true);
+        expect(validationReport.details).toBe('');
+        expect(validationReport.project).not.toBeNull();
+        expect(validationReport.project.formatVersion).toBe(ProjectFileFormatVersion);
+        expect(validationReport.project.id).not.toBe(null);
+        expect(validationReport.project.id.length).toBe(36); // v4 UUID length, with hyphens
+        expect(validationReport.project.path).toBe('C:\\Test\\Path\\My Test Project');
+        expect(validationReport.project.lastAccessed).not.toBe(null);
+        expect(validationReport.project.lastAccessed.length).not.toBe(0);
+        expect(validationReport.project.favorite).toBe(false);
+        expect(validationReport.project.name).toBe('My Test Project');
+      });
 
       it('should transform a relative root directory for a new project', () => {
         const validationReport = new ProjectService().convertAndValidateProject({
@@ -176,7 +223,7 @@ describe('services', () => {
         expect(validationReport.project.path).toBe(`${TEST_USER_HOME_PATH}My Test Project`);
       });
 
-      it('should strip invalid characters from a new project name for the path', () => {
+      it.onMac('should strip invalid characters from a new project name for the path', () => {
         const folderWithInvalidChars = '.My: Test** Project ??';
         const validationReport = new ProjectService().convertAndValidateProject({
           directory: '/Test/Path',
@@ -186,8 +233,18 @@ describe('services', () => {
         expect(validationReport.project.name).toBe(folderWithInvalidChars);
         expect(validationReport.project.path).toBe('/Test/Path/My Test Project');
       });
+	  it.onWindows('should strip invalid characters from a new project name for the path', () => {
+        const folderWithInvalidChars = '.My: Test** Project ??';
+        const validationReport = new ProjectService().convertAndValidateProject({
+          directory: 'C:\\Test\\Path',
+          name: folderWithInvalidChars,
+          type: Constants.ProjectType.NEW_PROJECT_TYPE
+        });
+        expect(validationReport.project.name).toBe(folderWithInvalidChars);
+        expect(validationReport.project.path).toBe('C:\\Test\\Path\\My Test Project');
+      });
 
-      it('should create transform and create new ID and lastAccessed for an existing project', () => {
+      it.onMac('should create transform and create new ID and lastAccessed for an existing project', () => {
         const validationReport = new ProjectService().convertAndValidateProject({
           directory: '/Test/Path/My Test Project',
           type: Constants.ProjectType.EXISTING_PROJECT_TYPE
@@ -199,6 +256,23 @@ describe('services', () => {
         expect(validationReport.project.id).not.toBe(null);
         expect(validationReport.project.id.length).toBe(36); // v4 UUID length, with hyphens
         expect(validationReport.project.path).toBe('/Test/Path/My Test Project');
+        expect(validationReport.project.lastAccessed).not.toBe(null);
+        expect(validationReport.project.lastAccessed.length).not.toBe(0);
+        expect(validationReport.project.favorite).toBe(false);
+        expect(validationReport.project.name).toBe('My Test Project');
+      });
+	  it.onWindows('should create transform and create new ID and lastAccessed for an existing project', () => {
+        const validationReport = new ProjectService().convertAndValidateProject({
+          directory: 'C:\\Test\\Path\\My Test Project',
+          type: Constants.ProjectType.EXISTING_PROJECT_TYPE
+        });
+        expect(validationReport.isValid).toBe(true);
+        expect(validationReport.details).toBe('');
+        expect(validationReport.project).not.toBeNull();
+        expect(validationReport.project.formatVersion).toBe(ProjectFileFormatVersion);
+        expect(validationReport.project.id).not.toBe(null);
+        expect(validationReport.project.id.length).toBe(36); // v4 UUID length, with hyphens
+        expect(validationReport.project.path).toBe('C:\\Test\\Path\\My Test Project');
         expect(validationReport.project.lastAccessed).not.toBe(null);
         expect(validationReport.project.lastAccessed.length).not.toBe(0);
         expect(validationReport.project.favorite).toBe(false);
