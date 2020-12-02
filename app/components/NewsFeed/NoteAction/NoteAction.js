@@ -11,24 +11,26 @@ const noteAction = props => {
     content = (
       <div className={styles.data}>
         <table>
-          <tr>
-            <td>
-              <b>Action:</b>
-            </td>
-            <td>{data.type}</td>
-          </tr>
-          <tr>
-            <td>
-              <b>User:</b>
-            </td>
-            <td>{data.details.author}</td>
-          </tr>
-          <tr>
-            <td>
-              <b>Note text:</b>
-            </td>
-            <td>{data.details.content}</td>
-          </tr>
+          <tbody>
+            <tr>
+              <td>
+                <b>Action:</b>
+              </td>
+              <td>{data.type}</td>
+            </tr>
+            <tr>
+              <td>
+                <b>User:</b>
+              </td>
+              <td>{data.details.author}</td>
+            </tr>
+            <tr>
+              <td>
+                <b>Note text:</b>
+              </td>
+              <td>{data.details.content}</td>
+            </tr>
+          </tbody>
         </table>
       </div>
     );

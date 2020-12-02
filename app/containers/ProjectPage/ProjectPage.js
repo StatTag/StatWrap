@@ -47,6 +47,7 @@ class ProjectPage extends Component {
     this.handleProjectUpdate = this.handleProjectUpdate.bind(this);
     this.handleUpdateProjectResponse = this.handleUpdateProjectResponse.bind(this);
     this.handleLoadProjectLogResponse = this.handleLoadProjectLogResponse.bind(this);
+    this.handleRefreshProjectLog = this.handleRefreshProjectLog.bind(this);
   }
 
   componentDidMount() {
@@ -62,6 +63,7 @@ class ProjectPage extends Component {
     ipcRenderer.on(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
 
     ipcRenderer.on(Messages.LOAD_PROJECT_LOG_RESPONSE, this.handleLoadProjectLogResponse);
+    ipcRenderer.on(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog)
   }
 
   componentWillUnmount() {
@@ -72,6 +74,7 @@ class ProjectPage extends Component {
     ipcRenderer.removeListener(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
     ipcRenderer.removeListener(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
     ipcRenderer.removeListener(Messages.LOAD_PROJECT_LOG_RESPONSE, this.handleLoadProjectLogResponse);
+    ipcRenderer.removeListener(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
   }
 
   handleLoadProjectListResponse(sender, response) {
@@ -80,6 +83,10 @@ class ProjectPage extends Component {
 
   handleLoadProjectTemplatesResponse(sender, response) {
     this.setState({projectTemplates: response.projectTemplates});
+  }
+
+  handleRefreshProjectLog() {
+    ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, this.state.selectedProject);
   }
 
   handleLoadProjectLogResponse(sender, response) {
@@ -164,7 +171,7 @@ class ProjectPage extends Component {
 
     if (type && type !== '') {
       const user = this.context;
-      ipcRenderer.send(Messages.WRITE_PROJECT_LOG, project.path, type, description, details, 'info', user);
+      ipcRenderer.send(Messages.WRITE_PROJECT_LOG_REQUEST, project.path, type, description, details, 'info', user);
     }
   }
 

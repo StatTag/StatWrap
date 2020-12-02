@@ -236,7 +236,7 @@ ipcMain.on(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, async (event, projectId) 
 
 ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
   const response = {
-    projectId: null,
+    project: {},
     error: false,
     errorMessage: ''
   };
@@ -365,7 +365,7 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
 });
 
 ipcMain.on(
-  Messages.WRITE_PROJECT_LOG,
+  Messages.WRITE_PROJECT_LOG_REQUEST,
   async (event, projectPath, type, description, details, level, user) => {
     const logger = winston.createLogger({
       level: 'verbose',
@@ -383,6 +383,8 @@ ipcMain.on(
       details
     });
     logger.close();
+
+    event.sender.send(Messages.WRITE_PROJECT_LOG_RESPONSE);
   }
 );
 

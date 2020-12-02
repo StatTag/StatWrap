@@ -22,7 +22,8 @@ module.exports = {
   LOAD_SYSTEM_INFO_REQUEST: 'statwrap-load-system-info-request',
   LOAD_SYSTEM_INFO_RESPONSE: 'statwrap-load-system-info-response',
 
-  WRITE_PROJECT_LOG: 'statwrap-write-project-log',
+  WRITE_PROJECT_LOG_REQUEST: 'statwrap-write-project-log-request',
+  WRITE_PROJECT_LOG_RESPONSE: 'statwrap-write-project-log-response',
   LOAD_PROJECT_LOG_REQUEST: 'statwrap-load-project-log-request',
   LOAD_PROJECT_LOG_RESPONSE: 'statwrap-load-project-log-response'
 };

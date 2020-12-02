@@ -149,7 +149,7 @@ class CreateProjectDialog extends Component {
     console.log(response);
     if (response && !response.error) {
       ipcRenderer.send(
-        Messages.WRITE_PROJECT_LOG,
+        Messages.WRITE_PROJECT_LOG_REQUEST,
         response.project.path,
         'Project Created',
         `${this.context} created project ${response.project.name}`,

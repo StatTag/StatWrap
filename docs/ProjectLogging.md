@@ -10,7 +10,7 @@ Logging is currently handled using the [`winston`](https://github.com/winstonjs/
 
 ## Logging via Electron
 
-Across the entire application, we will centralize logging via an IPC call using `Messages.WRITE_PROJECT_LOG`. This message will take the following parameters:
+Across the entire application, we will centralize logging via an IPC call using `Messages.WRITE_PROJECT_LOG_REQUEST`. This message will take the following parameters:
 
 | parameter     | type    | description                                                                             |
 | ------------- | ------- | --------------------------------------------------------------------------------------- |
