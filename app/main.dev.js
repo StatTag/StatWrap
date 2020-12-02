@@ -340,6 +340,13 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
     errorMessage: ''
   };
 
+  // If the project is null, it means nothing was selected in the list and we just want to reset.
+  // This is not an error, so the error fields remain cleared.
+  if (project === null) {
+    event.sender.send(Messages.SCAN_PROJECT_RESPONSE, response);
+    return;
+  }
+
   try {
     const service = new AssetService([new FileHandler()]);
     response.assets = service.scan(project.path);

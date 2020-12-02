@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
@@ -69,6 +71,13 @@ class Projects extends Component {
           </IconButton>
         </div>
         {projectDetails}
+        <div
+          className={styles.filler}
+          onClick={e => {
+            e.stopPropagation();
+            this.props.onSelect(null);
+          }}
+        />
       </div>
     );
   }
