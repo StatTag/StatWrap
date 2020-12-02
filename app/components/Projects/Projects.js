@@ -31,6 +31,7 @@ class Projects extends Component {
             <ProjectEntry
               key={item.id}
               project={item}
+              selected={this.props.selectedProject && this.props.selectedProject.id === item.id}
               onSelect={() => this.props.onSelect(item)}
               onFavoriteClick={() => this.props.onFavoriteClick(item.id)}
               onMenuClick={event => this.props.onMenuClick(event.currentTarget, item)}
