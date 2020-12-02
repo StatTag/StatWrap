@@ -1,12 +1,13 @@
-/* eslint-disable react/prop-types */
+/* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { IconButton, CircularProgress } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
 import ProjectEntry from './ProjectEntry/ProjectEntry';
 import Error from '../Error/Error';
 import styles from './Projects.css';
 
-export default class Projects extends Component {
+class Projects extends Component {
   render() {
     let projectDetails = <CircularProgress className={styles.progress} />;
     if (this.props.loaded) {
@@ -39,6 +40,7 @@ export default class Projects extends Component {
             <ProjectEntry
               key={item.id}
               project={item}
+              selected={this.props.selectedProject && this.props.selectedProject.id === item.id}
               onSelect={() => this.props.onSelect(item)}
               onFavoriteClick={() => this.props.onFavoriteClick(item.id)}
               onMenuClick={event => this.props.onMenuClick(event.currentTarget, item)}
@@ -71,3 +73,23 @@ export default class Projects extends Component {
     );
   }
 }
+
+Projects.propTypes = {
+  projects: PropTypes.array.isRequired,
+  selectedProject: PropTypes.object,
+  loaded: PropTypes.bool.isRequired,
+  error: PropTypes.bool.isRequired,
+  errorMessage: PropTypes.string,
+  onRefresh: PropTypes.func.isRequired,
+  onSelect: PropTypes.func.isRequired,
+  onFavoriteClick: PropTypes.func.isRequired,
+  onMenuClick: PropTypes.func.isRequired,
+  onAddProject: PropTypes.func.isRequired
+};
+
+Projects.defaultProps = {
+  errorMessage: null,
+  selectedProject: null
+};
+
+export default Projects;

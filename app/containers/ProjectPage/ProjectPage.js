@@ -199,6 +199,7 @@ class ProjectPage extends Component {
         >
           <Projects
             projects={this.state.projects}
+            selectedProject={this.state.selectedProject}
             loaded={this.state.loaded}
             error={this.state.error}
             errorMessage={this.state.errorMessage}

@@ -1,5 +1,6 @@
 /* eslint-disable react/destructuring-assignment */
 import React from 'react';
+import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import { Tooltip } from '@material-ui/core';
 import PortableWifiOffIcon from '@material-ui/icons/PortableWifiOff';
@@ -29,6 +30,11 @@ const projectEntry = props => {
     offlineMessage = <div className={styles.offline}>{offlineIndicator}Project is offline</div>;
   }
 
+  const divClasses = [styles.container];
+  if (props.selected) {
+    divClasses.push(styles.selected);
+  }
+
   return (
     <HtmlTooltip
       arrow
@@ -41,7 +47,7 @@ const projectEntry = props => {
         </>
       }
     >
-      <div className={styles.container} data-tid="container" onClick={props.onSelect}>
+      <div className={divClasses.join(' ')} data-tid="container" onClick={props.onSelect}>
         <div className={styles.name}>
           <span>
             {props.project.name}
@@ -64,6 +70,14 @@ const projectEntry = props => {
       </div>
     </HtmlTooltip>
   );
+};
+
+projectEntry.propTypes = {
+  selected: PropTypes.bool
+};
+
+projectEntry.defaultProps = {
+  selected: false
 };
 
 export default projectEntry;

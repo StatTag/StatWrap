@@ -6,7 +6,8 @@
   display: grid;
 }
 
-.container:hover {
+.container:hover,
+.selected {
   opacity: 0.7;
   background: rgba(0, 0, 0, 0.05);
 }
