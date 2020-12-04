@@ -17,15 +17,26 @@ class ProjectPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      // UI state flag to let us know when we're in the process of adding a new project
       addingProject: false,
+      // List of project templates that can be used for new projects
       projectTemplates: [],
+      // The list of projects that the user has configured
       projects: [],
+      // UI state flag to let us know if the list of projects has been loaded or not
       loaded: false,
+      // UI state flag to let us know if there was an error when trying to load the list of projects
       error: false,
+      // If error is true, this will contain a user-friendly error message.
       errorMessage: '',
-      projectListMenuAnchor: null,
+
+      // Information about the selected project (except logs)
       selectedProject: null,
+      // The logs (aka News Feed) for the selected project
       selectedProjectLogs: null,
+
+      // UI element to inform us what the popup project list menu is attached to
+      projectListMenuAnchor: null,
 
       // This key is part of a trick to get React to throw out and recreate the Create Project
       // dialog when we have disposed of it - either by creating a project or cancelling.  This
@@ -90,7 +101,6 @@ class ProjectPage extends Component {
   }
 
   handleLoadProjectLogResponse(sender, response) {
-    console.log(response);
     this.setState({selectedProjectLogs: response});
   }
 
@@ -104,17 +114,19 @@ class ProjectPage extends Component {
       return;
     }
 
-    const {selectedProject} = this.state;
-    // If the currently selected project doesn't match the scan request, it may be related to
-    // a previously selected project.  In this case, we will just ignore the response and not
-    // do any updates to the UI.
-    if (selectedProject.id !== response.project.id) {
-      console.warn('Scan result for project does not match currently selected project');
-      return;
-    }
+    this.setState((previousState) => {
+      const { selectedProject } = previousState;
+      // If the currently selected project doesn't match the scan request, it may be related to
+      // a previously selected project.  In this case, we will just ignore the response and not
+      // do any updates to the UI.
+      if (selectedProject.id !== response.project.id) {
+        console.warn('Scan result for project does not match currently selected project');
+        return { selectedProject };
+      }
 
-    const projectWithAssets = {...selectedProject, assets: response.error ? {error: response.error, errorMessage: response.errorMessage} : response.assets};
-    this.setState({ selectedProject: projectWithAssets });
+      const projectWithAssets = {...selectedProject, assets: response.error ? {error: response.error, errorMessage: response.errorMessage} : response.assets};
+      return { selectedProject: projectWithAssets };
+    });
   }
 
   handleFavoriteClick(id) {
@@ -155,7 +167,7 @@ class ProjectPage extends Component {
         ipcRenderer.send(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, projectId);
         break;
       default:
-        console.log(`Unknown project list entry menu event: ${event}`);
+        console.warn(`Unknown project list entry menu event: ${event}`);
     }
     this.setState({ projectListMenuAnchor: null });
   }
@@ -167,6 +179,13 @@ class ProjectPage extends Component {
   }
 
   handleProjectUpdate(project, type, description, details) {
+    // Update our cached list of projects from which we get the selected projects.  We want to ensure
+    // these are kept in sync with any updates.
+    const { projects } = this.state;
+    const foundIndex = projects.findIndex(x => x.id === project.id);
+    projects[foundIndex] = project;
+    this.setState({ projects });
+
     ipcRenderer.send(Messages.UPDATE_PROJECT_REQUEST, project);
 
     if (type && type !== '') {

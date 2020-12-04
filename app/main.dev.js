@@ -362,6 +362,14 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
       projectService.addNotesToAssets(response.assets, projectConfig.assets);
     }
 
+    // When we scan a project, we need to detect all possible changes that could exist from the existing
+    // project entry that gets sent.  Otherwise the UI can get out of sync.  We need to make sure we merge
+    // in additional properties here for the project that's going back.  Keep in mind that the project
+    // object we get is structured differently from the stored project config, which is why we need to
+    // add parts instead of just using the whole object.
+    response.project.categories = projectConfig.categories;
+    response.project.description = projectConfig.description;
+
     response.error = false;
     response.errorMessage = '';
   } catch (e) {

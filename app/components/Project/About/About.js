@@ -49,7 +49,7 @@ const about = props => {
   let view = null;
   let buttonLabel = '';
   if (editing) {
-    buttonLabel = 'View Details';
+    buttonLabel = 'Save Details';
     view = (
       <Box>
         <div className={styles.propertyBlock}>
