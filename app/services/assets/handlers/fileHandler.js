@@ -1,14 +1,20 @@
-// The cycle established is just to make accessible constant values, so we are not concerned with it
+// The cycles established are just to make accessible constant values, so we are not concerned with it
 // in this case.
 // eslint-disable-next-line import/no-cycle
 import AssetUtil from '../../../utils/asset';
+import { StatWrapFiles } from '../../../constants/constants';
 
 const fs = require('fs');
 const path = require('path');
 
 // All file and folder names (exact match - currently not supporting regex patterns)
 // that we want to hide from view.
-const FILE_IGNORE_LIST = ['.DS_Store', 'Thumbs.db', '.statwrap-project.json', 'statwrap-log.log'];
+const FILE_IGNORE_LIST = [
+  '.DS_Store',
+  'Thumbs.db',
+  '.statwrap-project.json', // ProjectService DefaultProjectFile -- circular dependency, so we need to use literal
+  StatWrapFiles.LOG
+];
 
 /**
  * Metadata:

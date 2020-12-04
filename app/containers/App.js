@@ -4,13 +4,15 @@ import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import { AppBar, Toolbar, Typography, IconButton } from '@material-ui/core';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SearchIcon from '@material-ui/icons/Search';
+import HomeIcon from '@material-ui/icons/Home';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
   faFolder,
   faTag,
   faThumbtack,
   faEllipsisH,
-  faTrashAlt
+  faTrashAlt,
+  faHome
 } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { ipcRenderer } from 'electron';
@@ -21,7 +23,7 @@ import styles from './App.css';
 
 // This is where we register all of our font-awesome icons that are used throughout the app.
 // See https://github.com/FortAwesome/react-fontawesome#build-a-library-to-reference-icons-throughout-your-app-more-conveniently
-library.add(faFolder, faTag, faThumbtack, faEllipsisH, faTrashAlt);
+library.add(faFolder, faTag, faThumbtack, faEllipsisH, faTrashAlt, faHome);
 
 export default class App extends React.Component {
   constructor(props) {
@@ -62,22 +64,25 @@ export default class App extends React.Component {
       <ThemeProvider theme={theme}>
         <UserContext.Provider value={this.state.user}>
           <AppBar position="static">
-            <Toolbar>
-              <Link to={routes.HOME} className={styles.title}>
-                <Typography variant="h6">StatWrap</Typography>
-              </Link>
+            <Toolbar className={styles.toolbar}>
+              <Typography variant="h6">StatWrap</Typography>
               <section className={styles.rightToolbar}>
-                <div className={styles.user}>{this.state.user}</div>
-                <Link to={routes.SEARCH}>
+                <Link to={routes.HOME} className={styles.navigation}>
+                  <IconButton aria-label="home">
+                    <HomeIcon />
+                  </IconButton>
+                </Link>
+                <Link to={routes.SEARCH} className={styles.navigation}>
                   <IconButton aria-label="search">
                     <SearchIcon />
                   </IconButton>
                 </Link>
-                <Link to={routes.CONFIGURATION}>
+                <Link to={routes.CONFIGURATION} className={styles.navigation}>
                   <IconButton aria-label="settings">
                     <SettingsIcon />
                   </IconButton>
                 </Link>
+                <div className={styles.user}>{this.state.user}</div>
               </section>
             </Toolbar>
           </AppBar>

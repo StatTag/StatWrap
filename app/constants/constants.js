@@ -19,6 +19,10 @@ module.exports = {
     FILE: 'file'
   },
 
+  StatWrapFiles: {
+    LOG: '.statwrap.log'
+  },
+
   ActionType: {
     NOTE_ADDED: 'Note Added',
     NOTE_UPDATED: 'Note Updated',

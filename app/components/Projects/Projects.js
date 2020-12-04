@@ -33,8 +33,14 @@ class Projects extends Component {
               project={item}
               selected={this.props.selectedProject && this.props.selectedProject.id === item.id}
               onSelect={() => this.props.onSelect(item)}
-              onFavoriteClick={() => this.props.onFavoriteClick(item.id)}
-              onMenuClick={event => this.props.onMenuClick(event.currentTarget, item)}
+              onFavoriteClick={e => {
+                e.stopPropagation();
+                this.props.onFavoriteClick(item.id);
+              }}
+              onMenuClick={event => {
+                event.stopPropagation();
+                this.props.onMenuClick(event.currentTarget, item);
+              }}
             />
           ));
         const projects = this.props.projects
@@ -45,8 +51,14 @@ class Projects extends Component {
               project={item}
               selected={this.props.selectedProject && this.props.selectedProject.id === item.id}
               onSelect={() => this.props.onSelect(item)}
-              onFavoriteClick={() => this.props.onFavoriteClick(item.id)}
-              onMenuClick={event => this.props.onMenuClick(event.currentTarget, item)}
+              onFavoriteClick={e => {
+                e.stopPropagation();
+                this.props.onFavoriteClick(item.id);
+              }}
+              onMenuClick={event => {
+                event.stopPropagation();
+                this.props.onMenuClick(event.currentTarget, item);
+              }}
             />
           ));
         const divider =

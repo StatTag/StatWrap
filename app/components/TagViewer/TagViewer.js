@@ -4,6 +4,10 @@ import PropTypes from 'prop-types';
 import styles from './TagViewer.css';
 
 const tagViewer = props => {
+  const classNames = [styles.container];
+  if (props.className) {
+    classNames.push(props.className);
+  }
   const tagComponents =
     props.tags && props.tags.length > 0
       ? props.tags.map(t => (
@@ -12,7 +16,7 @@ const tagViewer = props => {
           </div>
         ))
       : null;
-  return <div className={styles.container}>{tagComponents}</div>;
+  return <div className={classNames.join(' ')}>{tagComponents}</div>;
 };
 
 tagViewer.propTypes = {

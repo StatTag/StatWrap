@@ -356,7 +356,11 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
     // considered first-class attributes instead of being embedded in metadata.  Because of this
     // decision, we are adding in the notes after the regular asset scanning & processing.
     const projectConfig = projectService.loadProjectFile(project.path);
-    projectService.addNotesToAssets(response.assets, projectConfig.assets);
+    if (!projectConfig.assets) {
+      console.log('No assets registered with the project - assuming this is a newly added project');
+    } else {
+      projectService.addNotesToAssets(response.assets, projectConfig.assets);
+    }
 
     response.error = false;
     response.errorMessage = '';
@@ -380,7 +384,9 @@ ipcMain.on(
       defaultMeta: { user },
       format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
       transports: [
-        new winston.transports.File({ filename: path.join(projectPath, 'statwrap-log.log') })
+        new winston.transports.File({
+          filename: path.join(projectPath, Constants.StatWrapFiles.LOG)
+        })
       ]
     });
 
@@ -412,7 +418,9 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
   const logger = winston.createLogger({
     level: 'verbose',
     transports: [
-      new winston.transports.File({ filename: path.join(project.path, 'statwrap-log.log') })
+      new winston.transports.File({
+        filename: path.join(project.path, Constants.StatWrapFiles.LOG)
+      })
     ]
   });
 

@@ -72,7 +72,7 @@ const about = props => {
     buttonLabel = 'Edit Details';
     view = (
       <Box>
-        <TagViewer tags={categories} />
+        <TagViewer className={styles.tagViewer} tags={categories} />
         <ReactMarkdown className="markdown-body" plugins={[gfm]} children={description} />
       </Box>
     );

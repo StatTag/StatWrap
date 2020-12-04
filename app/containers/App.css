@@ -4,17 +4,23 @@
 }
 
 .user {
-  text-align: right;
   font-size: 0.8rem;
+  display: inline-block;
 }
 
-.title {
+.toolbar {
+  min-height: 36px;
+  max-height: 36px;
+}
+
+.navigation,
+.navigation > button {
   color: white;
   opacity: 0.75;
   text-decoration: none;
 }
 
-.title:hover {
+.navigation:hover {
   opacity: 1;
   text-decoration: none;
   cursor: pointer;

@@ -121,7 +121,7 @@ class Project extends Component<Props> {
           action.type = ActionType.NOTE_ADDED;
           action.description = `${user} added note to asset ${asset.uri}`;
           action.details = newNote;
-        } else if (existingNote.content === note.content) {
+        } else if (existingNote.content === text) {
           console.log('Note is unchanged - no update');
         } else {
           console.log('Updating existing note');

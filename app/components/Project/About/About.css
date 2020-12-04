@@ -16,7 +16,8 @@
   font-size: 0.9rem;
 }
 
-.propertyBlock {
+.propertyBlock,
+.tagViewer {
   padding-bottom: 25px;
 }
 
