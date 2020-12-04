@@ -4,9 +4,10 @@
  */
 @import '~@fortawesome/fontawesome-free/css/all.css';
 @import '~react-checkbox-tree/lib/react-checkbox-tree.css';
+@import '~easymde/dist/easymde.min.css';
 
-/* @import '~draft-js/dist/Draft.css'; */
 @import '~react-tagsinput/react-tagsinput.css';
+@import '~github-markdown-css/github-markdown.css';
 
 body {
   position: relative;
@@ -25,26 +26,6 @@ h2 {
   font-weight: bold;
   letter-spacing: -0.025em;
   color: #fff;
-}
-
-p {
-  font-size: 12px;
-}
-
-li {
-  list-style: none;
-}
-
-a {
-  color: white;
-  opacity: 0.75;
-  text-decoration: none;
-}
-
-a:hover {
-  opacity: 1;
-  text-decoration: none;
-  cursor: pointer;
 }
 
 .MuiDialogTitle-root {

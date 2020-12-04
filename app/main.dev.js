@@ -147,8 +147,9 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
         fullProject.loadError = true;
       } else {
         fullProject.name = metadata.name;
-        fullProject.tags = metadata.tags;
         fullProject.assets = metadata.assets;
+        fullProject.description = metadata.description;
+        fullProject.categories = metadata.categories;
         fullProject.loadError = false;
       }
       return fullProject;
@@ -438,6 +439,8 @@ ipcMain.on(Messages.UPDATE_PROJECT_REQUEST, async (event, project) => {
   try {
     if (project && project.id && project.path) {
       const projectConfig = projectService.loadProjectFile(project.path);
+      projectConfig.description = project.description;
+      projectConfig.categories = project.categories;
       projectConfig.assets = project.assets;
       projectService.saveProjectFile(project.path, projectConfig);
     } else {

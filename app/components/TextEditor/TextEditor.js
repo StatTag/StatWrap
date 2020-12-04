@@ -1,16 +1,19 @@
-import React, { useState } from 'react';
-import Editor from 'rich-markdown-editor';
+import React from 'react';
+// import Editor from 'rich-markdown-editor';
+import Editor from 'react-simplemde-editor';
 import styles from './TextEditor.css';
 
 const textEditor = props => {
-  const [content, setContent] = useState('');
   return (
     <div className={styles.container}>
       <Editor
         placeholder={props.placeholder}
-        defaultValue={props.content}
-        value={content}
+        value={props.content}
         onChange={props.onChange}
+        options={{
+          autofocus: true,
+          spellChecker: true
+        }}
       />
     </div>
   );

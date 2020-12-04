@@ -55,6 +55,19 @@ class Project extends Component<Props> {
     this.setState({ selectedTab: id });
   };
 
+  aboutDetailsUpdateHandler = (description, categories) => {
+    const project = { ...this.props.project, description, categories };
+    if (this.props.onUpdated) {
+      const user = this.context;
+      this.props.onUpdated(
+        project,
+        ActionType.ABOUT_DETAILS_UPDATED,
+        `${user} updated the project details in the 'About' page`,
+        { description, categories }
+      );
+    }
+  };
+
   /**
    * General handler to either insert a new note for an asset or update an existing note for
    * an asset.  It figures out the appropriate action to take depending on if the note parameter
@@ -161,7 +174,9 @@ class Project extends Component<Props> {
 
     let content = <Welcome />;
     if (this.props.project) {
-      const about = this.props.project ? <About project={this.props.project} /> : null;
+      const about = this.props.project ? (
+        <About onUpdateDetails={this.aboutDetailsUpdateHandler} project={this.props.project} />
+      ) : null;
       const assets = this.props.project ? (
         <Assets
           project={this.props.project}

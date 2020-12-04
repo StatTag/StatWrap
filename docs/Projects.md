@@ -45,6 +45,7 @@ For each project, within the root of the project container, there will be a file
 | `name`          | String  | The descriptive name of the project. This will default to part of the path where the project is located, but can be changed by the user.                                                                                                                                                |
 | `categories`    | Array   | An array of String values that represent the categories (tags) that have been assigned to the project                                                                                                                                                                                   |
 | `assets`        | Object  | The root container asset as well as all children assets. The general structure of this object is documented in [AssetDiscovery](AssetDiscovery.md)                                                                                                                                      |
+| `description`   | String  | A string (which can contain Markdown) which is used in the About page to describe the project                                                                                                                                                                                           |
 
 ### Loading and Discovery Lifecycle
 

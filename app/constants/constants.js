@@ -22,6 +22,8 @@ module.exports = {
   ActionType: {
     NOTE_ADDED: 'Note Added',
     NOTE_UPDATED: 'Note Updated',
-    NOTE_DELETED: 'Note Deleted'
+    NOTE_DELETED: 'Note Deleted',
+
+    ABOUT_DETAILS_UPDATED: 'About Details Updated'
   }
 };

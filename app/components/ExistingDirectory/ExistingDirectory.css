@@ -4,7 +4,7 @@
   font-size: 0.75rem;
 }
 
-input {
+.container input {
   width: 80%;
 }
 
@@ -14,12 +14,12 @@ input {
   width: 15%;
 }
 
-fieldset {
+.container fieldset {
   border: none;
   margin-bottom: 10px;
 }
 
-legend {
+.container legend {
   font-weight: bold;
   font-size: 0.8rem;
 }

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import TagsInput from 'react-tagsinput';
 
 const tagEditor = props => {
-  const [tags, setTags] = useState([]);
+  const [tags, setTags] = useState(props.tags);
 
   const changedTagsHandler = updatedTags => {
     setTags(updatedTags);
@@ -11,7 +11,14 @@ const tagEditor = props => {
     }
   };
 
-  return <TagsInput value={tags} onChange={changedTagsHandler} onlyUnique />;
+  return (
+    <TagsInput
+      value={tags}
+      onChange={changedTagsHandler}
+      onlyUnique
+      inputProps={{ placeholder: 'Add a topic' }}
+    />
+  );
 };
 
 export default tagEditor;

@@ -7,3 +7,15 @@
   text-align: right;
   font-size: 0.8rem;
 }
+
+.title {
+  color: white;
+  opacity: 0.75;
+  text-decoration: none;
+}
+
+.title:hover {
+  opacity: 1;
+  text-decoration: none;
+  cursor: pointer;
+}

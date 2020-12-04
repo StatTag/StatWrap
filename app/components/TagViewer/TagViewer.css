@@ -1,0 +1,16 @@
+.container {
+  width: 100%;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  border-radius: 2em;
+  padding: 0 10px;
+  line-height: 24px;
+  color: #0366d6;
+  background-color: #f7f4fb;
+  margin: 0 0.125em 0.333em 0;
+}

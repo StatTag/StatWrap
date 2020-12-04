@@ -63,10 +63,8 @@ export default class App extends React.Component {
         <UserContext.Provider value={this.state.user}>
           <AppBar position="static">
             <Toolbar>
-              <Link to={routes.HOME}>
-                <Typography variant="h6" className={styles.title}>
-                  StatWrap
-                </Typography>
+              <Link to={routes.HOME} className={styles.title}>
+                <Typography variant="h6">StatWrap</Typography>
               </Link>
               <section className={styles.rightToolbar}>
                 <div className={styles.user}>{this.state.user}</div>
