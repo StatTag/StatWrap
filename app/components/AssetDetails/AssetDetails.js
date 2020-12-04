@@ -1,11 +1,30 @@
 import React from 'react';
+import { withStyles } from '@material-ui/core/styles';
 import Accordion from '@material-ui/core/Accordion';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
+import MuiAccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import NoteEditor from '../NoteEditor/NoteEditor';
 import styles from './AssetDetails.css';
+
+const AccordionSummary = withStyles({
+  root: {
+    backgroundColor: 'rgba(0, 0, 0, .03)',
+    borderBottom: '1px solid rgba(0, 0, 0, .125)',
+    marginBottom: -1,
+    minHeight: 48,
+    '&$expanded': {
+      minHeight: 48
+    }
+  },
+  content: {
+    '&$expanded': {
+      margin: '12px 0'
+    }
+  },
+  expanded: {}
+})(MuiAccordionSummary);
 
 const assetDetails = props => {
   const { asset, onAddedNote, onUpdatedNote, onDeletedNote } = props;
@@ -28,7 +47,7 @@ const assetDetails = props => {
   return (
     <div className={styles.container}>
       <div className={styles.title}>{asset.uri}</div>
-      <Accordion>
+      <Accordion expanded>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="notes-content"

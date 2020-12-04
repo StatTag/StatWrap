@@ -20,14 +20,15 @@ const noteDetails = props => {
       />
     </div>
   ) : null;
+  const hasText = note && note.content && note.content !== '';
   return (
     <div className={styles.container}>
       {metadata}
       <EditableLabel
-        labelClassName={styles.content}
+        labelClassName={hasText ? styles.content : styles.emptyContent}
         inputClassName={styles.contentEditor}
         text={note ? note.content : ''}
-        labelPlaceHolder="Click to enter a new note"
+        labelPlaceHolder={note ? '(Empty)' : 'Click to enter a new note'}
         inputWidth="100%"
         multiline
         onFocusOut={text => onEditingComplete(note, text)}

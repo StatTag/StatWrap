@@ -77,6 +77,13 @@ class Project extends Component<Props> {
    * @param {object} note Optional parameter if there is an existing note being updated.  If falsey, we assume this is a new note.
    */
   assetUpsertNoteHandler = (asset, text, note) => {
+    // If the user clicked into a new note and clicked out without adding anything we will skip
+    // adding the new note.  We will allow if the user wants a blank note that they already created.
+    if ((!note || note === undefined) && (!text || text === '')) {
+      console.log('Detected an empty new note - this will not be created');
+      return;
+    }
+
     const project = { ...this.props.project };
     const assetsCopy = { ...project.assets };
 

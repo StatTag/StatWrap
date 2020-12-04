@@ -12,9 +12,14 @@
   font-style: italic;
 }
 
-.content {
+.content,
+.emptyContent {
   white-space: pre-wrap;
   font-size: 0.9rem;
+}
+
+.emptyContent {
+  font-style: italic;
 }
 
 .contentEditor {
