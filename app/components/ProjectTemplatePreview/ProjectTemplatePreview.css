@@ -1,4 +1,7 @@
-.container .placeholder {
+.container * {
+  font-size: 0.85rem !important;
+}
+.placeholder {
   font-size: 1rem !important;
   color: #888;
   text-align: center;

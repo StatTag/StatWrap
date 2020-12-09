@@ -7,8 +7,9 @@ import styles from './ProjectTemplatePreview.css';
 function contentsToNodes(assets) {
   if (assets) {
     return assets.map(x => ({
-      value: x.name,
+      value: x.path,
       label: x.name,
+      showCheckbox: false,
       icon: x.type === 'folder' ? <i className="fa fa-folder" /> : <i className="fa fa-file" />,
       children: x.contents ? contentsToNodes(x.contents) : null
     }));
@@ -27,7 +28,6 @@ class ProjectTemplatePreview extends Component {
   }
 
   render() {
-    console.log(this.state);
     let preview = (
       <div className={styles.placeholder}>Please select a template from a list on the left</div>
     );

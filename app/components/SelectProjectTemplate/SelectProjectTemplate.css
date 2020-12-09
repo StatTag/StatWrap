@@ -3,10 +3,6 @@
   margin-right: 20px;
 }
 
-.container * {
-  font-size: 0.75rem !important;
-}
-
 .selectButton {
   display: block;
   margin: 0 auto;
