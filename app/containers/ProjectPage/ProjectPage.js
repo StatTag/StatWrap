@@ -32,7 +32,7 @@ class ProjectPage extends Component {
 
       // Information about the selected project (except logs)
       selectedProject: null,
-      // The logs (aka News Feed) for the selected project
+      // The logs (aka Project Log) for the selected project
       selectedProjectLogs: null,
 
       // UI element to inform us what the popup project list menu is attached to

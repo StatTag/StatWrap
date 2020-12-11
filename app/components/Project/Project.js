@@ -11,7 +11,7 @@ import EditableLabel from '../EditableLabel/EditableLabel';
 import Welcome from '../Welcome/Welcome';
 import About from './About/About';
 import Assets from './Assets/Assets';
-import NewsFeed from '../NewsFeed/NewsFeed';
+import ProjectLog from '../ProjectLog/ProjectLog';
 import { ActionType } from '../../constants/constants';
 import AssetUtil from '../../utils/asset';
 import styles from './Project.css';
@@ -202,9 +202,9 @@ class Project extends Component<Props> {
         />
       ) : null;
 
-      const newsFeed =
+      const projectLog =
         this.props.project && this.props.logs ? (
-          <NewsFeed
+          <ProjectLog
             project={this.props.project}
             error={this.props.logs.errorMessage}
             feed={this.props.logs.logs}
@@ -234,7 +234,7 @@ class Project extends Component<Props> {
               <Tab label="Workflows" value="workflows" classes={tabStyle} />
               <Tab label="People" value="people" classes={tabStyle} />
               <Tab label="References" value="references" classes={tabStyle} />
-              <Tab label="News Feed" value="newsFeed" classes={tabStyle} />
+              <Tab label="Project Log" value="projectLog" classes={tabStyle} />
             </TabList>
           </div>
           <TabPanel value="about" classes={tabPanelStyle}>
@@ -252,8 +252,8 @@ class Project extends Component<Props> {
           <TabPanel value="references" classes={tabPanelStyle}>
             TBD
           </TabPanel>
-          <TabPanel value="newsFeed" classes={tabPanelStyle}>
-            {newsFeed}
+          <TabPanel value="projectLog" classes={tabPanelStyle}>
+            {projectLog}
           </TabPanel>
         </TabContext>
       );

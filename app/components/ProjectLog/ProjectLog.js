@@ -3,9 +3,9 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import DataTable from 'react-data-table-component';
 import Error from '../Error/Error';
-import NewsFeedRow from './NewsFeedRow/NewsFeedRow';
+import ProjectLogRow from './ProjectLogRow/ProjectLogRow';
 import GeneralUtil from '../../utils/general';
-import styles from './NewsFeed.css';
+import styles from './ProjectLog.css';
 
 const columns = [
   {
@@ -28,7 +28,7 @@ const columns = [
   }
 ];
 
-const newsFeed = props => {
+const projectLog = props => {
   const { feed, error } = props;
   const [pending, setPending] = useState(true);
 
@@ -43,30 +43,30 @@ const newsFeed = props => {
     });
     contents = (
       <DataTable
-        title="News Feed"
+        title="Project Log"
         columns={columns}
         data={data}
         striped
         progressPending={pending}
         expandableRows
-        expandableRowsComponent={<NewsFeedRow />}
+        expandableRowsComponent={<ProjectLogRow />}
       />
     );
   } else if (error) {
-    contents = <Error>There was an error loading the news feed: {error}</Error>;
+    contents = <Error>There was an error loading the project log: {error}</Error>;
   }
   return <div className={styles.container}>{contents}</div>;
 };
 
-newsFeed.propTypes = {
+projectLog.propTypes = {
   project: PropTypes.object.isRequired,
   feed: PropTypes.arrayOf(PropTypes.object),
   error: PropTypes.string
 };
 
-newsFeed.defaultProps = {
+projectLog.defaultProps = {
   feed: null,
   error: null
 };
 
-export default newsFeed;
+export default projectLog;

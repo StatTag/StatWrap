@@ -4,9 +4,9 @@ import PropTypes from 'prop-types';
 import GeneralAction from '../GeneralAction/GeneralAction';
 import NoteAction from '../NoteAction/NoteAction';
 import { ActionType } from '../../../constants/constants';
-import styles from './NewsFeedRow.css';
+import styles from './ProjectLogRow.css';
 
-const newsFeedRow = props => {
+const projectLogRow = props => {
   const { data } = props;
   let detail = null;
   if (data) {
@@ -23,12 +23,12 @@ const newsFeedRow = props => {
   return <div className={styles.container}>{detail}</div>;
 };
 
-newsFeedRow.propTypes = {
+projectLogRow.propTypes = {
   data: PropTypes.object
 };
 
-newsFeedRow.defaultProps = {
+projectLogRow.defaultProps = {
   data: null
 };
 
-export default newsFeedRow;
+export default projectLogRow;
