@@ -1,3 +1,9 @@
-.container {
-  font-family: 'Courier New', sans-serif;
+.row {
+  white-space: pre;
+}
+
+.label {
+  font-weight: 600;
+  text-transform: capitalize;
+  padding-right: 10px;
 }

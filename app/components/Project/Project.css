@@ -3,6 +3,7 @@
   height: 100vh;
   color: #000;
   margin: 0;
+  overflow: auto;
 }
 
 .header {
@@ -33,6 +34,6 @@
 }
 
 .editableLabel {
-  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
   font-size: 1rem;
 }

@@ -27,7 +27,6 @@ class AssetTree extends Component {
       } else {
         expandedNodes.splice(index, 1);
       }
-      console.log(expandedNodes);
       return { expandedNodes };
     });
   };

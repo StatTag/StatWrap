@@ -3,9 +3,22 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styles from './GeneralAction.css';
 
+const formatValue = value => {
+  return Array.isArray(value) ? value.join(', ') : value;
+};
+
+const generateRow = (key, value) => {
+  return (
+    <div key={key} className={styles.row}>
+      <span className={styles.label}>{key}:</span> {formatValue(value)}
+    </div>
+  );
+};
+
 const generalAction = props => {
   const { data } = props;
-  return <div className={styles.container}>{JSON.stringify(data.details)}</div>;
+  const rows = Object.keys(data.details).map(k => generateRow(k, data.details[k]));
+  return <div className={styles.container}>{rows}</div>;
 };
 
 generalAction.propTypes = {

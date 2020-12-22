@@ -35,6 +35,14 @@ export default class AppUpdater {
 
 let mainWindow = null;
 
+// For Winston, we need to tell it how far back we want to see logs from some anchor point
+// (by default, the time we're looking at logs), as well as the number of logs to look at.
+// These constants will take us back 100 years and give us a "really big number" of rows.
+// Kind of a hacky way to say "give me all logs", but the current query API doesn't appear
+// to have another way to specify that.
+const LOG_TIME_LOOKBACK = 100 * 365 * 24 * 60 * 60 * 1000;
+const LOG_ROW_LIMIT = 10000000000;
+
 const projectTemplateService = new ProjectTemplateService();
 const projectService = new ProjectService();
 
@@ -432,7 +440,14 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
     ]
   });
 
-  logger.query({ start: -1 }, (error, logs) => {
+  const options = {
+    from: new Date() - LOG_TIME_LOOKBACK,
+    until: new Date(),
+    limit: LOG_ROW_LIMIT,
+    start: 0
+  };
+
+  logger.query(options, (error, logs) => {
     if (error || !logs || !logs.file) {
       response.error = true;
       response.errorMessage = 'There was an error reading the project log';
