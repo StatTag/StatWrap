@@ -3,6 +3,7 @@ import { Button } from '@material-ui/core';
 import { remote } from 'electron';
 import PropTypes from 'prop-types';
 import Error from '../Error/Error';
+import ConfigFileInfo from '../ConfigFileInfo/ConfigFileInfo';
 import styles from './NewDirectory.css';
 
 class NewDirectory extends Component {
@@ -42,13 +43,13 @@ class NewDirectory extends Component {
   render() {
     let validation = null;
     if (this.state.validationErrorMessage) {
-      validation = <Error>{this.state.validationErrorMessage}</Error>;
+      validation = <Error style={{ marginTop: '15px' }}>{this.state.validationErrorMessage}</Error>;
     }
 
     return (
       <div className={styles.container} data-tid="container">
         <fieldset>
-          <legend>Directory name:</legend>
+          <legend>Project name:</legend>
           <input type="text" onChange={this.handleNameChanged} value={this.props.name} />
         </fieldset>
         <fieldset>
@@ -62,6 +63,7 @@ class NewDirectory extends Component {
             Browse...
           </Button>
         </fieldset>
+        <ConfigFileInfo />
         {validation}
       </div>
     );

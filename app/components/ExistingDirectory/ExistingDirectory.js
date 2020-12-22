@@ -3,6 +3,7 @@ import { Button } from '@material-ui/core';
 import { remote } from 'electron';
 import PropTypes from 'prop-types';
 import Error from '../Error/Error';
+import ConfigFileInfo from '../ConfigFileInfo/ConfigFileInfo';
 import styles from './ExistingDirectory.css';
 
 class ExistingDirectory extends Component {
@@ -37,7 +38,7 @@ class ExistingDirectory extends Component {
   render() {
     let validation = null;
     if (this.state.validationErrorMessage) {
-      validation = <Error>{this.state.validationErrorMessage}</Error>;
+      validation = <Error style={{ marginTop: '15px' }}>{this.state.validationErrorMessage}</Error>;
     }
 
     return (
@@ -53,6 +54,7 @@ class ExistingDirectory extends Component {
             Browse...
           </Button>
         </fieldset>
+        <ConfigFileInfo />
         {validation}
       </div>
     );

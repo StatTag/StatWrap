@@ -5,7 +5,7 @@ import styles from './Error.css';
 
 const error = props => {
   return (
-    <div className={styles.container}>
+    <div style={props.style} className={styles.container}>
       <ErrorIcon className={styles.icon} />
       <div className={styles.message}>{props.children}</div>
     </div>

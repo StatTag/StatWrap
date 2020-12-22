@@ -307,7 +307,7 @@ class CreateProjectDialog extends Component {
 
     let error = null;
     if (this.state.errorMessage) {
-      error = <Error>{this.state.errorMessage}</Error>;
+      error = <Error style={{ marginTop: '15px' }}>{this.state.errorMessage}</Error>;
     }
 
     return (
