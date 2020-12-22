@@ -13,7 +13,8 @@ const FILE_IGNORE_LIST = [
   '.DS_Store',
   'Thumbs.db',
   '.statwrap-project.json', // ProjectService DefaultProjectFile -- circular dependency, so we need to use literal
-  StatWrapFiles.LOG
+  StatWrapFiles.LOG,
+  StatWrapFiles.BASE_FOLDER
 ];
 
 /**

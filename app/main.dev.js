@@ -401,7 +401,11 @@ ipcMain.on(
       format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
       transports: [
         new winston.transports.File({
-          filename: path.join(projectPath, Constants.StatWrapFiles.LOG)
+          filename: path.join(
+            projectPath,
+            Constants.StatWrapFiles.BASE_FOLDER,
+            Constants.StatWrapFiles.LOG
+          )
         })
       ]
     });
@@ -435,7 +439,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
     level: 'verbose',
     transports: [
       new winston.transports.File({
-        filename: path.join(project.path, Constants.StatWrapFiles.LOG)
+        filename: path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, Constants.StatWrapFiles.LOG)
       })
     ]
   });

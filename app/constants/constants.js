@@ -20,6 +20,7 @@ module.exports = {
   },
 
   StatWrapFiles: {
+    BASE_FOLDER: '.statwrap',
     LOG: '.statwrap.log'
   },
 

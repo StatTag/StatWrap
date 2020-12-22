@@ -40,6 +40,16 @@ export default class ProjectService {
       fs.mkdirSync(project.path, { recursive: true });
     }
 
+    const configFolder = path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER);
+    // Determine if the StatWrap config folder exists.  If not, create it.
+    try {
+      fs.accessSync(configFolder);
+    } catch (err) {
+      fs.mkdirSync(configFolder, {
+        recursive: true
+      });
+    }
+
     // Determine if a project config file already exists.  If so, stop processing
     // the directory and just accept what's there.
     const existingConfig = this.loadProjectFile(project.path);
@@ -66,7 +76,11 @@ export default class ProjectService {
   // It enforces internally the name of the file to be used, so the file
   // name should not be specified as part of projectPath.
   loadProjectFile(projectPath) {
-    const filePath = path.join(projectPath.replace('~', os.homedir), DefaultProjectFile);
+    const filePath = path.join(
+      projectPath.replace('~', os.homedir),
+      Constants.StatWrapFiles.BASE_FOLDER,
+      DefaultProjectFile
+    );
     try {
       fs.accessSync(filePath);
     } catch {
@@ -102,7 +116,11 @@ export default class ProjectService {
       throw new Error('Unable to save the project configuration because it is missing an ID');
     }
 
-    const filePath = path.join(projectPath.replace('~', os.homedir), DefaultProjectFile);
+    const filePath = path.join(
+      projectPath.replace('~', os.homedir),
+      Constants.StatWrapFiles.BASE_FOLDER,
+      DefaultProjectFile
+    );
     fs.writeFileSync(filePath, JSON.stringify(this.stripExtraProjectData(project)));
   }
 

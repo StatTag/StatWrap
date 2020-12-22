@@ -34,7 +34,7 @@ describe('services', () => {
         const project = new ProjectService().loadProjectFile('~/Test/Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith(
-          `${TEST_USER_HOME_PATH}Test/Path/.statwrap-project.json`
+          `${TEST_USER_HOME_PATH}Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`
         );
       });
       it.onWindows('should resolve the ~ home path', () => {
@@ -42,20 +42,24 @@ describe('services', () => {
         const project = new ProjectService().loadProjectFile('~\\Test\\Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith(
-          `${TEST_USER_HOME_PATH}Test\\Path\\.statwrap-project.json`
+          `${TEST_USER_HOME_PATH}Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`
         );
       });
       it.onMac('should return the project details', () => {
         fs.readFileSync.mockReturnValue(projectString);
         const project = new ProjectService().loadProjectFile('/Test/Path');
         expect(project).not.toBeNull();
-        expect(fs.readFileSync).toHaveBeenCalledWith('/Test/Path/.statwrap-project.json');
+        expect(fs.readFileSync).toHaveBeenCalledWith(
+          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`
+        );
       });
       it.onWindows('should return the project details', () => {
         fs.readFileSync.mockReturnValue(projectString);
         const project = new ProjectService().loadProjectFile('C:\\Test\\Path');
         expect(project).not.toBeNull();
-        expect(fs.readFileSync).toHaveBeenCalledWith('C:\\Test\\Path\\.statwrap-project.json');
+        expect(fs.readFileSync).toHaveBeenCalledWith(
+          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`
+        );
       });
       it('should throw an exception if the JSON is invalid', () => {
         fs.readFileSync.mockReturnValue(invalidProjectString);
@@ -76,28 +80,28 @@ describe('services', () => {
       it.onMac('should resolve the ~ home path', () => {
         new ProjectService().saveProjectFile('~/Test/Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
-          `${TEST_USER_HOME_PATH}Test/Path/.statwrap-project.json`,
+          `${TEST_USER_HOME_PATH}Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
           '{"id":"1"}'
         );
       });
       it.onWindows('should resolve the ~ home path', () => {
         new ProjectService().saveProjectFile('~\\Test\\Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
-          `${TEST_USER_HOME_PATH}Test\\Path\\.statwrap-project.json`,
+          `${TEST_USER_HOME_PATH}Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
           '{"id":"1"}'
         );
       });
       it.onMac('should save the project details', () => {
         new ProjectService().saveProjectFile('/Test/Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
-          '/Test/Path/.statwrap-project.json',
+          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
           '{"id":"1"}'
         );
       });
       it.onWindows('should save the project details', () => {
         new ProjectService().saveProjectFile('C:\\Test\\Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
-          'C:\\Test\\Path\\.statwrap-project.json',
+          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
           '{"id":"1"}'
         );
       });
@@ -307,7 +311,7 @@ describe('services', () => {
         expect(saveProjectFile).not.toHaveBeenCalled();
       });
 
-      it('should not try to make the directory if it already exists', () => {
+      it('should not try to make the project and config directories if they already exists', () => {
         fs.accessSync.mockImplementationOnce();
         const mkdirSync = jest.spyOn(fs, 'mkdirSync');
 
@@ -321,7 +325,7 @@ describe('services', () => {
             path: '/Existing/Dir'
           })
         ).not.toThrow(Error);
-        expect(mkdirSync).not.toHaveBeenCalled();
+        expect(mkdirSync).not.toHaveBeenCalledTimes(2); // Project folder and config folder
       });
 
       it('should not try to save the project config if one exists containing at least an ID', () => {
@@ -353,13 +357,17 @@ describe('services', () => {
           path: '/Test/Path'
         });
         expect(saveProjectFile).toHaveBeenCalled();
-        expect(mkdirSync).not.toHaveBeenCalled();
+        expect(mkdirSync).not.toHaveBeenCalledTimes(1); // Config folder should already exist
       });
 
       it('should create the directory and save the configuration file for a new, valid project', () => {
-        fs.accessSync.mockImplementationOnce(() => {
-          throw new Error();
-        });
+        fs.accessSync
+          .mockImplementationOnce(() => {
+            throw new Error();
+          })
+          .mockImplementationOnce(() => {
+            throw new Error();
+          });
 
         const mkdirSync = jest.spyOn(fs, 'mkdirSync');
 
@@ -374,7 +382,7 @@ describe('services', () => {
           path: '/Test/Path'
         });
         expect(saveProjectFile).toHaveBeenCalled();
-        expect(mkdirSync).toHaveBeenCalled();
+        expect(mkdirSync).toHaveBeenCalledTimes(2); // Root project folder and then config folder
       });
 
       it('should not include template information if the template parameter is not fully specified', () => {
