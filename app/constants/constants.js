@@ -30,5 +30,10 @@ module.exports = {
     NOTE_DELETED: 'Note Deleted',
 
     ABOUT_DETAILS_UPDATED: 'About Details Updated'
+  },
+
+  DescriptionContentType: {
+    URI: 'URI',
+    MARKDOWN: 'Markdown'
   }
 };

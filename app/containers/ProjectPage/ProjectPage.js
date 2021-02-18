@@ -195,12 +195,17 @@ class ProjectPage extends Component {
   }
 
   handleUpdateProjectResponse(sender, response) {
-     if (response.error) {
-        console.log(response.errorMessage);
-     }
-     else {
-       this.setState({ selectedProject: response.project });
-     }
+    if (response.error) {
+      console.log(response.errorMessage);
+    }
+    else {
+      // Update our cached list of projects from which we get the selected projects.  We want to ensure
+      // these are kept in sync with any updates.
+      const { projects } = this.state;
+      const foundIndex = projects.findIndex(x => x.id === response.project.id);
+      projects[foundIndex] = response.project;
+      this.setState({ selectedProject: response.project, projects });
+    }
   }
 
   render() {

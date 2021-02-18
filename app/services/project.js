@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable no-param-reassign */
 /* eslint-disable class-methods-use-this */
 import { v4 as uuid } from 'uuid';
@@ -61,6 +62,10 @@ export default class ProjectService {
       formatVersion: ProjectFileFormatVersion,
       id: project.id,
       name: project.name,
+      description: {
+        contentType: Constants.DescriptionContentType.MARKDOWN,
+        content: `# {project.name}`
+      },
       categories: []
     };
 
@@ -87,8 +92,22 @@ export default class ProjectService {
       return null;
     }
 
-    const data = fs.readFileSync(filePath);
-    return JSON.parse(data.toString());
+    const fileContents = fs.readFileSync(filePath);
+    const data = JSON.parse(fileContents.toString());
+
+    // If the user has linked their project description to a URI, we will
+    // attempt to load it.  If we fail, we will put in the content an error
+    // informing the user that the file couldn't be found or loaded.
+    if (data && data.description && data.description.contentType === Constants.DescriptionContentType.URI) {
+      let descriptionFileContents = '';
+      try {
+        descriptionFileContents = fs.readFileSync(data.description.uri, { "encoding": "utf8"});
+      } catch (err) {
+        descriptionFileContents = `**Unable to load description file at ${data.description.uri}**\r\n${err}`;
+      }
+      data.description.uriContent = descriptionFileContents;
+    }
+    return data;
   }
 
   // Utility function that takes a project object as input, and returns a copy that excludes

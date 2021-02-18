@@ -136,7 +136,6 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
 
   try {
     const userDataPath = app.getPath('userData');
-    console.log(userDataPath);
     const listService = new ProjectListService();
     console.log(path.join(userDataPath, DefaultProjectListFile));
     let projectsFromFile = listService.loadProjectListFromFile(
@@ -439,7 +438,11 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
     level: 'verbose',
     transports: [
       new winston.transports.File({
-        filename: path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, Constants.StatWrapFiles.LOG)
+        filename: path.join(
+          project.path,
+          Constants.StatWrapFiles.BASE_FOLDER,
+          Constants.StatWrapFiles.LOG
+        )
       })
     ]
   });
@@ -478,6 +481,11 @@ ipcMain.on(Messages.UPDATE_PROJECT_REQUEST, async (event, project) => {
       projectConfig.categories = project.categories;
       projectConfig.assets = project.assets;
       projectService.saveProjectFile(project.path, projectConfig);
+
+      // Reload the project configuration.  Depending on what's changed, we may need to re-load it
+      // to reinstantiate certain data elements, like linked description files.
+      const updatedProjectConfig = projectService.loadProjectFile(project.path);
+      response.project.description = updatedProjectConfig.description;
     } else {
       response.error = true;
       response.errorMessage =

@@ -12,7 +12,7 @@ import Welcome from '../Welcome/Welcome';
 import About from './About/About';
 import Assets from './Assets/Assets';
 import ProjectLog from '../ProjectLog/ProjectLog';
-import { ActionType } from '../../constants/constants';
+import { ActionType, DescriptionContentType } from '../../constants/constants';
 import AssetUtil from '../../utils/asset';
 import styles from './Project.css';
 import UserContext from '../User/User';
@@ -55,15 +55,36 @@ class Project extends Component<Props> {
     this.setState({ selectedTab: id });
   };
 
-  aboutDetailsUpdateHandler = (description, categories) => {
-    const project = { ...this.props.project, description, categories };
+  aboutDetailsUpdateHandler = (descriptionText, descriptionUri, categories) => {
+    const project = { ...this.props.project, categories };
+    // If the description URI is set, we will use that for the description content.  Otherwise
+    // we will fall back to use the provided description text.
+    if (descriptionUri) {
+      // If the user has provided custom text for the description before, we're going to preserve it.
+      // This may be unnecessary, but the concern is the user accidentally switching over to a file
+      // and then wanting to revert back to their content.
+      project.description = {
+        contentType: DescriptionContentType.URI,
+        uri: descriptionUri,
+        content: descriptionText
+      };
+    } else {
+      // If the user is entering a custom description, we're going to clear out the URI if one was
+      // selected before. If the user accidentally switched, it's less of a concern for them to have
+      // to re-link a file because it's quick to do.
+      project.description = {
+        contentType: DescriptionContentType.MARKDOWN,
+        content: descriptionText
+      };
+    }
+
     if (this.props.onUpdated) {
       const user = this.context;
       this.props.onUpdated(
         project,
         ActionType.ABOUT_DETAILS_UPDATED,
         `${user} updated the project details in the 'About' page`,
-        { description, categories }
+        { descriptionText, descriptionUri, categories }
       );
     }
   };

@@ -10,11 +10,25 @@ import styles from './About.css';
 import TagEditor from '../../TagEditor/TagEditor';
 import TagViewer from '../../TagViewer/TagViewer';
 import TextEditor from '../../TextEditor/TextEditor';
+import LinkedDescription from '../LinkedDescription/LinkedDescription';
+import { DescriptionContentType } from '../../../constants/constants';
 
 const about = props => {
   const [editing, setEditing] = useState(false);
-  const [description, setDescription] = useState(
-    props.project.description ? props.project.description : ''
+  const [descriptionEditor, setDescriptionEditor] = useState(
+    props.project.description && props.project.description.contentType
+      ? props.project.description.contentType
+      : DescriptionContentType.MARKDOWN
+  );
+  const [descriptionText, setDescriptionText] = useState(
+    (props.project.description && props.project.description.uri) ?
+      props.project.description.uriContent :
+    (props.project.description && props.project.description.content)
+      ? props.project.description.content
+      : ''
+  );
+  const [descriptionUri, setDescriptionUri] = useState(
+    props.project.description && props.project.description.uri ? props.project.description.uri : ''
   );
   const [categories, setCategories] = useState(
     props.project.categories ? props.project.categories : []
@@ -22,18 +36,44 @@ const about = props => {
 
   // Derive updated state from props
   React.useEffect(() => {
-    setDescription(props.project.description ? props.project.description : '');
+    setDescriptionText(
+      (props.project.description && props.project.description.uri) ?
+      props.project.description.uriContent :
+    (props.project.description && props.project.description.content)
+      ? props.project.description.content
+      : ''
+    );
+  }, [props.project.description]);
+  React.useEffect(() => {
+    setDescriptionUri(
+      props.project.description && props.project.description.uri
+        ? props.project.description.uri
+        : ''
+    );
   }, [props.project.description]);
   React.useEffect(() => {
     setCategories(props.project.categories ? props.project.categories : []);
   }, [props.project.categories]);
 
   const handleTextChanged = debounce(value => {
-    setDescription(value);
+    setDescriptionText(value);
   }, 250);
+
+  const handleUriChanged = value => {
+    setDescriptionUri(value);
+  };
 
   const handleCategoriesChanged = changedCategories => {
     setCategories(changedCategories);
+  };
+
+  const handleDescriptionEditorToggled = () => {
+    const currentStatus = descriptionEditor;
+    setDescriptionEditor(
+      currentStatus === DescriptionContentType.MARKDOWN
+        ? DescriptionContentType.URI
+        : DescriptionContentType.MARKDOWN
+    );
   };
 
   const handleButtonToggled = () => {
@@ -42,7 +82,11 @@ const about = props => {
 
     // If we're back to view mode, trigger a save of the data
     if (currentStatus) {
-      props.onUpdateDetails(description, categories);
+      props.onUpdateDetails(
+        descriptionText,
+        descriptionEditor === DescriptionContentType.URI ? descriptionUri : null,
+        categories
+      );
     }
   };
 
@@ -50,6 +94,27 @@ const about = props => {
   let buttonLabel = '';
   if (editing) {
     buttonLabel = 'Save Details';
+    let descriptionControl = null;
+    let descriptionEditorButtonLabel = null;
+    if (descriptionEditor === DescriptionContentType.URI) {
+      descriptionControl = (
+        <LinkedDescription
+          uri={descriptionUri}
+          projectPath={props.project.path}
+          onChange={handleUriChanged}
+        />
+      );
+      descriptionEditorButtonLabel = 'Edit a custom description';
+    } else {
+      descriptionEditorButtonLabel = 'Select existing file that contains a description';
+      descriptionControl = (
+        <TextEditor
+          content={descriptionText}
+          onChange={handleTextChanged}
+          placeholder="Describe your project in more detail"
+        />
+      );
+    }
     view = (
       <Box>
         <div className={styles.propertyBlock}>
@@ -59,12 +124,17 @@ const about = props => {
           <TagEditor tags={categories} onChange={handleCategoriesChanged} />
         </div>
         <div className={styles.propertyBlock}>
-          <div className={styles.label}>Description</div>
-          <TextEditor
-            content={description}
-            onChange={handleTextChanged}
-            placeholder="Describe your project in more detail"
-          />
+          <div style={{ display: 'inline-block' }} className={styles.label}>
+            Description
+          </div>
+          <Button
+            className={styles.button}
+            color="primary"
+            onClick={handleDescriptionEditorToggled}
+          >
+            {descriptionEditorButtonLabel}
+          </Button>
+          {descriptionControl}
         </div>
       </Box>
     );
@@ -73,7 +143,7 @@ const about = props => {
     view = (
       <Box>
         <TagViewer className={styles.tagViewer} tags={categories} />
-        <ReactMarkdown className="markdown-body" plugins={[gfm]} children={description} />
+        <ReactMarkdown className="markdown-body" plugins={[gfm]} children={descriptionText} />
       </Box>
     );
   }

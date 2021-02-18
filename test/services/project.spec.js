@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import fs from 'fs';
 import os from 'os';
 import process from 'process';
@@ -7,8 +8,9 @@ import Constants from '../../app/constants/constants';
 jest.mock('fs');
 jest.mock('os');
 
-const TEST_USER_HOME_PATH = (process.platform == 'win32' ? 'C:\\Users\\test\\' : '/User/test/');
+const TEST_USER_HOME_PATH = (process.platform === 'win32' ? 'C:\\Users\\test\\' : '/User/test/');
 os.homedir.mockReturnValue(TEST_USER_HOME_PATH);
+const DESCRIPTION_FILE_PATH = (process.platform === 'win32' ? 'C:\\Project\\test.md' : '/Projects/test.md');
 
 const projectString = `{
   "formatVersion": "1",
@@ -17,11 +19,29 @@ const projectString = `{
   "tags": [ "tag1", "tag2", "tag3" ]
 }`;
 
+const projectWithLinkedDescriptionString = `{
+  "formatVersion": "1",
+  "id": "d01d2925-f6ff-4f8e-988f-fca2ee193427",
+  "name": "Test 1",
+  "tags": [ "tag1", "tag2", "tag3" ],
+  "description": { "contentType": "URI", "uri": "${DESCRIPTION_FILE_PATH}" }
+}`;
+
 const invalidProjectString = `{
   "id": "d01d2925-f6ff-4f8e-988f-fca2ee193427
 }`;
 
+const descriptionFileString = 'This is a test Markdown snippet';
+
 describe('services', () => {
+  beforeEach(() => {
+    fs.readFileSync = jest.fn();
+  });
+
+  afterEach(() => {
+    fs.readFileSync.mockClear();
+  });
+
   describe('project', () => {
     afterEach(() => {
       jest.restoreAllMocks();
@@ -73,6 +93,25 @@ describe('services', () => {
         const project = new ProjectService().loadProjectFile('/Test/Path');
         expect(project).toBeNull();
         expect(fs.readFileSync).not.toHaveBeenCalled();
+      });
+      it('should load a linked description file when the project loads', () => {
+        fs.readFileSync
+          .mockReturnValueOnce(projectWithLinkedDescriptionString)
+          .mockReturnValueOnce(descriptionFileString);
+        const project = new ProjectService().loadProjectFile('Path');
+        expect(project).not.toBeNull();
+        expect(project.description.uri).toBe(DESCRIPTION_FILE_PATH);
+        expect(project.description.uriContent).toBe(descriptionFileString);
+        expect(fs.readFileSync).toHaveBeenCalledWith(DESCRIPTION_FILE_PATH, { "encoding": "utf8"});
+      });
+      it('should return an error if the linked description file fails to load', () => {
+        fs.readFileSync
+          .mockImplementationOnce(() => { return projectWithLinkedDescriptionString; })
+          .mockImplementationOnce(() => { throw new Error('Invalid'); });
+        const project = new ProjectService().loadProjectFile('Path');
+        expect(project).not.toBeNull();
+        expect(project.description.uri).toBe(DESCRIPTION_FILE_PATH);
+        expect(project.description.uriContent).toBe(`**Unable to load description file at ${DESCRIPTION_FILE_PATH}**\r\nError: Invalid`);
       });
     });
 
@@ -199,7 +238,8 @@ describe('services', () => {
         expect(validationReport.project.favorite).toBe(false);
         expect(validationReport.project.name).toBe('My Test Project');
       });
-	  it.onWindows('should create transform and create new ID and lastAccessed for a new project', () => {
+
+	    it.onWindows('should create transform and create new ID and lastAccessed for a new project', () => {
         const validationReport = new ProjectService().convertAndValidateProject({
           directory: 'C:\\Test\\Path',
           name: 'My Test Project',
@@ -237,7 +277,8 @@ describe('services', () => {
         expect(validationReport.project.name).toBe(folderWithInvalidChars);
         expect(validationReport.project.path).toBe('/Test/Path/My Test Project');
       });
-	  it.onWindows('should strip invalid characters from a new project name for the path', () => {
+
+	    it.onWindows('should strip invalid characters from a new project name for the path', () => {
         const folderWithInvalidChars = '.My: Test** Project ??';
         const validationReport = new ProjectService().convertAndValidateProject({
           directory: 'C:\\Test\\Path',
@@ -265,7 +306,7 @@ describe('services', () => {
         expect(validationReport.project.favorite).toBe(false);
         expect(validationReport.project.name).toBe('My Test Project');
       });
-	  it.onWindows('should create transform and create new ID and lastAccessed for an existing project', () => {
+	    it.onWindows('should create transform and create new ID and lastAccessed for an existing project', () => {
         const validationReport = new ProjectService().convertAndValidateProject({
           directory: 'C:\\Test\\Path\\My Test Project',
           type: Constants.ProjectType.EXISTING_PROJECT_TYPE
