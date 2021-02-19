@@ -20,14 +20,6 @@ body {
   margin: 0;
 }
 
-h2 {
-  margin: 0;
-  font-size: 2.25rem;
-  font-weight: bold;
-  letter-spacing: -0.025em;
-  color: #fff;
-}
-
 .MuiDialogTitle-root {
   background-color: #3f51b5;
   margin-bottom: 10px !important;

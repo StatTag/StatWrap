@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable no-lonely-if */
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
@@ -12,8 +13,10 @@ import Welcome from '../Welcome/Welcome';
 import About from './About/About';
 import Assets from './Assets/Assets';
 import ProjectLog from '../ProjectLog/ProjectLog';
+import ProjectNotes from '../ProjectNotes/ProjectNotes';
 import { ActionType, DescriptionContentType } from '../../constants/constants';
 import AssetUtil from '../../utils/asset';
+import NoteUtil from '../../utils/note';
 import styles from './Project.css';
 import UserContext from '../User/User';
 
@@ -90,6 +93,94 @@ class Project extends Component<Props> {
   };
 
   /**
+   * More generic handler to implement the common upsert functions needed for asset and project notes
+   * @param {object} entity The entity assumed to have a `notes` collection that the note should be upserted into
+   * @param {String} entityName A string identifier for the type of entity, which is used for audit logging
+   * @param {String} entityId An identifier for the entity, to be used for audit logging
+   * @param {object} action An action descriptor, used for logging
+   * @param {String} text The text of the note to add/update
+   * @param {object} note Optional - an existing note (if being updated)
+   */
+  upsertNoteHandler = (entity, entityName, entityId, action, text, note) => {
+    const user = this.context;
+    // We already have the asset, so manage updating the note
+
+    // Because we are updating a note, if there is no notes collection we obviously don't
+    // have anything to update.  Instead we'll just treat it like adding a new note.
+    if (!entity.notes) {
+      console.warn(`Creating notes collection because no notes available for ${entityName}`);
+      entity.notes = [];
+      const newNote = note ? { ...note, text } : NoteUtil.createNote(user, text);
+      entity.notes.push(newNote);
+      action.type = ActionType.NOTE_ADDED;
+      action.description = `${user} added note to ${entityName} ${entityId}`;
+      action.details = newNote;
+    } else {
+      // Try to find the existing note, if an existing note was provided.
+      const existingNote = note ? entity.notes.find(x => x.id === note.id) : null;
+
+      if (!existingNote) {
+        console.log('Adding a new note');
+        const newNote = NoteUtil.createNote(user, text);
+        entity.notes.push(newNote);
+        action.type = ActionType.NOTE_ADDED;
+        action.description = `${user} added note to ${entityName} ${entityId}`;
+        action.details = newNote;
+      } else if (existingNote.content === text) {
+        console.log('Note is unchanged - no update');
+      } else {
+        console.log('Updating existing note');
+        const originalNote = { ...existingNote };
+        existingNote.content = text;
+        existingNote.updated = NoteUtil.getNoteDate();
+
+        action.type = ActionType.NOTE_UPDATED;
+        action.description = `${user} updated note for ${entityName} ${entityId}`;
+        action.details = { old: originalNote, new: note };
+      }
+    }
+  };
+
+  unchangedNote = (note, text) => {
+    // If the user clicked into a new note and clicked out without adding anything we will skip
+    // adding the new note.  We will allow if the user wants a blank note that they already created.
+    if ((!note || note === undefined) && (!text || text === '')) {
+      console.log('Detected an empty new note - this will not be created');
+      return true;
+    }
+    return false;
+  };
+
+  /**
+   * General handler to either insert a new note for an asset or update an existing note for
+   * an asset.  It figures out the appropriate action to take depending on if the note parameter
+   * is provided or not.
+   * @param {object} project The project for which the note should be added/updated
+   * @param {string} text The note text
+   * @param {object} note Optional parameter if there is an existing note being updated.  If falsey, we assume this is a new note.
+   */
+  projectUpsertNoteHandler = (project, text, note) => {
+    if (this.unchangedNote(note, text)) {
+      return;
+    }
+
+    const currentProject = { ...this.props.project };
+    if (currentProject.id !== project.id) {
+      console.warn(
+        `Project to update (${project.id}) does not match current project (${currentProject.id})`
+      );
+      return;
+    }
+
+    const action = { type: '', description: '', details: null };
+    this.upsertNoteHandler(currentProject, 'project', currentProject.name, action, text, note);
+
+    if (this.props.onUpdated) {
+      this.props.onUpdated(currentProject, action.type, action.description, action.details);
+    }
+  };
+
+  /**
    * General handler to either insert a new note for an asset or update an existing note for
    * an asset.  It figures out the appropriate action to take depending on if the note parameter
    * is provided or not.
@@ -98,10 +189,7 @@ class Project extends Component<Props> {
    * @param {object} note Optional parameter if there is an existing note being updated.  If falsey, we assume this is a new note.
    */
   assetUpsertNoteHandler = (asset, text, note) => {
-    // If the user clicked into a new note and clicked out without adding anything we will skip
-    // adding the new note.  We will allow if the user wants a blank note that they already created.
-    if ((!note || note === undefined) && (!text || text === '')) {
-      console.log('Detected an empty new note - this will not be created');
+    if (this.unchangedNote(note, text)) {
       return;
     }
 
@@ -125,48 +213,35 @@ class Project extends Component<Props> {
       action.details = note;
       assetsCopy.push(newAsset);
     } else {
-      const user = this.context;
-      // We already have the asset, so manage updating the note
-
-      // Because we are updating a note, if there is no notes collection we obviously don't
-      // have anything to update.  Instead we'll just treat it like adding a new note.
-      if (!existingAsset.notes) {
-        console.warn('Project - creating note collection because no notes available when updating');
-        existingAsset.notes = [];
-        const newNote = note ? { ...note, text } : AssetUtil.createNote(user, text);
-        existingAsset.notes.push(newNote);
-        action.type = ActionType.NOTE_ADDED;
-        action.description = `${user} added note to asset ${asset.uri}`;
-        action.details = newNote;
-      } else {
-        // Try to find the existing note, if an existing note was provided.
-        const existingNote = note ? existingAsset.notes.find(x => x.id === note.id) : null;
-
-        if (!existingNote) {
-          console.log('Adding a new note');
-          const newNote = AssetUtil.createNote(user, text);
-          existingAsset.notes.push(newNote);
-          action.type = ActionType.NOTE_ADDED;
-          action.description = `${user} added note to asset ${asset.uri}`;
-          action.details = newNote;
-        } else if (existingNote.content === text) {
-          console.log('Note is unchanged - no update');
-        } else {
-          console.log('Updating existing note');
-          const originalNote = { ...existingNote };
-          existingNote.content = text;
-          existingNote.updated = AssetUtil.getNoteDate();
-
-          action.type = ActionType.NOTE_UPDATED;
-          action.description = `${user} updated note for asset ${asset.uri}`;
-          action.details = { old: originalNote, new: note };
-        }
-      }
+      this.upsertNoteHandler(existingAsset, 'asset', asset.uri, action, text, note);
     }
     project.assets = assetsCopy;
     if (this.props.onUpdated) {
       this.props.onUpdated(project, action.type, action.description, action.details);
     }
+  };
+
+  /**
+   * More generic handler to implement the common delete functions needed for asset and project notes
+   * @param {object} entity The entity assumed to have a `notes` collection that the note should be upserted into
+   * @param {String} entityName A string identifier for the type of entity, which is used for audit logging
+   * @param {String} entityId An identifier for the entity, to be used for audit logging
+   * @param {object} note Optional - an existing note (if being updated)
+   * @returns {String} An action description that can be used for logging
+   */
+  deleteNoteHandler = (entity, entityName, entityId, note) => {
+    // Try to find the existing note, if an existing note was provided.
+    const index = entity.notes.findIndex(x => x.id === note.id);
+    let actionDescription = '';
+    if (index === -1) {
+      console.warn(`Could not find the note with ID ${note.id} for this asset to delete it`);
+    } else {
+      const user = this.context;
+      actionDescription = `${user} deleted note from ${entityName} ${entityId}`;
+      entity.notes.splice(index, 1);
+    }
+
+    return actionDescription;
   };
 
   assetDeleteNoteHandler = (asset, note) => {
@@ -179,18 +254,34 @@ class Project extends Component<Props> {
     if (!existingAsset) {
       console.warn('Could not find the asset to delete its note');
     } else {
-      // Try to find the existing note, if an existing note was provided.
-      const index = existingAsset.notes.findIndex(x => x.id === note.id);
-      if (index === -1) {
-        console.warn(`Could not find the note with ID ${note.id} for this asset to delete it`);
-      } else {
-        const user = this.context;
-        actionDescription = `${user} deleted note from asset ${asset.uri}`;
-        existingAsset.notes.splice(index, 1);
-      }
+      actionDescription = this.deleteNoteHandler(asset, 'asset', asset.uri, note);
+      // // Try to find the existing note, if an existing note was provided.
+      // const index = existingAsset.notes.findIndex(x => x.id === note.id);
+      // if (index === -1) {
+      //   console.warn(`Could not find the note with ID ${note.id} for this asset to delete it`);
+      // } else {
+      //   const user = this.context;
+      //   actionDescription = `${user} deleted note from asset ${asset.uri}`;
+      //   existingAsset.notes.splice(index, 1);
+      // }
     }
 
     project.assets = assetsCopy;
+    if (this.props.onUpdated) {
+      this.props.onUpdated(project, ActionType.NOTE_DELETED, actionDescription, note);
+    }
+  };
+
+  projectDeleteNoteHandler = (project, note) => {
+    const currentProject = { ...this.props.project };
+    if (currentProject.id !== project.id) {
+      console.warn(
+        `Project to update (${project.id}) does not match current project (${currentProject.id})`
+      );
+      return;
+    }
+
+    const actionDescription = this.deleteNoteHandler(project, 'project', project.name, note);
     if (this.props.onUpdated) {
       this.props.onUpdated(project, ActionType.NOTE_DELETED, actionDescription, note);
     }
@@ -220,6 +311,15 @@ class Project extends Component<Props> {
           inputFontWeight="bold"
           inputClassName={styles.editableLabel}
           inputWidth="100%"
+        />
+      ) : null;
+
+      const projectNotes = this.props.project ? (
+        <ProjectNotes
+          onAddedNote={this.projectUpsertNoteHandler}
+          onUpdatedNote={this.projectUpsertNoteHandler}
+          onDeletedNote={this.projectDeleteNoteHandler}
+          project={this.props.project}
         />
       ) : null;
 
@@ -255,6 +355,7 @@ class Project extends Component<Props> {
               <Tab label="Workflows" value="workflows" classes={tabStyle} />
               <Tab label="People" value="people" classes={tabStyle} />
               <Tab label="References" value="references" classes={tabStyle} />
+              <Tab label="Notes" value="projectNotes" classes={tabStyle} />
               <Tab label="Project Log" value="projectLog" classes={tabStyle} />
             </TabList>
           </div>
@@ -272,6 +373,9 @@ class Project extends Component<Props> {
           </TabPanel>
           <TabPanel value="references" classes={tabPanelStyle}>
             TBD
+          </TabPanel>
+          <TabPanel value="projectNotes" classes={tabPanelStyle}>
+            {projectNotes}
           </TabPanel>
           <TabPanel value="projectLog" classes={tabPanelStyle}>
             {projectLog}

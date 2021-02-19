@@ -46,6 +46,7 @@ For each project, within the root of the project container, there will be a file
 | `categories`    | Array   | An array of String values that represent the categories (tags) that have been assigned to the project                                                                                                                                                                                   |
 | `assets`        | Object  | The root container asset as well as all children assets. The general structure of this object is documented in [AssetDiscovery](AssetDiscovery.md)                                                                                                                                      |
 | `description`   | Object  | An object that can contain description text (`contentType` = `Markdown`, `content` = `{Description markdown}`), or a URI to an asset that contains the description (`contentType` = `URI`, `uri` = `{Asset URI}`)                                                                       |
+| `notes`         | Array   | An array of [Note](Notes.md) Objects                                                                                                                                                                                                                                                    |
 
 ### Loading and Discovery Lifecycle
 

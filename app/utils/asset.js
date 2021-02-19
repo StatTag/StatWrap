@@ -105,25 +105,4 @@ export default class AssetUtil {
 
     return null;
   }
-
-  /**
-   * Return the current date and time formatted for display for asset notes
-   */
-  static getNoteDate() {
-    const date = new Date(Date.now());
-    return GeneralUtil.formatDateTime(date);
-    // const [day, time] = date.toISOString().split('T');
-    // const formatted = `${day} ${time.split('.')[0]}`;
-    // return formatted;
-  }
-
-  /**
-   * Create a new note object.  This will assign a new UUID and the updated timestamp as the current time
-   * @param {string} author The name of the note author
-   * @param {string} content The content of the note
-   */
-  static createNote(author, content) {
-    const note = { id: uuid(), author, updated: AssetUtil.getNoteDate(), content };
-    return note;
-  }
 }

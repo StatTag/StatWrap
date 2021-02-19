@@ -7,6 +7,7 @@ import gfm from 'remark-gfm';
 import PropTypes from 'prop-types';
 import { debounce } from 'lodash';
 import styles from './About.css';
+import NoteEditor from '../../NoteEditor/NoteEditor';
 import TagEditor from '../../TagEditor/TagEditor';
 import TagViewer from '../../TagViewer/TagViewer';
 import TextEditor from '../../TextEditor/TextEditor';
@@ -32,6 +33,9 @@ const about = props => {
   );
   const [categories, setCategories] = useState(
     props.project.categories ? props.project.categories : []
+  );
+  const [notes, setProjectNotes] = useState(
+    props.project.notes ? props.project.notes : []
   );
 
   // Derive updated state from props
@@ -90,6 +94,23 @@ const about = props => {
     }
   };
 
+  const updatedNoteHandler = (note, text) => {
+    // console.log(note);
+    // if (note) {
+    //   if (onUpdatedNote) {
+    //     onUpdatedNote(project, text, note);
+    //   }
+    // } else if (onAddedNote) {
+    //   onAddedNote(project, text);
+    // }
+  };
+
+  const deleteNoteHandler = note => {
+    // if (onDeletedNote) {
+    //   onDeletedNote(project, note);
+    // }
+  };
+
   let view = null;
   let buttonLabel = '';
   if (editing) {
@@ -144,6 +165,12 @@ const about = props => {
       <Box>
         <TagViewer className={styles.tagViewer} tags={categories} />
         <ReactMarkdown className="markdown-body" plugins={[gfm]} children={descriptionText} />
+        <h2>Project Notes</h2>
+        <NoteEditor
+          notes={notes}
+          onDelete={deleteNoteHandler}
+          onEditingComplete={updatedNoteHandler}
+        />
       </Box>
     );
   }
