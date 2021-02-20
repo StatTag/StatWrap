@@ -22,9 +22,9 @@ const about = props => {
       : DescriptionContentType.MARKDOWN
   );
   const [descriptionText, setDescriptionText] = useState(
-    (props.project.description && props.project.description.uri) ?
-      props.project.description.uriContent :
-    (props.project.description && props.project.description.content)
+    props.project.description && props.project.description.uri
+      ? props.project.description.uriContent
+      : props.project.description && props.project.description.content
       ? props.project.description.content
       : ''
   );
@@ -34,18 +34,16 @@ const about = props => {
   const [categories, setCategories] = useState(
     props.project.categories ? props.project.categories : []
   );
-  const [notes, setProjectNotes] = useState(
-    props.project.notes ? props.project.notes : []
-  );
+  const [notes, setNotes] = useState(props.project.notes ? props.project.notes : []);
 
   // Derive updated state from props
   React.useEffect(() => {
     setDescriptionText(
-      (props.project.description && props.project.description.uri) ?
-      props.project.description.uriContent :
-    (props.project.description && props.project.description.content)
-      ? props.project.description.content
-      : ''
+      props.project.description && props.project.description.uri
+        ? props.project.description.uriContent
+        : props.project.description && props.project.description.content
+        ? props.project.description.content
+        : ''
     );
   }, [props.project.description]);
   React.useEffect(() => {
@@ -58,6 +56,9 @@ const about = props => {
   React.useEffect(() => {
     setCategories(props.project.categories ? props.project.categories : []);
   }, [props.project.categories]);
+  React.useEffect(() => {
+    setNotes(props.project.notes ? props.project.notes : []);
+  }, [props.project.notes]);
 
   const handleTextChanged = debounce(value => {
     setDescriptionText(value);
@@ -95,20 +96,19 @@ const about = props => {
   };
 
   const updatedNoteHandler = (note, text) => {
-    // console.log(note);
-    // if (note) {
-    //   if (onUpdatedNote) {
-    //     onUpdatedNote(project, text, note);
-    //   }
-    // } else if (onAddedNote) {
-    //   onAddedNote(project, text);
-    // }
+    if (note) {
+      if (props.onUpdatedNote) {
+        props.onUpdatedNote(props.project, text, note);
+      }
+    } else if (props.onAddedNote) {
+      props.onAddedNote(props.project, text);
+    }
   };
 
   const deleteNoteHandler = note => {
-    // if (onDeletedNote) {
-    //   onDeletedNote(project, note);
-    // }
+    if (props.onDeletedNote) {
+      props.onDeletedNote(props.project, note);
+    }
   };
 
   let view = null;
@@ -161,10 +161,22 @@ const about = props => {
     );
   } else {
     buttonLabel = 'Edit Details';
+    let tagViewerControl = null;
+    if (categories && categories.length > 0) {
+      tagViewerControl = <TagViewer className={styles.tagViewer} tags={categories} />;
+    }
+    let descriptionControl = null;
+    if (descriptionText && descriptionText.trim().length > 0) {
+      descriptionControl = (
+        <div className={styles.markdownViewer}>
+          <ReactMarkdown className="markdown-body" plugins={[gfm]} children={descriptionText} />
+        </div>
+      );
+    }
     view = (
       <Box>
-        <TagViewer className={styles.tagViewer} tags={categories} />
-        <ReactMarkdown className="markdown-body" plugins={[gfm]} children={descriptionText} />
+        {tagViewerControl}
+        {descriptionControl}
         <h2>Project Notes</h2>
         <NoteEditor
           notes={notes}
@@ -187,7 +199,10 @@ const about = props => {
 
 about.propTypes = {
   project: PropTypes.object.isRequired,
-  onUpdateDetails: PropTypes.func.isRequired
+  onUpdateDetails: PropTypes.func.isRequired,
+  onUpdatedNote: PropTypes.func,
+  onAddedNote: PropTypes.func,
+  onDeletedNote: PropTypes.func
 };
 
 export default about;

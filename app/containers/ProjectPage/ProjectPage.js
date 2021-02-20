@@ -178,7 +178,7 @@ class ProjectPage extends Component {
     ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, project);
   }
 
-  handleProjectUpdate(project, type, description, details) {
+  handleProjectUpdate(project, type, title, description, details) {
     // Update our cached list of projects from which we get the selected projects.  We want to ensure
     // these are kept in sync with any updates.
     const { projects } = this.state;
@@ -190,7 +190,7 @@ class ProjectPage extends Component {
 
     if (type && type !== '') {
       const user = this.context;
-      ipcRenderer.send(Messages.WRITE_PROJECT_LOG_REQUEST, project.path, type, description, details, 'info', user);
+      ipcRenderer.send(Messages.WRITE_PROJECT_LOG_REQUEST, project.path, type, title, description, details, 'info', user);
     }
   }
 

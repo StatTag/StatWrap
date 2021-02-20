@@ -1,9 +1,7 @@
-import { v4 as uuid } from 'uuid';
 // We do have a dependency cycle here, but it is just to grab a constant value.
 // No circular functions exist (and we need to make sure it stays that way).
 // eslint-disable-next-line import/no-cycle
 import FileHandler from '../services/assets/handlers/fileHandler';
-import GeneralUtil from './general';
 
 export default class AssetUtil {
   static getHandlerMetadata(handler, metadata) {
@@ -104,5 +102,26 @@ export default class AssetUtil {
     }
 
     return null;
+  }
+
+  /**
+   * Recursively collect and flatten all asset notes into an array
+   * @param {object} asset The asset to find all notes for
+   */
+  static getAllNotes(asset) {
+    const notes =
+      asset && asset.notes
+        ? asset.notes.map(n => {
+            return { ...n, uri: asset.uri };
+          })
+        : [];
+    if (!asset || !asset.children) {
+      return notes.flat();
+    }
+
+    for (let index = 0; index < asset.children.length; index++) {
+      notes.push(AssetUtil.getAllNotes(asset.children[index]));
+    }
+    return notes.flat();
   }
 }

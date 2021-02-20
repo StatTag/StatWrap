@@ -29,6 +29,8 @@ module.exports = {
     NOTE_UPDATED: 'Note Updated',
     NOTE_DELETED: 'Note Deleted',
 
+    PROJECT_CREATED: 'Project Created',
+
     ABOUT_DETAILS_UPDATED: 'About Details Updated'
   },
 

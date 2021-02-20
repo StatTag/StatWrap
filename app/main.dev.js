@@ -157,6 +157,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
         fullProject.assets = metadata.assets;
         fullProject.description = metadata.description;
         fullProject.categories = metadata.categories;
+        fullProject.notes = metadata.notes;
         fullProject.loadError = false;
       }
       return fullProject;
@@ -376,6 +377,7 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
     // add parts instead of just using the whole object.
     response.project.categories = projectConfig.categories;
     response.project.description = projectConfig.description;
+    response.project.notes = projectConfig.notes;
 
     response.error = false;
     response.errorMessage = '';
@@ -393,7 +395,7 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
 
 ipcMain.on(
   Messages.WRITE_PROJECT_LOG_REQUEST,
-  async (event, projectPath, type, description, details, level, user) => {
+  async (event, projectPath, type, title, description, details, level, user) => {
     const logger = winston.createLogger({
       level: 'verbose',
       defaultMeta: { user },
@@ -412,6 +414,7 @@ ipcMain.on(
     logger.log({
       level: level || 'info',
       type: type || Constants.UndefinedDefaults.ACTION_TYPE,
+      title: title || Constants.UndefinedDefaults.ACTION_TYPE,
       description,
       details
     });
@@ -480,6 +483,7 @@ ipcMain.on(Messages.UPDATE_PROJECT_REQUEST, async (event, project) => {
       projectConfig.description = project.description;
       projectConfig.categories = project.categories;
       projectConfig.assets = project.assets;
+      projectConfig.notes = project.notes;
       projectService.saveProjectFile(project.path, projectConfig);
 
       // Reload the project configuration.  Depending on what's changed, we may need to re-load it

@@ -16,7 +16,7 @@ const noteAction = props => {
               <td>
                 <b>Action:</b>
               </td>
-              <td>{data.type}</td>
+              <td>{data.title}</td>
             </tr>
             <tr>
               <td>
@@ -43,7 +43,7 @@ const noteAction = props => {
               <td>
                 <b>Action:</b>
               </td>
-              <td>{data.type}</td>
+              <td>{data.title}</td>
             </tr>
             <tr>
               <td>

@@ -151,7 +151,8 @@ class CreateProjectDialog extends Component {
       ipcRenderer.send(
         Messages.WRITE_PROJECT_LOG_REQUEST,
         response.project.path,
-        'Project Created',
+        Constants.ActionType.PROJECT_CREATED,
+        Constants.ActionType.PROJECT_CREATED,
         `${this.context} created project ${response.project.name}`,
         response.project,
         'info',

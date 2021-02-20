@@ -15,13 +15,13 @@ const columns = [
   },
   {
     name: 'Event',
-    selector: 'type',
+    selector: 'title',
     sortable: true,
     grow: 3,
     wrap: true,
     cell: row => (
       <div>
-        <div style={{ fontWeight: 700, paddingBottom: '5px' }}>{row.type}</div>
+        <div style={{ fontWeight: 700, paddingBottom: '5px' }}>{row.title}</div>
         {row.description}
       </div>
     )

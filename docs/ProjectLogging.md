@@ -16,6 +16,7 @@ Across the entire application, we will centralize logging via an IPC call using 
 | ------------- | ------- | --------------------------------------------------------------------------------------- |
 | `projectPath` | string  | The fully qualified base path of the project this logged action is for.                 |
 | `type`        | string  | The action type                                                                         |
+| `title`       | string  | A summary title to display in the project log table                                     |
 | `description` | string  | The formatted action message to log                                                     |
 | `details`     | object? | An optional object that contains the detailed information regarding the specific action |
 | `level`       | string? | If provided, the logging level to use. If not specified, this will default to `info`    |
@@ -25,12 +26,13 @@ Across the entire application, we will centralize logging via an IPC call using 
 
 Within the React portion of StatWrap, project updates are managed by sending a completely updated `project` object that can be writting to the configuration JSON file. Because this doesn't provide information about what was actually done, that needs to be supplemented with a user-friendly description of the action.
 
-All React actions related to a project will ultimately be routed up through `ProjectPage.js`'s `handleProjectUpdate`. This takes two parameters:
+All React actions related to a project will ultimately be routed up through `ProjectPage.js`'s `handleProjectUpdate`. This takes the following parameters:
 
 | parameter     | type    | description                                                                              |
 | ------------- | ------- | ---------------------------------------------------------------------------------------- |
 | `project`     | object  | The updated project information that can be written.                                     |
 | `type`        | string? | An optional type of action.                                                              |
+| `title`       | string? | An optional summary title to display in the project log table                            |
 | `description` | string? | An optional formatted message that describes the action.                                 |
 | `details`     | object? | An optional object that contains the detailed information regarding the specific action. |
 

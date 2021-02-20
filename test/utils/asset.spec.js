@@ -336,5 +336,94 @@ describe('services', () => {
         expect(AssetUtil.findDescendantAssetByUri(asset, '/Test3/b').test).toBe(7);
       });
     });
+
+    describe('getAllNotes', () => {
+      it('should return an empty array if the asset is not specified', () => {
+        expect(AssetUtil.getAllNotes(null)).toBeArrayOfSize(0);
+        expect(AssetUtil.getAllNotes(undefined)).toBeArrayOfSize(0);
+      });
+
+      it('should should return an empty array when there are no notes', () => {
+        const asset = {
+          children: []
+        };
+        expect(AssetUtil.getAllNotes(asset)).toBeArrayOfSize(0);
+      });
+
+      it('should should return the notes for a shallow asset', () => {
+        const asset = {
+          uri: '/test/1',
+          notes: [
+            {
+              id: '1',
+              author: 'test',
+              updated: '2021-01-01',
+              content: 'Test note',
+              uri: '/testt/1'
+            }
+          ]
+        };
+        expect(AssetUtil.getAllNotes(asset)).toBeArrayOfSize(1);
+      });
+
+      it('should should return the notees for a nested asset and descendants', () => {
+        const asset = {
+          uri: '/test/1',
+          notes: [
+            {
+              id: '1',
+              author: 'test',
+              updated: '2021-01-01',
+              content: 'Test note 1'
+            }
+          ],
+          children: [
+            {
+              uri: '/test/1/1',
+              notes: [
+                {
+                  id: '2',
+                  author: 'test',
+                  updated: '2021-01-01',
+                  content: 'Test note 2'
+                }
+              ],
+              children: [
+                {
+                  uri: '/test/1/1/1',
+                  notes: [
+                    {
+                      id: '3',
+                      author: 'test',
+                      updated: '2021-01-01',
+                      content: 'Test note 3'
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              uri: '/test/1/2',
+              notes: [
+                {
+                  id: '4',
+                  author: 'test',
+                  updated: '2021-01-01',
+                  content: 'Test note 4'
+                },
+                {
+                  id: '5',
+                  author: 'test',
+                  updated: '2021-01-01',
+                  content: 'Test note 5'
+                }
+              ],
+              children: []
+            }
+          ]
+        };
+        expect(AssetUtil.getAllNotes(asset)).toBeArrayOfSize(5);
+      });
+    });
   });
 });

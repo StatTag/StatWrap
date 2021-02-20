@@ -86,6 +86,7 @@ class Project extends Component<Props> {
       this.props.onUpdated(
         project,
         ActionType.ABOUT_DETAILS_UPDATED,
+        ActionType.ABOUT_DETAILS_UPDATED,
         `${user} updated the project details in the 'About' page`,
         { descriptionText, descriptionUri, categories }
       );
@@ -103,6 +104,7 @@ class Project extends Component<Props> {
    */
   upsertNoteHandler = (entity, entityName, entityId, action, text, note) => {
     const user = this.context;
+    const capitalizedEntityName = entityName.trim().replace(/^\w/, c => c.toUpperCase());
     // We already have the asset, so manage updating the note
 
     // Because we are updating a note, if there is no notes collection we obviously don't
@@ -139,6 +141,10 @@ class Project extends Component<Props> {
         action.details = { old: originalNote, new: note };
       }
     }
+
+    // Before leaving, we'll format the action title.  We do this
+    // at the end so the string formatting code lives in one spot
+    action.title = `${capitalizedEntityName} ${action.type}`;
   };
 
   unchangedNote = (note, text) => {
@@ -172,11 +178,17 @@ class Project extends Component<Props> {
       return;
     }
 
-    const action = { type: '', description: '', details: null };
+    const action = { type: '', title: '', description: '', details: null };
     this.upsertNoteHandler(currentProject, 'project', currentProject.name, action, text, note);
 
     if (this.props.onUpdated) {
-      this.props.onUpdated(currentProject, action.type, action.description, action.details);
+      this.props.onUpdated(
+        currentProject,
+        action.type,
+        action.title,
+        action.description,
+        action.details
+      );
     }
   };
 
@@ -198,7 +210,7 @@ class Project extends Component<Props> {
 
     // When searching for the existing asset, remember that assets is an object and the top-level item is
     // in the root of the object.  Start there before looking at the children.
-    const action = { type: '', description: '', details: null };
+    const action = { type: '', title: '', description: '', details: null };
     const existingAsset = AssetUtil.findDescendantAssetByUri(assetsCopy, asset.uri);
     if (!existingAsset) {
       console.log('No existing asset found in project data');
@@ -217,7 +229,7 @@ class Project extends Component<Props> {
     }
     project.assets = assetsCopy;
     if (this.props.onUpdated) {
-      this.props.onUpdated(project, action.type, action.description, action.details);
+      this.props.onUpdated(project, action.type, action.title, action.description, action.details);
     }
   };
 
@@ -255,20 +267,17 @@ class Project extends Component<Props> {
       console.warn('Could not find the asset to delete its note');
     } else {
       actionDescription = this.deleteNoteHandler(asset, 'asset', asset.uri, note);
-      // // Try to find the existing note, if an existing note was provided.
-      // const index = existingAsset.notes.findIndex(x => x.id === note.id);
-      // if (index === -1) {
-      //   console.warn(`Could not find the note with ID ${note.id} for this asset to delete it`);
-      // } else {
-      //   const user = this.context;
-      //   actionDescription = `${user} deleted note from asset ${asset.uri}`;
-      //   existingAsset.notes.splice(index, 1);
-      // }
     }
 
     project.assets = assetsCopy;
     if (this.props.onUpdated) {
-      this.props.onUpdated(project, ActionType.NOTE_DELETED, actionDescription, note);
+      this.props.onUpdated(
+        project,
+        ActionType.NOTE_DELETED,
+        `Asset ${ActionType.NOTE_DELETED}`,
+        actionDescription,
+        note
+      );
     }
   };
 
@@ -283,7 +292,13 @@ class Project extends Component<Props> {
 
     const actionDescription = this.deleteNoteHandler(project, 'project', project.name, note);
     if (this.props.onUpdated) {
-      this.props.onUpdated(project, ActionType.NOTE_DELETED, actionDescription, note);
+      this.props.onUpdated(
+        project,
+        ActionType.NOTE_DELETED,
+        `Project ${ActionType.NOTE_DELETED}`,
+        actionDescription,
+        note
+      );
     }
   };
 
@@ -294,7 +309,13 @@ class Project extends Component<Props> {
     let content = <Welcome />;
     if (this.props.project) {
       const about = this.props.project ? (
-        <About onUpdateDetails={this.aboutDetailsUpdateHandler} project={this.props.project} />
+        <About
+          onUpdateDetails={this.aboutDetailsUpdateHandler}
+          onAddedNote={this.projectUpsertNoteHandler}
+          onUpdatedNote={this.projectUpsertNoteHandler}
+          onDeletedNote={this.projectDeleteNoteHandler}
+          project={this.props.project}
+        />
       ) : null;
       const assets = this.props.project ? (
         <Assets
@@ -315,12 +336,7 @@ class Project extends Component<Props> {
       ) : null;
 
       const projectNotes = this.props.project ? (
-        <ProjectNotes
-          onAddedNote={this.projectUpsertNoteHandler}
-          onUpdatedNote={this.projectUpsertNoteHandler}
-          onDeletedNote={this.projectDeleteNoteHandler}
-          project={this.props.project}
-        />
+        <ProjectNotes project={this.props.project} />
       ) : null;
 
       const projectLog =
@@ -350,7 +366,7 @@ class Project extends Component<Props> {
                 scrollButtons: this.props.classes.scrollButtons
               }}
             >
-              <Tab label="About" value="about" classes={tabStyle} />
+              <Tab label="Dashboard" value="about" classes={tabStyle} />
               <Tab label="Assets" value="assets" classes={tabStyle} />
               <Tab label="Workflows" value="workflows" classes={tabStyle} />
               <Tab label="People" value="people" classes={tabStyle} />

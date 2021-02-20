@@ -23,3 +23,7 @@
 .button {
   float: right;
 }
+
+.markdownViewer {
+  padding-bottom: 25px;
+}
