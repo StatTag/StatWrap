@@ -35,19 +35,16 @@ class AssetTree extends Component {
     const filteredAssets = !this.props.project.assets
       ? null
       : AssetUtil.filterIncludedFileAssets(this.props.project.assets);
-    const assetTree =
-      !filteredAssets || !filteredAssets.children
-        ? null
-        : filteredAssets.children.map(child => (
-            <AssetNode
-              onClick={this.handleClick}
-              key={child.uri}
-              node={child}
-              openNodes={this.state.expandedNodes}
-              selectedAsset={this.props.selectedAsset}
-              onToggle={this.onToggle}
-            />
-          ));
+    const assetTree = !filteredAssets ? null : (
+      <AssetNode
+        onClick={this.handleClick}
+        key={filteredAssets.uri}
+        node={filteredAssets}
+        openNodes={this.state.expandedNodes}
+        selectedAsset={this.props.selectedAsset}
+        onToggle={this.onToggle}
+      />
+    );
 
     return <div className={styles.container}>{assetTree}</div>;
   }
