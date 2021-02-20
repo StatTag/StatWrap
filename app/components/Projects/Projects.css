@@ -42,3 +42,7 @@
 .filler {
   height: 100vh;
 }
+
+.floatRight {
+  float: right;
+}

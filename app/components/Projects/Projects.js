@@ -5,6 +5,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { IconButton, CircularProgress } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
+import RefreshIcon from '@material-ui/icons/Refresh';
 import ProjectEntry from './ProjectEntry/ProjectEntry';
 import Error from '../Error/Error';
 import styles from './Projects.css';
@@ -81,6 +82,9 @@ class Projects extends Component {
           <div className={styles.title}>Projects</div>
           <IconButton color="inherit" onClick={this.props.onAddProject}>
             <AddIcon />
+          </IconButton>
+          <IconButton className={styles.floatRight} color="inherit" onClick={this.props.onRefresh}>
+            <RefreshIcon />
           </IconButton>
         </div>
         {projectDetails}
