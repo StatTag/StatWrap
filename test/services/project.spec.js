@@ -8,9 +8,10 @@ import Constants from '../../app/constants/constants';
 jest.mock('fs');
 jest.mock('os');
 
-const TEST_USER_HOME_PATH = (process.platform === 'win32' ? 'C:\\Users\\test\\' : '/User/test/');
+const TEST_USER_HOME_PATH = process.platform === 'win32' ? 'C:\\Users\\test\\' : '/User/test/';
 os.homedir.mockReturnValue(TEST_USER_HOME_PATH);
-const DESCRIPTION_FILE_PATH = (process.platform === 'win32' ? 'C:\\Project\\test.md' : '/Projects/test.md');
+const DESCRIPTION_FILE_PATH =
+  process.platform === 'win32' ? 'C:\\Project\\test.md' : '/Projects/test.md';
 
 const projectString = `{
   "formatVersion": "1",
@@ -139,6 +140,38 @@ describe('services', () => {
       });
       it.onWindows('should save the project details', () => {
         new ProjectService().saveProjectFile('C:\\Test\\Path', { id: '1' });
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
+          '{"id":"1"}'
+        );
+      });
+      it.onMac('should create the .statwrap folder', () => {
+        fs.accessSync
+          .mockImplementationOnce(() => { return ''; })   // First time checks for project folder
+          .mockImplementationOnce(() => { throw new Error(); });  // Second time is looking for .statwrap
+        new ProjectService().saveProjectFile('/Test/Path', { id: '1' });
+        expect(fs.mkdirSync).toHaveBeenCalledWith(
+          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}`,
+          {"recursive": true}
+        );
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
+          '{"id":"1"}'
+        );
+      });
+      it.onWindows('should create the .statwrap folder', () => {
+        fs.accessSync
+          .mockImplementationOnce(() => {
+            return '';
+          }) // First time checks for project folder
+          .mockImplementationOnce(() => {
+            throw new Error();
+          }); // Second time is looking for .statwrap
+        new ProjectService().saveProjectFile('C:\\Test\\Path', { id: '1' });
+        expect(fs.mkdirSync).toHaveBeenCalledWith(
+          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}`,
+          {"recursive": true}
+        );
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
           '{"id":"1"}'

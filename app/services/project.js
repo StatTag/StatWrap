@@ -135,11 +135,20 @@ export default class ProjectService {
       throw new Error('Unable to save the project configuration because it is missing an ID');
     }
 
-    const filePath = path.join(
+    // Only attempt to create our config base folder within the project if it doesn't exist.
+    // This will handle if someone is trying to configure what they think is a new project,
+    // but it actually already exists
+    const configFolderPath = path.join(
       projectPath.replace('~', os.homedir),
-      Constants.StatWrapFiles.BASE_FOLDER,
-      DefaultProjectFile
+      Constants.StatWrapFiles.BASE_FOLDER
     );
+    try {
+      fs.accessSync(configFolderPath);
+    } catch (err) {
+      fs.mkdirSync(configFolderPath, { recursive: true });
+    }
+
+    const filePath = path.join(configFolderPath, DefaultProjectFile);
     fs.writeFileSync(filePath, JSON.stringify(this.stripExtraProjectData(project)));
   }
 
