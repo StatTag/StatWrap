@@ -148,16 +148,20 @@ class CreateProjectDialog extends Component {
   handleProjectCreated(sender, response) {
     console.log(response);
     if (response && !response.error) {
-      ipcRenderer.send(
-        Messages.WRITE_PROJECT_LOG_REQUEST,
-        response.project.path,
-        Constants.ActionType.PROJECT_CREATED,
-        Constants.ActionType.PROJECT_CREATED,
-        `${this.context} created project ${response.project.name}`,
-        response.project,
-        'info',
-        this.context
-      );
+      // If the user connected to an existing project, and there was already a StatWrap config entry
+      // we aren't going to log anything else since the project is assumed to already be created.
+      if (!response.statWrapConfigExisted) {
+        ipcRenderer.send(
+          Messages.WRITE_PROJECT_LOG_REQUEST,
+          response.project.path,
+          Constants.ActionType.PROJECT_CREATED,
+          Constants.ActionType.PROJECT_CREATED,
+          `${this.context} created project ${response.project.name}`,
+          response.project,
+          'info',
+          this.context
+        );
+      }
       this.props.onClose(true);
     } else {
       this.setState({ errorMessage: response.errorMessage });

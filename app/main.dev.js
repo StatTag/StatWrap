@@ -246,6 +246,7 @@ ipcMain.on(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, async (event, projectId) 
 ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
   const response = {
     project: {},
+    statWrapConfigExisted: false,
     error: false,
     errorMessage: ''
   };
@@ -292,6 +293,7 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
           if (projectConfig && projectConfig.id) {
             validationReport.project.id = projectConfig.id;
             validationReport.project.name = projectConfig.name;
+            response.statWrapConfigExisted = true;
           } else {
             projectConfig = {
               formatVersion: ProjectFileFormatVersion,
