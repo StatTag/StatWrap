@@ -2,8 +2,8 @@
 /* eslint-disable no-lonely-if */
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
-import { Tab } from '@material-ui/core';
-import { TabPanel, TabContext, TabList } from '@material-ui/lab';
+import { Tab, Tabs } from '@material-ui/core';
+import { TabPanel, TabContext } from '@material-ui/lab';
 import { withStyles } from '@material-ui/core/styles/';
 import IconButton from '@material-ui/core/IconButton';
 import { Star, StarBorder } from '@material-ui/icons';
@@ -37,8 +37,8 @@ const muiStyles = () => ({
     fontSize: '0.8rem'
   },
   tabSelected: {
-    backgroundColor: '#6c92de',
-    color: '#fff',
+    backgroundColor: '#ffffff',
+    color: '#000000',
     fontSize: '0.9rem'
   },
   tabPanel: {
@@ -357,7 +357,7 @@ class Project extends Component<Props> {
               </IconButton>
               <div className={styles.title}>{name}</div>
             </div>
-            <TabList
+            <Tabs
               aria-label="Project details"
               variant="scrollable"
               onChange={this.changeHandler}
@@ -365,6 +365,7 @@ class Project extends Component<Props> {
                 indicator: this.props.classes.tabIndicator,
                 scrollButtons: this.props.classes.scrollButtons
               }}
+              value={this.state.selectedTab}
             >
               <Tab label="Dashboard" value="about" classes={tabStyle} />
               <Tab label="Assets" value="assets" classes={tabStyle} />
@@ -373,7 +374,7 @@ class Project extends Component<Props> {
               <Tab label="References" value="references" classes={tabStyle} />
               <Tab label="Notes" value="projectNotes" classes={tabStyle} />
               <Tab label="Project Log" value="projectLog" classes={tabStyle} />
-            </TabList>
+            </Tabs>
           </div>
           <TabPanel value="about" classes={tabPanelStyle}>
             {about}
