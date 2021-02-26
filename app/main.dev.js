@@ -21,7 +21,8 @@ import ProjectService, { ProjectFileFormatVersion } from './services/project';
 import ProjectListService, { DefaultProjectListFile } from './services/projectList';
 import ProjectTemplateService from './services/projectTemplate';
 import AssetService from './services/assets/asset';
-import FileHandler from './services/assets/handlers/fileHandler';
+import FileHandler from './services/assets/handlers/file';
+import PythonHandler from './services/assets/handlers/python/python';
 import Messages from './constants/messages';
 import Constants from './constants/constants';
 
@@ -359,14 +360,14 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
   }
 
   try {
-    const service = new AssetService([new FileHandler()]);
+    const service = new AssetService([new FileHandler(), new PythonHandler()]);
     response.assets = service.scan(project.path);
 
     // We have decided (for now) to keep notes separate from other asset metadata.  Notes will be
     // considered first-class attributes instead of being embedded in metadata.  Because of this
     // decision, we are adding in the notes after the regular asset scanning & processing.
     const projectConfig = projectService.loadProjectFile(project.path);
-    if (!projectConfig.assets) {
+    if (!projectConfig || !projectConfig.assets) {
       console.log('No assets registered with the project - assuming this is a newly added project');
     } else {
       projectService.addNotesToAssets(response.assets, projectConfig.assets);

@@ -1,5 +1,5 @@
 import fs from 'fs';
-import FileHandler from '../../../../app/services/assets/handlers/fileHandler';
+import FileHandler from '../../../../app/services/assets/handlers/file';
 
 jest.mock('fs');
 jest.mock('os');

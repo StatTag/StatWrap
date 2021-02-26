@@ -1717,6 +1717,11 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
+"@types/antlr4@4.7.2":
+  version "4.7.2"
+  resolved "https://registry.yarnpkg.com/@types/antlr4/-/antlr4-4.7.2.tgz#8cfbbcea13d45c42e9a326aa0e55df816cdd07f5"
+  integrity sha512-v6NASzZa4pUgO2QJJqGHTRRBfZDTOk2savuugSfCLatRTd2q+UtW0I7ub9mjzERhm7aWqGxBi886HnJkLYiIEA==
+
 "@types/babel__core@^7.1.0":
   version "7.1.9"
   resolved "https://registry.yarnpkg.com/@types/babel__core/-/babel__core-7.1.9.tgz#77e59d438522a6fb898fa43dc3455c6e72f3963d"
@@ -2368,6 +2373,11 @@ ansi-wrap@0.1.0, ansi-wrap@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/ansi-wrap/-/ansi-wrap-0.1.0.tgz#a82250ddb0015e9a27ca82e82ea603bbfa45efaf"
   integrity sha1-qCJQ3bABXponyoLoLqYDu/pF768=
+
+antlr4@4.8.0:
+  version "4.8.0"
+  resolved "https://registry.yarnpkg.com/antlr4/-/antlr4-4.8.0.tgz#f938ec171be7fc2855cd3a533e87647185b32b6a"
+  integrity sha512-en/MxQ4OkPgGJQ3wD/muzj1uDnFSzdFIhc2+c6bHZokWkuBb6RRvFjpWhPxWLbgQvaEzldJZ0GSQpfSAaE3hqg==
 
 any-observable@^0.3.0:
   version "0.3.0"
@@ -5910,6 +5920,14 @@ dotenv@^8.2.0:
   version "8.2.0"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-8.2.0.tgz#97e619259ada750eea3e4ea3e26bceea5424b16a"
   integrity sha512-8sJ78ElpbDJBHNeBzUbUVLsqKdccaa/BXF1uPTw3GrvQTBgrQrtObr2mUrE38vzYd8cEv+m/JBfDLioYcfXoaw==
+
+dt-python-parser@^0.9.2-beta:
+  version "0.9.2-beta"
+  resolved "https://registry.yarnpkg.com/dt-python-parser/-/dt-python-parser-0.9.2-beta.tgz#aa033de127e61083b3f4f1b5c6da2c53fce91e87"
+  integrity sha512-uMP355x2qmIptMKlHMnde5iz2qFk2LH/SIJGHJXQOnf3uU3nLtLEo1u+gMgYr6OohSCIR3QV/vsjP20220sJkQ==
+  dependencies:
+    "@types/antlr4" "4.7.2"
+    antlr4 "4.8.0"
 
 duplexer2@~0.1.4:
   version "0.1.4"
