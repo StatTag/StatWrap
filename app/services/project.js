@@ -16,17 +16,33 @@ const MaximumFolderNameLength = 255;
 export { DefaultProjectFile, ProjectFileFormatVersion };
 
 export default class ProjectService {
-  loadStub() {
-    return {
+  /**
+   * Create a new object that contains the basic elements of a project configuration.  This will only
+   * create the structure, not save it to disk.  For that, see initializeNewProject.
+   *
+   * @param {string} id UUID for the project. If empty/null, one will be created.
+   * @param {string} name The name of the project
+   */
+  createProjectConfig(id, name) {
+    const config = {
       formatVersion: ProjectFileFormatVersion,
-      id: '6ff79e02-4f24-4948-ac77-f3f1b67064e6',
-      name: 'Test 3',
-      tags: ['NIH', 'Grant', 'Team Science']
+      id: id || uuid(),
+      name,
+      description: {
+        contentType: Constants.DescriptionContentType.MARKDOWN,
+        content: `# ${name}`
+      },
+      categories: []
     };
+    return config;
   }
 
-  // Create a new project and initialize it with configuration files and template
-  // entries, if applicable.
+  /**
+   * Create a new project and initialize it with configuration files and template
+   * entries, if applicable.
+   * @param {object} project
+   * @param {object} template
+   */
   initializeNewProject(project, template) {
     // If the project is invalid, we won't initialize it
     if (!project) {
@@ -58,17 +74,7 @@ export default class ProjectService {
       return;
     }
 
-    const projectConfig = {
-      formatVersion: ProjectFileFormatVersion,
-      id: project.id,
-      name: project.name,
-      description: {
-        contentType: Constants.DescriptionContentType.MARKDOWN,
-        content: `# {project.name}`
-      },
-      categories: []
-    };
-
+    const projectConfig = this.createProjectConfig(project.id, project.name);
     if (template && template.id && template.version) {
       projectConfig.template = { id: template.id, version: template.version };
     }
@@ -86,6 +92,7 @@ export default class ProjectService {
       Constants.StatWrapFiles.BASE_FOLDER,
       DefaultProjectFile
     );
+
     try {
       fs.accessSync(filePath);
     } catch {

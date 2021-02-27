@@ -607,5 +607,29 @@ describe('services', () => {
         expect(updatedAssets.children[1].notes.length).toBe(0);
       });
     });
+
+    describe('createProjectConfig', () => {
+      it('will create a new id if one is not provided', () => {
+        const service = new ProjectService();
+        expect(service.createProjectConfig(null, 'Test').id.length).toBe(36);
+        expect(service.createProjectConfig(undefined, 'Test').id.length).toBe(36);
+        expect(service.createProjectConfig('', 'Test').id.length).toBe(36);
+      });
+
+      it('will create use the id and name when provided', () => {
+        const service = new ProjectService();
+        const config = service.createProjectConfig('12345', 'Test Project');
+        expect(config).toEqual({
+          formatVersion: "1",
+          id: '12345',
+          name: 'Test Project',
+          description: {
+            contentType: 'Markdown',
+            content: '# Test Project'
+          },
+          categories: []
+        })
+      });
+    });
   });
 });

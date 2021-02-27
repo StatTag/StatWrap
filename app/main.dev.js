@@ -17,7 +17,7 @@ import username from 'username';
 import log from 'electron-log';
 import winston from 'winston';
 import MenuBuilder from './menu';
-import ProjectService, { ProjectFileFormatVersion } from './services/project';
+import ProjectService from './services/project';
 import ProjectListService, { DefaultProjectListFile } from './services/projectList';
 import ProjectTemplateService from './services/projectTemplate';
 import AssetService from './services/assets/asset';
@@ -296,12 +296,11 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
             validationReport.project.name = projectConfig.name;
             response.statWrapConfigExisted = true;
           } else {
-            projectConfig = {
-              formatVersion: ProjectFileFormatVersion,
-              id: validationReport.project.id,
-              name: validationReport.project.name,
-              categories: []
-            };
+            projectConfig = projectService.createProjectConfig(
+              validationReport.project.id,
+              validationReport.project.name
+            );
+
             projectService.saveProjectFile(validationReport.project.path, projectConfig);
           }
           break;
@@ -366,8 +365,12 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
     // We have decided (for now) to keep notes separate from other asset metadata.  Notes will be
     // considered first-class attributes instead of being embedded in metadata.  Because of this
     // decision, we are adding in the notes after the regular asset scanning & processing.
-    const projectConfig = projectService.loadProjectFile(project.path);
-    if (!projectConfig || !projectConfig.assets) {
+    let projectConfig = projectService.loadProjectFile(project.path);
+    if (!projectConfig) {
+      projectConfig = projectService.createProjectConfig(project.id, project.name);
+    }
+
+    if (!projectConfig.assets) {
       console.log('No assets registered with the project - assuming this is a newly added project');
     } else {
       projectService.addNotesToAssets(response.assets, projectConfig.assets);
@@ -482,7 +485,10 @@ ipcMain.on(Messages.UPDATE_PROJECT_REQUEST, async (event, project) => {
 
   try {
     if (project && project.id && project.path) {
-      const projectConfig = projectService.loadProjectFile(project.path);
+      let projectConfig = projectService.loadProjectFile(project.path);
+      if (!projectConfig) {
+        projectConfig = projectService.createProjectConfig(project.id, project.name);
+      }
       projectConfig.description = project.description;
       projectConfig.categories = project.categories;
       projectConfig.assets = project.assets;
