@@ -1,5 +1,5 @@
 import fs from 'fs';
-import PythonHandler from '../../../../../app/services/assets/handlers/python/python';
+import PythonHandler from '../../../../app/services/assets/handlers/python';
 
 jest.mock('fs');
 jest.mock('os');
@@ -110,7 +110,7 @@ describe('services', () => {
         expect(fs.readFileSync).toHaveBeenCalledTimes(1);
         expect(response.metadata[0]).toEqual({
           id: 'StatWrap.PythonHandler',
-          error: 'Unable to read Python code file'
+          error: 'Unable to read code file'
         });
       });
 

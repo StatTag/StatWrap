@@ -1,5 +1,5 @@
 import fs from 'fs';
-import RHandler from '../../../../../app/services/assets/handlers/r/r';
+import RHandler from '../../../../app/services/assets/handlers/r';
 
 jest.mock('fs');
 jest.mock('os');
@@ -111,7 +111,7 @@ describe('services', () => {
         expect(fs.readFileSync).toHaveBeenCalledTimes(1);
         expect(response.metadata[0]).toEqual({
           id: 'StatWrap.RHandler',
-          error: 'Unable to read R code file'
+          error: 'Unable to read code file'
         });
       });
 

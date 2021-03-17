@@ -1,19 +1,9 @@
 import React from 'react';
 import { Graph } from 'react-d3-graph';
-import AssetUtil from '../../utils/asset';
+import WorkflowUtil from '../../utils/workflow';
 import CodeNode from './CustomNodes/Code/CodeNode';
 import styles from './Workflow.css';
 
-// // graph payload (with minimalist structure)
-// const data = {
-//   nodes: [{ id: 'Harry' }, { id: 'Sally' }, { id: 'Alice' }],
-//   links: [
-//     { source: 'Harry', target: 'Sally' },
-//     { source: 'Harry', target: 'Alice' }
-//   ]
-// };
-
-// the graph configuration, just override the ones you need
 const myConfig = {
   nodeHighlightBehavior: false,
   directed: true,
@@ -33,13 +23,7 @@ const myConfig = {
 const workflow = props => {
   const { project } = props;
 
-  // const [shouldRender, setShouldRender] = React.useState(false);
-  // React.useEffect(() => {
-  //   const timeout = setTimeout(() => setShouldRender(true), 1000);
-  //   return () => clearTimeout(timeout);
-  // }, []);
-
-  const data = AssetUtil.getAllDependenciesAsGraph(project.assets);
+  const data = WorkflowUtil.getAllDependenciesAsGraph(project.assets);
   let graph = null;
   if (data && data.nodes && data.nodes.length > 0) {
     graph = (

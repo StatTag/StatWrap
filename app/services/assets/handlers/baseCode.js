@@ -1,51 +1,21 @@
 // eslint-disable-next-line import/no-cycle
-import AssetUtil from '../../../../utils/asset';
+import AssetUtil from '../../../utils/asset';
 
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
-// R file extensions that we will scan.
 // All lookups should be lowercase - we will do lowercase conversion before comparison.
-const FILE_EXTENSION_LIST = ['r', 'rmd'];
 const URL_PROTOCOL_LIST = ['http:', 'https:'];
 
 /**
- * Metadata:
- * {
- *   id: 'StatWrap.RHandler'
- * }
+ * This is not intended for direct use - this should be inherited by more specific
+ * classes dedicated to each programming language/code type
  */
-export default class RHandler {
-  static id = 'StatWrap.RHandler';
-
-  id() {
-    return RHandler.id;
-  }
-
-  getLibraryId(packageName) {
-    return packageName || '(unknown)';
-  }
-
-  getLibraries(text) {
-    const libraries = [];
-    if (!text || text.trim() === '') {
-      return libraries;
-    }
-
-    // For this regex, the match groups:
-    // 0 - full match (not used)
-    // 1 - library name
-    const matches = [...text.matchAll(/^\s*(?:library|require)\s*\(\s*(\S+)\s*\)\s*$/gm)];
-    for (let index = 0; index < matches.length; index++) {
-      const match = matches[index];
-      const packageName = match[1].replace(/['"]/gm, '');
-      libraries.push({
-        id: this.getLibraryId(packageName),
-        package: packageName
-      });
-    }
-    return libraries;
+export default class BaseCodeHandler {
+  constructor(handlerId, fileExtensionList) {
+    this.handlerId = handlerId;
+    this.fileExtensionList = fileExtensionList;
   }
 
   /**
@@ -76,7 +46,7 @@ export default class RHandler {
       return false;
     }
     const extension = fileNameParts.pop();
-    return FILE_EXTENSION_LIST.includes(extension.toLowerCase());
+    return this.fileExtensionList.includes(extension.toLowerCase());
   }
 
   /**
@@ -109,7 +79,7 @@ export default class RHandler {
       }
 
       // If we already have scanned this file, we won't do it again.
-      const existingMetadata = AssetUtil.getHandlerMetadata(RHandler.id, asset.metadata);
+      const existingMetadata = AssetUtil.getHandlerMetadata(this.handlerId, asset.metadata);
       if (existingMetadata) {
         return asset;
       }
@@ -118,7 +88,7 @@ export default class RHandler {
         const contents = fs.readFileSync(asset.uri, 'utf8');
         metadata.libraries = this.getLibraries(contents);
       } catch {
-        metadata.error = 'Unable to read R code file';
+        metadata.error = 'Unable to read code file';
         asset.metadata.push(metadata);
         return asset;
       }

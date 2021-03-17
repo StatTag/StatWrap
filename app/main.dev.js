@@ -22,8 +22,8 @@ import ProjectListService, { DefaultProjectListFile } from './services/projectLi
 import ProjectTemplateService from './services/projectTemplate';
 import AssetService from './services/assets/asset';
 import FileHandler from './services/assets/handlers/file';
-import PythonHandler from './services/assets/handlers/python/python';
-import RHandler from './services/assets/handlers/r/r';
+import PythonHandler from './services/assets/handlers/python';
+import RHandler from './services/assets/handlers/r';
 import Messages from './constants/messages';
 import Constants from './constants/constants';
 
