@@ -36,3 +36,8 @@ body {
 .react-tagsinput--focused {
   border: solid 1px #1f3195 !important;
 }
+
+#graph-id-graph-wrapper {
+  width: inherit;
+  height: inherit;
+}

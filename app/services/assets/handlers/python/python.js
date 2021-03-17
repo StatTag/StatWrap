@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-cycle
 import AssetUtil from '../../../../utils/asset';
 
 const fs = require('fs');
@@ -23,6 +24,20 @@ export default class PythonHandler {
     return PythonHandler.id;
   }
 
+  getLibraryId(moduleName, importName) {
+    let id = '';
+    if (moduleName && importName) {
+      id = `${moduleName}.${importName}`;
+    } else if (moduleName) {
+      id = moduleName;
+    } else if (importName) {
+      id = importName;
+    } else {
+      id = '(unknown)';
+    }
+    return id;
+  }
+
   getLibraries(text) {
     const libraries = [];
     if (!text || text.trim() === '') {
@@ -44,6 +59,7 @@ export default class PythonHandler {
     for (let index = 0; index < matches.length; index++) {
       const match = matches[index];
       libraries.push({
+        id: this.getLibraryId(match[1], match[2]),
         module: match[1] ? match[1] : null,
         import: match[2] ? match[2] : null,
         alias: match[3] ? match[3] : null

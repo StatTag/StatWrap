@@ -10,3 +10,4 @@ Here's a collection of the user interface elements (React components) we use wit
   > **NOTE** We have a local copy of this code file in `components/EditableLabel/EditableLabel.js` because of issues with the available packaged version.
 - [react-tagsinput](https://github.com/olahol/react-tagsinput) - MIT license - managing custom tags to assign to a project.
 - [react-data-table-component](https://github.com/jbetancur/react-data-table-component) - Apache 2 license - newsfeed list
+- [react-d3-graph](https://github.com/danielcaldas/react-d3-graph) - MIT License - render dependency graphs. Note that you will have to explicitly install d3 (`yarn add d3`) if you get errors during installation for this library.

@@ -12,6 +12,7 @@ import EditableLabel from '../EditableLabel/EditableLabel';
 import Welcome from '../Welcome/Welcome';
 import About from './About/About';
 import Assets from './Assets/Assets';
+import Workflow from '../Workflow/Workflow';
 import ProjectLog from '../ProjectLog/ProjectLog';
 import ProjectNotes from '../ProjectNotes/ProjectNotes';
 import { ActionType, DescriptionContentType } from '../../constants/constants';
@@ -325,6 +326,7 @@ class Project extends Component<Props> {
           onDeletedAssetNote={this.assetDeleteNoteHandler}
         />
       ) : null;
+      const workflow = this.props.project ? <Workflow project={this.props.project} /> : null;
       const name = this.props.project ? (
         <EditableLabel
           text={this.props.project.name}
@@ -383,7 +385,7 @@ class Project extends Component<Props> {
             {assets}
           </TabPanel>
           <TabPanel value="workflows" classes={tabPanelStyle}>
-            TBD
+            {workflow}
           </TabPanel>
           <TabPanel value="people" classes={tabPanelStyle}>
             TBD

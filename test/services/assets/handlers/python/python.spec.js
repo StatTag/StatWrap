@@ -139,6 +139,7 @@ describe('services', () => {
           id: 'StatWrap.PythonHandler',
           libraries: [
             {
+              id: 'sys',
               module: null,
               import: 'sys',
               alias: null
@@ -181,6 +182,7 @@ describe('services', () => {
           id: 'StatWrap.PythonHandler',
           libraries: [
             {
+              id: 'sys',
               module: null,
               import: 'sys',
               alias: null
@@ -212,6 +214,7 @@ describe('services', () => {
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
+          id: 'importlib.util.spec_from_loader, module_from_spec',
           module: 'importlib.util',
           import: 'spec_from_loader, module_from_spec',
           alias: null
@@ -223,6 +226,7 @@ describe('services', () => {
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
+          id: 'package2.subpackage1.module5.function2',
           module: 'package2.subpackage1.module5',
           import: 'function2',
           alias: null
@@ -232,6 +236,7 @@ describe('services', () => {
         const libraries = new PythonHandler().getLibraries('from abc import xyz');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
+          id: 'abc.xyz',
           module: 'abc',
           import: 'xyz',
           alias: null
@@ -241,6 +246,7 @@ describe('services', () => {
         const libraries = new PythonHandler().getLibraries('import ghi as other_name');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
+          id: 'ghi',
           module: null,
           import: 'ghi',
           alias: 'other_name'
@@ -256,20 +262,44 @@ describe('services', () => {
         );
         expect(libraries.length).toEqual(3);
         expect(libraries[0]).toMatchObject({
+          id: 'one.two',
           module: 'one',
           import: 'two',
           alias: null
         });
         expect(libraries[1]).toMatchObject({
+          id: 'three',
           module: null,
           import: 'three',
           alias: null
         });
         expect(libraries[2]).toMatchObject({
+          id: 'four',
           module: null,
           import: 'four',
           alias: 'five'
         });
+      });
+    });
+
+    describe('getLibraryId', () => {
+      it('should return a default label when parameters are missing', () => {
+        expect(new PythonHandler().getLibraryId('', '')).toEqual('(unknown)');
+        expect(new PythonHandler().getLibraryId(null, null)).toEqual('(unknown)');
+        expect(new PythonHandler().getLibraryId(undefined, undefined)).toEqual('(unknown)');
+      });
+      it('should include import and module name when both provided', () => {
+        expect(new PythonHandler().getLibraryId('module', 'import')).toEqual('module.import');
+      });
+      it('should use the module when it is the only value provided', () => {
+        expect(new PythonHandler().getLibraryId('module', '')).toEqual('module');
+        expect(new PythonHandler().getLibraryId('module', null)).toEqual('module');
+        expect(new PythonHandler().getLibraryId('module', undefined)).toEqual('module');
+      });
+      it('should use the import when it is the only value provided', () => {
+        expect(new PythonHandler().getLibraryId('', 'import')).toEqual('import');
+        expect(new PythonHandler().getLibraryId(null, 'import')).toEqual('import');
+        expect(new PythonHandler().getLibraryId(undefined, 'import')).toEqual('import');
       });
     });
   });
