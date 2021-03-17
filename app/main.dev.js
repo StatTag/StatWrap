@@ -23,6 +23,7 @@ import ProjectTemplateService from './services/projectTemplate';
 import AssetService from './services/assets/asset';
 import FileHandler from './services/assets/handlers/file';
 import PythonHandler from './services/assets/handlers/python/python';
+import RHandler from './services/assets/handlers/r/r';
 import Messages from './constants/messages';
 import Constants from './constants/constants';
 
@@ -359,7 +360,7 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
   }
 
   try {
-    const service = new AssetService([new FileHandler(), new PythonHandler()]);
+    const service = new AssetService([new FileHandler(), new PythonHandler(), new RHandler()]);
     response.assets = service.scan(project.path);
 
     // We have decided (for now) to keep notes separate from other asset metadata.  Notes will be

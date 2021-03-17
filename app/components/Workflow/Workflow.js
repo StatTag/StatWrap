@@ -33,15 +33,15 @@ const myConfig = {
 const workflow = props => {
   const { project } = props;
 
-  const [shouldRender, setShouldRender] = React.useState(false);
-  React.useEffect(() => {
-    const timeout = setTimeout(() => setShouldRender(true), 1000);
-    return () => clearTimeout(timeout);
-  }, []);
+  // const [shouldRender, setShouldRender] = React.useState(false);
+  // React.useEffect(() => {
+  //   const timeout = setTimeout(() => setShouldRender(true), 1000);
+  //   return () => clearTimeout(timeout);
+  // }, []);
 
   const data = AssetUtil.getAllDependenciesAsGraph(project.assets);
   let graph = null;
-  if (data && data.nodes && data.nodes.length > 0 && shouldRender) {
+  if (data && data.nodes && data.nodes.length > 0) {
     graph = (
       <Graph
         id="graph-id" // id is mandatory

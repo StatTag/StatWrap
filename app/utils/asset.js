@@ -4,6 +4,8 @@
 import FileHandler from '../services/assets/handlers/file';
 // eslint-disable-next-line import/no-cycle
 import PythonHandler from '../services/assets/handlers/python/python';
+// eslint-disable-next-line import/no-cycle
+import RHandler from '../services/assets/handlers/r/r';
 
 export default class AssetUtil {
   static getHandlerMetadata(handler, metadata) {
@@ -127,6 +129,17 @@ export default class AssetUtil {
     return notes.flat();
   }
 
+  static getAssetType(asset) {
+    if (AssetUtil.getHandlerMetadata(PythonHandler.id, asset.metadata)) {
+      return 'python';
+    }
+    if (AssetUtil.getHandlerMetadata(RHandler.id, asset.metadata)) {
+      return 'r';
+    }
+
+    return 'generic';
+  }
+
   /**
    * Build a graph (collection of nodes and links) for an asset and all of
    * its descendants
@@ -143,7 +156,8 @@ export default class AssetUtil {
       const entry = allDeps[index];
       if (entry.asset && entry.dependencies && entry.dependencies.length > 0) {
         // Given how we traverse, we can assume assets will be unique
-        graph.nodes.push({ id: entry.asset, assetType: 'python' });
+        console.log(entry);
+        graph.nodes.push({ id: entry.asset, assetType: entry.assetType });
         for (let depIndex = 0; depIndex < entry.dependencies.length; depIndex++) {
           const dependencyId = entry.dependencies[depIndex].id;
           // We need to see if we already have an dependency before we add it as a node (to avoid
@@ -165,9 +179,17 @@ export default class AssetUtil {
     if (!asset) {
       return [];
     }
-    const metadata = AssetUtil.getHandlerMetadata(PythonHandler.id, asset.metadata);
-    if (!metadata) { return []; }
-    return metadata.libraries;
+
+    const libraries = [];
+    const pythonMetadata = AssetUtil.getHandlerMetadata(PythonHandler.id, asset.metadata);
+    if (pythonMetadata) {
+      libraries.push(...pythonMetadata.libraries);
+    }
+    const rMetadata = AssetUtil.getHandlerMetadata(RHandler.id, asset.metadata);
+    if (rMetadata) {
+      libraries.push(...rMetadata.libraries);
+    }
+    return libraries;
   }
 
   /**
@@ -184,7 +206,13 @@ export default class AssetUtil {
    */
   static getAllDependencies(asset) {
     const dependencies = asset
-      ? [{ asset: asset.uri, dependencies: AssetUtil.getDependencies(asset) }]
+      ? [
+          {
+            asset: asset.uri,
+            assetType: AssetUtil.getAssetType(asset),
+            dependencies: AssetUtil.getDependencies(asset)
+          }
+        ]
       : [];
     if (!asset || !asset.children) {
       return dependencies.flat();
