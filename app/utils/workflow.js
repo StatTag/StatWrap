@@ -4,21 +4,25 @@ import RHandler from '../services/assets/handlers/r';
 
 export default class WorkflowUtil {
   static getAssetType(asset) {
-    if (AssetUtil.getHandlerMetadata(PythonHandler.id, asset.metadata)) {
-      return 'python';
-    }
-    if (AssetUtil.getHandlerMetadata(RHandler.id, asset.metadata)) {
-      return 'r';
+    let assetType = 'generic';
+    if (!asset) {
+      return assetType;
     }
 
-    return 'generic';
+    if (AssetUtil.getHandlerMetadata(PythonHandler.id, asset.metadata)) {
+      assetType = 'python';
+    } else if (AssetUtil.getHandlerMetadata(RHandler.id, asset.metadata)) {
+      assetType = 'r';
+    }
+
+    return assetType;
   }
 
   /**
    * Build a graph (collection of nodes and links) for an asset and all of
    * its descendants
    * @param {object} asset
-   * @returns An graph object containing nodes and links attributes
+   * @returns An react-d3-graph object containing nodes and links attributes
    */
   static getAllDependenciesAsGraph(asset) {
     const graph = {
@@ -46,6 +50,50 @@ export default class WorkflowUtil {
       }
     }
     return graph;
+  }
+
+  /**
+   * Build a tree (hierarchy of nodes) for an asset and all of
+   * its descendants
+   * @param {object} asset
+   * @returns An react-d3-tree tree object containing nodes and links attributes
+   */
+  static getAllDependenciesAsTree(asset) {
+    if (!asset) {
+      return null;
+    }
+
+    const tree = {
+      name: AssetUtil.getAssetNameFromUri(asset),
+      children: null,
+      attributes: {
+        assetType: WorkflowUtil.getAssetType(asset)
+      }
+    };
+
+    if (asset.children) {
+      tree.children = [];
+      for (let index = 0; index < asset.children.length; index++) {
+        tree.children.push(WorkflowUtil.getAllDependenciesAsTree(asset.children[index]));
+      }
+    }
+
+    const allDeps = WorkflowUtil.getDependencies(asset);
+    if (allDeps && allDeps.length > 0 && !tree.children) {
+      tree.children = [];
+    }
+
+    for (let index = 0; index < allDeps.length; index++) {
+      const entry = allDeps[index];
+      const depEntry = { name: entry.id, attributes: { assetType: 'dependency' } };
+      // Only push dependencies once (to avoid unnecessary clutter)
+      // eslint-disable-next-line prettier/prettier
+      if (!tree.children.some(x => x.name === depEntry.name
+            && x.attributes.assetType === depEntry.attributes.assetType)) {
+        tree.children.push(depEntry);
+      }
+    }
+    return tree;
   }
 
   static getDependencies(asset) {

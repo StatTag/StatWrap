@@ -277,6 +277,7 @@
     "react": "^16.13.1",
     "react-checkbox-tree": "^1.6.0",
     "react-d3-graph": "^2.6.0",
+    "react-d3-tree": "^2.0.1",
     "react-data-table-component": "^6.11.6",
     "react-dom": "^16.13.1",
     "react-draggable": "^4.3.1",

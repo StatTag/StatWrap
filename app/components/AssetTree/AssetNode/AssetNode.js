@@ -2,9 +2,8 @@
 import React from 'react';
 import { FaFile, FaFolder, FaFolderOpen, FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import styled from 'styled-components';
-import path from 'path';
-import last from 'lodash/last';
 import PropTypes from 'prop-types';
+import AssetUtil from '../../../utils/asset';
 import Constants from '../../../constants/constants';
 
 // This implementation borrows heavily from: https://github.com/davidtran/simple-treeview
@@ -27,8 +26,6 @@ const NodeIcon = styled.div`
   font-size: 12px;
   margin-right: ${props => (props.marginRight ? props.marginRight : 5)}px;
 `;
-
-const getNodeLabel = node => last(node.uri.split(path.sep));
 
 const AssetNode = props => {
   const { node, openNodes, selectedAsset, level, onToggle, onRightClick, onClick } = props;
@@ -56,7 +53,7 @@ const AssetNode = props => {
           {node.type === Constants.AssetType.DIRECTORY && !isOpen && <FaFolder />}
         </NodeIcon>
 
-        <span role="button">{getNodeLabel(node)}</span>
+        <span role="button">{AssetUtil.getAssetNameFromUri(node)}</span>
       </StyledTreeNode>
 
       {isOpen &&

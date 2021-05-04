@@ -1,40 +1,38 @@
+import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab';
 import React from 'react';
-import { Graph } from 'react-d3-graph';
-import WorkflowUtil from '../../utils/workflow';
-import CodeNode from './CustomNodes/Code/CodeNode';
+import DependencyGraph from './DependencyGraph/DependencyGraph';
+import DependencyTree from './DependencyTree/DependencyTree';
 import styles from './Workflow.css';
 
-const myConfig = {
-  nodeHighlightBehavior: false,
-  directed: true,
-  maxZoom: 8,
-  minZoom: 0.1,
-  node: {
-    color: 'white',
-    size: 120,
-    highlightStrokeColor: 'blue',
-    viewGenerator: node => <CodeNode node={node} />
-  },
-  link: {
-    highlightColor: 'lightblue'
-  }
-};
-
 const workflow = props => {
-  const { project } = props;
+  const [diagram, setDiagram] = React.useState('graph');
 
-  const data = WorkflowUtil.getAllDependenciesAsGraph(project.assets);
-  let graph = null;
-  if (data && data.nodes && data.nodes.length > 0) {
-    graph = (
-      <Graph
-        id="graph-id" // id is mandatory
-        data={data}
-        config={myConfig}
-      />
-    );
+  const handleDiagram = (event, newDiagram) => {
+    setDiagram(newDiagram);
+  };
+  const { project } = props;
+  let graph = <DependencyGraph assets={project.assets} />;
+  if (diagram === 'tree') {
+    graph = <DependencyTree assets={project.assets} />;
   }
-  return <div className={styles.container}>{graph}</div>;
+  return (
+    <div className={styles.container}>
+      <ToggleButtonGroup
+        value={diagram}
+        exclusive
+        onChange={handleDiagram}
+        aria-label="select workflow diagram"
+      >
+        <ToggleButton value="graph" aria-label="dependency graph">
+          Dependency Graph
+        </ToggleButton>
+        <ToggleButton value="tree" aria-label="dependency tree">
+          Tree
+        </ToggleButton>
+      </ToggleButtonGroup>
+      {graph}
+    </div>
+  );
 };
 
 export default workflow;

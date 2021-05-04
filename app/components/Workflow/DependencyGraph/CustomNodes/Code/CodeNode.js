@@ -16,7 +16,7 @@ const ICON_TYPES = {
  * Component that renders a code file
  * @param {Object} props component props to render.
  */
-function CodeNode({ node }) {
+function CodeNode({ node, renderType }) {
   let iconUrl = ICON_TYPES.GENERIC;
   if (node.assetType === 'python') {
     iconUrl = ICON_TYPES.PYTHON;
@@ -25,11 +25,23 @@ function CodeNode({ node }) {
   } else if (node.assetType === 'dependency') {
     iconUrl = ICON_TYPES.LIBRARY;
   }
-  return (
+
+  let element = (
     <div className={styles.container}>
       <div className={styles.icon} style={{ backgroundImage: `url('${iconUrl}')` }} />
     </div>
   );
+  if (renderType === 'svg') {
+    element = (
+      <g fill="white">
+        <image x="-12" y="-12" wiidth="24" height="24" href={iconUrl} />
+        <text fill="black" strokeWidth="1" x="28" y="5">
+          {node.name}
+        </text>
+      </g>
+    );
+  }
+  return element;
 }
 
 export default CodeNode;

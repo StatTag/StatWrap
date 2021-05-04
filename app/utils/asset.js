@@ -1,3 +1,6 @@
+import path from 'path';
+import last from 'lodash/last';
+
 // We do have a dependency cycle here, but it is just to grab a constant value.
 // No circular functions exist (and we need to make sure it stays that way).
 // eslint-disable-next-line import/no-cycle
@@ -123,5 +126,23 @@ export default class AssetUtil {
       notes.push(AssetUtil.getAllNotes(asset.children[index]));
     }
     return notes.flat();
+  }
+
+  /**
+   * Given a URI, return the name of the asset devoid of the pathing
+   *
+   * @param {string or object} item Either a string representing the URI, or an object with a `uri` attribute containing the URI
+   * @returns The name portion (with extension, if applicable) of the URI
+   */
+  static getAssetNameFromUri(item) {
+    if (!item) {
+      return '';
+    }
+
+    let uri = item;
+    if (typeof item === 'object') {
+      uri = item.uri ? item.uri : '';
+    }
+    return last(uri.split(path.sep));
   }
 }

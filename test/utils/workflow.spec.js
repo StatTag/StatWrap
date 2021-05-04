@@ -227,5 +227,135 @@ describe('services', () => {
         });
       });
     });
+
+    describe('getAssetType', () => {
+      it('should handle empty/invalid input', () => {
+        expect(WorkflowUtil.getAssetType(null)).toEqual('generic');
+        expect(WorkflowUtil.getAssetType(undefined)).toEqual('generic');
+      });
+
+      it('should return a default value for known types', () => {
+        expect(WorkflowUtil.getAssetType({ metadata: [{ id: 'StatWrap.PythonHandler' }] })).toEqual(
+          'python'
+        );
+      });
+
+      it('should return a default value for unkown types', () => {
+        expect(WorkflowUtil.getAssetType({})).toEqual('generic');
+      });
+    });
+
+    describe('getAllDependenciesAsTree', () => {
+      it('should handle empty/invalid input', () => {
+        expect(WorkflowUtil.getAllDependenciesAsTree(null)).toBeNull();
+        expect(WorkflowUtil.getAllDependenciesAsTree(undefined)).toBeNull();
+      });
+
+      it('should generate a structure even if there are no children', () => {
+        expect(WorkflowUtil.getAllDependenciesAsTree({ uri: '/test/1' })).toEqual({
+          name: '1',
+          children: null,
+          attributes: {
+            assetType: 'generic'
+          }
+        });
+      });
+
+      it('should generate a structure with children', () => {
+        const asset = {
+          uri: '/test/1',
+          children: [
+            {
+              uri: '/test/1/1',
+              children: [
+                {
+                  uri: '/test/1/1/1',
+                  metadata: [
+                    {
+                      id: 'StatWrap.PythonHandler',
+                      libraries: [
+                        {
+                          id: 'sys',
+                          module: 'sys',
+                          import: null,
+                          alias: null
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              uri: '/test/1/2',
+              metadata: [
+                {
+                  id: 'StatWrap.PythonHandler',
+                  libraries: [
+                    {
+                      id: 'sys',
+                      module: 'sys',
+                      import: null,
+                      alias: null
+                    },
+                    // Scenario if a Python file includes the same module twice
+                    {
+                      id: 'sys',
+                      module: 'sys',
+                      import: null,
+                      alias: null
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        };
+        expect(WorkflowUtil.getAllDependenciesAsTree(asset)).toEqual({
+          name: '1',
+          children: [
+            {
+              name: '1',
+              attributes: {
+                assetType: 'generic'
+              },
+              children: [
+                {
+                  name: '1',
+                  attributes: {
+                    assetType: 'python'
+                  },
+                  children: [
+                    {
+                      name: 'sys',
+                      attributes: {
+                        assetType: 'dependency'
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: '2',
+              children: [
+                {
+                  name: 'sys',
+                  attributes: {
+                    assetType: 'dependency'
+                  }
+                }
+              ],
+              attributes: {
+                assetType: 'python'
+              }
+            }
+          ],
+          attributes: {
+            assetType: 'generic'
+          }
+        });
+      });
+    });
   });
 });

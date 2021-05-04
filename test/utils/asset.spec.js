@@ -425,5 +425,47 @@ describe('services', () => {
         expect(AssetUtil.getAllNotes(asset)).toBeArrayOfSize(5);
       });
     });
+
+    describe('getAssetNameFromUri', () => {
+      it('should return an empty string for an undefined/empty parameter', () => {
+        expect(AssetUtil.getAssetNameFromUri(null)).toEqual('');
+        expect(AssetUtil.getAssetNameFromUri(undefined)).toEqual('');
+      });
+
+      it.onWindows('should return the name and extension for a string URI', () => {
+        expect(AssetUtil.getAssetNameFromUri('C:\\Test\\Path\\file.test')).toEqual('file.test');
+        expect(AssetUtil.getAssetNameFromUri('file.test')).toEqual('file.test');
+      });
+
+      it.onMac('should return the name and extension for a string URI', () => {
+        expect(AssetUtil.getAssetNameFromUri('/Test/Path/file.test')).toEqual('file.test');
+        expect(AssetUtil.getAssetNameFromUri('file.test')).toEqual('file.test');
+      });
+
+      it.onWindows(
+        'should return the name and extension for an object containing a uri attribute',
+        () => {
+          expect(AssetUtil.getAssetNameFromUri({ uri: 'C:\\Test\\Path\\file.test' })).toEqual(
+            'file.test'
+          );
+          expect(AssetUtil.getAssetNameFromUri({ uri: 'file.test' })).toEqual('file.test');
+        }
+      );
+
+      it.onMac(
+        'should return the name and extension for an object containing a uri attribute',
+        () => {
+          expect(AssetUtil.getAssetNameFromUri({ uri: '/Test/Path/file.test' })).toEqual(
+            'file.test'
+          );
+          expect(AssetUtil.getAssetNameFromUri({ uri: 'file.test' })).toEqual('file.test');
+        }
+      );
+
+      it('should return an empty string for an object without a uri attribute', () => {
+        expect(AssetUtil.getAssetNameFromUri({})).toEqual('');
+        expect(AssetUtil.getAssetNameFromUri({ uriii: 'test' })).toEqual('');
+      });
+    });
   });
 });
