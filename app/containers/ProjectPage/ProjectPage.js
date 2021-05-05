@@ -21,6 +21,8 @@ class ProjectPage extends Component {
       addingProject: false,
       // List of project templates that can be used for new projects
       projectTemplates: [],
+      // List of asset attributes with configuration information
+      assetAttributes: [],
       // The list of projects that the user has configured
       projects: [],
       // UI state flag to let us know if the list of projects has been loaded or not
@@ -49,7 +51,7 @@ class ProjectPage extends Component {
     this.refreshProjectsHandler = this.refreshProjectsHandler.bind(this);
     this.handleAddProject = this.handleAddProject.bind(this);
     this.handleCloseAddProject = this.handleCloseAddProject.bind(this);
-    this.handleLoadProjectTemplatesResponse = this.handleLoadProjectTemplatesResponse.bind(this);
+    this.handleLoadConfigurationResponse = this.handleLoadConfigurationResponse.bind(this);
     this.handleProjectListEntryMenu = this.handleProjectListEntryMenu.bind(this);
     this.handleCloseProjectListMenu = this.handleCloseProjectListMenu.bind(this);
     this.handleClickProjectListMenu = this.handleClickProjectListMenu.bind(this);
@@ -65,8 +67,8 @@ class ProjectPage extends Component {
     ipcRenderer.send(Messages.LOAD_PROJECT_LIST_REQUEST);
     ipcRenderer.on(Messages.LOAD_PROJECT_LIST_RESPONSE, this.handleLoadProjectListResponse);
 
-    ipcRenderer.send(Messages.LOAD_PROJECT_TEMPLATES_REQUEST);
-    ipcRenderer.on(Messages.LOAD_PROJECT_TEMPLATES_RESPONSE, this.handleLoadProjectTemplatesResponse);
+    ipcRenderer.send(Messages.LOAD_CONFIGURATION_REQUEST);
+    ipcRenderer.on(Messages.LOAD_CONFIGURATION_RESPONSE, this.handleLoadConfigurationResponse);
 
     ipcRenderer.on(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.on(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
@@ -79,7 +81,7 @@ class ProjectPage extends Component {
 
   componentWillUnmount() {
     ipcRenderer.removeListener(Messages.LOAD_PROJECT_LIST_RESPONSE, this.handleLoadProjectListResponse);
-    ipcRenderer.removeListener(Messages.LOAD_PROJECT_TEMPLATES_RESPONSE, this.handleLoadProjectTemplatesResponse);
+    ipcRenderer.removeListener(Messages.LOAD_CONFIGURATION_RESPONSE, this.handleLoadConfigurationResponse);
     ipcRenderer.removeListener(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.removeListener(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.removeListener(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
@@ -92,8 +94,11 @@ class ProjectPage extends Component {
     this.setState({...response, loaded: true});
   }
 
-  handleLoadProjectTemplatesResponse(sender, response) {
-    this.setState({projectTemplates: response.projectTemplates});
+  handleLoadConfigurationResponse(sender, response) {
+    this.setState({
+      projectTemplates: response.projectTemplates,
+      assetAttributes: response.assetAttributes
+    });
   }
 
   handleRefreshProjectLog() {
@@ -231,8 +236,14 @@ class ProjectPage extends Component {
             onAddProject={this.handleAddProject}
             onFavoriteClick={this.handleFavoriteClick}
             onMenuClick={this.handleProjectListEntryMenu}
-            onSelect={this.handleSelectProjectListItem}/>
-          <Project project={this.state.selectedProject} logs={this.state.selectedProjectLogs} onUpdated={this.handleProjectUpdate} />
+            onSelect={this.handleSelectProjectListItem}
+          />
+          <Project
+            project={this.state.selectedProject}
+            logs={this.state.selectedProjectLogs}
+            onUpdated={this.handleProjectUpdate}
+            configuration={{assetAttributes: this.state.assetAttributes}}
+          />
         </ResizablePanels>
         <CreateProjectDialog
           key={this.state.createProjectDialogKey}

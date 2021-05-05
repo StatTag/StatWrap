@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import fs from 'fs';
 import path from 'path';
 import AssetService from '../../../app/services/assets/asset';
@@ -100,6 +101,7 @@ describe('services', () => {
         expect(response).toEqual({
           uri: testUri,
           type: 'directory',
+          contentType: 'other',
           metadata: [],
           children: []
         });
@@ -125,16 +127,19 @@ describe('services', () => {
         expect(response).toEqual({
           uri: testUri,
           type: 'directory',
+          contentType: 'other',
           metadata: [],
           children: [
             {
               uri: path.join(testUri, 'Subdir1'),
               type: 'directory',
+              contentType: 'other',
               metadata: [],
               children: [
                 {
                   uri: path.join(testUri, 'Subdir1', 'File1'),
                   type: 'file',
+                  contentType: 'other',
                   metadata: []
                 }
               ]
@@ -142,6 +147,7 @@ describe('services', () => {
             {
               uri: path.join(testUri, 'File2'),
               type: 'file',
+              contentType: 'other',
               metadata: []
             }
           ]
@@ -165,6 +171,7 @@ describe('services', () => {
           uri: testUri,
           type: 'directory',
           children: [],
+          contentType: 'other',
           metadata: [{ id: 'Dummy1' }, { id: 'Dummy2' }]
         });
       });

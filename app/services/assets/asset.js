@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const Constants = require('../../constants/constants');
 
 export default class AssetService {
   // The list of handlers that are used for each asset.
@@ -36,6 +37,12 @@ export default class AssetService {
     return 'other';
   }
 
+  // Use a set of heuristics to guess the asset content type.  This will only be run
+  // if the contentType isn't already explicitly set.
+  assetContentType(details) {
+    return Constants.AssetContentType.OTHER;
+  }
+
   scan(uri) {
     // This will throw an error if it can't access the uri
     fs.accessSync(uri);
@@ -48,7 +55,12 @@ export default class AssetService {
       return result;
     }
 
-    const result = { uri, type: this.assetType(details), metadata: [] };
+    const result = {
+      uri,
+      type: this.assetType(details),
+      contentType: this.assetContentType(uri, details),
+      metadata: []
+    };
 
     // If this is a directory, we are going to traverse and get details
     // about the contained files and sub-folders

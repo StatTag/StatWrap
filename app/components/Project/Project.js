@@ -257,6 +257,37 @@ class Project extends Component<Props> {
     return actionDescription;
   };
 
+  assetUpdateAttributeHandler = (asset, name, value) => {
+    const project = { ...this.props.project };
+    const assetsCopy = { ...project.assets };
+
+    const existingAsset = AssetUtil.findDescendantAssetByUri(assetsCopy, asset.uri);
+    let actionDescription = '';
+    if (!existingAsset) {
+      console.warn('Could not find the asset to update its attribute');
+    } else {
+      actionDescription = `Updated ${asset.uri} attribute '${name}' to '${value}'`;
+    }
+
+    if (!existingAsset.attributes) {
+      existingAsset.attributes = {};
+    }
+
+    existingAsset.attributes[name] = value;
+    console.log(actionDescription);
+    console.log(existingAsset.attributes);
+    project.assets = assetsCopy;
+    if (this.props.onUpdated) {
+      this.props.onUpdated(
+        project,
+        ActionType.ATTRIBUTE_UPDATED,
+        `Asset ${ActionType.ATTRIBUTE_UPDATED}`,
+        actionDescription,
+        { name, value }
+      );
+    }
+  };
+
   assetDeleteNoteHandler = (asset, note) => {
     const project = { ...this.props.project };
     const assetsCopy = { ...project.assets };
@@ -324,6 +355,8 @@ class Project extends Component<Props> {
           onAddedAssetNote={this.assetUpsertNoteHandler}
           onUpdatedAssetNote={this.assetUpsertNoteHandler}
           onDeletedAssetNote={this.assetDeleteNoteHandler}
+          onUpdatedAssetAttribute={this.assetUpdateAttributeHandler}
+          assetAttributes={this.props.configuration.assetAttributes}
         />
       ) : null;
       const workflow = this.props.project ? <Workflow project={this.props.project} /> : null;
@@ -419,14 +452,19 @@ Project.propTypes = {
   //   logs: array<string>   - the actual log data
   //   errorMessage: string? - if set, the logs collection should be assumed invalid due to a load failure
   // }
-  logs: PropTypes.object
+  logs: PropTypes.object,
+  // This object has the following structure:
+  // {
+  // }
+  configuration: PropTypes.object
 };
 
 Project.defaultProps = {
   project: null,
   classes: null,
   onUpdated: null,
-  logs: null
+  logs: null,
+  configuration: null
 };
 
 Project.contextType = UserContext;

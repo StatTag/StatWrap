@@ -1,9 +1,45 @@
-# Discovering Assets
+# Assests
+
+## About
+
+Assets is the collective term used for anything that appears in a project. It is vague on purpose, because StatWrap tries to be accommodating of any type of 'thing' that belongs to your project. This more traditionally includes files and folders, but can also be URLs, databases, web services, etc.
+
+The only things assets need to have are a `uri` and a `type`.
+
+The structure of an asset is as follows:
+
+| Item          | Type   | Description                                                                                                                                                                    |
+| ------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `uri`         | String | The location of the asset. This must be unique within the project.                                                                                                             |
+| `name`        | String | Optional display name. If no name is provided, this will default to the `uri`                                                                                                  |
+| `type`        | String | The type of the asset. This is a more basic list that captures how the asset is interacted with, not necessarily what it contains. Examples include directory, file, URL, etc. |
+| `contentType` | String | Describe the type of content within the asset. This is more about what the asset does, not where it's stored. ]                                                                |
+| `attributes`  | Array  | A collection of objects containing additional attributes about the asset. The contents and composition of attributes is driven by the asset type                               |
+
+## Asset Attributes
+
+The master list of attributes is loaded from [app/constants/assets-config.js]. This returns the entire configuration object for assets, and the `attributes` element of this object has the attribute configuration.
+
+Each attribute entry is configured as follows:
+
+| Item      | Type   | Description                                                                                                      |
+| --------- | ------ | ---------------------------------------------------------------------------------------------------------------- |
+| `id`      | String | Unique human-readable identifier for the attribute. This should be unique across all attributes within StatWrap. |
+| `display` | String | The display label to use when rendering the attribute                                                            |
+| `details` | String | Extended descriptive information about how to interpret the attribute                                            |
+| `type`    | String | The type of attribute. This can include:                                                                         |
+
+- bool - a boolean/checkbox
+- text - a short string
+  |
+  | `appliesTo` | Array | The asset types that use this attribute |
+
+## Discovering Assets
 
 Asset discovery is going to be more than just files and folders, but that is where we're going to start initially.  
 For our initial work, we will start at the root of the project's file folder and recursively scan every file and folder. We want to make sure we're not being overly intrusive on anything the user has in their folders.
 
-## AssetService
+### AssetService
 
 The service in charge of asset discovery can be found in `app/services/assets/assets.js` (`AssetService`). It will have registered within it all of the specialized classes that is able to process each type of asset (called 'handlers'). Each one of these handlers can live in type-specific subdirectories under `app/services/assets/handlers`.
 

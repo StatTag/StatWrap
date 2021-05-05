@@ -7,7 +7,14 @@ import AssetUtil from '../../../utils/asset';
 import styles from './Assets.css';
 
 const assets = props => {
-  const { project, onAddedAssetNote, onUpdatedAssetNote, onDeletedAssetNote } = props;
+  const {
+    project,
+    onAddedAssetNote,
+    onUpdatedAssetNote,
+    onDeletedAssetNote,
+    onUpdatedAssetAttribute,
+    assetAttributes
+  } = props;
   const [selectedAsset, setSelectedAsset] = useState();
 
   // Because our project property can change, the asset that we have in state as the selected
@@ -32,6 +39,8 @@ const assets = props => {
         onAddedNote={onAddedAssetNote}
         onUpdatedNote={onUpdatedAssetNote}
         onDeletedNote={onDeletedAssetNote}
+        onUpdatedAttribute={onUpdatedAssetAttribute}
+        assetAttributes={assetAttributes}
       />
     ) : null;
     if (project.assets) {

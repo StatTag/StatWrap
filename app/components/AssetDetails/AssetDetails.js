@@ -5,6 +5,7 @@ import MuiAccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import AssetAttributes from '../AssetAttributes/AssetAttributes';
 import NoteEditor from '../NoteEditor/NoteEditor';
 import styles from './AssetDetails.css';
 
@@ -13,21 +14,28 @@ const AccordionSummary = withStyles({
     backgroundColor: 'rgba(0, 0, 0, .03)',
     borderBottom: '1px solid rgba(0, 0, 0, .125)',
     marginBottom: -1,
-    minHeight: 48,
+    minHeight: 32,
     '&$expanded': {
-      minHeight: 48
+      minHeight: 32
     }
   },
   content: {
     '&$expanded': {
-      margin: '12px 0'
+      margin: '6px 0'
     }
   },
   expanded: {}
 })(MuiAccordionSummary);
 
 const assetDetails = props => {
-  const { asset, onAddedNote, onUpdatedNote, onDeletedNote } = props;
+  const {
+    asset,
+    onAddedNote,
+    onUpdatedNote,
+    onDeletedNote,
+    onUpdatedAttribute,
+    assetAttributes
+  } = props;
   const updatedNoteHandler = (note, text) => {
     if (note) {
       if (onUpdatedNote) {
@@ -44,10 +52,33 @@ const assetDetails = props => {
     }
   };
 
+  const updateAssetAttribute = (name, value) => {
+    if (onUpdatedAttribute) {
+      onUpdatedAttribute(asset, name, value);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.title}>{asset.uri}</div>
-      <Accordion expanded>
+      <Accordion>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="notes-attributes"
+          id="attributes-header"
+          className={styles.heading}
+        >
+          <Typography className={styles.headingTitle}>Attributes</Typography>
+        </AccordionSummary>
+        <AccordionDetails className={styles.details}>
+          <AssetAttributes
+            asset={asset}
+            configuration={assetAttributes}
+            onUpdateAttribute={updateAssetAttribute}
+          />
+        </AccordionDetails>
+      </Accordion>
+      <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="notes-content"

@@ -26,6 +26,7 @@ import PythonHandler from './services/assets/handlers/python';
 import RHandler from './services/assets/handlers/r';
 import Messages from './constants/messages';
 import Constants from './constants/constants';
+import AssetsConfig from './constants/assets-config';
 
 export default class AppUpdater {
   constructor() {
@@ -177,9 +178,10 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
   event.sender.send(Messages.LOAD_PROJECT_LIST_RESPONSE, response);
 });
 
-ipcMain.on(Messages.LOAD_PROJECT_TEMPLATES_REQUEST, async event => {
+ipcMain.on(Messages.LOAD_CONFIGURATION_REQUEST, async event => {
   const response = {
     projectTemplates: null,
+    assetAttributes: null,
     error: false,
     errorMessage: ''
   };
@@ -188,15 +190,21 @@ ipcMain.on(Messages.LOAD_PROJECT_TEMPLATES_REQUEST, async event => {
     response.projectTemplates = projectTemplateService.loadProjectTemplates(
       path.join(__dirname, './templates')
     );
-    response.error = false;
-    response.errorMessage = '';
   } catch (e) {
     response.error = true;
     response.errorMessage = 'There was an unexpected error when loading the list of project types';
     console.log(e);
   }
 
-  event.sender.send(Messages.LOAD_PROJECT_TEMPLATES_RESPONSE, response);
+  try {
+    response.assetAttributes = AssetsConfig.attributes;
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = `${response.errorMessage}\r\nThere was an unexpected error when loading the list of asset attributes`.trim();
+    console.log(e);
+  }
+
+  event.sender.send(Messages.LOAD_CONFIGURATION_RESPONSE, response);
 });
 
 ipcMain.on(Messages.TOGGLE_PROJECT_FAVORITE_REQUEST, async (event, projectId) => {

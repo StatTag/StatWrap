@@ -19,6 +19,13 @@ module.exports = {
     FILE: 'file'
   },
 
+  AssetContentType: {
+    CODE: 'code',
+    DATA: 'data',
+    DOCUMENTATION: 'documentation',
+    OTHER: 'other'
+  },
+
   StatWrapFiles: {
     BASE_FOLDER: '.statwrap',
     LOG: '.statwrap.log'
@@ -28,6 +35,8 @@ module.exports = {
     NOTE_ADDED: 'Note Added',
     NOTE_UPDATED: 'Note Updated',
     NOTE_DELETED: 'Note Deleted',
+
+    ATTRIBUTE_UPDATED: 'Attribute Updated',
 
     PROJECT_CREATED: 'Project Created',
 
