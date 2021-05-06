@@ -516,64 +516,68 @@ describe('services', () => {
       });
     });
 
-    describe('addNotesToAssets', () => {
+    describe('addNotesAndAttributesToAssets', () => {
       it('should throw errors when the parameters are not defined', () => {
         const service = new ProjectService();
-        expect(() => service.addNotesToAssets(null, null)).toThrow(
+        expect(() => service.addNotesAndAttributesToAssets(null, null)).toThrow(
           'The assets object must be specified'
         );
-        expect(() => service.addNotesToAssets(undefined, undefined)).toThrow(
+        expect(() => service.addNotesAndAttributesToAssets(undefined, undefined)).toThrow(
           'The assets object must be specified'
         );
-        expect(() => service.addNotesToAssets(null, {})).toThrow(
+        expect(() => service.addNotesAndAttributesToAssets(null, {})).toThrow(
           'The assets object must be specified'
         );
-        expect(() => service.addNotesToAssets(undefined, {})).toThrow(
+        expect(() => service.addNotesAndAttributesToAssets(undefined, {})).toThrow(
           'The assets object must be specified'
         );
-        expect(() => service.addNotesToAssets({}, null)).toThrow(
-          'The assets object with notes must be specified'
+        expect(() => service.addNotesAndAttributesToAssets({}, null)).toThrow(
+          'The assets object with notes and attributes must be specified'
         );
-        expect(() => service.addNotesToAssets({}, undefined)).toThrow(
-          'The assets object with notes must be specified'
+        expect(() => service.addNotesAndAttributesToAssets({}, undefined)).toThrow(
+          'The assets object with notes and attributes must be specified'
         );
       });
 
-      it('will initialize the root asset notes even if it does not exist', () => {
+      it('will initialize the root asset notes and attributes even if they do not exist', () => {
         const service = new ProjectService();
         const assets = { uri: '/Test/Asset' };
         const assetsWithNotes = { uri: '/Test/Asset ' };
 
         // Test when notes isn't defined
-        let updatedAssets = service.addNotesToAssets(assets, assetsWithNotes);
+        let updatedAssets = service.addNotesAndAttributesToAssets(assets, assetsWithNotes);
         expect(updatedAssets.notes).toBeDefined();
         expect(updatedAssets.notes.length).toBe(0);
+        expect(updatedAssets.attributes).toEqual({});
 
         // Test when notes is explicitly null
         assetsWithNotes.notes = null;
-        updatedAssets = service.addNotesToAssets(assets, assetsWithNotes);
+        updatedAssets = service.addNotesAndAttributesToAssets(assets, assetsWithNotes);
         expect(updatedAssets.notes).toBeDefined();
         expect(updatedAssets.notes.length).toBe(0);
+        expect(updatedAssets.attributes).toEqual({});
 
         // Test when notes is explicitly undefined
         assetsWithNotes.notes = undefined;
-        updatedAssets = service.addNotesToAssets(assets, assetsWithNotes);
+        updatedAssets = service.addNotesAndAttributesToAssets(assets, assetsWithNotes);
         expect(updatedAssets.notes).toBeDefined();
         expect(updatedAssets.notes.length).toBe(0);
+        expect(updatedAssets.attributes).toEqual({});
       });
 
-      it('will copy over the notes for the root asset', () => {
+      it('will copy over the notes and attributes for the root asset', () => {
         const service = new ProjectService();
         const assets = { uri: '/Test/Asset' };
-        const assetsWithNotes = { uri: '/Test/Asset ', notes: [{ id: '1', content: 'Test' }] };
+        const assetsWithNotes = { uri: '/Test/Asset ', notes: [{ id: '1', content: 'Test' }], attributes: { test: true } };
 
-        const updatedAssets = service.addNotesToAssets(assets, assetsWithNotes);
+        const updatedAssets = service.addNotesAndAttributesToAssets(assets, assetsWithNotes);
         expect(updatedAssets.notes).toBeDefined();
         expect(updatedAssets.notes.length).toBe(1);
         expect(updatedAssets.notes[0]).toEqual(assetsWithNotes.notes[0]);
+        expect(updatedAssets.attributes).toEqual(assetsWithNotes.attributes);
       });
 
-      it('will copy over the notes for the child and descendant assets', () => {
+      it('will copy over the notes and attributes for the child and descendant assets', () => {
         const service = new ProjectService();
         const assets = {
           uri: '/Test/Asset',
@@ -590,21 +594,25 @@ describe('services', () => {
         };
         const assetsWithNotes = {
           uri: '/Test/Asset',
+          attributes: { test: 0 },
           children: [
             {
               uri: '/Test/Asset/1',
+              attributes: { test: 1 },
               children: [{ uri: '/Test/Asset/1/a', notes: [{ id: '3', content: 'Test 3' }] }],
               notes: [{ id: '2', content: 'Test 2' }]
             }
           ]
         };
 
-        const updatedAssets = service.addNotesToAssets(assets, assetsWithNotes);
+        const updatedAssets = service.addNotesAndAttributesToAssets(assets, assetsWithNotes);
         expect(updatedAssets.children[0].notes[0]).toEqual(assetsWithNotes.children[0].notes[0]);
+        expect(updatedAssets.children[0].attributes).toEqual({ test: 1 });
         expect(updatedAssets.children[0].children[0].notes[0]).toEqual(
           assetsWithNotes.children[0].children[0].notes[0]
         );
         expect(updatedAssets.children[1].notes.length).toBe(0);
+        expect(updatedAssets.children[1].attributes).toEqual({});
       });
     });
 

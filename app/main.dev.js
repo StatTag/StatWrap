@@ -382,7 +382,7 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
     if (!projectConfig.assets) {
       console.log('No assets registered with the project - assuming this is a newly added project');
     } else {
-      projectService.addNotesToAssets(response.assets, projectConfig.assets);
+      projectService.addNotesAndAttributesToAssets(response.assets, projectConfig.assets);
     }
 
     // When we scan a project, we need to detect all possible changes that could exist from the existing

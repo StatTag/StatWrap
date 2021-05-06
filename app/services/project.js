@@ -238,30 +238,32 @@ export default class ProjectService {
    * will modify the assets object directly, but will also return the assets object.
    *
    * @param {object} assets The assets object to merge notes into.  Any notes already in the assets will be replaced.
-   * @param {object} assetsWithNotes The assets with notes that we will read notes from.
+   * @param {object} assetsWithData The assets with notes and attributes that we will copy from.
    */
-  addNotesToAssets(assets, assetsWithNotes) {
+   addNotesAndAttributesToAssets(assets, assetsWithData) {
     if (!assets) {
       throw new Error('The assets object must be specified');
-    } else if (!assetsWithNotes) {
-      throw new Error('The assets object with notes must be specified');
+    } else if (!assetsWithData) {
+      throw new Error('The assets object with notes and attributes must be specified');
     }
 
     // First, add in any notes for the root asset. If they are not specified, create an
     // empty array.
-    assets.notes = assetsWithNotes.notes || [];
+    assets.notes = assetsWithData.notes || [];
+    assets.attributes = assetsWithData.attributes || {};
 
     // If there are children, process those next.  We will only do this if there is a
-    // corresponding child in the assetsWithNotes object.  We anticipate there can be
+    // corresponding child in the assetsWithData object.  We anticipate there can be
     // mismatch in these objects, so this situation is not an error.
     if (assets.children) {
       for (let index = 0; index < assets.children.length; index++) {
         const childAsset = assets.children[index];
-        const childAssetWithNotes = AssetUtil.findChildAssetByUri(assetsWithNotes, childAsset.uri);
-        if (childAssetWithNotes) {
-          this.addNotesToAssets(assets.children[index], childAssetWithNotes);
+        const childAssetWithData = AssetUtil.findChildAssetByUri(assetsWithData, childAsset.uri);
+        if (childAssetWithData) {
+          this.addNotesAndAttributesToAssets(assets.children[index], childAssetWithData);
         } else {
           assets.children[index].notes = [];
+          assets.children[index].attributes = {};
         }
       }
     }

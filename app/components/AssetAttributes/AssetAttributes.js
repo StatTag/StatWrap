@@ -29,7 +29,6 @@ const assetAttributes = props => {
           asset.attributes && asset.attributes[a.id] !== undefined
             ? asset.attributes[a.id]
             : a.default;
-        console.log(value);
         control = (
           <FormControlLabel
             label={a.display}

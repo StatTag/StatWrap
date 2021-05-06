@@ -257,6 +257,12 @@ class Project extends Component<Props> {
     return actionDescription;
   };
 
+  /**
+   * Handler for when an asset's attribute (a flexible collection of items) is updated
+   * @param {object} asset The asset that has had its attribute updated
+   * @param {object} name The name of the attribute that is updated
+   * @param {any} value The value of the updated attribute.  Its type depends on the configuration of the attribute.
+   */
   assetUpdateAttributeHandler = (asset, name, value) => {
     const project = { ...this.props.project };
     const assetsCopy = { ...project.assets };
@@ -274,8 +280,6 @@ class Project extends Component<Props> {
     }
 
     existingAsset.attributes[name] = value;
-    console.log(actionDescription);
-    console.log(existingAsset.attributes);
     project.assets = assetsCopy;
     if (this.props.onUpdated) {
       this.props.onUpdated(
