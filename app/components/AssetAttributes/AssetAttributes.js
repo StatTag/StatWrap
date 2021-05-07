@@ -13,7 +13,7 @@ const assetAttributes = props => {
   const applicableAttributes = configuration
     .map(a => {
       // If the attribute doesn't apply to this asset, skip it
-      if (!a.appliesTo.includes(a.contentType) && !a.appliesTo.includes('*')) {
+      if (!a.appliesTo.includes(asset.contentType) && !a.appliesTo.includes('*')) {
         return null;
       }
       return a;

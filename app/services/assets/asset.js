@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const Constants = require('../../constants/constants');
+const AssetsConfig = require('../../constants/assets-config');
 
 export default class AssetService {
   // The list of handlers that are used for each asset.
@@ -39,7 +40,18 @@ export default class AssetService {
 
   // Use a set of heuristics to guess the asset content type.  This will only be run
   // if the contentType isn't already explicitly set.
-  assetContentType(details) {
+  assetContentType(uri, details) {
+    if (!uri || !details || !details.isFile()) {
+      return Constants.AssetContentType.OTHER;
+    }
+
+    for (let typeIndex = 0; typeIndex < AssetsConfig.contentTypes.length; typeIndex++) {
+      const { patterns, type } = AssetsConfig.contentTypes[typeIndex];
+      if (patterns && type && patterns.length > 0 && patterns.some(regex => regex.test(uri))) {
+        return type;
+      }
+    }
+
     return Constants.AssetContentType.OTHER;
   }
 

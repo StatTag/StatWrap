@@ -58,6 +58,8 @@ const assetDetails = props => {
     }
   };
 
+  console.log(asset);
+
   return (
     <div className={styles.container}>
       <div className={styles.title}>{asset.uri}</div>
