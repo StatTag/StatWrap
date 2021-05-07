@@ -49,8 +49,8 @@ module.exports = {
     {
       type: 'data',
       patterns: [
-        // General: .csv, .tsv, .xls, .xlsx
-        /^.+\.(csv|tsv|xls|xlsx)$/i,
+        // General: .csv, .tsv, .xls, .xlsx, .parquet, .json, .xml
+        /^.+\.(csv|tsv|xls|xlsx|parquet|xml|json)$/i,
         // R: .rdata, .rda
         /^.+\.dta$/i,
         // SAS: .sas7bdat, .sas7bvew, .sas7bndx, .sd7, .sv7, si7

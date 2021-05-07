@@ -345,11 +345,17 @@ describe('services', () => {
         expect(service.assetContentType('test.tsv', stat)).toBe('data');
         expect(service.assetContentType('test.xls', stat)).toBe('data');
         expect(service.assetContentType('test.xlsx', stat)).toBe('data');
+        expect(service.assetContentType('test.parquet', stat)).toBe('data');
+        expect(service.assetContentType('test.xml', stat)).toBe('data');
+        expect(service.assetContentType('test.json', stat)).toBe('data');
         expect(service.assetContentType('test.CSV', stat)).toBe('data');
         expect(service.assetContentType('test.TSV', stat)).toBe('data');
         expect(service.assetContentType('test.XlS', stat)).toBe('data');
         expect(service.assetContentType('test.XlSx', stat)).toBe('data');
         expect(service.assetContentType('test.XLSx', stat)).toBe('data');
+        expect(service.assetContentType('test.PARquet', stat)).toBe('data');
+        expect(service.assetContentType('test.xML', stat)).toBe('data');
+        expect(service.assetContentType('test.JSON', stat)).toBe('data');
         // False leads...
         expect(service.assetContentType('test.csvs', stat)).toBe('other');
         expect(service.assetContentType('test.sv', stat)).toBe('other');
