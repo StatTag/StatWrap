@@ -8,7 +8,6 @@
  * When running `yarn build` or `yarn build-main`, this file is compiled to
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  *
- * @flow
  */
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
@@ -129,6 +128,43 @@ app.on('activate', () => {
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) createWindow();
 });
+
+const saveProject = project => {
+  const response = {
+    project,
+    error: false,
+    errorMessage: ''
+  };
+
+  try {
+    if (project && project.id && project.path) {
+      let projectConfig = projectService.loadProjectFile(project.path);
+      if (!projectConfig) {
+        projectConfig = projectService.createProjectConfig(project.id, project.name);
+      }
+      projectConfig.description = project.description;
+      projectConfig.categories = project.categories;
+      projectConfig.assets = project.assets;
+      projectConfig.notes = project.notes;
+      projectService.saveProjectFile(project.path, projectConfig);
+
+      // Reload the project configuration.  Depending on what's changed, we may need to re-load it
+      // to reinstantiate certain data elements, like linked description files.
+      const updatedProjectConfig = projectService.loadProjectFile(project.path);
+      response.project.description = updatedProjectConfig.description;
+    } else {
+      response.error = true;
+      response.errorMessage =
+        'No project was specified to be saved - this is an unexpected internal error.';
+    }
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = 'There was an unexpected error when trying to save the project';
+    console.log(e);
+  }
+
+  return response;
+};
 
 ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
   const response = {
@@ -393,9 +429,15 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
     response.project.categories = projectConfig.categories;
     response.project.description = projectConfig.description;
     response.project.notes = projectConfig.notes;
+    response.project.assets = response.assets;
 
-    response.error = false;
-    response.errorMessage = '';
+    const saveResponse = saveProject(response.project);
+    console.log(saveResponse.project.assets);
+    response.project = saveResponse.project; // Pick up any enrichment from saveProject
+    if (saveResponse.error) {
+      response.error = saveResponse.error;
+      response.errorMessage = saveResponse.errorMessage;
+    }
   } catch (e) {
     response.error = true;
     response.errorMessage =
@@ -486,38 +528,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
 // Given a project, update its information and save that information to the project configuration
 // file.
 ipcMain.on(Messages.UPDATE_PROJECT_REQUEST, async (event, project) => {
-  const response = {
-    project,
-    error: false,
-    errorMessage: ''
-  };
-
-  try {
-    if (project && project.id && project.path) {
-      let projectConfig = projectService.loadProjectFile(project.path);
-      if (!projectConfig) {
-        projectConfig = projectService.createProjectConfig(project.id, project.name);
-      }
-      projectConfig.description = project.description;
-      projectConfig.categories = project.categories;
-      projectConfig.assets = project.assets;
-      projectConfig.notes = project.notes;
-      projectService.saveProjectFile(project.path, projectConfig);
-
-      // Reload the project configuration.  Depending on what's changed, we may need to re-load it
-      // to reinstantiate certain data elements, like linked description files.
-      const updatedProjectConfig = projectService.loadProjectFile(project.path);
-      response.project.description = updatedProjectConfig.description;
-    } else {
-      response.error = true;
-      response.errorMessage =
-        'No project was specified to be updated - this is an unexpected internal error.';
-    }
-  } catch (e) {
-    response.error = true;
-    response.errorMessage = 'There was an unexpected error when trying to create the project';
-    console.log(e);
-  }
+  const response = saveProject(project);
 
   // console.log(response);
   // await sleep(5000);

@@ -1,4 +1,3 @@
-// @flow
 import { app, Menu, shell, BrowserWindow } from 'electron';
 
 export default class MenuBuilder {
@@ -9,17 +8,12 @@ export default class MenuBuilder {
   }
 
   buildMenu() {
-    if (
-      process.env.NODE_ENV === 'development' ||
-      process.env.DEBUG_PROD === 'true'
-    ) {
+    if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true') {
       this.setupDevelopmentEnvironment();
     }
 
     const template =
-      process.platform === 'darwin'
-        ? this.buildDarwinTemplate()
-        : this.buildDefaultTemplate();
+      process.platform === 'darwin' ? this.buildDarwinTemplate() : this.buildDefaultTemplate();
 
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
@@ -148,34 +142,25 @@ export default class MenuBuilder {
         {
           label: 'Learn More',
           click() {
-            shell.openExternal('http://electron.atom.io');
+            shell.openExternal('https://sites.northwestern.edu/stattag/');
           }
         },
         {
           label: 'Documentation',
           click() {
-            shell.openExternal(
-              'https://github.com/atom/electron/tree/master/docs#readme'
-            );
-          }
-        },
-        {
-          label: 'Community Discussions',
-          click() {
-            shell.openExternal('https://discuss.atom.io/c/electron');
+            shell.openExternal('https://sites.northwestern.edu/stattag/');
           }
         },
         {
           label: 'Search Issues',
           click() {
-            shell.openExternal('https://github.com/atom/electron/issues');
+            shell.openExternal('https://github.com/StatTag/StatWrap/issues');
           }
         }
       ]
     };
 
-    const subMenuView =
-      process.env.NODE_ENV === 'development' ? subMenuViewDev : subMenuViewProd;
+    const subMenuView = process.env.NODE_ENV === 'development' ? subMenuViewDev : subMenuViewProd;
 
     return [subMenuAbout, subMenuEdit, subMenuView, subMenuWindow, subMenuHelp];
   }
@@ -214,9 +199,7 @@ export default class MenuBuilder {
                   label: 'Toggle &Full Screen',
                   accelerator: 'F11',
                   click: () => {
-                    this.mainWindow.setFullScreen(
-                      !this.mainWindow.isFullScreen()
-                    );
+                    this.mainWindow.setFullScreen(!this.mainWindow.isFullScreen());
                   }
                 },
                 {
@@ -232,9 +215,7 @@ export default class MenuBuilder {
                   label: 'Toggle &Full Screen',
                   accelerator: 'F11',
                   click: () => {
-                    this.mainWindow.setFullScreen(
-                      !this.mainWindow.isFullScreen()
-                    );
+                    this.mainWindow.setFullScreen(!this.mainWindow.isFullScreen());
                   }
                 }
               ]
@@ -245,27 +226,19 @@ export default class MenuBuilder {
           {
             label: 'Learn More',
             click() {
-              shell.openExternal('http://electron.atom.io');
+              shell.openExternal('https://sites.northwestern.edu/stattag/');
             }
           },
           {
             label: 'Documentation',
             click() {
-              shell.openExternal(
-                'https://github.com/atom/electron/tree/master/docs#readme'
-              );
-            }
-          },
-          {
-            label: 'Community Discussions',
-            click() {
-              shell.openExternal('https://discuss.atom.io/c/electron');
+              shell.openExternal('https://sites.northwestern.edu/stattag/');
             }
           },
           {
             label: 'Search Issues',
             click() {
-              shell.openExternal('https://github.com/atom/electron/issues');
+              shell.openExternal('https://github.com/StatTag/StatWrap/issues');
             }
           }
         ]
