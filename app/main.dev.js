@@ -432,7 +432,6 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
     response.project.assets = response.assets;
 
     const saveResponse = saveProject(response.project);
-    console.log(saveResponse.project.assets);
     response.project = saveResponse.project; // Pick up any enrichment from saveProject
     if (saveResponse.error) {
       response.error = saveResponse.error;
