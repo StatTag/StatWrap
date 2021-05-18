@@ -251,7 +251,7 @@ describe('services', () => {
         expect(WorkflowUtil.getAllDependenciesAsTree(undefined)).toBeNull();
       });
 
-      it('should generate a structure even if there are no children', () => {
+      it.onMac('should generate a structure even if there are no children', () => {
         expect(WorkflowUtil.getAllDependenciesAsTree({ uri: '/test/1' })).toEqual({
           name: '1',
           children: null,
@@ -260,8 +260,17 @@ describe('services', () => {
           }
         });
       });
+      it.onWindows('should generate a structure even if there are no children', () => {
+        expect(WorkflowUtil.getAllDependenciesAsTree({ uri: 'C:\\test\\1' })).toEqual({
+          name: '1',
+          children: null,
+          attributes: {
+            assetType: 'generic'
+          }
+        });
+      });
 
-      it('should generate a structure with children', () => {
+      it.onMac('should generate a structure with children', () => {
         const asset = {
           uri: '/test/1',
           children: [
@@ -288,6 +297,102 @@ describe('services', () => {
             },
             {
               uri: '/test/1/2',
+              metadata: [
+                {
+                  id: 'StatWrap.PythonHandler',
+                  libraries: [
+                    {
+                      id: 'sys',
+                      module: 'sys',
+                      import: null,
+                      alias: null
+                    },
+                    // Scenario if a Python file includes the same module twice
+                    {
+                      id: 'sys',
+                      module: 'sys',
+                      import: null,
+                      alias: null
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        };
+        expect(WorkflowUtil.getAllDependenciesAsTree(asset)).toEqual({
+          name: '1',
+          children: [
+            {
+              name: '1',
+              attributes: {
+                assetType: 'generic'
+              },
+              children: [
+                {
+                  name: '1',
+                  attributes: {
+                    assetType: 'python'
+                  },
+                  children: [
+                    {
+                      name: 'sys',
+                      attributes: {
+                        assetType: 'dependency'
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: '2',
+              children: [
+                {
+                  name: 'sys',
+                  attributes: {
+                    assetType: 'dependency'
+                  }
+                }
+              ],
+              attributes: {
+                assetType: 'python'
+              }
+            }
+          ],
+          attributes: {
+            assetType: 'generic'
+          }
+        });
+      });
+
+      it.onWindows('should generate a structure with children', () => {
+        const asset = {
+          uri: 'C:\\test\\1',
+          children: [
+            {
+              uri: 'C:\\test\\1\\1',
+              children: [
+                {
+                  uri: 'C:\\test\\1\\1\\1',
+                  metadata: [
+                    {
+                      id: 'StatWrap.PythonHandler',
+                      libraries: [
+                        {
+                          id: 'sys',
+                          module: 'sys',
+                          import: null,
+                          alias: null
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              uri: 'C:\\test\\1\\2',
               metadata: [
                 {
                   id: 'StatWrap.PythonHandler',

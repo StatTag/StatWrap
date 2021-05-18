@@ -25,7 +25,7 @@ const projectWithLinkedDescriptionString = `{
   "id": "d01d2925-f6ff-4f8e-988f-fca2ee193427",
   "name": "Test 1",
   "tags": [ "tag1", "tag2", "tag3" ],
-  "description": { "contentType": "URI", "uri": "${DESCRIPTION_FILE_PATH}" }
+  "description": { "contentType": "URI", "uri": "${DESCRIPTION_FILE_PATH.replace(/\\/g, '\\\\')}" }
 }`;
 
 const invalidProjectString = `{
