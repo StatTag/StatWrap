@@ -13,13 +13,14 @@ import Welcome from '../Welcome/Welcome';
 import About from './About/About';
 import Assets from './Assets/Assets';
 import Workflow from '../Workflow/Workflow';
+import People from '../People/People';
 import ProjectLog from '../ProjectLog/ProjectLog';
 import ProjectNotes from '../ProjectNotes/ProjectNotes';
 import { ActionType, DescriptionContentType } from '../../constants/constants';
 import AssetUtil from '../../utils/asset';
 import NoteUtil from '../../utils/note';
 import styles from './Project.css';
-import UserContext from '../User/User';
+import UserContext from '../../contexts/User';
 
 type Props = {};
 
@@ -378,6 +379,8 @@ class Project extends Component<Props> {
         <ProjectNotes project={this.props.project} />
       ) : null;
 
+      const people = this.props.project ? <People project={this.props.project} /> : null;
+
       const projectLog =
         this.props.project && this.props.logs ? (
           <ProjectLog
@@ -410,7 +413,6 @@ class Project extends Component<Props> {
               <Tab label="Assets" value="assets" classes={tabStyle} />
               <Tab label="Workflows" value="workflows" classes={tabStyle} />
               <Tab label="People" value="people" classes={tabStyle} />
-              <Tab label="References" value="references" classes={tabStyle} />
               <Tab label="Notes" value="projectNotes" classes={tabStyle} />
               <Tab label="Project Log" value="projectLog" classes={tabStyle} />
             </Tabs>
@@ -425,10 +427,7 @@ class Project extends Component<Props> {
             {workflow}
           </TabPanel>
           <TabPanel value="people" classes={tabPanelStyle}>
-            TBD
-          </TabPanel>
-          <TabPanel value="references" classes={tabPanelStyle}>
-            TBD
+            {people}
           </TabPanel>
           <TabPanel value="projectNotes" classes={tabPanelStyle}>
             {projectNotes}

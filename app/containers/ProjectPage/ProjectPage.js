@@ -9,7 +9,7 @@ import Project from '../../components/Project/Project';
 import CreateProjectDialog from '../CreateProjectDialog/CreateProjectDialog';
 import ProjectListEntryMenu from '../../components/Projects/ProjectListEntryMenu/ProjectListEntryMenu';
 import styles from './ProjectPage.css';
-import UserContext from '../../components/User/User';
+import UserContext from '../../contexts/User';
 
 import Messages from '../../constants/messages';
 

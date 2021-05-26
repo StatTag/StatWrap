@@ -1,0 +1,16 @@
+.container {
+  padding: 15px;
+  margin: 15px;
+  background-color: #eee;
+  border: solid 1px gray;
+  border-radius: 10px;
+  width: 350px;
+}
+
+.icon {
+  margin-right: 10px;
+}
+
+.name {
+  display: inline-block;
+}

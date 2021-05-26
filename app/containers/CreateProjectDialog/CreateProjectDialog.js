@@ -15,7 +15,7 @@ import ExistingDirectory from '../../components/ExistingDirectory/ExistingDirect
 import NewDirectory from '../../components/NewDirectory/NewDirectory';
 import CloneDirectory from './CloneDirectory/CloneDirectory';
 import Error from '../../components/Error/Error';
-import UserContext from '../../components/User/User';
+import UserContext from '../../contexts/User';
 
 import styles from './CreateProjectDialog.css';
 import Messages from '../../constants/messages';
