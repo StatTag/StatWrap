@@ -31,12 +31,12 @@ export default class App extends React.Component {
     super(props);
     this.state = { user: 'StatWrap' };
 
-    this.handleLoadSystemInfoResponse = this.handleLoadSystemInfoResponse.bind(this);
+    this.handleLoadUserInfoResponse = this.handleLoadUserInfoResponse.bind(this);
   }
 
   componentDidMount() {
-    ipcRenderer.send(Messages.LOAD_SYSTEM_INFO_REQUEST);
-    ipcRenderer.on(Messages.LOAD_SYSTEM_INFO_RESPONSE, this.handleLoadSystemInfoResponse);
+    ipcRenderer.send(Messages.LOAD_USER_INFO_REQUEST);
+    ipcRenderer.on(Messages.LOAD_USER_INFO_RESPONSE, this.handleLoadUserInfoResponse);
   }
 
   componentWillUnmount() {
@@ -46,7 +46,7 @@ export default class App extends React.Component {
     );
   }
 
-  handleLoadSystemInfoResponse(sender, response) {
+  handleLoadUserInfoResponse(sender, response) {
     console.log(response);
     this.setState({ user: response.user });
   }

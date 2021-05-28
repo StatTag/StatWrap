@@ -12,7 +12,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import path from 'path';
-import username from 'username';
 import log from 'electron-log';
 import winston from 'winston';
 import MenuBuilder from './menu';
@@ -20,6 +19,7 @@ import ProjectService from './services/project';
 import ProjectListService, { DefaultProjectListFile } from './services/projectList';
 import ProjectTemplateService from './services/projectTemplate';
 import AssetService from './services/assets/asset';
+import UserService from './services/user';
 import FileHandler from './services/assets/handlers/file';
 import PythonHandler from './services/assets/handlers/python';
 import RHandler from './services/assets/handlers/r';
@@ -535,22 +535,24 @@ ipcMain.on(Messages.UPDATE_PROJECT_REQUEST, async (event, project) => {
 });
 
 // Perform all system information gathering
-ipcMain.on(Messages.LOAD_SYSTEM_INFO_REQUEST, async event => {
+ipcMain.on(Messages.LOAD_USER_INFO_REQUEST, async event => {
   const response = {
     user: Constants.UndefinedDefaults.USER,
+    directory: [],
     error: false,
     errorMessage: ''
   };
 
   (async () => {
+    const service = new UserService();
     try {
-      const user = await username();
-      response.user = user;
+      response.user = await service.getUser();
+      response.settings = service.loadUserSettingsFromFile();
     } catch (e) {
       response.error = true;
-      response.errorMessage = 'There was an unexpected error when gathering system information';
+      response.errorMessage = 'There was an unexpected error when gathering user information';
       console.log(e);
     }
-    event.sender.send(Messages.LOAD_SYSTEM_INFO_RESPONSE, response);
+    event.sender.send(Messages.LOAD_USER_INFO_RESPONSE, response);
   })();
 });

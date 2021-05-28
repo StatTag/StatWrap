@@ -19,8 +19,8 @@ module.exports = {
   REMOVE_PROJECT_LIST_ENTRY_REQUEST: 'statwrap-remove-project-list-entry-request',
   REMOVE_PROJECT_LIST_ENTRY_RESPONSE: 'statwrap-remove-project-list-entry-response',
 
-  LOAD_SYSTEM_INFO_REQUEST: 'statwrap-load-system-info-request',
-  LOAD_SYSTEM_INFO_RESPONSE: 'statwrap-load-system-info-response',
+  LOAD_USER_INFO_REQUEST: 'statwrap-load-user-info-request',
+  LOAD_USER_INFO_RESPONSE: 'statwrap-load-user-info-response',
 
   WRITE_PROJECT_LOG_REQUEST: 'statwrap-write-project-log-request',
   WRITE_PROJECT_LOG_RESPONSE: 'statwrap-write-project-log-response',
