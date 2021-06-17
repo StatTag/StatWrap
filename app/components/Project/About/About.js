@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/no-children-prop */
 /* eslint-disable react/forbid-prop-types */
 import React, { useState } from 'react';

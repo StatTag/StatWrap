@@ -25,5 +25,8 @@ module.exports = {
   WRITE_PROJECT_LOG_REQUEST: 'statwrap-write-project-log-request',
   WRITE_PROJECT_LOG_RESPONSE: 'statwrap-write-project-log-response',
   LOAD_PROJECT_LOG_REQUEST: 'statwrap-load-project-log-request',
-  LOAD_PROJECT_LOG_RESPONSE: 'statwrap-load-project-log-response'
+  LOAD_PROJECT_LOG_RESPONSE: 'statwrap-load-project-log-response',
+
+  CREATE_UPDATE_PERSON_REQUEST: 'statwrap-create-update-person-request',
+  CREATE_UPDATE_PERSON_RESPONSE: 'statwrap-create-update-person-response'
 };

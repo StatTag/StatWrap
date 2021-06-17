@@ -1,4 +1,4 @@
-// import { v4 as uuid } from 'uuid';
+import { v4 as uuid } from 'uuid';
 import username from 'username';
 // import Constants from '../constants/constants';
 
@@ -49,5 +49,57 @@ export default class UserService {
    */
   saveUserSettingsToFile(settings, filePath = DefaultSettingsFile) {
     fs.writeFileSync(filePath, JSON.stringify(settings));
+  }
+
+  /**
+   * Utility function to handle adding or updating a person within the user's directory
+   * of people.
+   * @param {object} settings The user settings object, assumed to be recently loaded.
+   * @param {object} person The person to add to the user's directory
+   * @returns bool if the upsert succeeded or not.  If successful, the change will be reflected
+   * in the `settings` object. Even if no actual change is needed, this function will still
+   * return true.
+   */
+  upsertPersonInUserDirectory(settings, person) {
+    if (!settings || !person) {
+      return false;
+    }
+
+    if (!settings.formatVersion) {
+      settings.formatVersion = SettingsFileFormatVersion;
+    }
+    if (!settings.directory) {
+      settings.directory = [];
+    }
+
+    // Only copy over the attributes that are related to the directory
+    // entry for a person.
+    const personCopy = {
+      id: person.id,
+      name: person.name,
+      email: person.email,
+      affiliation: person.affiliation
+    };
+
+    // If we have an ID for the person, we need to see if they already exist.  That is
+    // our indicator of each person - we won't do any name checks.  If there is no person
+    // ID, we need to generate one and then can just add it.
+    if (personCopy.id) {
+      const existingPerson = settings.directory.find(p => p.id === personCopy.id);
+      if (existingPerson) {
+        // Copy over only what attributes need to be saved in the directory.  Some
+        // attributs may be specific to the project entry for the person.
+        existingPerson.name = personCopy.name;
+        existingPerson.email = personCopy.email;
+        existingPerson.affiliation = personCopy.affiliation;
+      } else {
+        settings.directory.push(personCopy);
+      }
+    } else {
+      personCopy.id = uuid();
+      settings.directory.push(personCopy);
+    }
+
+    return true;
   }
 }

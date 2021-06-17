@@ -1,0 +1,40 @@
+label {
+  flex: 0 0 15%;
+}
+
+.title {
+  color: white;
+}
+
+input {
+  width: 100%;
+}
+
+input::placeholder {
+  opacity: 0.7;
+}
+
+#prefixName,
+#middleName,
+#suffixName {
+  flex: 0 0 5%;
+}
+
+#firstName,
+#lastName {
+  flex: 0 0 30%;
+}
+
+.formBody {
+  margin: 10px;
+  width: auto;
+}
+
+.formRow {
+  display: flex;
+  flex-direction: row;
+  margin-right: 10px;
+  margin-left: 10px;
+  padding-bottom: 5px;
+  padding-top: 5px;
+}

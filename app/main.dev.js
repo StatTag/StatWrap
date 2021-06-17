@@ -19,7 +19,7 @@ import ProjectService from './services/project';
 import ProjectListService, { DefaultProjectListFile } from './services/projectList';
 import ProjectTemplateService from './services/projectTemplate';
 import AssetService from './services/assets/asset';
-import UserService from './services/user';
+import UserService, { DefaultSettingsFile } from './services/user';
 import FileHandler from './services/assets/handlers/file';
 import PythonHandler from './services/assets/handlers/python';
 import RHandler from './services/assets/handlers/r';
@@ -555,4 +555,48 @@ ipcMain.on(Messages.LOAD_USER_INFO_REQUEST, async event => {
     }
     event.sender.send(Messages.LOAD_USER_INFO_RESPONSE, response);
   })();
+});
+
+ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, project, person) => {
+  const response = {
+    project: null,
+    person: null,
+    error: false,
+    errorMessage: ''
+  };
+
+  console.log(project);
+  console.log(person);
+
+  if (!project) {
+    response.error = true;
+    response.errorMessage = 'No project was provided';
+    event.sender.send(Messages.CREATE_UPDATE_PERSON_RESPONSE, response);
+    return;
+  }
+
+  if (!person) {
+    response.error = true;
+    response.errorMessage = 'No person information was provided';
+    event.sender.send(Messages.CREATE_UPDATE_PERSON_RESPONSE, response);
+    return;
+  }
+
+  // If the person ID exists and is not blank/empty, that is a signal that we are
+  // editing an existing person entry.  We need to determine if changes should be
+  // reflected in the user's directory entry.  If the ID is not set, it's a new
+  // entry that needs to be registered in the directory, and then added to the
+  // project.
+  const service = new UserService();
+  const settings = service.loadUserSettingsFromFile();
+  if (person.id) {
+    service.upsertPersonInUserDirectory(settings, person);
+  } else {
+    service.upsertPersonInUserDirectory(settings, person);
+  }
+
+  const userDataPath = app.getPath('userData');
+  service.saveUserSettingsToFile(settings, path.join(userDataPath, DefaultSettingsFile));
+
+  event.sender.send(Messages.CREATE_UPDATE_PERSON_RESPONSE, response);
 });

@@ -1,11 +1,13 @@
 import fs from 'fs';
 import os from 'os';
+import { v4 as uuid } from 'uuid';
 import username from 'username';
 import UserService from '../../app/services/user';
 
 jest.mock('fs');
 jest.mock('os');
 jest.mock('username');
+jest.mock('uuid');
 
 const TEST_USER_HOME_PATH = process.platform === 'win32' ? 'C:\\Users\\test\\' : '/User/test/';
 os.homedir.mockReturnValue(TEST_USER_HOME_PATH);
@@ -91,6 +93,98 @@ describe('services', () => {
           '.user-settings.json',
           JSON.stringify(settingsObject)
         );
+      });
+    });
+
+    describe('upsertPersonInUserDirectory', () => {
+      it('should return false if the settings are null or undefined', () => {
+        expect(new UserService().upsertPersonInUserDirectory(null, {})).toBe(false);
+        expect(new UserService().upsertPersonInUserDirectory(undefined, {})).toBe(false);
+      });
+      it('should return false if the person is null or undefined', () => {
+        expect(new UserService().upsertPersonInUserDirectory({}, null)).toBe(false);
+        expect(new UserService().upsertPersonInUserDirectory({}, undefined)).toBe(false);
+      });
+      it('should initialize the format version and directory collection in an empty settings object', () => {
+        const settings = {};
+        expect(new UserService().upsertPersonInUserDirectory(settings, { id: '1-2-3' })).toBe(true);
+        expect(settings.formatVersion).toBe('1');
+        expect(settings.directory).not.toBeNull();
+      });
+      it('should add a new person when the id is provided', () => {
+        const settings = {};
+        expect(
+          new UserService().upsertPersonInUserDirectory(settings, {
+            id: '1-2-3',
+            email: 'test@test.com'
+          })
+        ).toBe(true);
+        expect(settings.directory[0]).toEqual({ id: '1-2-3', email: 'test@test.com' });
+      });
+      it('should add a new person when the id differs in case', () => {
+        const settings = {
+          directory: [
+            {
+              id: 'a-b-c',
+              name: {
+                first: 'Test',
+                last: 'Person'
+              },
+              email: 'test@test.com'
+            }
+          ]
+        };
+        expect(
+          new UserService().upsertPersonInUserDirectory(settings, {
+            id: 'A-b-c',
+            email: 'test@test.com'
+          })
+        ).toBe(true);
+        expect(settings.directory[1]).toEqual({ id: 'A-b-c', email: 'test@test.com' });
+      });
+      it('should add a new person when the id is empty', () => {
+        uuid.mockImplementation(() => '1-2-3');
+        const settings = {};
+        expect(
+          new UserService().upsertPersonInUserDirectory(settings, { email: 'test@test.com' })
+        ).toBe(true);
+        expect(settings.directory[0]).toEqual({ id: '1-2-3', email: 'test@test.com' });
+      });
+      it('should update an existing person', () => {
+        const settings = {
+          directory: [
+            {
+              id: '1-2-3',
+              name: {
+                first: 'Test',
+                last: 'Person'
+              },
+              email: 'test@test.com'
+            }
+          ]
+        };
+        const updatedPerson = {
+          id: '1-2-3',
+          name: {
+            first: 'Updated',
+            last: 'Person'
+          },
+          email: 'test2@test.com'
+        };
+        expect(new UserService().upsertPersonInUserDirectory(settings, updatedPerson)).toBe(true);
+        expect(settings.directory[0]).toEqual(updatedPerson);
+      });
+      it('should only save the relevant attributes for a person to the directory', () => {
+        const settings = {};
+        expect(
+          new UserService().upsertPersonInUserDirectory(settings, {
+            id: '1-2-3',
+            email: 'test@test.com',
+            roles: [],
+            notes: []
+          })
+        ).toBe(true);
+        expect(settings.directory[0]).toEqual({ id: '1-2-3', email: 'test@test.com' });
       });
     });
   });
