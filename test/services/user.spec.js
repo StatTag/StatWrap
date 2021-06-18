@@ -97,11 +97,11 @@ describe('services', () => {
     });
 
     describe('upsertPersonInUserDirectory', () => {
-      it('should return false if the settings are null or undefined', () => {
+      it('should return null if the settings are null or undefined', () => {
         expect(new UserService().upsertPersonInUserDirectory(null, {})).toBeNull();
         expect(new UserService().upsertPersonInUserDirectory(undefined, {})).toBeNull();
       });
-      it('should return false if the person is null or undefined', () => {
+      it('should return null if the person is null or undefined', () => {
         expect(new UserService().upsertPersonInUserDirectory({}, null)).toBeNull();
         expect(new UserService().upsertPersonInUserDirectory({}, undefined)).toBeNull();
       });
@@ -189,6 +189,52 @@ describe('services', () => {
           })
         ).not.toBeNull();
         expect(settings.directory[0]).toEqual({ id: '1-2-3', email: 'test@test.com' });
+      });
+    });
+
+    describe('removePersonFromUserDirectory', () => {
+      it('should return false if the settings are null or undefined', () => {
+        expect(new UserService().removePersonFromUserDirectory(null, {})).toBe(false);
+        expect(new UserService().removePersonFromUserDirectory(undefined, {})).toBe(false);
+      });
+      it('should return false if the person is null or undefined', () => {
+        expect(new UserService().removePersonFromUserDirectory({}, null)).toBe(false);
+        expect(new UserService().removePersonFromUserDirectory({}, undefined)).toBe(false);
+      });
+      it('should return false if the person ID is null or undefined', () => {
+        expect(new UserService().removePersonFromUserDirectory({ directory: [] }, {})).toBe(false);
+        expect(
+          new UserService().removePersonFromUserDirectory({ directory: [] }, { id: null })
+        ).toBe(false);
+        expect(
+          new UserService().removePersonFromUserDirectory({ directory: [] }, { id: undefined })
+        ).toBe(false);
+      });
+      it('should set the settings format version if it does not exist', () => {
+        const settings = {
+          directory: []
+        };
+        new UserService().removePersonFromUserDirectory(settings, { id: '1-2-3' });
+        expect(settings.formatVersion).toBe('1');
+      });
+      it('should remove a person when matched on ID', () => {
+        const settings = {
+          directory: [{ id: '1-2-3' }, { id: '2-3-4' }]
+        };
+        expect(new UserService().removePersonFromUserDirectory(settings, { id: '1-2-3' })).toBe(
+          true
+        );
+        expect(settings.directory.length).toBe(1);
+        expect(settings.directory[0]).toEqual({ id: '2-3-4' });
+      });
+      it('should not remove a person when there is not matching ID', () => {
+        const settings = {
+          directory: [{ id: '1-2-3' }, { id: '2-3-4' }]
+        };
+        expect(new UserService().removePersonFromUserDirectory(settings, { id: '3-4-5' })).toBe(
+          false
+        );
+        expect(settings.directory.length).toBe(2);
       });
     });
   });

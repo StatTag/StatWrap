@@ -601,3 +601,26 @@ ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, mode, project, p
   response.project = { ...project };
   event.sender.send(Messages.CREATE_UPDATE_PERSON_RESPONSE, response);
 });
+
+ipcMain.on(Messages.REMOVE_DIRECTORY_PERSON_REQUEST, async (event, person) => {
+  const response = {
+    project: null,
+    person: null,
+    error: false,
+    errorMessage: ''
+  };
+
+  if (!person || !person.id) {
+    response.error = true;
+    response.errorMessage = 'No person ID to remove was provided';
+    event.sender.send(Messages.REMOVE_DIRECTORY_PERSON_RESPONSE, response);
+    return;
+  }
+
+  const userSettingsPath = path.join(app.getPath('userData'), DefaultSettingsFile);
+  const service = new UserService();
+  const settings = service.loadUserSettingsFromFile(userSettingsPath);
+  service.removePersonFromUserDirectory(settings, person);
+  service.saveUserSettingsToFile(settings, userSettingsPath);
+  event.sender.send(Messages.REMOVE_DIRECTORY_PERSON_RESPONSE, response);
+});

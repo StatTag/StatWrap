@@ -45,7 +45,7 @@ import styles from './People.css';
 // ];
 
 const people = props => {
-  const { project, mode, list } = props;
+  const { project, mode, list, onDelete } = props;
   // UI state flag to let us know when we're in the process of adding/editing a person
   const [editing, setEditing] = useState(false);
   // This key is part of a trick to get React to throw out and recreate the Create Project
@@ -59,15 +59,17 @@ const people = props => {
   const [editPersonAffiliation, setEditPersonAffiliation] = useState(null);
   const [editPersonRoles, setEditPersonRoles] = useState(null);
 
-  const handleCloseAddEditPerson = refresh => {
+  const handleCloseAddEditPerson = () => {
     setDialogKey(dialogKey + 1);
     setEditing(false);
   };
 
   const deletePersonHandler = id => {
-    console.log(list);
     // test = test.filter(x => x.id !== id);
     // console.log(test);
+    if (onDelete) {
+      onDelete(id);
+    }
   };
 
   const addPersonHandler = () => {
@@ -128,12 +130,14 @@ const people = props => {
 people.propTypes = {
   project: PropTypes.object,
   list: PropTypes.array,
-  mode: PropTypes.string.isRequired
+  mode: PropTypes.string.isRequired,
+  onDelete: PropTypes.func
 };
 
 people.defaultProps = {
   project: null,
-  list: []
+  list: [],
+  onDelete: null
 };
 
 export default people;

@@ -28,5 +28,9 @@ module.exports = {
   LOAD_PROJECT_LOG_RESPONSE: 'statwrap-load-project-log-response',
 
   CREATE_UPDATE_PERSON_REQUEST: 'statwrap-create-update-person-request',
-  CREATE_UPDATE_PERSON_RESPONSE: 'statwrap-create-update-person-response'
+  CREATE_UPDATE_PERSON_RESPONSE: 'statwrap-create-update-person-response',
+  REMOVE_DIRECTORY_PERSON_REQUEST: 'statwrap-remove-directory-person-request',
+  REMOVE_DIRECTORY_PERSON_RESPONSE: 'statwrap-remove-directory-person-response',
+  REMOVE_PROJECT_PERSON_REQUEST: 'statwrap-remove-project-person-request',
+  REMOVE_PROJECT_PERSON_RESPONSE: 'statwrap-remove-project-person-response'
 };

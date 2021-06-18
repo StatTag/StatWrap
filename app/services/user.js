@@ -105,4 +105,29 @@ export default class UserService {
 
     return person;
   }
+
+  /**
+   * Utility function to remove a person from the user settings directory.  This will gracefully
+   * handle if the person exists in the directory or not.
+   * @param {object} settings The user settings
+   * @param {object} person The person to remove
+   * @returns bool response if the person was found and removed.
+   */
+  removePersonFromUserDirectory(settings, person) {
+    if (!settings || !settings.directory || !person || !person.id) {
+      return false;
+    }
+
+    if (!settings.formatVersion) {
+      settings.formatVersion = SettingsFileFormatVersion;
+    }
+
+    const foundIndex = settings.directory.findIndex(p => p.id === person.id);
+    if (foundIndex === -1) {
+      return false;
+    }
+
+    settings.directory.splice(foundIndex, 1);
+    return true;
+  }
 }

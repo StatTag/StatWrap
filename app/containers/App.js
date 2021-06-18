@@ -33,20 +33,31 @@ export default class App extends React.Component {
     this.state = { user: 'StatWrap' };
 
     this.handleLoadUserInfoResponse = this.handleLoadUserInfoResponse.bind(this);
-    this.handleCreateUpdatePersonResponse = this.handleCreateUpdatePersonResponse.bind(this);
+    this.handlePersonDirectoryChangeResponse = this.handlePersonDirectoryChangeResponse.bind(this);
   }
 
   componentDidMount() {
     ipcRenderer.send(Messages.LOAD_USER_INFO_REQUEST);
     ipcRenderer.on(Messages.LOAD_USER_INFO_RESPONSE, this.handleLoadUserInfoResponse);
-    ipcRenderer.on(Messages.CREATE_UPDATE_PERSON_RESPONSE, this.handleCreateUpdatePersonResponse);
+    ipcRenderer.on(
+      Messages.CREATE_UPDATE_PERSON_RESPONSE,
+      this.handlePersonDirectoryChangeResponse
+    );
+    ipcRenderer.on(
+      Messages.REMOVE_DIRECTORY_PERSON_RESPONSE,
+      this.handlePersonDirectoryChangeResponse
+    );
   }
 
   componentWillUnmount() {
     ipcRenderer.removeListener(Messages.LOAD_USER_INFO_RESPONSE, this.handleLoadUserInfoResponse);
     ipcRenderer.removeListener(
       Messages.CREATE_UPDATE_PERSON_RESPONSE,
-      this.handleCreateUpdatePersonResponse
+      this.handlePersonDirectoryChangeResponse
+    );
+    ipcRenderer.removeListener(
+      Messages.REMOVE_DIRECTORY_PERSON_RESPONSE,
+      this.handlePersonDirectoryChangeResponse
     );
   }
 
@@ -54,7 +65,7 @@ export default class App extends React.Component {
     this.setState({ user: response.user, settings: response.settings });
   }
 
-  handleCreateUpdatePersonResponse() {
+  handlePersonDirectoryChangeResponse() {
     // Reload the settings to reflect the updated directory
     ipcRenderer.send(Messages.LOAD_USER_INFO_REQUEST);
   }
