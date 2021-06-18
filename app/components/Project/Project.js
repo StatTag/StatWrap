@@ -379,7 +379,9 @@ class Project extends Component<Props> {
         <ProjectNotes project={this.props.project} />
       ) : null;
 
-      const people = this.props.project ? <People project={this.props.project} /> : null;
+      const people = this.props.project ? (
+        <People project={this.props.project} mode="project" />
+      ) : null;
 
       const projectLog =
         this.props.project && this.props.logs ? (

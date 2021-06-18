@@ -538,7 +538,7 @@ ipcMain.on(Messages.UPDATE_PROJECT_REQUEST, async (event, project) => {
 ipcMain.on(Messages.LOAD_USER_INFO_REQUEST, async event => {
   const response = {
     user: Constants.UndefinedDefaults.USER,
-    directory: [],
+    settings: {},
     error: false,
     errorMessage: ''
   };
@@ -547,7 +547,10 @@ ipcMain.on(Messages.LOAD_USER_INFO_REQUEST, async event => {
     const service = new UserService();
     try {
       response.user = await service.getUser();
-      response.settings = service.loadUserSettingsFromFile();
+      const userDataPath = app.getPath('userData');
+      response.settings = service.loadUserSettingsFromFile(
+        path.join(userDataPath, DefaultSettingsFile)
+      );
     } catch (e) {
       response.error = true;
       response.errorMessage = 'There was an unexpected error when gathering user information';
@@ -557,7 +560,7 @@ ipcMain.on(Messages.LOAD_USER_INFO_REQUEST, async event => {
   })();
 });
 
-ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, project, person) => {
+ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, mode, project, person) => {
   const response = {
     project: null,
     person: null,
@@ -565,10 +568,7 @@ ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, project, person)
     errorMessage: ''
   };
 
-  console.log(project);
-  console.log(person);
-
-  if (!project) {
+  if (mode.toLowerCase() === 'project' && !project) {
     response.error = true;
     response.errorMessage = 'No project was provided';
     event.sender.send(Messages.CREATE_UPDATE_PERSON_RESPONSE, response);
@@ -582,21 +582,22 @@ ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, project, person)
     return;
   }
 
+  const userSettingsPath = path.join(app.getPath('userData'), DefaultSettingsFile);
+
   // If the person ID exists and is not blank/empty, that is a signal that we are
   // editing an existing person entry.  We need to determine if changes should be
   // reflected in the user's directory entry.  If the ID is not set, it's a new
   // entry that needs to be registered in the directory, and then added to the
   // project.
   const service = new UserService();
-  const settings = service.loadUserSettingsFromFile();
+  const settings = service.loadUserSettingsFromFile(userSettingsPath);
   if (person.id) {
-    service.upsertPersonInUserDirectory(settings, person);
+    response.person = service.upsertPersonInUserDirectory(settings, person);
   } else {
-    service.upsertPersonInUserDirectory(settings, person);
+    response.person = service.upsertPersonInUserDirectory(settings, person);
   }
 
-  const userDataPath = app.getPath('userData');
-  service.saveUserSettingsToFile(settings, path.join(userDataPath, DefaultSettingsFile));
-
+  service.saveUserSettingsToFile(settings, userSettingsPath);
+  response.project = { ...project };
   event.sender.send(Messages.CREATE_UPDATE_PERSON_RESPONSE, response);
 });

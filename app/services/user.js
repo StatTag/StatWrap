@@ -56,13 +56,14 @@ export default class UserService {
    * of people.
    * @param {object} settings The user settings object, assumed to be recently loaded.
    * @param {object} person The person to add to the user's directory
-   * @returns bool if the upsert succeeded or not.  If successful, the change will be reflected
+   * @returns object Will be the person record (with the assigned ID, if applicable) if the upsert succeeded.
+   * If the upsert did not succeed, it will return null.  If successful, the change will be reflected
    * in the `settings` object. Even if no actual change is needed, this function will still
-   * return true.
+   * return the person.
    */
   upsertPersonInUserDirectory(settings, person) {
     if (!settings || !person) {
-      return false;
+      return null;
     }
 
     if (!settings.formatVersion) {
@@ -97,9 +98,11 @@ export default class UserService {
       }
     } else {
       personCopy.id = uuid();
+      // Yup, we're modifying the original.  It needs to know about the ID.
+      person.id = personCopy.id;
       settings.directory.push(personCopy);
     }
 
-    return true;
+    return person;
   }
 }

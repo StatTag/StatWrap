@@ -1,49 +1,51 @@
+/* eslint-disable react/forbid-prop-types */
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { Button } from '@material-ui/core';
 import Person from '../Person/Person';
 import AddEditPersonDialog from '../../containers/AddEditPersonDialog/AddEditPersonDialog';
 import styles from './People.css';
 
-let test = [
-  {
-    id: '1-2-3',
-    name: {
-      first: 'Luke',
-      middle: '',
-      last: 'Rasmussen',
-      prefix: '',
-      suffix: ''
-    },
-    affiliation: 'Northwestern University',
-    email: 'luke.rasmussen@northwestern.edu',
-    roles: ['Co-I', 'Analyst']
-  },
-  {
-    id: '2-3-4',
-    name: {
-      first: 'Leah',
-      middle: '',
-      last: 'Welty',
-      prefix: 'Dr.',
-      suffix: ''
-    },
-    affiliation: 'Northwestern University',
-    email: 'lwelty@northwestern.edu',
-    roles: ['PI', 'Faculty']
-  },
-  {
-    id: '3-4-5',
-    name: {
-      first: 'Eric',
-      middle: 'W',
-      last: 'Whitley'
-    },
-    email: 'eric.whitley@northwestern.edu'
-  }
-];
+// let test = [
+//   {
+//     id: '1-2-3',
+//     name: {
+//       first: 'Luke',
+//       middle: '',
+//       last: 'Rasmussen',
+//       prefix: '',
+//       suffix: ''
+//     },
+//     affiliation: 'Northwestern University',
+//     email: 'luke.rasmussen@northwestern.edu',
+//     roles: ['Co-I', 'Analyst']
+//   },
+//   {
+//     id: '2-3-4',
+//     name: {
+//       first: 'Leah',
+//       middle: '',
+//       last: 'Welty',
+//       prefix: 'Dr.',
+//       suffix: ''
+//     },
+//     affiliation: 'Northwestern University',
+//     email: 'lwelty@northwestern.edu',
+//     roles: ['PI', 'Faculty']
+//   },
+//   {
+//     id: '3-4-5',
+//     name: {
+//       first: 'Eric',
+//       middle: 'W',
+//       last: 'Whitley'
+//     },
+//     email: 'eric.whitley@northwestern.edu'
+//   }
+// ];
 
 const people = props => {
-  const { project } = props;
+  const { project, mode, list } = props;
   // UI state flag to let us know when we're in the process of adding/editing a person
   const [editing, setEditing] = useState(false);
   // This key is part of a trick to get React to throw out and recreate the Create Project
@@ -63,8 +65,9 @@ const people = props => {
   };
 
   const deletePersonHandler = id => {
-    test = test.filter(x => x.id !== id);
-    console.log(test);
+    console.log(list);
+    // test = test.filter(x => x.id !== id);
+    // console.log(test);
   };
 
   const addPersonHandler = () => {
@@ -85,9 +88,10 @@ const people = props => {
     setEditing(true);
   };
 
-  const personList = test.map(x => (
+  const personList = list.map(x => (
     <Person
       key={x.id}
+      mode={mode}
       id={x.id}
       name={x.name}
       email={x.email}
@@ -99,8 +103,6 @@ const people = props => {
     />
   ));
 
-  console.log(`editPresonName: ${editPersonName}`);
-
   return (
     <div className={styles.container}>
       <Button className={styles.button} color="primary" onClick={addPersonHandler}>
@@ -109,6 +111,7 @@ const people = props => {
       <div className={styles.personContainer}>{personList}</div>
       <AddEditPersonDialog
         key={dialogKey}
+        mode={mode}
         project={project}
         id={editPersonId}
         name={editPersonName}
@@ -120,6 +123,17 @@ const people = props => {
       />
     </div>
   );
+};
+
+people.propTypes = {
+  project: PropTypes.object,
+  list: PropTypes.array,
+  mode: PropTypes.string.isRequired
+};
+
+people.defaultProps = {
+  project: null,
+  list: []
 };
 
 export default people;

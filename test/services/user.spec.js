@@ -98,16 +98,18 @@ describe('services', () => {
 
     describe('upsertPersonInUserDirectory', () => {
       it('should return false if the settings are null or undefined', () => {
-        expect(new UserService().upsertPersonInUserDirectory(null, {})).toBe(false);
-        expect(new UserService().upsertPersonInUserDirectory(undefined, {})).toBe(false);
+        expect(new UserService().upsertPersonInUserDirectory(null, {})).toBeNull();
+        expect(new UserService().upsertPersonInUserDirectory(undefined, {})).toBeNull();
       });
       it('should return false if the person is null or undefined', () => {
-        expect(new UserService().upsertPersonInUserDirectory({}, null)).toBe(false);
-        expect(new UserService().upsertPersonInUserDirectory({}, undefined)).toBe(false);
+        expect(new UserService().upsertPersonInUserDirectory({}, null)).toBeNull();
+        expect(new UserService().upsertPersonInUserDirectory({}, undefined)).toBeNull();
       });
       it('should initialize the format version and directory collection in an empty settings object', () => {
         const settings = {};
-        expect(new UserService().upsertPersonInUserDirectory(settings, { id: '1-2-3' })).toBe(true);
+        expect(
+          new UserService().upsertPersonInUserDirectory(settings, { id: '1-2-3' })
+        ).not.toBeNull();
         expect(settings.formatVersion).toBe('1');
         expect(settings.directory).not.toBeNull();
       });
@@ -118,7 +120,7 @@ describe('services', () => {
             id: '1-2-3',
             email: 'test@test.com'
           })
-        ).toBe(true);
+        ).not.toBeNull();
         expect(settings.directory[0]).toEqual({ id: '1-2-3', email: 'test@test.com' });
       });
       it('should add a new person when the id differs in case', () => {
@@ -139,7 +141,7 @@ describe('services', () => {
             id: 'A-b-c',
             email: 'test@test.com'
           })
-        ).toBe(true);
+        ).not.toBeNull();
         expect(settings.directory[1]).toEqual({ id: 'A-b-c', email: 'test@test.com' });
       });
       it('should add a new person when the id is empty', () => {
@@ -147,7 +149,7 @@ describe('services', () => {
         const settings = {};
         expect(
           new UserService().upsertPersonInUserDirectory(settings, { email: 'test@test.com' })
-        ).toBe(true);
+        ).not.toBeNull();
         expect(settings.directory[0]).toEqual({ id: '1-2-3', email: 'test@test.com' });
       });
       it('should update an existing person', () => {
@@ -171,7 +173,9 @@ describe('services', () => {
           },
           email: 'test2@test.com'
         };
-        expect(new UserService().upsertPersonInUserDirectory(settings, updatedPerson)).toBe(true);
+        expect(
+          new UserService().upsertPersonInUserDirectory(settings, updatedPerson)
+        ).not.toBeNull();
         expect(settings.directory[0]).toEqual(updatedPerson);
       });
       it('should only save the relevant attributes for a person to the directory', () => {
@@ -183,7 +187,7 @@ describe('services', () => {
             roles: [],
             notes: []
           })
-        ).toBe(true);
+        ).not.toBeNull();
         expect(settings.directory[0]).toEqual({ id: '1-2-3', email: 'test@test.com' });
       });
     });

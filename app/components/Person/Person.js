@@ -9,7 +9,19 @@ import GeneralUtil from '../../utils/general';
 import styles from './Person.css';
 
 const person = props => {
-  const tagViewer = props.roles ? <TagViewer className={styles.roles} tags={props.roles} /> : null;
+  const { mode } = props;
+  let tagViewer = null;
+  let noteEditor = null;
+  if (mode.toLowerCase() === 'project') {
+    tagViewer = props.roles ? <TagViewer className={styles.roles} tags={props.roles} /> : null;
+    noteEditor = (
+      <NoteEditor
+        notes={props.notes}
+        onDelete={deleteNoteHandler}
+        onEditingComplete={updatedNoteHandler}
+      />
+    );
+  }
 
   const updatedNoteHandler = (note, text) => {
     if (note) {
@@ -52,16 +64,13 @@ const person = props => {
       <div className={styles.affiliation}>{props.affiliation}</div>
       <div className={styles.email}>{props.email}</div>
       {tagViewer}
-      <NoteEditor
-        notes={props.notes}
-        onDelete={deleteNoteHandler}
-        onEditingComplete={updatedNoteHandler}
-      />
+      {noteEditor}
     </div>
   );
 };
 
 person.propTypes = {
+  mode: PropTypes.string.isRequired,
   id: PropTypes.string,
   name: PropTypes.object,
   email: PropTypes.string,

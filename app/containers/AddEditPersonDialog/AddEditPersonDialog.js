@@ -94,7 +94,7 @@ class AddEditPersonDialog extends Component {
   }
 
   handleCreateUpdatePerson() {
-    ipcRenderer.send(Messages.CREATE_UPDATE_PERSON_REQUEST, this.props.project, {
+    ipcRenderer.send(Messages.CREATE_UPDATE_PERSON_REQUEST, this.props.mode, this.props.project, {
       id: this.state.id,
       name: {
         first: this.state.firstName,
@@ -111,7 +111,7 @@ class AddEditPersonDialog extends Component {
 
   handleRolesChanged(changedRoles) {
     console.log(changedRoles);
-    // setCategories(changedCategories);
+    this.setState({ roles: changedRoles });
   }
 
   handleInputChange(event) {
@@ -129,6 +129,15 @@ class AddEditPersonDialog extends Component {
     let error = null;
     if (this.state.errorMessage) {
       error = <Error style={{ marginTop: '15px' }}>{this.state.errorMessage}</Error>;
+    }
+    let roles = null;
+    if (this.props.mode.toLowerCase() === 'project') {
+      roles = (
+        <div className={styles.formRow}>
+          <label>Roles:</label>
+          <TagEditor tags={this.state.roles} onChange={this.handleRolesChanged} />
+        </div>
+      );
     }
 
     return (
@@ -207,10 +216,7 @@ class AddEditPersonDialog extends Component {
                 onChange={this.handleInputChange}
               />
             </div>
-            <div className={styles.formRow}>
-              <label>Roles:</label>
-              <TagEditor tags={this.state.roles} onChange={this.handleRolesChanged} />
-            </div>
+            {roles}
           </div>
         </form>
         {error}
@@ -229,6 +235,7 @@ class AddEditPersonDialog extends Component {
 
 AddEditPersonDialog.propTypes = {
   project: PropTypes.object,
+  mode: PropTypes.string.isRequired,
   id: PropTypes.string,
   name: PropTypes.object,
   email: PropTypes.string,
