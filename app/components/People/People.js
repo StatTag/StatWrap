@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Button } from '@material-ui/core';
 import Person from '../Person/Person';
-import AddEditPersonDialog from '../../containers/AddEditPersonDialog/AddEditPersonDialog';
+import CreateUpdatePersonDialog from '../../containers/CreateUpdatePersonDialog/CreateUpdatePersonDialog';
 import styles from './People.css';
 
 // let test = [
@@ -111,7 +111,7 @@ const people = props => {
         Add Person
       </Button>
       <div className={styles.personContainer}>{personList}</div>
-      <AddEditPersonDialog
+      <CreateUpdatePersonDialog
         key={dialogKey}
         mode={mode}
         project={project}

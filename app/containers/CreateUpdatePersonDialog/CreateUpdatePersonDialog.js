@@ -11,7 +11,7 @@ import Messages from '../../constants/messages';
 import Error from '../../components/Error/Error';
 import TagEditor from '../../components/TagEditor/TagEditor';
 import UserContext from '../../contexts/User';
-import styles from './AddEditPersonDialog.css';
+import styles from './CreateUpdatePersonDialog.css';
 
 function PaperComponent(props) {
   return (
@@ -21,7 +21,7 @@ function PaperComponent(props) {
   );
 }
 
-class AddEditPersonDialog extends Component {
+class CreateUpdatePersonDialog extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -233,7 +233,7 @@ class AddEditPersonDialog extends Component {
   }
 }
 
-AddEditPersonDialog.propTypes = {
+CreateUpdatePersonDialog.propTypes = {
   project: PropTypes.object,
   mode: PropTypes.string.isRequired,
   id: PropTypes.string,
@@ -247,7 +247,8 @@ AddEditPersonDialog.propTypes = {
   onSaved: PropTypes.func
 };
 
-AddEditPersonDialog.defaultProps = {
+CreateUpdatePersonDialog.defaultProps = {
+  project: null,
   id: null,
   name: null,
   email: null,
@@ -257,6 +258,6 @@ AddEditPersonDialog.defaultProps = {
   onSaved: null
 };
 
-AddEditPersonDialog.contextType = UserContext;
+CreateUpdatePersonDialog.contextType = UserContext;
 
-export default AddEditPersonDialog;
+export default CreateUpdatePersonDialog;
