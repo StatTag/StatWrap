@@ -6,44 +6,6 @@ import Person from '../Person/Person';
 import CreateUpdatePersonDialog from '../../containers/CreateUpdatePersonDialog/CreateUpdatePersonDialog';
 import styles from './People.css';
 
-// let test = [
-//   {
-//     id: '1-2-3',
-//     name: {
-//       first: 'Luke',
-//       middle: '',
-//       last: 'Rasmussen',
-//       prefix: '',
-//       suffix: ''
-//     },
-//     affiliation: 'Northwestern University',
-//     email: 'luke.rasmussen@northwestern.edu',
-//     roles: ['Co-I', 'Analyst']
-//   },
-//   {
-//     id: '2-3-4',
-//     name: {
-//       first: 'Leah',
-//       middle: '',
-//       last: 'Welty',
-//       prefix: 'Dr.',
-//       suffix: ''
-//     },
-//     affiliation: 'Northwestern University',
-//     email: 'lwelty@northwestern.edu',
-//     roles: ['PI', 'Faculty']
-//   },
-//   {
-//     id: '3-4-5',
-//     name: {
-//       first: 'Eric',
-//       middle: 'W',
-//       last: 'Whitley'
-//     },
-//     email: 'eric.whitley@northwestern.edu'
-//   }
-// ];
-
 const people = props => {
   const { project, mode, list, onDelete } = props;
   // UI state flag to let us know when we're in the process of adding/editing a person
@@ -65,8 +27,6 @@ const people = props => {
   };
 
   const deletePersonHandler = id => {
-    // test = test.filter(x => x.id !== id);
-    // console.log(test);
     if (onDelete) {
       onDelete(id);
     }
