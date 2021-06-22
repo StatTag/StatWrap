@@ -22,7 +22,6 @@ const people = props => {
   const [editPersonRoles, setEditPersonRoles] = useState(null);
 
   const handleCloseAddEditPerson = () => {
-    setDialogKey(dialogKey + 1);
     setEditing(false);
   };
 
@@ -39,6 +38,7 @@ const people = props => {
   };
 
   const addPersonHandler = () => {
+    setDialogKey(dialogKey + 1);
     setEditPersonId(null);
     setEditPersonName(null);
     setEditPersonEmail(null);
@@ -48,6 +48,7 @@ const people = props => {
   };
 
   const editPersonHandler = (id, name, email, affiliation, roles) => {
+    setDialogKey(dialogKey + 1);
     setEditPersonId(id);
     setEditPersonName(name);
     setEditPersonEmail(email);

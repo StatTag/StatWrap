@@ -43,24 +43,6 @@ class CreateUpdatePersonDialog extends Component {
     this.handleCreateUpdatePersonCompleted = this.handleCreateUpdatePersonCompleted.bind(this);
   }
 
-  // static getDerivedStateFromProps(props, currentState) {
-  //   console.log('getDerivedStateFromProps');
-  //   if (currentState.email !== props.email) {
-  //     return {
-  //       id: props.id ? props.id : '',
-  //       firstName: props.name ? props.name.first : '',
-  //       middleName: props.name ? props.name.middle : '',
-  //       lastName: props.name ? props.name.last : '',
-  //       prefixName: props.name ? props.name.prefix : '',
-  //       suffixName: props.name ? props.name.suffix : '',
-  //       email: props.email ? props.email : '',
-  //       affiliation: props.affiliation ? props.affiliation : '',
-  //       roles: props.roles ? props.roles : []
-  //     };
-  //   }
-  //   return null;
-  // }
-
   componentDidMount() {
     ipcRenderer.on(Messages.CREATE_UPDATE_PERSON_RESPONSE, this.handleCreateUpdatePersonCompleted);
   }
