@@ -4,6 +4,9 @@ import PropTypes from 'prop-types';
 import styles from './GeneralAction.css';
 
 const formatValue = value => {
+  if (typeof value === 'object' && value !== null) {
+    return JSON.stringify(value);
+  }
   return Array.isArray(value) ? value.join(', ') : value;
 };
 

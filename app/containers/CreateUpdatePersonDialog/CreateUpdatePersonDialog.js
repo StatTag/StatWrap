@@ -38,6 +38,7 @@ class CreateUpdatePersonDialog extends Component {
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleRolesChanged = this.handleRolesChanged.bind(this);
     this.handleCreateUpdatePerson = this.handleCreateUpdatePerson.bind(this);
     this.handleCreateUpdatePersonCompleted = this.handleCreateUpdatePersonCompleted.bind(this);
   }
@@ -74,8 +75,8 @@ class CreateUpdatePersonDialog extends Component {
   handleCreateUpdatePersonCompleted(sender, response) {
     console.log(response);
     if (response && !response.error) {
-      if (this.props.onSaved) {
-        this.props.onSaved(this.state.id);
+      if (this.props.onSave) {
+        this.props.onSave(response.person);
       }
       // ipcRenderer.send(
       //   Messages.WRITE_PROJECT_LOG_REQUEST,
@@ -94,7 +95,7 @@ class CreateUpdatePersonDialog extends Component {
   }
 
   handleCreateUpdatePerson() {
-    ipcRenderer.send(Messages.CREATE_UPDATE_PERSON_REQUEST, this.props.mode, this.props.project, {
+    const person = {
       id: this.state.id,
       name: {
         first: this.state.firstName,
@@ -106,7 +107,13 @@ class CreateUpdatePersonDialog extends Component {
       email: this.state.email,
       affiliation: this.state.affiliation,
       roles: this.state.roles
-    });
+    };
+    ipcRenderer.send(
+      Messages.CREATE_UPDATE_PERSON_REQUEST,
+      this.props.mode,
+      this.props.project,
+      person
+    );
   }
 
   handleRolesChanged(changedRoles) {
@@ -244,7 +251,7 @@ CreateUpdatePersonDialog.propTypes = {
   onClose: PropTypes.func.isRequired,
   open: PropTypes.bool,
   // Triggered on a successful save of the person
-  onSaved: PropTypes.func
+  onSave: PropTypes.func
 };
 
 CreateUpdatePersonDialog.defaultProps = {
@@ -255,7 +262,7 @@ CreateUpdatePersonDialog.defaultProps = {
   affiliation: null,
   roles: [],
   open: false,
-  onSaved: null
+  onSave: null
 };
 
 CreateUpdatePersonDialog.contextType = UserContext;

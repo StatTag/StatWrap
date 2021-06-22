@@ -10,18 +10,6 @@ import styles from './Person.css';
 
 const person = props => {
   const { mode } = props;
-  let tagViewer = null;
-  let noteEditor = null;
-  if (mode.toLowerCase() === 'project') {
-    tagViewer = props.roles ? <TagViewer className={styles.roles} tags={props.roles} /> : null;
-    noteEditor = (
-      <NoteEditor
-        notes={props.notes}
-        onDelete={deleteNoteHandler}
-        onEditingComplete={updatedNoteHandler}
-      />
-    );
-  }
 
   const updatedNoteHandler = (note, text) => {
     if (note) {
@@ -38,6 +26,19 @@ const person = props => {
       props.onDeletedNote(props.project, note);
     }
   };
+
+  let tagViewer = null;
+  let noteEditor = null;
+  if (mode.toLowerCase() === 'project') {
+    tagViewer = props.roles ? <TagViewer className={styles.roles} tags={props.roles} /> : null;
+    noteEditor = (
+      <NoteEditor
+        notes={props.notes}
+        onDelete={deleteNoteHandler}
+        onEditingComplete={updatedNoteHandler}
+      />
+    );
+  }
 
   const editPersonHandler = () => {
     if (props.onEditPerson) {

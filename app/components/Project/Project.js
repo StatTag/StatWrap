@@ -339,6 +339,69 @@ class Project extends Component<Props> {
     }
   };
 
+  deletePersonHandler = id => {
+    const currentProject = { ...this.props.project };
+
+    if (!currentProject.people) {
+      console.warn(`Tried to delete ${id} but no people exist in project`);
+      return;
+    }
+
+    const foundIndex = currentProject.people.findIndex(p => p.id === id);
+    if (foundIndex === -1) {
+      console.warn(`Tried to delete ${id} but they are not listed in the project`);
+      return;
+    }
+
+    currentProject.people.splice(foundIndex, 1);
+
+    const user = this.context;
+    const actionDescription = `${user} deleted person ${id} from project`;
+    if (this.props.onUpdated) {
+      this.props.onUpdated(
+        currentProject,
+        ActionType.PERSON_DELETED,
+        `Project ${ActionType.PERSON_DELETED}`,
+        actionDescription,
+        id
+      );
+    }
+  };
+
+  createUpdatePersonHandler = person => {
+    const currentProject = { ...this.props.project };
+
+    if (!currentProject.people) {
+      currentProject.people = [];
+    }
+
+    const user = this.context;
+    const foundIndex = currentProject.people.findIndex(p => p.id === person.id);
+    let action = null;
+    let actionDescription = null;
+    if (foundIndex === -1) {
+      // Add a new person
+      action = ActionType.PERSON_ADDED;
+      actionDescription = `${user} added person to project`;
+      currentProject.people.push(person);
+    } else {
+      action = ActionType.PERSON_UPDATED;
+      actionDescription = `${user} updated person in project`;
+      // Update the existing person, but just what would be changed within
+      // the dialog (name, affiliation, email, roles)
+      currentProject.people[foundIndex] = {
+        ...currentProject.people[foundIndex],
+        name: person.name,
+        affiliation: person.affiliation,
+        roles: person.roles
+      };
+    }
+
+    if (this.props.onUpdated) {
+      this.props.onUpdated(currentProject, action, `Project ${action}`, actionDescription, person);
+    }
+  };
+
   render() {
     const tabStyle = { root: this.props.classes.tabRoot, selected: this.props.classes.tabSelected };
     const tabPanelStyle = { root: this.props.classes.tabPanel };
@@ -380,7 +443,13 @@ class Project extends Component<Props> {
       ) : null;
 
       const people = this.props.project ? (
-        <People project={this.props.project} mode="project" />
+        <People
+          project={this.props.project}
+          list={this.props.project.people}
+          mode="project"
+          onSave={this.createUpdatePersonHandler}
+          onDelete={this.deletePersonHandler}
+        />
       ) : null;
 
       const projectLog =

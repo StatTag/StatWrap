@@ -7,7 +7,7 @@ import CreateUpdatePersonDialog from '../../containers/CreateUpdatePersonDialog/
 import styles from './People.css';
 
 const people = props => {
-  const { project, mode, list, onDelete } = props;
+  const { project, mode, list, onDelete, onSave } = props;
   // UI state flag to let us know when we're in the process of adding/editing a person
   const [editing, setEditing] = useState(false);
   // This key is part of a trick to get React to throw out and recreate the Create Project
@@ -29,6 +29,12 @@ const people = props => {
   const deletePersonHandler = id => {
     if (onDelete) {
       onDelete(id);
+    }
+  };
+
+  const handleSaved = person => {
+    if (onSave) {
+      onSave(person);
     }
   };
 
@@ -82,6 +88,7 @@ const people = props => {
         roles={editPersonRoles}
         open={editing}
         onClose={handleCloseAddEditPerson}
+        onSave={handleSaved}
       />
     </div>
   );
@@ -91,12 +98,14 @@ people.propTypes = {
   project: PropTypes.object,
   list: PropTypes.array,
   mode: PropTypes.string.isRequired,
+  onSave: PropTypes.func,
   onDelete: PropTypes.func
 };
 
 people.defaultProps = {
   project: null,
   list: [],
+  onSave: null,
   onDelete: null
 };
 

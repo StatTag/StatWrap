@@ -40,7 +40,11 @@ module.exports = {
 
     PROJECT_CREATED: 'Project Created',
 
-    ABOUT_DETAILS_UPDATED: 'About Details Updated'
+    ABOUT_DETAILS_UPDATED: 'About Details Updated',
+
+    PERSON_ADDED: 'Person Added',
+    PERSON_UPDATED: 'Person Updated',
+    PERSON_DELETED: 'Person Deleted'
   },
 
   DescriptionContentType: {

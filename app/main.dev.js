@@ -146,6 +146,7 @@ const saveProject = project => {
       projectConfig.categories = project.categories;
       projectConfig.assets = project.assets;
       projectConfig.notes = project.notes;
+      projectConfig.people = project.people;
       projectService.saveProjectFile(project.path, projectConfig);
 
       // Reload the project configuration.  Depending on what's changed, we may need to re-load it
@@ -197,6 +198,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
         fullProject.description = metadata.description;
         fullProject.categories = metadata.categories;
         fullProject.notes = metadata.notes;
+        fullProject.people = metadata.people;
         fullProject.loadError = false;
       }
       return fullProject;
@@ -429,6 +431,7 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
     response.project.categories = projectConfig.categories;
     response.project.description = projectConfig.description;
     response.project.notes = projectConfig.notes;
+    response.project.people = projectConfig.people;
     response.project.assets = response.assets;
 
     const saveResponse = saveProject(response.project);
@@ -591,11 +594,7 @@ ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, mode, project, p
   // project.
   const service = new UserService();
   const settings = service.loadUserSettingsFromFile(userSettingsPath);
-  if (person.id) {
-    response.person = service.upsertPersonInUserDirectory(settings, person);
-  } else {
-    response.person = service.upsertPersonInUserDirectory(settings, person);
-  }
+  response.person = service.upsertPersonInUserDirectory(settings, person);
 
   service.saveUserSettingsToFile(settings, userSettingsPath);
   response.project = { ...project };
