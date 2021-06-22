@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-autofocus */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable react/forbid-prop-types */
 /* eslint-disable object-shorthand */
@@ -146,6 +147,7 @@ class CreateUpdatePersonDialog extends Component {
             <div className={styles.formRow}>
               <label>Name:</label>
               <input
+                autoFocus
                 type="text"
                 id={styles.prefixName}
                 name="prefixName"

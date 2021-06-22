@@ -571,7 +571,8 @@ ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, mode, project, p
     errorMessage: ''
   };
 
-  if (mode.toLowerCase() === 'project' && !project) {
+  const projectMode = mode.toLowerCase() === 'project';
+  if (projectMode && !project) {
     response.error = true;
     response.errorMessage = 'No project was provided';
     event.sender.send(Messages.CREATE_UPDATE_PERSON_RESPONSE, response);
@@ -585,19 +586,21 @@ ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, mode, project, p
     return;
   }
 
-  const userSettingsPath = path.join(app.getPath('userData'), DefaultSettingsFile);
+  // If this is even was sent not for a project, but for the directory, we will
+  // always make sure it's properly registered regardless if it's created or
+  // updated. If we are creating a person within a project (signaled when the ID
+  // is not set) we want to register that person in the user's directory.
+  if (!projectMode || !person.id) {
+    const userSettingsPath = path.join(app.getPath('userData'), DefaultSettingsFile);
+    const service = new UserService();
+    const settings = service.loadUserSettingsFromFile(userSettingsPath);
+    response.person = service.upsertPersonInUserDirectory(settings, person);
 
-  // If the person ID exists and is not blank/empty, that is a signal that we are
-  // editing an existing person entry.  We need to determine if changes should be
-  // reflected in the user's directory entry.  If the ID is not set, it's a new
-  // entry that needs to be registered in the directory, and then added to the
-  // project.
-  const service = new UserService();
-  const settings = service.loadUserSettingsFromFile(userSettingsPath);
-  response.person = service.upsertPersonInUserDirectory(settings, person);
-
-  service.saveUserSettingsToFile(settings, userSettingsPath);
-  response.project = { ...project };
+    service.saveUserSettingsToFile(settings, userSettingsPath);
+    response.project = { ...project };
+  } else {
+    response.person = { ...person };
+  }
   event.sender.send(Messages.CREATE_UPDATE_PERSON_RESPONSE, response);
 });
 
