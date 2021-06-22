@@ -14,16 +14,16 @@ const person = props => {
   const updatedNoteHandler = (note, text) => {
     if (note) {
       if (props.onUpdatedNote) {
-        props.onUpdatedNote(props.project, text, note);
+        props.onUpdatedNote(props.id, text, note);
       }
     } else if (props.onAddedNote) {
-      props.onAddedNote(props.project, text);
+      props.onAddedNote(props.id, text);
     }
   };
 
   const deleteNoteHandler = note => {
     if (props.onDeletedNote) {
-      props.onDeletedNote(props.project, note);
+      props.onDeletedNote(props.id, note);
     }
   };
 

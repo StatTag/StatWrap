@@ -19,6 +19,7 @@ import ProjectNotes from '../ProjectNotes/ProjectNotes';
 import { ActionType, DescriptionContentType } from '../../constants/constants';
 import AssetUtil from '../../utils/asset';
 import NoteUtil from '../../utils/note';
+import GeneralUtil from '../../utils/general';
 import styles from './Project.css';
 import UserContext from '../../contexts/User';
 
@@ -194,6 +195,34 @@ class Project extends Component<Props> {
     }
   };
 
+  personUpsertNoteHandler = (person, text, note) => {
+    if (this.unchangedNote(note, text)) {
+      return;
+    }
+
+    const currentProject = { ...this.props.project };
+
+    const action = { type: '', title: '', description: '', details: null };
+    this.upsertNoteHandler(
+      person,
+      'person',
+      GeneralUtil.formatName(person.name),
+      action,
+      text,
+      note
+    );
+
+    if (this.props.onUpdated) {
+      this.props.onUpdated(
+        currentProject,
+        action.type,
+        action.title,
+        action.description,
+        action.details
+      );
+    }
+  };
+
   /**
    * General handler to either insert a new note for an asset or update an existing note for
    * an asset.  It figures out the appropriate action to take depending on if the note parameter
@@ -339,6 +368,25 @@ class Project extends Component<Props> {
     }
   };
 
+  personDeleteNoteHandler = (person, note) => {
+    const currentProject = { ...this.props.project };
+    const actionDescription = this.deleteNoteHandler(
+      person,
+      'person',
+      GeneralUtil.formatName(person.name),
+      note
+    );
+    if (this.props.onUpdated) {
+      this.props.onUpdated(
+        currentProject,
+        ActionType.NOTE_DELETED,
+        `Person ${ActionType.NOTE_DELETED}`,
+        actionDescription,
+        note
+      );
+    }
+  };
+
   deletePersonHandler = id => {
     const currentProject = { ...this.props.project };
 
@@ -449,6 +497,9 @@ class Project extends Component<Props> {
           mode="project"
           onSave={this.createUpdatePersonHandler}
           onDelete={this.deletePersonHandler}
+          onAddedPersonNote={this.personUpsertNoteHandler}
+          onUpdatedPersonNote={this.personUpsertNoteHandler}
+          onDeletedPersonNote={this.personDeleteNoteHandler}
         />
       ) : null;
 

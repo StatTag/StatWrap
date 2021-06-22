@@ -7,7 +7,16 @@ import CreateUpdatePersonDialog from '../../containers/CreateUpdatePersonDialog/
 import styles from './People.css';
 
 const people = props => {
-  const { project, mode, list, onDelete, onSave } = props;
+  const {
+    project,
+    mode,
+    list,
+    onDelete,
+    onSave,
+    onAddedPersonNote,
+    onUpdatedPersonNote,
+    onDeletedPersonNote
+  } = props;
   // UI state flag to let us know when we're in the process of adding/editing a person
   const [editing, setEditing] = useState(false);
   // This key is part of a trick to get React to throw out and recreate the Create Project
@@ -57,6 +66,27 @@ const people = props => {
     setEditing(true);
   };
 
+  const addedNoteHandler = (personId, text) => {
+    if (onAddedPersonNote) {
+      const person = list.find(x => x.id === personId);
+      onAddedPersonNote(person, text);
+    }
+  };
+
+  const updatedNoteHandler = (personId, text, note) => {
+    if (onUpdatedPersonNote) {
+      const person = list.find(x => x.id === personId);
+      onUpdatedPersonNote(person, text, note);
+    }
+  };
+
+  const deletedNoteHandler = (personId, note) => {
+    if (onDeletedPersonNote) {
+      const person = list.find(x => x.id === personId);
+      onDeletedPersonNote(person, note);
+    }
+  };
+
   const personList = list.map(x => (
     <Person
       key={x.id}
@@ -66,7 +96,10 @@ const people = props => {
       email={x.email}
       affiliation={x.affiliation}
       roles={x.roles}
-      notes={[]}
+      notes={x.notes}
+      onAddedNote={addedNoteHandler}
+      onUpdatedNote={updatedNoteHandler}
+      onDeletedNote={deletedNoteHandler}
       onDeletePerson={deletePersonHandler}
       onEditPerson={editPersonHandler}
     />
@@ -100,14 +133,20 @@ people.propTypes = {
   list: PropTypes.array,
   mode: PropTypes.string.isRequired,
   onSave: PropTypes.func,
-  onDelete: PropTypes.func
+  onDelete: PropTypes.func,
+  onAddedPersonNote: PropTypes.func,
+  onUpdatedPersonNote: PropTypes.func,
+  onDeletedPersonNote: PropTypes.func
 };
 
 people.defaultProps = {
   project: null,
   list: [],
   onSave: null,
-  onDelete: null
+  onDelete: null,
+  onAddedPersonNote: null,
+  onUpdatedPersonNote: null,
+  onDeletedPersonNote: null
 };
 
 export default people;

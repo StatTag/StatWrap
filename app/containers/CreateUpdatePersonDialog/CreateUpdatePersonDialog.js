@@ -56,21 +56,10 @@ class CreateUpdatePersonDialog extends Component {
   }
 
   handleCreateUpdatePersonCompleted(sender, response) {
-    console.log(response);
     if (response && !response.error) {
       if (this.props.onSave) {
         this.props.onSave(response.person);
       }
-      // ipcRenderer.send(
-      //   Messages.WRITE_PROJECT_LOG_REQUEST,
-      //   response.project.path,
-      //   Constants.ActionType.PROJECT_CREATED,
-      //   Constants.ActionType.PROJECT_CREATED,
-      //   `${this.context} created person ${response.person.name}`,
-      //   response.person,
-      //   'info',
-      //   this.context
-      // );
       this.props.onClose(true);
     } else {
       this.setState({ errorMessage: response.errorMessage });
