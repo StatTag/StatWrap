@@ -441,6 +441,7 @@ class Project extends Component<Props> {
         ...currentProject.people[foundIndex],
         name: person.name,
         affiliation: person.affiliation,
+        email: person.email,
         roles: person.roles
       };
     }
