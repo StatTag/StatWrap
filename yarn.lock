@@ -1638,6 +1638,13 @@
   dependencies:
     "@babel/types" "^7.3.0"
 
+"@types/codemirror@0.0.109":
+  version "0.0.109"
+  resolved "https://registry.yarnpkg.com/@types/codemirror/-/codemirror-0.0.109.tgz#89d575ff1c7b462c4c3b8654f8bb38e5622e9036"
+  integrity sha512-cSdiHeeLjvGn649lRTNeYrVCDOgDrtP+bDDSFDd1TF+i0jKGPDRozno2NOJ9lTniso+taiv4kiVS8dgM8Jm5lg==
+  dependencies:
+    "@types/tern" "*"
+
 "@types/codemirror@^0.0.88":
   version "0.0.88"
   resolved "https://registry.yarnpkg.com/@types/codemirror/-/codemirror-0.0.88.tgz#429e3462ce22865dc40cc1cb27862edaeda0bbab"
@@ -1724,6 +1731,11 @@
   version "0.7.4"
   resolved "https://registry.yarnpkg.com/@types/marked/-/marked-0.7.4.tgz#607685669bb1bbde2300bc58ba43486cbbee1f0a"
   integrity sha512-fdg0NO4qpuHWtZk6dASgsrBggY+8N4dWthl1bAQG9ceKUNKFjqpHaDKCAhRUI6y8vavG7hLSJ4YBwJtZyZEXqw==
+
+"@types/marked@^2.0.2":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@types/marked/-/marked-2.0.3.tgz#c8ea93684e530cc3b667d3e7226556dd0844ad1f"
+  integrity sha512-lbhSN1rht/tQ+dSWxawCzGgTfxe9DB31iLgiT1ZVT5lshpam/nyOA1m3tKHRoNPctB2ukSL22JZI5Fr+WI/zYg==
 
 "@types/mdast@^3.0.0", "@types/mdast@^3.0.3":
   version "3.0.3"
@@ -4481,6 +4493,11 @@ codemirror@^5.58.2:
   resolved "https://registry.yarnpkg.com/codemirror/-/codemirror-5.58.3.tgz#3f0689854ecfbed5d4479a98b96148b2c3b79796"
   integrity sha512-KBhB+juiyOOgn0AqtRmWyAT3yoElkuvWTI6hsHa9E6GQrl6bk/fdAYcvuqW1/upO9T9rtEtapWdw4XYcNiVDEA==
 
+codemirror@^5.61.0:
+  version "5.62.0"
+  resolved "https://registry.yarnpkg.com/codemirror/-/codemirror-5.62.0.tgz#e9ecd012e6f9eaf2e05ff4a449ff750f51619e22"
+  integrity sha512-Xnl3304iCc8nyVZuRkzDVVwc794uc9QNX0UcPGeNic1fbzkSrO4l4GVXho9tRNKBgPYZXgocUqXyfIv3BILhCQ==
+
 coffeescript@^2.3.1:
   version "2.5.1"
   resolved "https://registry.yarnpkg.com/coffeescript/-/coffeescript-2.5.1.tgz#b2442a1f2c806139669534a54adc35010559d16a"
@@ -6008,7 +6025,7 @@ easy-stack@^1.0.0:
   resolved "https://registry.yarnpkg.com/easy-stack/-/easy-stack-1.0.0.tgz#12c91b3085a37f0baa336e9486eac4bf94e3e788"
   integrity sha1-EskbMIWjfwuqM26UhurEv5Tj54g=
 
-easymde@^2.10.1, easymde@^2.13.0:
+easymde@^2.10.1:
   version "2.13.0"
   resolved "https://registry.yarnpkg.com/easymde/-/easymde-2.13.0.tgz#bcbec4d0d02a2088511e8485705cc6bb3aec0988"
   integrity sha512-Q9cfsMzIwtXS2h/1toB404aYRkOukjVroZP2/7uItO4W5e3pC8mey2NsHlSAGRdR2pIwR2XheA4TucX0IjseBA==
@@ -6016,6 +6033,17 @@ easymde@^2.10.1, easymde@^2.13.0:
     codemirror "^5.58.2"
     codemirror-spell-checker "1.1.2"
     marked "^1.2.3"
+
+easymde@^2.14.0:
+  version "2.15.0"
+  resolved "https://registry.yarnpkg.com/easymde/-/easymde-2.15.0.tgz#73667c4879d8687b07651d6259ee652bba5d0b00"
+  integrity sha512-9jMRIVvKt1d0UjRN45yotUYECAM4xvw0TTAQw8sYDONP++keWJVnd8Xrn+V+vQEN/v9/X0SWEoo1rFSgCooGpw==
+  dependencies:
+    "@types/codemirror" "0.0.109"
+    "@types/marked" "^2.0.2"
+    codemirror "^5.61.0"
+    codemirror-spell-checker "1.1.2"
+    marked "^2.0.3"
 
 ecc-jsbn@~0.1.1:
   version "0.1.2"
@@ -10160,6 +10188,11 @@ marked@^1.2.3:
   version "1.2.5"
   resolved "https://registry.yarnpkg.com/marked/-/marked-1.2.5.tgz#a44b31f2a0b8b5bfd610f00d55d1952d1ac1dfdb"
   integrity sha512-2AlqgYnVPOc9WDyWu7S5DJaEZsfk6dNh/neatQ3IHUW4QLutM/VPSH9lG7bif+XjFWc9K9XR3QvR+fXuECmfdA==
+
+marked@^2.0.3:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/marked/-/marked-2.1.2.tgz#59579e17b02443312caa1509994d5a0b18ae38e1"
+  integrity sha512-ueJhIvklJJw04qxQbGIAu63EXwwOCYc7yKMBjgagTM4rjC5QtWyqSNgW7jCosV1/Km/1TUfs5qEpAqcGG0Mo5g==
 
 match-url-wildcard@0.0.4:
   version "0.0.4"

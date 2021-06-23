@@ -96,7 +96,6 @@ class CreateUpdatePersonDialog extends Component {
   }
 
   handleRolesChanged(changedRoles) {
-    console.log(changedRoles);
     this.setState({ roles: changedRoles });
   }
 

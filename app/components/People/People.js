@@ -1,9 +1,12 @@
 /* eslint-disable react/forbid-prop-types */
 import React, { useState, useContext } from 'react';
 import PropTypes from 'prop-types';
+import { FaTh, FaThList } from 'react-icons/fa';
 import { Button } from '@material-ui/core';
-import Person from '../Person/Person';
+import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab';
 import CreateUpdatePersonDialog from '../../containers/CreateUpdatePersonDialog/CreateUpdatePersonDialog';
+import PeopleCardList from './PeopleCardList/PeopleCardList';
+import PeopleTable from './PeopleTable/PeopleTable';
 import SettingsContext from '../../contexts/Settings';
 import styles from './People.css';
 
@@ -18,8 +21,7 @@ const people = props => {
     onUpdatedPersonNote,
     onDeletedPersonNote
   } = props;
-  // UI state flag to let us know when we're in the process of adding/editing a person
-  const [editing, setEditing] = useState(false);
+
   // This key is part of a trick to get React to throw out and recreate the Create Project
   // dialog when we have disposed of it - either by creating a project or cancelling.  This
   // tracks a sequential number that, when changed, signals React that the dialog can be
@@ -33,8 +35,19 @@ const people = props => {
 
   const settings = useContext(SettingsContext);
 
+  // UI state flag to let us know when we're in the process of adding/editing a person
+  const [editing, setEditing] = useState(false);
+
+  const [display, setDisplay] = React.useState('card');
+
   const handleCloseAddEditPerson = () => {
     setEditing(false);
+  };
+
+  const handleSaved = person => {
+    if (onSave) {
+      onSave(person);
+    }
   };
 
   const deletePersonHandler = id => {
@@ -43,10 +56,8 @@ const people = props => {
     }
   };
 
-  const handleSaved = person => {
-    if (onSave) {
-      onSave(person);
-    }
+  const handleDisplay = (event, newDisplay) => {
+    setDisplay(newDisplay);
   };
 
   const addPersonHandler = () => {
@@ -59,61 +70,77 @@ const people = props => {
     setEditing(true);
   };
 
-  const editPersonHandler = (id, name, email, affiliation, roles) => {
+  const editPersonHandler = person => {
     setDialogKey(dialogKey + 1);
-    setEditPersonId(id);
-    setEditPersonName(name);
-    setEditPersonEmail(email);
-    setEditPersonAffiliation(affiliation);
-    setEditPersonRoles(roles);
+    setEditPersonId(person.id);
+    setEditPersonName(person.name);
+    setEditPersonEmail(person.email);
+    setEditPersonAffiliation(person.affiliation);
+    setEditPersonRoles(person.roles);
     setEditing(true);
   };
 
-  const addedNoteHandler = (personId, text) => {
+  const addedNoteHandler = (person, text) => {
     if (onAddedPersonNote) {
-      const person = list.find(x => x.id === personId);
       onAddedPersonNote(person, text);
     }
   };
 
-  const updatedNoteHandler = (personId, text, note) => {
+  const updatedNoteHandler = (person, text, note) => {
     if (onUpdatedPersonNote) {
-      const person = list.find(x => x.id === personId);
       onUpdatedPersonNote(person, text, note);
     }
   };
 
-  const deletedNoteHandler = (personId, note) => {
+  const deletedNoteHandler = (person, note) => {
     if (onDeletedPersonNote) {
-      const person = list.find(x => x.id === personId);
       onDeletedPersonNote(person, note);
     }
   };
 
-  const personList = list.map(x => (
-    <Person
-      key={x.id}
-      mode={mode}
-      id={x.id}
-      name={x.name}
-      email={x.email}
-      affiliation={x.affiliation}
-      roles={x.roles}
-      notes={x.notes}
-      onAddedNote={addedNoteHandler}
-      onUpdatedNote={updatedNoteHandler}
-      onDeletedNote={deletedNoteHandler}
-      onDeletePerson={deletePersonHandler}
-      onEditPerson={editPersonHandler}
-    />
-  ));
+  let personList = null;
+  if (display === 'card') {
+    personList = (
+      <PeopleCardList
+        list={list}
+        mode={mode}
+        onEdit={editPersonHandler}
+        onDelete={deletePersonHandler}
+        onAddedPersonNote={addedNoteHandler}
+        onUpdatedPersonNote={updatedNoteHandler}
+        onDeletedPersonNote={deletedNoteHandler}
+      />
+    );
+  } else if (display === 'table') {
+    personList = (
+      <PeopleTable
+        mode={mode}
+        list={list}
+        onEdit={editPersonHandler}
+        onDelete={deletePersonHandler}
+      />
+    );
+  }
 
   return (
     <div className={styles.container}>
+      <ToggleButtonGroup
+        value={display}
+        exclusive
+        onChange={handleDisplay}
+        aria-label="select person list display"
+      >
+        <ToggleButton value="card" aria-label="card list">
+          <FaTh />
+        </ToggleButton>
+        <ToggleButton value="table" aria-label="table">
+          <FaThList />
+        </ToggleButton>
+      </ToggleButtonGroup>
       <Button className={styles.button} color="primary" onClick={addPersonHandler}>
         Add Person
       </Button>
-      <div className={styles.personContainer}>{personList}</div>
+      {personList}
       <CreateUpdatePersonDialog
         key={dialogKey}
         mode={mode}
