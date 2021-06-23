@@ -6,9 +6,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Draggable from 'react-draggable';
-import { Dialog, DialogActions, DialogTitle, Button, Paper } from '@material-ui/core';
+import { Dialog, DialogActions, DialogTitle, Button, Paper, TextField } from '@material-ui/core';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import { ipcRenderer } from 'electron';
 import Messages from '../../constants/messages';
+import GeneralUtil from '../../utils/general';
 import Error from '../../components/Error/Error';
 import TagEditor from '../../components/TagEditor/TagEditor';
 import UserContext from '../../contexts/User';
@@ -42,6 +44,7 @@ class CreateUpdatePersonDialog extends Component {
     this.handleRolesChanged = this.handleRolesChanged.bind(this);
     this.handleCreateUpdatePerson = this.handleCreateUpdatePerson.bind(this);
     this.handleCreateUpdatePersonCompleted = this.handleCreateUpdatePersonCompleted.bind(this);
+    this.handleSelectPersonInDirectory = this.handleSelectPersonInDirectory.bind(this);
   }
 
   componentDidMount() {
@@ -66,6 +69,15 @@ class CreateUpdatePersonDialog extends Component {
     }
   }
 
+  savePerson(person) {
+    ipcRenderer.send(
+      Messages.CREATE_UPDATE_PERSON_REQUEST,
+      this.props.mode,
+      this.props.project,
+      person
+    );
+  }
+
   handleCreateUpdatePerson() {
     const person = {
       id: this.state.id,
@@ -80,12 +92,7 @@ class CreateUpdatePersonDialog extends Component {
       affiliation: this.state.affiliation,
       roles: this.state.roles
     };
-    ipcRenderer.send(
-      Messages.CREATE_UPDATE_PERSON_REQUEST,
-      this.props.mode,
-      this.props.project,
-      person
-    );
+    this.savePerson(person);
   }
 
   handleRolesChanged(changedRoles) {
@@ -103,18 +110,49 @@ class CreateUpdatePersonDialog extends Component {
     });
   }
 
+  handleSelectPersonInDirectory(event, value) {
+    this.savePerson(value);
+  }
+
   render() {
     const dialogTitle = this.props.id ? 'Edit Person' : 'Add Person';
     let error = null;
     if (this.state.errorMessage) {
       error = <Error style={{ marginTop: '15px' }}>{this.state.errorMessage}</Error>;
     }
+    const projectMode = this.props.mode.toLowerCase() === 'project';
     let roles = null;
-    if (this.props.mode.toLowerCase() === 'project') {
+    if (projectMode) {
       roles = (
         <div className={styles.formRow}>
           <label>Roles:</label>
           <TagEditor tags={this.state.roles} onChange={this.handleRolesChanged} />
+        </div>
+      );
+    }
+
+    // We only want to show the user directory and allow selection from it if:
+    //  - We are invoking this dialog for a project
+    //  - The user has a directory populated
+    //  - We are in create mode (not edit mode)
+    let directory = null;
+    if (projectMode && this.props.directory && this.props.directory.length > 0 && !this.props.id) {
+      directory = (
+        <div className={styles.directoryPanel}>
+          <Autocomplete
+            id="user-directory"
+            options={this.props.directory}
+            onChange={this.handleSelectPersonInDirectory}
+            getOptionLabel={option => GeneralUtil.formatName(option.name)}
+            renderInput={params => (
+              <TextField
+                {...params}
+                label="Select a person from your directory"
+                variant="outlined"
+              />
+            )}
+          />
+          <div className={styles.separator}> &ndash; or enter a new person &ndash; </div>
         </div>
       );
     }
@@ -132,6 +170,7 @@ class CreateUpdatePersonDialog extends Component {
           {dialogTitle}
         </DialogTitle>
         <form onSubmit={this.onSubmit}>
+          {directory}
           <div className={styles.formBody}>
             <div className={styles.formRow}>
               <label>Name:</label>
@@ -216,6 +255,7 @@ class CreateUpdatePersonDialog extends Component {
 CreateUpdatePersonDialog.propTypes = {
   project: PropTypes.object,
   mode: PropTypes.string.isRequired,
+  directory: PropTypes.array,
   id: PropTypes.string,
   name: PropTypes.object,
   email: PropTypes.string,
@@ -229,6 +269,7 @@ CreateUpdatePersonDialog.propTypes = {
 
 CreateUpdatePersonDialog.defaultProps = {
   project: null,
+  directory: [],
   id: null,
   name: null,
   email: null,

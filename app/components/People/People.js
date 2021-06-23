@@ -1,9 +1,10 @@
 /* eslint-disable react/forbid-prop-types */
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { Button } from '@material-ui/core';
 import Person from '../Person/Person';
 import CreateUpdatePersonDialog from '../../containers/CreateUpdatePersonDialog/CreateUpdatePersonDialog';
+import SettingsContext from '../../contexts/Settings';
 import styles from './People.css';
 
 const people = props => {
@@ -29,6 +30,8 @@ const people = props => {
   const [editPersonEmail, setEditPersonEmail] = useState(null);
   const [editPersonAffiliation, setEditPersonAffiliation] = useState(null);
   const [editPersonRoles, setEditPersonRoles] = useState(null);
+
+  const settings = useContext(SettingsContext);
 
   const handleCloseAddEditPerson = () => {
     setEditing(false);
@@ -114,6 +117,7 @@ const people = props => {
       <CreateUpdatePersonDialog
         key={dialogKey}
         mode={mode}
+        directory={settings.directory}
         project={project}
         id={editPersonId}
         name={editPersonName}

@@ -12,7 +12,6 @@ class ConfigurationPage extends Component {
   }
 
   handleDeletePerson = id => {
-    console.log(`Delete ${id}`);
     ipcRenderer.send(Messages.REMOVE_DIRECTORY_PERSON_REQUEST, { id });
   };
 

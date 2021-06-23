@@ -38,3 +38,14 @@ input::placeholder {
   padding-bottom: 5px;
   padding-top: 5px;
 }
+
+.directoryPanel {
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+.separator {
+  padding-top: 10px;
+  text-align: center;
+  font-weight: bold;
+}
