@@ -38,6 +38,7 @@ class AssetTree extends Component {
     const assetTree = !filteredAssets ? null : (
       <AssetNode
         onClick={this.handleClick}
+        root
         key={filteredAssets.uri}
         node={filteredAssets}
         openNodes={this.state.expandedNodes}

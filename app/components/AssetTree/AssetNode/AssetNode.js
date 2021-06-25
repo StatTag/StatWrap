@@ -28,18 +28,24 @@ const NodeIcon = styled.div`
 `;
 
 const AssetNode = props => {
-  const { node, openNodes, selectedAsset, level, onToggle, onRightClick, onClick } = props;
-  const isOpen = openNodes.includes(node.uri);
+  const { node, root, openNodes, selectedAsset, level, onToggle, onRightClick, onClick } = props;
+  const isOpen = root || openNodes.includes(node.uri);
   return (
     <>
       <StyledTreeNode
         level={level}
         type={node.type}
         selected={node && selectedAsset && node.uri === selectedAsset.uri}
-        onContextMenu={e => onRightClick(e)}
+        onContextMenu={e => {
+          if (onRightClick) {
+            onRightClick(e);
+          }
+        }}
         onClick={e => {
           e.stopPropagation();
-          onClick(node);
+          if (onClick) {
+            onClick(node);
+          }
         }}
       >
         <NodeIcon onClick={() => onToggle(node)}>
@@ -77,6 +83,7 @@ const AssetNode = props => {
 
 AssetNode.propTypes = {
   node: PropTypes.object.isRequired,
+  root: PropTypes.bool,
   selectedAsset: PropTypes.object,
   level: PropTypes.number,
   onToggle: PropTypes.func,
@@ -86,6 +93,7 @@ AssetNode.propTypes = {
 };
 
 AssetNode.defaultProps = {
+  root: false,
   onToggle: null,
   onRightClick: null,
   onClick: null,
