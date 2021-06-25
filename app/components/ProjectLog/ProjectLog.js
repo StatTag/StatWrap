@@ -1,6 +1,7 @@
 /* eslint-disable react/forbid-prop-types */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
+import { Button } from '@material-ui/core';
 import styled from 'styled-components';
 import DataTable from 'react-data-table-component';
 import Error from '../Error/Error';
@@ -75,11 +76,12 @@ const FilterComponent = ({ filterText, onFilter, onClear }) => (
 );
 
 const projectLog = props => {
-  const [filterText, setFilterText] = React.useState('');
+  const [filterText, setFilterText] = useState('');
+  const [expandAll, setExpandAll] = useState(false);
   const { feed, error } = props;
   const [pending, setPending] = useState(true);
 
-  const subHeaderComponentMemo = React.useMemo(() => {
+  const subHeaderComponentMemo = useMemo(() => {
     const handleClear = () => {
       if (filterText) {
         setFilterText('');
@@ -87,11 +89,17 @@ const projectLog = props => {
     };
 
     return (
-      <FilterComponent
-        onFilter={e => setFilterText(e.target.value)}
-        onClear={handleClear}
-        filterText={filterText}
-      />
+      <>
+        <div className={styles.headerButton}>
+          <Button onClick={() => setExpandAll(true)}>Expand All</Button>
+          <Button onClick={() => setExpandAll(false)}>Collapse All</Button>
+        </div>
+        <FilterComponent
+          onFilter={e => setFilterText(e.target.value)}
+          onClear={handleClear}
+          filterText={filterText}
+        />
+      </>
     );
   }, [filterText]);
 
@@ -121,6 +129,7 @@ const projectLog = props => {
         progressPending={pending}
         expandableRows
         expandableRowsComponent={<ProjectLogRow />}
+        expandableRowExpanded={() => expandAll}
         subHeader
         subHeaderComponent={subHeaderComponentMemo}
       />
