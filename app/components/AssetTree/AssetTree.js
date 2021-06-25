@@ -1,8 +1,10 @@
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { Button } from '@material-ui/core';
 import AssetNode from './AssetNode/AssetNode';
 import AssetUtil from '../../utils/asset';
+import Constants from '../../constants/constants';
 import styles from './AssetTree.css';
 
 // This implementation borrows heavily from: https://github.com/davidtran/simple-treeview
@@ -31,20 +33,56 @@ class AssetTree extends Component {
     });
   };
 
+  // This is an internal callback used when iterating recursively over a directory
+  // to allow us to set the node as being expanded.
+  // node - the node to try and add (will only be added if a directory)
+  // expandedNodes - the collection of URIs of expanded nodes
+  setNodeExpanded = (node, expandedNodes) => {
+    if (node.type === Constants.AssetType.DIRECTORY) {
+      expandedNodes.push(node.uri);
+      if (node.children) {
+        node.children.forEach(x => this.setNodeExpanded(x, expandedNodes));
+      }
+    }
+  };
+
+  setExpandAll = expand => {
+    this.setState(() => {
+      const expandedNodes = [];
+      // If we're collapsing, we just set this to an empty array.  Easy!
+      if (!expand) {
+        return { expandedNodes };
+      }
+
+      // If we're expanding, we need to recursively add every folder URI.
+      expandedNodes.push(this.props.project.assets.uri);
+      if (this.props.project.assets.children) {
+        this.props.project.assets.children.forEach(c => this.setNodeExpanded(c, expandedNodes));
+      }
+      return { expandedNodes };
+    });
+  };
+
   render() {
     const filteredAssets = !this.props.project.assets
       ? null
       : AssetUtil.filterIncludedFileAssets(this.props.project.assets);
     const assetTree = !filteredAssets ? null : (
-      <AssetNode
-        onClick={this.handleClick}
-        root
-        key={filteredAssets.uri}
-        node={filteredAssets}
-        openNodes={this.state.expandedNodes}
-        selectedAsset={this.props.selectedAsset}
-        onToggle={this.onToggle}
-      />
+      <>
+        <div>
+          <Button onClick={() => this.setExpandAll(true)}>Expand All</Button>
+          <Button onClick={() => this.setExpandAll(false)}>Collapse All</Button>
+        </div>
+        <AssetNode
+          onClick={this.handleClick}
+          root
+          key={filteredAssets.uri}
+          node={filteredAssets}
+          openNodes={this.state.expandedNodes}
+          selectedAsset={this.props.selectedAsset}
+          onToggle={this.onToggle}
+        />
+      </>
     );
 
     return <div className={styles.container}>{assetTree}</div>;
