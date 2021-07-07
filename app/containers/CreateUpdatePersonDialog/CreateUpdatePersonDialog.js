@@ -31,11 +31,7 @@ class CreateUpdatePersonDialog extends Component {
       errorMessage: null,
       id: props.id ? props.id : '',
       firstName: props.name ? props.name.first : '',
-      middleName: props.name ? props.name.middle : '',
       lastName: props.name ? props.name.last : '',
-      prefixName: props.name ? props.name.prefix : '',
-      suffixName: props.name ? props.name.suffix : '',
-      email: props.email ? props.email : '',
       affiliation: props.affiliation ? props.affiliation : '',
       roles: props.roles ? props.roles : []
     };
@@ -83,12 +79,8 @@ class CreateUpdatePersonDialog extends Component {
       id: this.state.id,
       name: {
         first: this.state.firstName,
-        middle: this.state.middleName,
-        last: this.state.lastName,
-        prefix: this.state.prefixName,
-        suffix: this.state.suffixName
+        last: this.state.lastName
       },
-      email: this.state.email,
       affiliation: this.state.affiliation,
       roles: this.state.roles
     };
@@ -174,15 +166,6 @@ class CreateUpdatePersonDialog extends Component {
             <div className={styles.formRow}>
               <label>Name:</label>
               <input
-                autoFocus
-                type="text"
-                id={styles.prefixName}
-                name="prefixName"
-                placeholder="Dr."
-                value={this.state.prefixName}
-                onChange={this.handleInputChange}
-              />
-              <input
                 type="text"
                 id={styles.firstName}
                 name="firstName"
@@ -192,36 +175,10 @@ class CreateUpdatePersonDialog extends Component {
               />
               <input
                 type="text"
-                id={styles.middleName}
-                name="middleName"
-                placeholder="M"
-                value={this.state.middleName}
-                onChange={this.handleInputChange}
-              />
-              <input
-                type="text"
                 id={styles.lastName}
                 name="lastName"
                 placeholder="Last"
                 value={this.state.lastName}
-                onChange={this.handleInputChange}
-              />
-              <input
-                type="text"
-                id={styles.suffixName}
-                name="suffixName"
-                placeholder="Jr."
-                value={this.state.suffixName}
-                onChange={this.handleInputChange}
-              />
-            </div>
-            <div className={styles.formRow}>
-              <label>E-mail:</label>
-              <input
-                type="text"
-                name="email"
-                placeholder="person@email.com"
-                value={this.state.email}
                 onChange={this.handleInputChange}
               />
             </div>
@@ -257,7 +214,6 @@ CreateUpdatePersonDialog.propTypes = {
   directory: PropTypes.array,
   id: PropTypes.string,
   name: PropTypes.object,
-  email: PropTypes.string,
   affiliation: PropTypes.string,
   roles: PropTypes.array,
   onClose: PropTypes.func.isRequired,
@@ -271,7 +227,6 @@ CreateUpdatePersonDialog.defaultProps = {
   directory: [],
   id: null,
   name: null,
-  email: null,
   affiliation: null,
   roles: [],
   open: false,

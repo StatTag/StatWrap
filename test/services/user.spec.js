@@ -117,11 +117,10 @@ describe('services', () => {
         const settings = {};
         expect(
           new UserService().upsertPersonInUserDirectory(settings, {
-            id: '1-2-3',
-            email: 'test@test.com'
+            id: '1-2-3'
           })
         ).not.toBeNull();
-        expect(settings.directory[0]).toEqual({ id: '1-2-3', email: 'test@test.com' });
+        expect(settings.directory[0]).toEqual({ id: '1-2-3' });
       });
       it('should add a new person when the id differs in case', () => {
         const settings = {
@@ -131,26 +130,29 @@ describe('services', () => {
               name: {
                 first: 'Test',
                 last: 'Person'
-              },
-              email: 'test@test.com'
+              }
             }
           ]
         };
         expect(
           new UserService().upsertPersonInUserDirectory(settings, {
-            id: 'A-b-c',
-            email: 'test@test.com'
+            id: 'A-b-c'
           })
         ).not.toBeNull();
-        expect(settings.directory[1]).toEqual({ id: 'A-b-c', email: 'test@test.com' });
+        expect(settings.directory[1]).toEqual({ id: 'A-b-c' });
       });
       it('should add a new person when the id is empty', () => {
         uuid.mockImplementation(() => '1-2-3');
         const settings = {};
         expect(
-          new UserService().upsertPersonInUserDirectory(settings, { email: 'test@test.com' })
+          new UserService().upsertPersonInUserDirectory(settings, {
+            name: { first: 'Test', last: 'Person' }
+          })
         ).not.toBeNull();
-        expect(settings.directory[0]).toEqual({ id: '1-2-3', email: 'test@test.com' });
+        expect(settings.directory[0]).toEqual({
+          id: '1-2-3',
+          name: { first: 'Test', last: 'Person' }
+        });
       });
       it('should update an existing person', () => {
         const settings = {
@@ -160,8 +162,7 @@ describe('services', () => {
               name: {
                 first: 'Test',
                 last: 'Person'
-              },
-              email: 'test@test.com'
+              }
             }
           ]
         };
@@ -170,8 +171,7 @@ describe('services', () => {
           name: {
             first: 'Updated',
             last: 'Person'
-          },
-          email: 'test2@test.com'
+          }
         };
         expect(
           new UserService().upsertPersonInUserDirectory(settings, updatedPerson)
@@ -183,12 +183,11 @@ describe('services', () => {
         expect(
           new UserService().upsertPersonInUserDirectory(settings, {
             id: '1-2-3',
-            email: 'test@test.com',
             roles: [],
             notes: []
           })
         ).not.toBeNull();
-        expect(settings.directory[0]).toEqual({ id: '1-2-3', email: 'test@test.com' });
+        expect(settings.directory[0]).toEqual({ id: '1-2-3' });
       });
     });
 

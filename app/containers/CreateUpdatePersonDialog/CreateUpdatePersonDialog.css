@@ -14,15 +14,9 @@ input::placeholder {
   opacity: 0.7;
 }
 
-#prefixName,
-#middleName,
-#suffixName {
-  flex: 0 0 5%;
-}
-
 #firstName,
 #lastName {
-  flex: 0 0 30%;
+  flex: 0 0 40%;
 }
 
 .formBody {

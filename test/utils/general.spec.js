@@ -49,30 +49,14 @@ describe('services', () => {
         expect(
           GeneralUtil.formatName({
             first: 'Test',
-            last: 'Person',
-            middle: 'T',
-            prefix: 'Dr.',
-            suffix: 'Jr.'
+            last: 'Person'
           })
-        ).toBe('Dr. Test T Person Jr.');
+        ).toBe('Test Person');
       });
 
       it('formats around missing componenents', () => {
-        expect(
-          GeneralUtil.formatName({ last: 'Person', middle: 'T', prefix: 'Dr.', suffix: 'Jr.' })
-        ).toBe('Dr. T Person Jr.');
-        expect(
-          GeneralUtil.formatName({ first: 'Test', middle: 'T', prefix: 'Dr.', suffix: 'Jr.' })
-        ).toBe('Dr. Test T Jr.');
-        expect(
-          GeneralUtil.formatName({ first: 'Test', last: 'Person', prefix: 'Dr.', suffix: 'Jr.' })
-        ).toBe('Dr. Test Person Jr.');
-        expect(
-          GeneralUtil.formatName({ first: 'Test', last: 'Person', middle: 'T', suffix: 'Jr.' })
-        ).toBe('Test T Person Jr.');
-        expect(
-          GeneralUtil.formatName({ first: 'Test', last: 'Person', middle: 'T', prefix: 'Dr.' })
-        ).toBe('Dr. Test T Person');
+        expect(GeneralUtil.formatName({ last: 'Person' })).toBe('Person');
+        expect(GeneralUtil.formatName({ first: 'Test' })).toBe('Test');
       });
     });
   });

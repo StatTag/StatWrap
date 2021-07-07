@@ -49,11 +49,8 @@ export default class GeneralUtil {
     // We are going to trim the parts of the name that we're given when doing the
     // formatting.  This means that '  ' would come back as ''.
     let displayName = '';
-    displayName = GeneralUtil._appendNamePart(displayName, name.prefix);
     displayName = GeneralUtil._appendNamePart(displayName, name.first);
-    displayName = GeneralUtil._appendNamePart(displayName, name.middle);
     displayName = GeneralUtil._appendNamePart(displayName, name.last);
-    displayName = GeneralUtil._appendNamePart(displayName, name.suffix);
 
     displayName = displayName.trim();
     // If after everything we have a blank string, we will assume no real data was

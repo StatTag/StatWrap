@@ -29,7 +29,6 @@ const people = props => {
   const [dialogKey, setDialogKey] = useState(0);
   const [editPersonId, setEditPersonId] = useState(null);
   const [editPersonName, setEditPersonName] = useState(null);
-  const [editPersonEmail, setEditPersonEmail] = useState(null);
   const [editPersonAffiliation, setEditPersonAffiliation] = useState(null);
   const [editPersonRoles, setEditPersonRoles] = useState(null);
 
@@ -64,7 +63,6 @@ const people = props => {
     setDialogKey(dialogKey + 1);
     setEditPersonId(null);
     setEditPersonName(null);
-    setEditPersonEmail(null);
     setEditPersonAffiliation(null);
     setEditPersonRoles(null);
     setEditing(true);
@@ -74,7 +72,6 @@ const people = props => {
     setDialogKey(dialogKey + 1);
     setEditPersonId(person.id);
     setEditPersonName(person.name);
-    setEditPersonEmail(person.email);
     setEditPersonAffiliation(person.affiliation);
     setEditPersonRoles(person.roles);
     setEditing(true);
@@ -148,7 +145,6 @@ const people = props => {
         project={project}
         id={editPersonId}
         name={editPersonName}
-        email={editPersonEmail}
         affiliation={editPersonAffiliation}
         roles={editPersonRoles}
         open={editing}

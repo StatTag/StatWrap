@@ -80,11 +80,6 @@ const peopleTable = props => {
       sortable: true
     },
     {
-      name: 'E-mail',
-      selector: 'email',
-      sortable: true
-    },
-    {
       name: 'Affiliation',
       selector: 'affiliation',
       sortable: true
@@ -160,7 +155,6 @@ const peopleTable = props => {
         f =>
           filterText === '' ||
           (f.displayName && f.displayName.toLowerCase().includes(filterText.toLowerCase())) ||
-          (f.email && f.email.toLowerCase().includes(filterText.toLowerCase())) ||
           (f.affiliation && f.affiliation.toLowerCase().includes(filterText.toLowerCase())) ||
           (f.displayRoles && f.displayRoles.toLowerCase().includes(filterText.toLowerCase()))
       );

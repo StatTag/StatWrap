@@ -55,7 +55,6 @@ const peopleCardList = props => {
       mode={mode}
       id={x.id}
       name={x.name}
-      email={x.email}
       affiliation={x.affiliation}
       roles={x.roles}
       notes={x.notes}

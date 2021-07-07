@@ -3,8 +3,6 @@ import username from 'username';
 // import Constants from '../constants/constants';
 
 const fs = require('fs');
-// const os = require('os');
-// const path = require('path');
 
 const DefaultSettingsFile = '.user-settings.json';
 const SettingsFileFormatVersion = '1';
@@ -78,7 +76,6 @@ export default class UserService {
     const personCopy = {
       id: person.id,
       name: person.name,
-      email: person.email,
       affiliation: person.affiliation
     };
 
@@ -91,7 +88,6 @@ export default class UserService {
         // Copy over only what attributes need to be saved in the directory.  Some
         // attributs may be specific to the project entry for the person.
         existingPerson.name = personCopy.name;
-        existingPerson.email = personCopy.email;
         existingPerson.affiliation = personCopy.affiliation;
       } else {
         settings.directory.push(personCopy);

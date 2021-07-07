@@ -436,12 +436,11 @@ class Project extends Component<Props> {
       action = ActionType.PERSON_UPDATED;
       actionDescription = `${user} updated person in project`;
       // Update the existing person, but just what would be changed within
-      // the dialog (name, affiliation, email, roles)
+      // the dialog (name, affiliation, roles)
       currentProject.people[foundIndex] = {
         ...currentProject.people[foundIndex],
         name: person.name,
         affiliation: person.affiliation,
-        email: person.email,
         roles: person.roles
       };
     }

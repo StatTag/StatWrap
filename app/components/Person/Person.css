@@ -19,14 +19,12 @@
 
 .name,
 .affiliation,
-.email,
 .roles {
   margin-left: 30px;
   margin-right: 30px;
 }
 
-.affiliation,
-.email {
+.affiliation {
   font-size: 0.8rem;
 }
 
