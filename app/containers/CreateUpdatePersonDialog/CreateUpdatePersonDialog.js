@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable jsx-a11y/no-autofocus */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable react/forbid-prop-types */
@@ -140,19 +141,21 @@ class CreateUpdatePersonDialog extends Component {
     //  - We are in create mode (not edit mode)
     let directory = null;
     if (projectMode && this.props.directory && this.props.directory.length > 0 && !this.props.id) {
+      // Sort the directory so that the most recently added person in the MRU list/directory
+      // appears at the top.
+      const sortedDirectory = this.props.directory.sort((a, b) =>
+        a.added > b.added ? -1 : b.added > a.added ? 1 : 0
+      );
+
       directory = (
         <div className={styles.directoryPanel}>
           <Autocomplete
             id="user-directory"
-            options={this.props.directory}
+            options={sortedDirectory}
             onChange={this.handleSelectPersonInDirectory}
             getOptionLabel={option => GeneralUtil.formatName(option.name)}
             renderInput={params => (
-              <TextField
-                {...params}
-                label="Select a person from your directory"
-                variant="outlined"
-              />
+              <TextField {...params} label="Select a recently added person" variant="outlined" />
             )}
           />
           <div className={styles.separator}> &ndash; or enter a new person &ndash; </div>

@@ -595,21 +595,13 @@ ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, mode, project, p
     return;
   }
 
-  // If this person was sent not for a project, but for the directory, we will
-  // always make sure it's properly registered regardless if it's created or
-  // updated. If we are creating a person within a project (signaled when the ID
-  // is not set) we want to register that person in the user's directory.
   try {
-    if (!projectMode || !person.id) {
-      const userSettingsPath = path.join(app.getPath('userData'), DefaultSettingsFile);
-      const settings = service.loadUserSettingsFromFile(userSettingsPath);
-      response.person = service.upsertPersonInUserDirectory(settings, person);
+    const userSettingsPath = path.join(app.getPath('userData'), DefaultSettingsFile);
+    const settings = service.loadUserSettingsFromFile(userSettingsPath);
+    response.person = service.upsertPersonInUserDirectory(settings, person);
 
-      service.saveUserSettingsToFile(settings, userSettingsPath);
-      response.project = { ...project };
-    } else {
-      response.person = { ...person };
-    }
+    service.saveUserSettingsToFile(settings, userSettingsPath);
+    response.project = { ...project };
   } catch (e) {
     response.error = true;
     response.errorMessage = e.message;
@@ -617,27 +609,4 @@ ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, mode, project, p
     console.log(e);
   }
   event.sender.send(Messages.CREATE_UPDATE_PERSON_RESPONSE, response);
-});
-
-ipcMain.on(Messages.REMOVE_DIRECTORY_PERSON_REQUEST, async (event, person) => {
-  const response = {
-    project: null,
-    person: null,
-    error: false,
-    errorMessage: ''
-  };
-
-  if (!person || !person.id) {
-    response.error = true;
-    response.errorMessage = 'No person ID to remove was provided';
-    event.sender.send(Messages.REMOVE_DIRECTORY_PERSON_RESPONSE, response);
-    return;
-  }
-
-  const userSettingsPath = path.join(app.getPath('userData'), DefaultSettingsFile);
-  const service = new UserService();
-  const settings = service.loadUserSettingsFromFile(userSettingsPath);
-  service.removePersonFromUserDirectory(settings, person);
-  service.saveUserSettingsToFile(settings, userSettingsPath);
-  event.sender.send(Messages.REMOVE_DIRECTORY_PERSON_RESPONSE, response);
 });

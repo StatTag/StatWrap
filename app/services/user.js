@@ -1,16 +1,21 @@
+/* eslint-disable no-nested-ternary */
 import { v4 as uuid } from 'uuid';
 import username from 'username';
-// import Constants from '../constants/constants';
 
 const fs = require('fs');
 
 const DefaultSettingsFile = '.user-settings.json';
 const SettingsFileFormatVersion = '1';
 
+// Artificially set limit to how many people will be stored in the user's directory.  This
+// limit is imposed because the directory will act more like a 'most recently used' list than
+// an address book.
+const PersonDirectoryLimit = 10;
+
 // Used to verify that we have at least one non-whitespace character in a string
 const oneNonWhitespaceRegex = new RegExp('\\S');
 
-export { DefaultSettingsFile, SettingsFileFormatVersion };
+export { DefaultSettingsFile, SettingsFileFormatVersion, PersonDirectoryLimit };
 
 export default class UserService {
   /**
@@ -101,12 +106,14 @@ export default class UserService {
     const personCopy = {
       id: person.id,
       name: person.name,
-      affiliation: person.affiliation
+      affiliation: person.affiliation,
+      added: new Date(Date.now()).toISOString()
     };
 
     // If we have an ID for the person, we need to see if they already exist.  That is
     // our indicator of each person - we won't do any name checks.  If there is no person
     // ID, we need to generate one and then can just add it.
+    let addPersonToDirectory = false;
     if (personCopy.id) {
       const existingPerson = settings.directory.find(p => p.id === personCopy.id);
       if (existingPerson) {
@@ -114,13 +121,27 @@ export default class UserService {
         // attributs may be specific to the project entry for the person.
         existingPerson.name = personCopy.name;
         existingPerson.affiliation = personCopy.affiliation;
+        existingPerson.added = personCopy.added;
+        // Yup, we're modifying the original.  It needs to know about the updated added timestamp.
+        person.added = personCopy.added;
       } else {
-        settings.directory.push(personCopy);
+        addPersonToDirectory = true;
       }
     } else {
       personCopy.id = uuid();
       // Yup, we're modifying the original.  It needs to know about the ID.
       person.id = personCopy.id;
+      addPersonToDirectory = true;
+    }
+
+    if (addPersonToDirectory) {
+      // If we have the limit of entries, remove the oldest one
+      if (settings.directory.length >= PersonDirectoryLimit) {
+        const sortedDirectory = settings.directory.sort((a, b) =>
+          a.added > b.added ? -1 : b.added > a.added ? 1 : 0
+        );
+        settings.directory = sortedDirectory.slice(0, PersonDirectoryLimit - 1);
+      }
       settings.directory.push(personCopy);
     }
 

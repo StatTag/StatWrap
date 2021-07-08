@@ -2,7 +2,7 @@ import fs from 'fs';
 import os from 'os';
 import { v4 as uuid } from 'uuid';
 import username from 'username';
-import UserService from '../../app/services/user';
+import UserService, { PersonDirectoryLimit } from '../../app/services/user';
 
 jest.mock('fs');
 jest.mock('os');
@@ -34,6 +34,10 @@ const invalidSettingsString = `{
 
 describe('services', () => {
   describe('user', () => {
+    beforeEach(() => {
+      Date.now = jest.fn(() => 1604084623302); // '2020-10-30T19:03:43.302Z'
+    });
+
     afterEach(() => {
       jest.restoreAllMocks();
       jest.clearAllMocks();
@@ -167,10 +171,44 @@ describe('services', () => {
         ).not.toBeNull();
         expect(settings.directory[0]).toEqual({
           id: '1-2-3',
-          name: { first: 'Test', last: 'Person' }
+          name: { first: 'Test', last: 'Person' },
+          added: '2020-10-30T19:03:43.302Z'
         });
       });
       it('should update an existing person', () => {
+        const settings = {
+          directory: [
+            {
+              id: '1-2-3',
+              name: {
+                first: 'Test',
+                last: 'Person'
+              },
+              added: '2020-10-30T19:03:43.302Z'
+            }
+          ]
+        };
+
+        // Update the result for 'now' to reflect the entry has changed.
+        Date.now = jest.fn(() => 1604094623302); // '2020-10-30T21:50:23.302Z'
+        const updatedPerson = {
+          id: '1-2-3',
+          name: {
+            first: 'Updated',
+            last: 'Person'
+          }
+        };
+        expect(
+          new UserService().upsertPersonInUserDirectory(settings, updatedPerson)
+        ).not.toBeNull();
+
+        const updatedPersonAnswer = {
+          ...updatedPerson,
+          added: '2020-10-30T21:50:23.302Z'
+        };
+        expect(settings.directory[0]).toEqual(updatedPersonAnswer);
+      });
+      it('should update an existing person and set the added timestamp if it does not exit', () => {
         const settings = {
           directory: [
             {
@@ -182,6 +220,9 @@ describe('services', () => {
             }
           ]
         };
+
+        // Update the result for 'now' to reflect the entry has changed.
+        Date.now = jest.fn(() => 1604094623302); // '2020-10-30T21:50:23.302Z'
         const updatedPerson = {
           id: '1-2-3',
           name: {
@@ -189,10 +230,18 @@ describe('services', () => {
             last: 'Person'
           }
         };
-        expect(
-          new UserService().upsertPersonInUserDirectory(settings, updatedPerson)
-        ).not.toBeNull();
-        expect(settings.directory[0]).toEqual(updatedPerson);
+        const updatedPersonResponse = new UserService().upsertPersonInUserDirectory(
+          settings,
+          updatedPerson
+        );
+        expect(updatedPersonResponse).not.toBeNull();
+
+        const updatedPersonAnswer = {
+          ...updatedPerson,
+          added: '2020-10-30T21:50:23.302Z'
+        };
+        expect(settings.directory[0]).toEqual(updatedPersonAnswer);
+        expect(updatedPersonResponse).toEqual(updatedPersonAnswer);
       });
       it('should fail to update an existing person if the update person is invalid', () => {
         const settings = {
@@ -230,7 +279,66 @@ describe('services', () => {
         ).not.toBeNull();
         expect(settings.directory[0]).toEqual({
           id: '1-2-3',
-          name: { first: 'Test', last: 'Person' }
+          name: { first: 'Test', last: 'Person' },
+          added: '2020-10-30T19:03:43.302Z'
+        });
+      });
+      it('should roll off the oldest item when the directory gets too large', () => {
+        const settings = { directory: [] };
+        for (let index = 0; index < PersonDirectoryLimit; index++) {
+          const indexString = index.toString();
+          settings.directory.push({
+            id: indexString,
+            name: { first: 'Test', last: indexString },
+            // Date.now is fixed so we are just offsetting that fixed value
+            // to have something different.  Our next use of Date.now when
+            // we add a new entry will then be the most recent time.
+            // eslint-disable-next-line prettier/prettier
+            added: new Date(Date.now() - (10 * index)).toISOString()
+          });
+        }
+        expect(
+          new UserService().upsertPersonInUserDirectory(settings, {
+            id: '1-2-3',
+            name: { first: 'Test', last: 'Person' }
+          })
+        ).not.toBeNull();
+        expect(settings.directory.length).toEqual(PersonDirectoryLimit);
+        expect(settings.directory[PersonDirectoryLimit - 1].id).toEqual('1-2-3');
+        expect(settings.directory[PersonDirectoryLimit - 1].name).toEqual({
+          first: 'Test',
+          last: 'Person'
+        });
+      });
+      it('should roll off multiple old items when the directory far exceeds its limit', () => {
+        const settings = { directory: [] };
+        // We want to make sure that not only does the oldest item roll off when a new one appears,
+        // but if we have a bunch of extra items in the directory they should also roll off.
+        // E.g., our directory limit is 10.  We currently have 20 items.  When we try to add a new
+        // item, we should end up with 10 items.
+        for (let index = 0; index < PersonDirectoryLimit * 2; index++) {
+          const indexString = index.toString();
+          settings.directory.push({
+            id: indexString,
+            name: { first: 'Test', last: indexString },
+            // Date.now is fixed so we are just offsetting that fixed value
+            // to have something different.  Our next use of Date.now when
+            // we add a new entry will then be the most recent time.
+            // eslint-disable-next-line prettier/prettier
+            added: new Date(Date.now() - (10 * index)).toISOString()
+          });
+        }
+        expect(
+          new UserService().upsertPersonInUserDirectory(settings, {
+            id: '1-2-3',
+            name: { first: 'Test', last: 'Person' }
+          })
+        ).not.toBeNull();
+        expect(settings.directory.length).toEqual(PersonDirectoryLimit);
+        expect(settings.directory[PersonDirectoryLimit - 1].id).toEqual('1-2-3');
+        expect(settings.directory[PersonDirectoryLimit - 1].name).toEqual({
+          first: 'Test',
+          last: 'Person'
         });
       });
     });
