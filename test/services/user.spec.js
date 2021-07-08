@@ -97,30 +97,42 @@ describe('services', () => {
     });
 
     describe('upsertPersonInUserDirectory', () => {
-      it('should return null if the settings are null or undefined', () => {
-        expect(new UserService().upsertPersonInUserDirectory(null, {})).toBeNull();
-        expect(new UserService().upsertPersonInUserDirectory(undefined, {})).toBeNull();
+      it('should throw an exception if the settings are null or undefined', () => {
+        expect(() => new UserService().upsertPersonInUserDirectory(null, {})).toThrow(Error);
+        expect(() => new UserService().upsertPersonInUserDirectory(undefined, {})).toThrow(Error);
       });
-      it('should return null if the person is null or undefined', () => {
-        expect(new UserService().upsertPersonInUserDirectory({}, null)).toBeNull();
-        expect(new UserService().upsertPersonInUserDirectory({}, undefined)).toBeNull();
+      it('should throw an exception if the person is null or undefined', () => {
+        expect(() => new UserService().upsertPersonInUserDirectory({}, null)).toThrow(Error);
+        expect(() => new UserService().upsertPersonInUserDirectory({}, undefined)).toThrow(Error);
+      });
+      it('should throw an exception if the person is invalid', () => {
+        expect(() =>
+          new UserService().upsertPersonInUserDirectory({}, { name: { first: null, last: ' ' } })
+        ).toThrow(Error);
       });
       it('should initialize the format version and directory collection in an empty settings object', () => {
         const settings = {};
         expect(
-          new UserService().upsertPersonInUserDirectory(settings, { id: '1-2-3' })
+          new UserService().upsertPersonInUserDirectory(settings, {
+            id: '1-2-3',
+            name: { first: 'T', last: 'P' }
+          })
         ).not.toBeNull();
         expect(settings.formatVersion).toBe('1');
         expect(settings.directory).not.toBeNull();
       });
       it('should add a new person when the id is provided', () => {
         const settings = {};
-        expect(
-          new UserService().upsertPersonInUserDirectory(settings, {
-            id: '1-2-3'
-          })
-        ).not.toBeNull();
-        expect(settings.directory[0]).toEqual({ id: '1-2-3' });
+        const person = {
+          id: '1-2-3',
+          name: {
+            first: 'Test',
+            last: 'Person'
+          }
+        };
+        expect(new UserService().upsertPersonInUserDirectory(settings, person)).not.toBeNull();
+        expect(settings.directory[0].id).toEqual('1-2-3');
+        expect(settings.directory[0].name).toEqual(person.name);
       });
       it('should add a new person when the id differs in case', () => {
         const settings = {
@@ -136,10 +148,14 @@ describe('services', () => {
         };
         expect(
           new UserService().upsertPersonInUserDirectory(settings, {
-            id: 'A-b-c'
+            id: 'A-b-c',
+            name: {
+              first: 'Other',
+              last: 'Person'
+            }
           })
         ).not.toBeNull();
-        expect(settings.directory[1]).toEqual({ id: 'A-b-c' });
+        expect(settings.directory[1].id).toEqual('A-b-c');
       });
       it('should add a new person when the id is empty', () => {
         uuid.mockImplementation(() => '1-2-3');
@@ -178,16 +194,93 @@ describe('services', () => {
         ).not.toBeNull();
         expect(settings.directory[0]).toEqual(updatedPerson);
       });
+      it('should fail to update an existing person if the update person is invalid', () => {
+        const settings = {
+          directory: [
+            {
+              id: '1-2-3',
+              name: {
+                first: 'Test',
+                last: 'Person'
+              }
+            }
+          ]
+        };
+        const updatedPerson = {
+          id: '1-2-3',
+          name: {
+            first: 'Updated'
+          }
+        };
+        expect(() =>
+          new UserService().upsertPersonInUserDirectory(settings, updatedPerson)
+        ).toThrow(Error);
+        expect(settings.directory[0]).not.toEqual(updatedPerson);
+      });
       it('should only save the relevant attributes for a person to the directory', () => {
         const settings = {};
         expect(
           new UserService().upsertPersonInUserDirectory(settings, {
             id: '1-2-3',
+            name: { first: 'Test', last: 'Person' },
             roles: [],
-            notes: []
+            notes: [],
+            other: 'stuff'
           })
         ).not.toBeNull();
-        expect(settings.directory[0]).toEqual({ id: '1-2-3' });
+        expect(settings.directory[0]).toEqual({
+          id: '1-2-3',
+          name: { first: 'Test', last: 'Person' }
+        });
+      });
+    });
+
+    describe('validateName', () => {
+      it('should not consider a null or undefined object valid', () => {
+        expect(new UserService().validateName(null)).toBe(false);
+        expect(new UserService().validateName(undefined)).toBe(false);
+      });
+      it('should not consider an empty object valid', () => {
+        expect(new UserService().validateName({})).toBe(false);
+      });
+      it('should not consider valid a name missing the first component', () => {
+        expect(new UserService().validateName({ last: 'Person' })).toBe(false);
+      });
+      it('should not consider valid a name missing the last component', () => {
+        expect(new UserService().validateName({ first: 'Test' })).toBe(false);
+      });
+      it('should not consider valid a name with a null/undefined first component', () => {
+        expect(new UserService().validateName({ first: null, last: 'Person' })).toBe(false);
+        expect(new UserService().validateName({ first: undefined, last: 'Person' })).toBe(false);
+      });
+      it('should not consider valid a name with a null/undefined last component', () => {
+        expect(new UserService().validateName({ first: 'Test', last: null })).toBe(false);
+        expect(new UserService().validateName({ first: 'Test', last: undefined })).toBe(false);
+      });
+      it('should not consider valid a name with an empty or whitespace only first component', () => {
+        expect(new UserService().validateName({ first: '', last: 'Person' })).toBe(false);
+        expect(new UserService().validateName({ first: ' ', last: 'Person' })).toBe(false);
+        expect(new UserService().validateName({ first: '\t', last: 'Person' })).toBe(false);
+        expect(new UserService().validateName({ first: '\n', last: 'Person' })).toBe(false);
+        expect(new UserService().validateName({ first: '\r', last: 'Person' })).toBe(false);
+      });
+      it('should not consider valid a name with an empty or whitespace only last component', () => {
+        expect(new UserService().validateName({ first: 'Test', last: '' })).toBe(false);
+        expect(new UserService().validateName({ first: 'Test', last: ' ' })).toBe(false);
+        expect(new UserService().validateName({ first: 'Test', last: '\t' })).toBe(false);
+        expect(new UserService().validateName({ first: 'Test', last: '\n' })).toBe(false);
+        expect(new UserService().validateName({ first: 'Test', last: '\r' })).toBe(false);
+      });
+      it('should consider valid names with at least one letter in each component', () => {
+        expect(new UserService().validateName({ first: 'T', last: 'P' })).toBe(true);
+        expect(new UserService().validateName({ first: 'Test', last: 'Person' })).toBe(true);
+      });
+      it('should consider valid names with at least one letter in each component along with whitespace', () => {
+        expect(new UserService().validateName({ first: 'T ', last: ' P' })).toBe(true);
+        expect(new UserService().validateName({ first: ' T ', last: ' P ' })).toBe(true);
+        expect(new UserService().validateName({ first: '\tT', last: 'P\t' })).toBe(true);
+        expect(new UserService().validateName({ first: 'T\r', last: '\rP' })).toBe(true);
+        expect(new UserService().validateName({ first: 'T\n', last: '\nP' })).toBe(true);
       });
     });
 

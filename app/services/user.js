@@ -7,6 +7,9 @@ const fs = require('fs');
 const DefaultSettingsFile = '.user-settings.json';
 const SettingsFileFormatVersion = '1';
 
+// Used to verify that we have at least one non-whitespace character in a string
+const oneNonWhitespaceRegex = new RegExp('\\S');
+
 export { DefaultSettingsFile, SettingsFileFormatVersion };
 
 export default class UserService {
@@ -50,18 +53,40 @@ export default class UserService {
   }
 
   /**
+   * Utility function to determine if the name object that is provided is valid or not.
+   * @param {object} name Name object consisting of name components
+   * @returns bool True if the name is valid, and false otherwise.
+   */
+  validateName(name) {
+    return !(
+      !name ||
+      !name.first ||
+      !name.last ||
+      !oneNonWhitespaceRegex.test(name.first) ||
+      !oneNonWhitespaceRegex.test(name.last)
+    );
+  }
+
+  /**
    * Utility function to handle adding or updating a person within the user's directory
    * of people.
    * @param {object} settings The user settings object, assumed to be recently loaded.
    * @param {object} person The person to add to the user's directory
    * @returns object Will be the person record (with the assigned ID, if applicable) if the upsert succeeded.
-   * If the upsert did not succeed, it will return null.  If successful, the change will be reflected
+   * If the upsert did not succeed, it will throw an exception.  If successful, the change will be reflected
    * in the `settings` object. Even if no actual change is needed, this function will still
    * return the person.
    */
   upsertPersonInUserDirectory(settings, person) {
-    if (!settings || !person) {
-      return null;
+    if (!settings) {
+      throw new Error('The settings object cannot be null or undefined');
+    } else if (!person) {
+      throw new Error('The person object cannot be null or undefined');
+    } else if (!this.validateName(person.name)) {
+      console.log('invalid name');
+      throw new Error(
+        'The first name and last name are required, and must be at least one non-whitespace character in length.'
+      );
     }
 
     if (!settings.formatVersion) {

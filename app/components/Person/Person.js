@@ -42,7 +42,7 @@ const person = props => {
 
   const editPersonHandler = () => {
     if (props.onEditPerson) {
-      props.onEditPerson(props.id, props.name, props.email, props.affiliation, props.roles);
+      props.onEditPerson(props.id, props.name, props.affiliation, props.roles);
     }
   };
 
@@ -63,7 +63,6 @@ const person = props => {
       </IconButton>
       <div className={styles.name}>{GeneralUtil.formatName(props.name)}</div>
       <div className={styles.affiliation}>{props.affiliation}</div>
-      <div className={styles.email}>{props.email}</div>
       {tagViewer}
       {noteEditor}
     </div>
@@ -74,7 +73,6 @@ person.propTypes = {
   mode: PropTypes.string.isRequired,
   id: PropTypes.string,
   name: PropTypes.object,
-  email: PropTypes.string,
   affiliation: PropTypes.string,
   roles: PropTypes.array,
   notes: PropTypes.array,
@@ -85,7 +83,6 @@ person.propTypes = {
 person.defaultProps = {
   id: '',
   name: null,
-  email: '',
   affiliation: '',
   roles: [],
   notes: [],

@@ -586,20 +586,35 @@ ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, mode, project, p
     return;
   }
 
-  // If this is even was sent not for a project, but for the directory, we will
+  const service = new UserService();
+  if (!service.validateName(person.name)) {
+    response.error = true;
+    response.errorMessage =
+      'The first name and last name are required, and must be at least one non-whitespace character in length.';
+    event.sender.send(Messages.CREATE_UPDATE_PERSON_RESPONSE, response);
+    return;
+  }
+
+  // If this person was sent not for a project, but for the directory, we will
   // always make sure it's properly registered regardless if it's created or
   // updated. If we are creating a person within a project (signaled when the ID
   // is not set) we want to register that person in the user's directory.
-  if (!projectMode || !person.id) {
-    const userSettingsPath = path.join(app.getPath('userData'), DefaultSettingsFile);
-    const service = new UserService();
-    const settings = service.loadUserSettingsFromFile(userSettingsPath);
-    response.person = service.upsertPersonInUserDirectory(settings, person);
+  try {
+    if (!projectMode || !person.id) {
+      const userSettingsPath = path.join(app.getPath('userData'), DefaultSettingsFile);
+      const settings = service.loadUserSettingsFromFile(userSettingsPath);
+      response.person = service.upsertPersonInUserDirectory(settings, person);
 
-    service.saveUserSettingsToFile(settings, userSettingsPath);
-    response.project = { ...project };
-  } else {
+      service.saveUserSettingsToFile(settings, userSettingsPath);
+      response.project = { ...project };
+    } else {
+      response.person = { ...person };
+    }
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = e.message;
     response.person = { ...person };
+    console.log(e);
   }
   event.sender.send(Messages.CREATE_UPDATE_PERSON_RESPONSE, response);
 });
