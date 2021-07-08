@@ -102,7 +102,19 @@ class CreateUpdatePersonDialog extends Component {
   }
 
   handleSelectPersonInDirectory(event, value) {
-    this.savePerson(value);
+    // If the user clears out the dropdown list, we will get a null object back here.
+    // In that case, we will actually preserve whatever is entered in the dialog
+    // already, so no state update takes place.  We will only do the change when they
+    // actually select a person from the list.
+    if (value) {
+      this.setState(prevState => ({
+        ...prevState,
+        id: value.id,
+        firstName: value.name.first,
+        lastName: value.name.last,
+        affiliation: value.affiliation
+      }));
+    }
   }
 
   render() {
