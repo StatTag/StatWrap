@@ -15,16 +15,16 @@ const peopleCardList = props => {
     onDeletedPersonNote
   } = props;
 
-  const deletePersonHandler = id => {
+  const deletePersonHandler = person => {
     if (onDelete) {
-      onDelete(id);
+      onDelete(person);
     }
   };
 
-  const editPersonHandler = id => {
+  const editPersonHandler = person => {
     if (onEdit) {
-      const person = list.find(x => x.id === id);
-      onEdit(person);
+      const existingPerson = list.find(x => x.id === person.id);
+      onEdit(existingPerson);
     }
   };
 

@@ -49,9 +49,9 @@ const people = props => {
     }
   };
 
-  const deletePersonHandler = id => {
+  const deletePersonHandler = person => {
     if (onDelete) {
-      onDelete(id);
+      onDelete(person);
     }
   };
 

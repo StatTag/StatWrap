@@ -387,31 +387,33 @@ class Project extends Component<Props> {
     }
   };
 
-  deletePersonHandler = id => {
+  deletePersonHandler = person => {
     const currentProject = { ...this.props.project };
 
     if (!currentProject.people) {
-      console.warn(`Tried to delete ${id} but no people exist in project`);
+      console.warn(`Tried to delete ${person.id} but no people exist in project`);
       return;
     }
 
-    const foundIndex = currentProject.people.findIndex(p => p.id === id);
+    const foundIndex = currentProject.people.findIndex(p => p.id === person.id);
     if (foundIndex === -1) {
-      console.warn(`Tried to delete ${id} but they are not listed in the project`);
+      console.warn(`Tried to delete ${person.id} but they are not listed in the project`);
       return;
     }
 
     currentProject.people.splice(foundIndex, 1);
 
     const user = this.context;
-    const actionDescription = `${user} deleted person ${id} from project`;
+    const actionDescription = `${user} deleted person ${GeneralUtil.formatName(
+      person.name
+    )} from project`;
     if (this.props.onUpdated) {
       this.props.onUpdated(
         currentProject,
         ActionType.PERSON_DELETED,
         `Project ${ActionType.PERSON_DELETED}`,
         actionDescription,
-        id
+        person
       );
     }
   };

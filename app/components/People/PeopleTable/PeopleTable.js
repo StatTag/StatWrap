@@ -121,7 +121,7 @@ const peopleTable = props => {
           <IconButton
             onClick={() => {
               if (onDelete && record && record.id) {
-                onDelete(record.id);
+                onDelete(record);
               }
             }}
             aria-label="delete"

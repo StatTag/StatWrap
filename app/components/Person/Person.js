@@ -42,13 +42,23 @@ const person = props => {
 
   const editPersonHandler = () => {
     if (props.onEditPerson) {
-      props.onEditPerson(props.id, props.name, props.affiliation, props.roles);
+      props.onEditPerson({
+        id: props.id,
+        name: props.name,
+        affiliation: props.affiliation,
+        roles: props.roles
+      });
     }
   };
 
   const deletePersonHandler = () => {
     if (props.onDeletePerson) {
-      props.onDeletePerson(props.id);
+      props.onDeletePerson({
+        id: props.id,
+        name: props.name,
+        affiliation: props.affiliation,
+        roles: props.roles
+      });
     }
   };
 

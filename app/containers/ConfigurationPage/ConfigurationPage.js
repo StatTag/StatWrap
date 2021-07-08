@@ -11,8 +11,8 @@ class ConfigurationPage extends Component {
     this.handleDeletePerson = this.handleDeletePerson.bind(this);
   }
 
-  handleDeletePerson = id => {
-    ipcRenderer.send(Messages.REMOVE_DIRECTORY_PERSON_REQUEST, { id });
+  handleDeletePerson = person => {
+    ipcRenderer.send(Messages.REMOVE_DIRECTORY_PERSON_REQUEST, person);
   };
 
   render() {
