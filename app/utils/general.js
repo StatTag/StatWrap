@@ -60,4 +60,33 @@ export default class GeneralUtil {
     }
     return displayName;
   }
+
+  /**
+   * Given a user object, format the name for display depending on which components
+   * are available
+   * @param {object} user The user object we are formatting a display name for
+   */
+  static formatDisplayName(user) {
+    if (!user || !user.id) {
+      return DefaultDisplayName;
+    }
+
+    // If there is no name component, all we can try to use is the ID.
+    if (!user.name) {
+      return user.id;
+    }
+
+    let displayName = user.name.display ? user.name.display.trim() : '';
+    if (displayName === '') {
+      displayName = GeneralUtil._appendNamePart(displayName, user.name.first);
+      displayName = GeneralUtil._appendNamePart(displayName, user.name.last);
+      displayName = displayName.trim();
+      if (displayName === '') {
+        return user.id;
+      }
+      return displayName;
+    }
+
+    return user.name.display;
+  }
 }

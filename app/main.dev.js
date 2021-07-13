@@ -610,3 +610,39 @@ ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, mode, project, p
   }
   event.sender.send(Messages.CREATE_UPDATE_PERSON_RESPONSE, response);
 });
+
+ipcMain.on(Messages.SAVE_USER_PROFILE_REQUEST, async (event, user) => {
+  const response = {
+    user,
+    error: false,
+    errorMessage: ''
+  };
+
+  if (!user) {
+    response.error = true;
+    response.errorMessage = 'No user profile information was provided';
+    event.sender.send(Messages.SAVE_USER_PROFILE_RESPONSE, response);
+    return;
+  }
+
+  const service = new UserService();
+  if (!service.validateName(user.name)) {
+    response.error = true;
+    response.errorMessage =
+      'The first name and last name are required, and must be at least one non-whitespace character in length.';
+    event.sender.send(Messages.SAVE_USER_PROFILE_RESPONSE, response);
+    return;
+  }
+
+  try {
+    const userSettingsPath = path.join(app.getPath('userData'), DefaultSettingsFile);
+    const settings = service.loadUserSettingsFromFile(userSettingsPath);
+    settings.user = user;
+    service.saveUserSettingsToFile(settings, userSettingsPath);
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = e.message;
+    console.log(e);
+  }
+  event.sender.send(Messages.SAVE_USER_PROFILE_RESPONSE, response);
+});

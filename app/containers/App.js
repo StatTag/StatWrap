@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable react/prop-types */
 import * as React from 'react';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
@@ -23,7 +25,9 @@ import Messages from '../constants/messages';
 import routes from '../constants/routes.json';
 import UserContext from '../contexts/User';
 import SettingsContext from '../contexts/Settings';
+import UserProfileDialog from './UserProfileDialog/UserProfileDialog';
 import styles from './App.css';
+import GeneralUtil from '../utils/general';
 
 // This is where we register all of our font-awesome icons that are used throughout the app.
 // See https://github.com/FortAwesome/react-fontawesome#build-a-library-to-reference-icons-throughout-your-app-more-conveniently
@@ -32,10 +36,19 @@ library.add(faFolder, faTag, faThumbtack, faEllipsisH, faTrashAlt, faHome, faUse
 export default class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { user: 'StatWrap' };
+    this.state = {
+      user: 'StatWrap',
+      displayName: 'StatWrap',
+      settings: {},
+      displayUserProfileDialog: false,
+      userProfileDialogKey: 0
+    };
 
     this.handleLoadUserInfoResponse = this.handleLoadUserInfoResponse.bind(this);
     this.handlePersonDirectoryChangeResponse = this.handlePersonDirectoryChangeResponse.bind(this);
+    this.handleCloseUserProfileDialog = this.handleCloseUserProfileDialog.bind(this);
+    this.handleOpenUserProfileDialog = this.handleOpenUserProfileDialog.bind(this);
+    this.handleSaveUserProfile = this.handleSaveUserProfile.bind(this);
   }
 
   componentDidMount() {
@@ -64,12 +77,33 @@ export default class App extends React.Component {
   }
 
   handleLoadUserInfoResponse(sender, response) {
-    this.setState({ user: response.user, settings: response.settings });
+    const firstTimeRun = !response.settings || !response.settings.user;
+    this.setState(prevState => ({
+      user: response.user,
+      displayName: GeneralUtil.formatDisplayName(response.settings.user),
+      settings: response.settings,
+      userProfileDialogKey: prevState + 1,
+      displayUserProfileDialog: firstTimeRun
+    }));
   }
 
   handlePersonDirectoryChangeResponse() {
     // Reload the settings to reflect the updated directory
     ipcRenderer.send(Messages.LOAD_USER_INFO_REQUEST);
+  }
+
+  handleSaveUserProfile(user) {
+    this.setState({
+      displayName: GeneralUtil.formatDisplayName(user)
+    });
+  }
+
+  handleCloseUserProfileDialog() {
+    this.setState({ displayUserProfileDialog: false });
+  }
+
+  handleOpenUserProfileDialog() {
+    this.setState({ displayUserProfileDialog: true });
   }
 
   render() {
@@ -82,6 +116,30 @@ export default class App extends React.Component {
         fontSize: 12
       }
     });
+    let userProfileDialog = null;
+    if (this.state.settings && this.state.settings.user) {
+      userProfileDialog = (
+        <UserProfileDialog
+          key={this.state.userProfileDialogKey}
+          id={this.state.settings.user.id}
+          name={this.state.settings.user.name}
+          affiliation={this.state.settings.user.affiliation}
+          open={this.state.displayUserProfileDialog}
+          onClose={this.handleCloseUserProfileDialog}
+          onSave={this.handleSaveUserProfile}
+        />
+      );
+    } else {
+      userProfileDialog = (
+        <UserProfileDialog
+          key={this.state.userProfileDialogKey}
+          id={this.state.user}
+          open={this.state.displayUserProfileDialog}
+          onClose={this.handleCloseUserProfileDialog}
+          onSave={this.handleSaveUserProfile}
+        />
+      );
+    }
     return (
       <ThemeProvider theme={theme}>
         <UserContext.Provider value={this.state.user}>
@@ -105,11 +163,16 @@ export default class App extends React.Component {
                       <SettingsIcon />
                     </IconButton>
                   </Link>
-                  <div className={styles.user}>{this.state.user}</div>
+                  <div className={styles.user}>
+                    <a className={styles.userButton} onClick={this.handleOpenUserProfileDialog}>
+                      {this.state.displayName}
+                    </a>
+                  </div>
                 </section>
               </Toolbar>
             </AppBar>
             {children}
+            {userProfileDialog}
           </SettingsContext.Provider>
         </UserContext.Provider>
       </ThemeProvider>

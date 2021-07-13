@@ -21,6 +21,10 @@ module.exports = {
 
   LOAD_USER_INFO_REQUEST: 'statwrap-load-user-info-request',
   LOAD_USER_INFO_RESPONSE: 'statwrap-load-user-info-response',
+  // The user profile is a subset of the overall user info (settings).  This message pair
+  // is used to just save that fragment of the settings.
+  SAVE_USER_PROFILE_REQUEST: 'statwrap-save-user-profile-request',
+  SAVE_USER_PROFILE_RESPONSE: 'statwrap-save-user-profile-response',
 
   WRITE_PROJECT_LOG_REQUEST: 'statwrap-write-project-log-request',
   WRITE_PROJECT_LOG_RESPONSE: 'statwrap-write-project-log-response',

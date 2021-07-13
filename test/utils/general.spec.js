@@ -59,5 +59,68 @@ describe('services', () => {
         expect(GeneralUtil.formatName({ first: 'Test' })).toBe('Test');
       });
     });
+
+    describe('formatDisplayName', () => {
+      it('returns a displayable string for an empty object', () => {
+        expect(GeneralUtil.formatDisplayName(null)).toBe('(empty)');
+        expect(GeneralUtil.formatDisplayName(undefined)).toBe('(empty)');
+        expect(GeneralUtil.formatDisplayName({})).toBe('(empty)');
+      });
+
+      it('returns the username/id if no name element exists', () => {
+        expect(
+          GeneralUtil.formatDisplayName({
+            id: 'test'
+          })
+        ).toBe('test');
+      });
+      it('formats the name from components if no display name exists', () => {
+        expect(
+          GeneralUtil.formatDisplayName({
+            id: 'test',
+            name: {
+              first: 'Test',
+              last: 'Person'
+            }
+          })
+        ).toBe('Test Person');
+      });
+      it('formats the name from components if the display name is empty', () => {
+        expect(
+          GeneralUtil.formatDisplayName({
+            id: 'test',
+            name: {
+              first: 'Test',
+              last: 'Person',
+              display: ' '
+            }
+          })
+        ).toBe('Test Person');
+      });
+      it('returns the username/id if all name components result in an empty string', () => {
+        expect(
+          GeneralUtil.formatDisplayName({
+            id: 'test',
+            name: {
+              first: '',
+              last: ' ',
+              display: ' '
+            }
+          })
+        ).toBe('test');
+      });
+      it('returns the display name by default when all other items exist', () => {
+        expect(
+          GeneralUtil.formatDisplayName({
+            id: 'test',
+            name: {
+              first: 'Test',
+              last: 'User',
+              display: 'Display Name'
+            }
+          })
+        ).toBe('Display Name');
+      });
+    });
   });
 });

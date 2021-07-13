@@ -25,3 +25,8 @@
   text-decoration: none;
   cursor: pointer;
 }
+
+.userButton {
+  margin-left: 20px;
+  cursor: pointer;
+}
