@@ -142,6 +142,7 @@ const people = props => {
         key={dialogKey}
         mode={mode}
         directory={settings.directory}
+        user={settings.user}
         project={project}
         id={editPersonId}
         name={editPersonName}

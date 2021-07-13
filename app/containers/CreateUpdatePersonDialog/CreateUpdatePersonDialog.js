@@ -142,10 +142,19 @@ class CreateUpdatePersonDialog extends Component {
     let directory = null;
     if (projectMode && this.props.directory && this.props.directory.length > 0 && !this.props.id) {
       // Sort the directory so that the most recently added person in the MRU list/directory
-      // appears at the top.
-      const sortedDirectory = this.props.directory.sort((a, b) =>
+      // appears at the top.  Note that we are making a copy of the array because we are going
+      // to (possibly) add an item to it.  We don't want to update the original array with
+      // that value if we do add it.
+      const sortedDirectory = [...this.props.directory].sort((a, b) =>
         a.added > b.added ? -1 : b.added > a.added ? 1 : 0
       );
+
+      // If there is the user's information, push that to the top of the directory
+      // as the first entry, and indicate that it is the user.
+      if (this.props.user && this.props.user.name && this.props.user.name.display) {
+        const user = { ...this.props.user, userEntry: true };
+        sortedDirectory.unshift(user);
+      }
 
       directory = (
         <div className={styles.directoryPanel}>
@@ -153,7 +162,11 @@ class CreateUpdatePersonDialog extends Component {
             id="user-directory"
             options={sortedDirectory}
             onChange={this.handleSelectPersonInDirectory}
-            getOptionLabel={option => GeneralUtil.formatName(option.name)}
+            getOptionLabel={option =>
+              option.userEntry
+                ? `${GeneralUtil.formatName(option.name)} (me)`
+                : GeneralUtil.formatName(option.name)
+            }
             renderInput={params => (
               <TextField {...params} label="Select a recently added person" variant="outlined" />
             )}
@@ -227,6 +240,7 @@ CreateUpdatePersonDialog.propTypes = {
   project: PropTypes.object,
   mode: PropTypes.string.isRequired,
   directory: PropTypes.array,
+  user: PropTypes.object,
   id: PropTypes.string,
   name: PropTypes.object,
   affiliation: PropTypes.string,
@@ -240,6 +254,7 @@ CreateUpdatePersonDialog.propTypes = {
 CreateUpdatePersonDialog.defaultProps = {
   project: null,
   directory: [],
+  user: null,
   id: null,
   name: null,
   affiliation: null,

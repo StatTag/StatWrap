@@ -93,9 +93,11 @@ export default class App extends React.Component {
   }
 
   handleSaveUserProfile(user) {
-    this.setState({
-      displayName: GeneralUtil.formatDisplayName(user)
-    });
+    this.setState(prevState => ({
+      displayName: GeneralUtil.formatDisplayName(user),
+      // Update the user portion of the settings object
+      settings: { ...prevState.settings, user }
+    }));
   }
 
   handleCloseUserProfileDialog() {
