@@ -29,7 +29,12 @@ export default class WorkflowUtil {
       nodes: [],
       links: []
     };
-    const allDeps = WorkflowUtil.getAllDependencies(asset);
+
+    if (!asset || !asset.uri) {
+      return graph;
+    }
+
+    const allDeps = WorkflowUtil.getAllDependencies(asset, asset.uri);
     for (let index = 0; index < allDeps.length; index++) {
       const entry = allDeps[index];
       if (entry.asset && entry.dependencies && entry.dependencies.length > 0) {
@@ -123,13 +128,14 @@ export default class WorkflowUtil {
    *    { asset: '/test/1/1/1', dependencies: [] }
    * ]
    * @param {object} asset The root asset to scan
+   * @param {string} rootUri The root portion of the URI that should be stripped
    * @returns Array of assets and dependencies
    */
-  static getAllDependencies(asset) {
+  static getAllDependencies(asset, rootUri) {
     const dependencies = asset
       ? [
           {
-            asset: asset.uri,
+            asset: rootUri ? asset.uri.replace(rootUri, '').replace(/^\\+|\/+/, '') : asset.uri,
             assetType: WorkflowUtil.getAssetType(asset),
             dependencies: WorkflowUtil.getDependencies(asset)
           }
@@ -139,7 +145,7 @@ export default class WorkflowUtil {
       return dependencies.flat();
     }
     for (let index = 0; index < asset.children.length; index++) {
-      dependencies.push(WorkflowUtil.getAllDependencies(asset.children[index]));
+      dependencies.push(WorkflowUtil.getAllDependencies(asset.children[index], rootUri));
     }
     return dependencies.flat();
   }

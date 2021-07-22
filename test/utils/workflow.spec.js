@@ -152,14 +152,14 @@ describe('services', () => {
         const graph = WorkflowUtil.getAllDependenciesAsGraph(asset);
         expect(graph).toEqual({
           nodes: [
-            { id: '/test/1/1/1', assetType: 'r' },
+            { id: '1/1', assetType: 'r' },
             { id: 'dplyr', assetType: 'dependency' },
-            { id: '/test/1/2', assetType: 'python' },
+            { id: '2', assetType: 'python' },
             { id: 'sys', assetType: 'dependency' }
           ],
           links: [
-            { source: '/test/1/1/1', target: 'dplyr' },
-            { source: '/test/1/2', target: 'sys' }
+            { source: '1/1', target: 'dplyr' },
+            { source: '2', target: 'sys' }
           ]
         });
       });
@@ -216,13 +216,13 @@ describe('services', () => {
         const graph = WorkflowUtil.getAllDependenciesAsGraph(asset);
         expect(graph).toEqual({
           nodes: [
-            { id: '/test/1/1/1', assetType: 'python' },
+            { id: '1/1', assetType: 'python' },
             { id: 'sys', assetType: 'dependency' },
-            { id: '/test/1/2', assetType: 'python' }
+            { id: '2', assetType: 'python' }
           ],
           links: [
-            { source: '/test/1/1/1', target: 'sys' },
-            { source: '/test/1/2', target: 'sys' }
+            { source: '1/1', target: 'sys' },
+            { source: '2', target: 'sys' }
           ]
         });
       });
