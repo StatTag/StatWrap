@@ -17,6 +17,20 @@
   color: #fff;
 }
 
+.projectPath,
+.projectName {
+  display: inline-block;
+}
+
+.projectPath {
+  margin-left: 30px;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
 .title {
   font-size: 1.2rem;
   display: inline-block;

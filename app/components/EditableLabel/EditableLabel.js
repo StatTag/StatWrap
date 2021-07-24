@@ -89,7 +89,7 @@ export default class EditableLabel extends React.Component {
     if (this.state.isEditing) {
       if (this.props.multiline) {
         return (
-          <div>
+          <div className={this.props.containerClassName}>
             <textarea
               autoFocus
               className={this.props.inputClassName}
@@ -115,7 +115,7 @@ export default class EditableLabel extends React.Component {
       }
 
       return (
-        <div>
+        <div className={this.props.containerClassName}>
           <input
             autoFocus
             type="text"
@@ -146,7 +146,7 @@ export default class EditableLabel extends React.Component {
       ? this.state.text
       : this.props.labelPlaceHolder || DEFAULT_LABEL_PLACEHOLDER;
     return (
-      <div>
+      <div className={this.props.containerClassName}>
         <label
           className={this.props.labelClassName}
           onClick={this.handleFocus}
@@ -173,6 +173,8 @@ EditableLabel.propTypes = {
   labelFontWeight: PropTypes.string,
   labelPlaceHolder: PropTypes.string,
 
+  containerClassName: PropTypes.string,
+
   inputMaxLength: PropTypes.number,
   inputPlaceHolder: PropTypes.string,
   inputTabIndex: PropTypes.number,
@@ -196,6 +198,8 @@ EditableLabel.defaultProps = {
   labelFontSize: null,
   labelFontWeight: null,
   labelPlaceHolder: null,
+
+  containerClassName: null,
 
   inputMaxLength: 524288,
   inputPlaceHolder: null,

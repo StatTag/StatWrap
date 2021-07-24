@@ -482,10 +482,15 @@ class Project extends Component<Props> {
         <EditableLabel
           text={this.props.project.name}
           labelFontWeight="bold"
+          containerClassName={styles.projectName}
           inputFontWeight="bold"
           inputClassName={styles.editableLabel}
           inputWidth="100%"
         />
+      ) : null;
+
+      const projectPath = this.props.project ? (
+        <div className={styles.projectPath}>{this.props.project.path}</div>
       ) : null;
 
       const projectNotes = this.props.project ? (
@@ -521,7 +526,10 @@ class Project extends Component<Props> {
               <IconButton color="inherit">
                 {this.props.project && this.props.project.favorite ? <Star /> : <StarBorder />}
               </IconButton>
-              <div className={styles.title}>{name}</div>
+              <div className={styles.title}>
+                {name}
+                {projectPath}
+              </div>
             </div>
             <Tabs
               aria-label="Project details"
