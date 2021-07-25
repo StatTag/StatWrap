@@ -23,6 +23,7 @@ import UserService, { DefaultSettingsFile } from './services/user';
 import FileHandler from './services/assets/handlers/file';
 import PythonHandler from './services/assets/handlers/python';
 import RHandler from './services/assets/handlers/r';
+import SASHandler from './services/assets/handlers/sas';
 import Messages from './constants/messages';
 import Constants from './constants/constants';
 import AssetsConfig from './constants/assets-config';
@@ -406,7 +407,12 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
   }
 
   try {
-    const service = new AssetService([new FileHandler(), new PythonHandler(), new RHandler()]);
+    const service = new AssetService([
+      new FileHandler(),
+      new PythonHandler(),
+      new RHandler(),
+      new SASHandler()
+    ]);
     response.assets = service.scan(project.path);
 
     // We have decided (for now) to keep notes separate from other asset metadata.  Notes will be

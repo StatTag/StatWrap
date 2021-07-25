@@ -8,6 +8,7 @@ const ICON_PATH = './images/';
 const ICON_TYPES = {
   PYTHON: `${ICON_PATH}python.svg`,
   R: `${ICON_PATH}r.svg`,
+  SAS: `${ICON_PATH}sas.svg`,
   GENERIC: `${ICON_PATH}generic.svg`,
   LIBRARY: `${ICON_PATH}library.svg`
 };
@@ -22,6 +23,8 @@ function CodeNode({ node, renderType }) {
     iconUrl = ICON_TYPES.PYTHON;
   } else if (node.assetType === 'r') {
     iconUrl = ICON_TYPES.R;
+  } else if (node.assetType === 'sas') {
+    iconUrl = ICON_TYPES.SAS;
   } else if (node.assetType === 'dependency') {
     iconUrl = ICON_TYPES.LIBRARY;
   }
