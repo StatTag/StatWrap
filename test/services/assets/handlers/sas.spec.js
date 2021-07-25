@@ -342,60 +342,6 @@ describe('services', () => {
         expect(new SASHandler().getLibraries('libname ref1').length).toEqual(0);
         expect(new SASHandler().getLibraries("lib name ref 'test';").length).toEqual(0);
       });
-      // it('should retrieve unoquoted package', () => {
-      //   const libraries = new RHandler().getLibraries('library(test)');
-      //   expect(libraries.length).toEqual(1);
-      //   expect(libraries[0]).toMatchObject({
-      //     id: 'test',
-      //     package: 'test'
-      //   });
-      // });
-      // it('should retrieve single quoted package', () => {
-      //   const libraries = new RHandler().getLibraries("library('test')");
-      //   expect(libraries.length).toEqual(1);
-      //   expect(libraries[0]).toMatchObject({
-      //     id: 'test',
-      //     package: 'test'
-      //   });
-      // });
-      // it('should retrieve double quoted package', () => {
-      //   const libraries = new RHandler().getLibraries('library("test")');
-      //   expect(libraries.length).toEqual(1);
-      //   expect(libraries[0]).toMatchObject({
-      //     id: 'test',
-      //     package: 'test'
-      //   });
-      // });
-      // it('should retrieve package name without extra whitespace', () => {
-      //   expect(new RHandler().getLibraries(" library ( 'test' ) ")[0]).toMatchObject({
-      //     id: 'test',
-      //     package: 'test'
-      //   });
-      //   expect(new RHandler().getLibraries("\t\tlibrary\t(\t'test'\t)\t\n")[0]).toMatchObject({
-      //     id: 'test',
-      //     package: 'test'
-      //   });
-      // });
-      // it('should ignore empty library() calls', () => {
-      //   expect(new RHandler().getLibraries('library()').length).toEqual(0);
-      //   expect(new RHandler().getLibraries(' library ( ) ').length).toEqual(0);
-      // });
-      // it('should retrieve multiple libraries', () => {
-      //   const libraries = new RHandler().getLibraries('library(one)\nrequire(two)\nlibrary(three)');
-      //   expect(libraries.length).toEqual(3);
-      //   expect(libraries[0]).toMatchObject({
-      //     id: 'one',
-      //     package: 'one'
-      //   });
-      //   expect(libraries[1]).toMatchObject({
-      //     id: 'two',
-      //     package: 'two'
-      //   });
-      //   expect(libraries[2]).toMatchObject({
-      //     id: 'three',
-      //     package: 'three'
-      //   });
-      // });
     });
 
     describe('getLibraryId', () => {
