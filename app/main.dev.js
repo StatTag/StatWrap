@@ -24,6 +24,7 @@ import FileHandler from './services/assets/handlers/file';
 import PythonHandler from './services/assets/handlers/python';
 import RHandler from './services/assets/handlers/r';
 import SASHandler from './services/assets/handlers/sas';
+import StataHandler from './services/assets/handlers/stata';
 import Messages from './constants/messages';
 import Constants from './constants/constants';
 import AssetsConfig from './constants/assets-config';
@@ -411,7 +412,8 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
       new FileHandler(),
       new PythonHandler(),
       new RHandler(),
-      new SASHandler()
+      new SASHandler(),
+      new StataHandler()
     ]);
     response.assets = service.scan(project.path);
 

@@ -2,6 +2,7 @@ import AssetUtil from './asset';
 import PythonHandler from '../services/assets/handlers/python';
 import RHandler from '../services/assets/handlers/r';
 import SASHandler from '../services/assets/handlers/sas';
+import StataHandler from '../services/assets/handlers/stata';
 
 export default class WorkflowUtil {
   static getAssetType(asset) {
@@ -16,6 +17,8 @@ export default class WorkflowUtil {
       assetType = 'r';
     } else if (AssetUtil.getHandlerMetadata(SASHandler.id, asset.metadata)) {
       assetType = 'sas';
+    } else if (AssetUtil.getHandlerMetadata(StataHandler.id, asset.metadata)) {
+      assetType = 'stata';
     }
 
     return assetType;
@@ -121,6 +124,10 @@ export default class WorkflowUtil {
     const sasMetadata = AssetUtil.getHandlerMetadata(SASHandler.id, asset.metadata);
     if (sasMetadata) {
       libraries.push(...sasMetadata.libraries);
+    }
+    const stataMetadata = AssetUtil.getHandlerMetadata(StataHandler.id, asset.metadata);
+    if (stataMetadata) {
+      libraries.push(...stataMetadata.libraries);
     }
     return libraries;
   }
