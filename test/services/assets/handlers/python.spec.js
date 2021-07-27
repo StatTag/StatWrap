@@ -281,7 +281,256 @@ describe('services', () => {
         });
       });
     });
-
+    describe('getOutputs', () => {
+      it('should handle empty/blank inputs', () => {
+        expect(new PythonHandler().getOutputs('').length).toEqual(0);
+        expect(new PythonHandler().getOutputs(null).length).toEqual(0);
+        expect(new PythonHandler().getOutputs(undefined).length).toEqual(0);
+        expect(new PythonHandler().getOutputs('print("hello world")').length).toEqual(0);
+      });
+      it('should retrieve save locations for figures', () => {
+        let libraries = new PythonHandler().getOutputs("cf.savefig('C:\\dev\\test.png')");
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "savefig - 'C:\\dev\\test.png'",
+          type: 'figure',
+          path: "'C:\\dev\\test.png'"
+        });
+        libraries = new PythonHandler().getOutputs("plot(\r\n  'test.png'\r\n  )");
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "plot - 'test.png'",
+          type: 'figure',
+          path: "'test.png'"
+        });
+        libraries = new PythonHandler().getOutputs("plt.imsave('image_new.jpg',image )");
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "imsave - 'image_new.jpg'",
+          type: 'figure',
+          path: "'image_new.jpg'"
+        });
+      });
+      it('should handle multiple figure outputs in a single string', () => {
+        const libraries = new PythonHandler().getOutputs(
+          "cf.savefig('C:\\dev\\test.png')\r\nprint('hello')\r\nplot(\r\n  'test.png'\r\n  )\r\n\r\n   plt.imsave('image_new.jpg',image )\r\nplt.imsave(tmp,image )"
+        );
+        expect(libraries.length).toEqual(3);
+      });
+      it('should ignore commands that are similar to plots but are not', () => {
+        const libraries = new PythonHandler().getOutputs(
+          'plt.plot([0, 1, 2, 3, 4], [0, 3, 5, 9, 11])'
+        );
+        expect(libraries.length).toEqual(0);
+      });
+      it('should retrieve save locations for pandas output files', () => {
+        let libraries = new PythonHandler().getOutputs("df.to_markdown('C:\\dev\\test.md')");
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "to_markdown - 'C:\\dev\\test.md'",
+          type: 'data',
+          path: "'C:\\dev\\test.md'"
+        });
+        libraries = new PythonHandler().getOutputs("df.to_html(\r\n  'test.html'\r\n  )\r");
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "to_html - 'test.html'",
+          type: 'data',
+          path: "'test.html'"
+        });
+        libraries = new PythonHandler().getOutputs("df.to_json('test.json',orient='records' ) ");
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "to_json - 'test.json'",
+          type: 'data',
+          path: "'test.json'"
+        });
+      });
+      it('should handle multiple pandas data outputs in a single string', () => {
+        const libraries = new PythonHandler().getOutputs(
+          "df.to_markdown('C:\\dev\\test.md')\r\nprint('hello')\r\ndf.to_html(\r\n  'test.html'\r\n  )\r\n\r\n   df.to_json('test.json',orient='records' )\r\ndf.to_json(test,orient='records' )"
+        );
+        expect(libraries.length).toEqual(3);
+      });
+      it('should ignore locations for standard IO open that are read-only', () => {
+        let libraries = new PythonHandler().getOutputs('f = open("myfile.jpg", "rb", buffering=0)');
+        expect(libraries.length).toEqual(0);
+        libraries = new PythonHandler().getOutputs('f = open("myfile.jpg", "tr", buffering=0)');
+        expect(libraries.length).toEqual(0);
+        libraries = new PythonHandler().getOutputs('f = open("test.dat")');
+        expect(libraries.length).toEqual(0);
+        libraries = new PythonHandler().getOutputs('f = open ( "test.dat" ) ');
+        expect(libraries.length).toEqual(0);
+      });
+      it('should retrieve output locations for standard IO open', () => {
+        let libraries = new PythonHandler().getOutputs('f = open("test.txt", "wb", buffering=0)');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'open - "test.txt"',
+          type: 'data',
+          path: '"test.txt"'
+        });
+        libraries = new PythonHandler().getOutputs('f = open("test.dat", "w")');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'open - "test.dat"',
+          type: 'data',
+          path: '"test.dat"'
+        });
+        libraries = new PythonHandler().getOutputs("f = open('test.tmp', 'w', encoding='utf-8')");
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "open - 'test.tmp'",
+          type: 'data',
+          path: "'test.tmp'"
+        });
+        libraries = new PythonHandler().getOutputs(
+          "f = open ( 'test.tmp', 'w'  ,   encoding='utf-8' ) "
+        );
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "open - 'test.tmp'",
+          type: 'data',
+          path: "'test.tmp'"
+        });
+      });
+      it('should handle multiple IO open statements in a single string', () => {
+        const libraries = new PythonHandler().getOutputs(
+          'f = open("test.dat", "w")\r\n\r\nprint("Hello world")\r\n\r\n\t  f = open("test.txt", "wb", buffering=0)  \r\nf = open ( "test.dat" ) '
+        );
+        expect(libraries.length).toEqual(2);
+      });
+    });
+    describe('getInputs', () => {
+      it('should handle empty/blank inputs', () => {
+        expect(new PythonHandler().getInputs('').length).toEqual(0);
+        expect(new PythonHandler().getInputs(null).length).toEqual(0);
+        expect(new PythonHandler().getInputs(undefined).length).toEqual(0);
+        expect(new PythonHandler().getInputs('print("hello world")').length).toEqual(0);
+      });
+      it('should ignore locations for standard IO open that are output', () => {
+        let libraries = new PythonHandler().getInputs('f = open("myfile.jpg", "wb", buffering=0)');
+        expect(libraries.length).toEqual(0);
+        libraries = new PythonHandler().getInputs('f = open("myfile.jpg", "tw", buffering=0)');
+        expect(libraries.length).toEqual(0);
+        libraries = new PythonHandler().getInputs('f = open("test.dat","x")');
+        expect(libraries.length).toEqual(0);
+        libraries = new PythonHandler().getInputs('f = open ( "test.dat"   ,   "a"   ) ');
+        expect(libraries.length).toEqual(0);
+        libraries = new PythonHandler().getInputs('f = open ( "test.dat"   ,   "+"   ) ');
+        expect(libraries.length).toEqual(0);
+      });
+      it('should retrieve load locations for figures', () => {
+        let libraries = new PythonHandler().getInputs("cf.imread('C:\\dev\\test.png')");
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "imread - 'C:\\dev\\test.png'",
+          type: 'figure',
+          path: "'C:\\dev\\test.png'"
+        });
+        libraries = new PythonHandler().getInputs("cf.imread(\r\n  'test.png'\r\n  )");
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "imread - 'test.png'",
+          type: 'figure',
+          path: "'test.png'"
+        });
+        libraries = new PythonHandler().getInputs("cf.imread('image_new.jpg' , 'png' )");
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "imread - 'image_new.jpg'",
+          type: 'figure',
+          path: "'image_new.jpg'"
+        });
+      });
+      it('should handle multiple figure outputs in a single string', () => {
+        const libraries = new PythonHandler().getInputs(
+          "cf.imread('C:\\dev\\test.png')\r\nprint('hello')\r\nf.imread(\r\n  'test.png'\r\n  )\r\n\r\n   plt.imread('image_new.jpg', 'png' )\r\nplt.imread(tmp,image )"
+        );
+        expect(libraries.length).toEqual(3);
+      });
+      it('should retrieve input locations for standard IO open', () => {
+        let libraries = new PythonHandler().getInputs('f = open("test.txt", "rb", buffering=0)');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'open - "test.txt"',
+          type: 'data',
+          path: '"test.txt"'
+        });
+        libraries = new PythonHandler().getInputs('f = open("test.dat", "r")');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'open - "test.dat"',
+          type: 'data',
+          path: '"test.dat"'
+        });
+        libraries = new PythonHandler().getInputs("f = open('test.tmp', 'r', encoding='utf-8')");
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "open - 'test.tmp'",
+          type: 'data',
+          path: "'test.tmp'"
+        });
+        libraries = new PythonHandler().getInputs(
+          "f = open ( 'test.tmp', 'r'  ,   encoding='utf-8' ) "
+        );
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "open - 'test.tmp'",
+          type: 'data',
+          path: "'test.tmp'"
+        });
+        libraries = new PythonHandler().getInputs('open("test.dat")');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'open - "test.dat"',
+          type: 'data',
+          path: '"test.dat"'
+        });
+        libraries = new PythonHandler().getInputs("open('test.dat')");
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "open - 'test.dat'",
+          type: 'data',
+          path: "'test.dat'"
+        });
+      });
+      it('should handle multiple IO open statements in a single string', () => {
+        const libraries = new PythonHandler().getInputs(
+          'f = open("test.dat", "r")\r\n\r\nprint("Hello world")\r\n\r\n\t  f = open("test.txt", "wb", buffering=0)  \r\nf = open ( "test.dat" ) '
+        );
+        expect(libraries.length).toEqual(2);
+      });
+      it('should retrieve save locations for pandas input files', () => {
+        let libraries = new PythonHandler().getInputs("df.read_table('C:\\dev\\test.md')");
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "read_table - 'C:\\dev\\test.md'",
+          type: 'data',
+          path: "'C:\\dev\\test.md'"
+        });
+        libraries = new PythonHandler().getInputs("df.read_html(\r\n  'test.html'\r\n  )\r");
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "read_html - 'test.html'",
+          type: 'data',
+          path: "'test.html'"
+        });
+        libraries = new PythonHandler().getInputs("df.read_json('test.json',orient='records' ) ");
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "read_json - 'test.json'",
+          type: 'data',
+          path: "'test.json'"
+        });
+      });
+      it('should handle multiple pandas data input in a single string', () => {
+        const libraries = new PythonHandler().getInputs(
+          "df.read_table('C:\\dev\\test.md')\r\nprint('hello')\r\ndf.read_html(\r\n  'test.html'\r\n  )\r\n\r\n   df.read_json('test.json',orient='records' )\r\ndf.read_json(test,orient='records' )"
+        );
+        expect(libraries.length).toEqual(3);
+      });
+    });
     describe('getLibraryId', () => {
       it('should return a default label when parameters are missing', () => {
         expect(new PythonHandler().getLibraryId('', '')).toEqual('(unknown)');

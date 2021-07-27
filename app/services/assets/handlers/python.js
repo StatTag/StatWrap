@@ -36,6 +36,120 @@ export default class PythonHandler extends BaseCodeHandler {
     return id;
   }
 
+  getInputs(text) {
+    const inputs = [];
+    if (!text || text.trim() === '') {
+      return inputs;
+    }
+
+    const figureMatches = [
+      ...text.matchAll(/(imread)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)$/gim)
+    ];
+    for (let index = 0; index < figureMatches.length; index++) {
+      const match = figureMatches[index];
+      const path = match[2].trim();
+      inputs.push({
+        id: `${match[1]} - ${path}`,
+        type: 'figure',
+        path
+      });
+    }
+
+    const pandasMatches = [
+      ...text.matchAll(
+        /(read_table|read_fwf|read_feather|read_parquet|read_csv|read_pickle|read_hdf|read_sql_table|read_sql_query|read_sql|read_excel|read_json|read_html|read_xml|read_stata|read_orc|read_sas|read_spss)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim
+      )
+    ];
+    for (let index = 0; index < pandasMatches.length; index++) {
+      const match = pandasMatches[index];
+      const path = match[2].trim();
+      inputs.push({
+        id: `${match[1]} - ${path}`,
+        type: 'data',
+        path
+      });
+    }
+
+    const fileMatches = [
+      ...text.matchAll(
+        /(open)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s,]*(['"]{1,}[\s\S]+?['"]{1,})?[\s\S]*?\)/gim
+      )
+    ];
+    for (let index = 0; index < fileMatches.length; index++) {
+      const match = fileMatches[index];
+      const path = match[2].trim();
+      const mode = match[3];
+      const isOutput = !mode || mode.match(/[r]/);
+      if (isOutput) {
+        inputs.push({
+          id: `${match[1]} - ${path}`,
+          type: 'data',
+          path
+        });
+      }
+    }
+
+    return inputs;
+  }
+
+  getOutputs(text) {
+    const outputs = [];
+    if (!text || text.trim() === '') {
+      return outputs;
+    }
+
+    const figureMatches = [
+      ...text.matchAll(
+        /(plot|savefig|imsave|imwrite|save)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)$/gim
+      )
+    ];
+    for (let index = 0; index < figureMatches.length; index++) {
+      const match = figureMatches[index];
+      const path = match[2].trim();
+      outputs.push({
+        id: `${match[1]} - ${path}`,
+        type: 'figure',
+        path
+      });
+    }
+
+    const pandasMatches = [
+      ...text.matchAll(
+        /(to_parquet|to_csv|to_pickle|to_hdf|to_sql|to_excel|to_json|to_html|to_feather|to_latex|to_stata|to_markdown)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim
+      )
+    ];
+    for (let index = 0; index < pandasMatches.length; index++) {
+      const match = pandasMatches[index];
+      const path = match[2].trim();
+      outputs.push({
+        id: `${match[1]} - ${path}`,
+        type: 'data',
+        path
+      });
+    }
+
+    const fileMatches = [
+      ...text.matchAll(
+        /(open)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s,]*(['"]{1,}[\s\S]+?['"]{1,})?[\s\S]*?\)/gim
+      )
+    ];
+    for (let index = 0; index < fileMatches.length; index++) {
+      const match = fileMatches[index];
+      const path = match[2].trim();
+      const mode = match[3];
+      const isOutput = mode && mode.match(/[xaw+]/);
+      if (isOutput) {
+        outputs.push({
+          id: `${match[1]} - ${path}`,
+          type: 'data',
+          path
+        });
+      }
+    }
+
+    return outputs;
+  }
+
   getLibraries(text) {
     const libraries = [];
     if (!text || text.trim() === '') {
