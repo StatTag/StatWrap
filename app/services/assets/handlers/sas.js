@@ -25,6 +25,97 @@ export default class SASHandler extends BaseCodeHandler {
     return packageName || '(unknown)';
   }
 
+  getInputs(text) {
+    const inputs = [];
+    if (!text || text.trim() === '') {
+      return inputs;
+    }
+
+    const procMatches = [
+      ...text.matchAll(
+        /^\s*(proc import)\b[\S\s]*?(?:datafile)\s*?=\s*?(["'][\s\S]*?["'])[\S\s]*?;[\s]*?$/gim
+      )
+    ];
+    for (let index = 0; index < procMatches.length; index++) {
+      const match = procMatches[index];
+      const path = match[2].trim();
+      inputs.push({
+        id: `${match[1]} - ${path}`,
+        type: 'data',
+        path
+      });
+    }
+
+    const infileMatches = [
+      ...text.matchAll(/^\s*(infile)\b[\S\s]*?(["'][\s\S]*?["'])[\S\s]*?;[\s]*?$/gim)
+    ];
+    for (let index = 0; index < infileMatches.length; index++) {
+      const match = infileMatches[index];
+      const path = match[2].trim();
+      inputs.push({
+        id: `${match[1]} - ${path}`,
+        type: 'data',
+        path
+      });
+    }
+
+    return inputs;
+  }
+
+  getOutputs(text) {
+    const outputs = [];
+    if (!text || text.trim() === '') {
+      return outputs;
+    }
+
+    const figureMatches = [
+      ...text.matchAll(
+        /^\s*(ods pdf|ods epub|ods epub2|ods epub3|ods pcl|ods powerpoint|ods ps|ods rtf|ods word)\b[\S\s]*?file\s*?=\s*?(["'][\s\S]*?["'])[\S\s]*?;[\s]*?$/gim
+      )
+    ];
+    for (let index = 0; index < figureMatches.length; index++) {
+      const match = figureMatches[index];
+      const path = match[2].trim();
+      outputs.push({
+        id: `${match[1]} - ${path}`,
+        type: 'figure',
+        path
+      });
+    }
+
+    const dataMatches = [
+      ...text.matchAll(
+        /^\s*(ods chtml|ods csv|ods csvall|ods markup|ods excel|ods html|ods html3|ods html5|ods phtml)\b[\S\s]*?(?:body|file|path)\s*?=\s*?(["'][\s\S]*?["'])[\S\s]*?;[\s]*?$/gim
+      )
+    ];
+    for (let index = 0; index < dataMatches.length; index++) {
+      const match = dataMatches[index];
+      const path = match[2].trim();
+      outputs.push({
+        id: `${match[1]} - ${path}`,
+        type: 'data',
+        path
+      });
+    }
+
+    const procMatches = [
+      ...text.matchAll(
+        /^\s*(proc export)\b[\S\s]*?(?:outfile)\s*?=\s*?(["'][\s\S]*?["'])[\S\s]*?;[\s]*?$/gim
+      )
+    ];
+    for (let index = 0; index < procMatches.length; index++) {
+      const match = procMatches[index];
+      const path = match[2].trim();
+      outputs.push({
+        id: `${match[1]} - ${path}`,
+        type: 'data',
+        path
+      });
+    }
+
+    return outputs;
+  }
+
   getLibraries(text) {
     const libraries = [];
     if (!text || text.trim() === '') {
