@@ -39,6 +39,39 @@ export default class StataHandler extends BaseCodeHandler {
     }
   }
 
+  getOutputs(text) {
+    const outputs = [];
+    if (!text || text.trim() === '') {
+      return outputs;
+    }
+
+    const figureMatches = [
+      ...text.matchAll(/^\s*(gr(?:aph)? export)\s*([\s\S]+?)(?:,[\s\S]+?)?$/gm)
+    ];
+    for (let index = 0; index < figureMatches.length; index++) {
+      const match = figureMatches[index];
+      const path = match[2].trim();
+      outputs.push({
+        id: `${match[1]} - ${path}`,
+        type: 'figure',
+        path
+      });
+    }
+
+    const logMatches = [...text.matchAll(/^\s*((?:cmd)?log)\s*using\b([\w\W]*?)(?:$|[\r\n,])/gm)];
+    for (let index = 0; index < logMatches.length; index++) {
+      const match = logMatches[index];
+      const path = match[2].trim();
+      outputs.push({
+        id: `${match[1]} - ${path}`,
+        type: 'log',
+        path
+      });
+    }
+
+    return outputs;
+  }
+
   getLibraries(text) {
     const libraries = [];
     if (!text || text.trim() === '') {

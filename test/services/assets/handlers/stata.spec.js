@@ -353,5 +353,92 @@ describe('services', () => {
         );
       });
     });
+
+    describe('getOutputs', () => {
+      it('should handle empty/blank inputs', () => {
+        expect(new StataHandler().getOutputs('').length).toEqual(0);
+        expect(new StataHandler().getOutputs(null).length).toEqual(0);
+        expect(new StataHandler().getOutputs(undefined).length).toEqual(0);
+        expect(new StataHandler().getOutputs('display x').length).toEqual(0);
+      });
+      it('should retrieve save locations for figures', () => {
+        let libraries = new StataHandler().getOutputs('graph export "C:\\dev\\test.pdf"');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'graph export - "C:\\dev\\test.pdf"',
+          type: 'figure',
+          path: '"C:\\dev\\test.pdf"'
+        });
+        libraries = new StataHandler().getOutputs('graph export test.pdf, as(pdf) replace');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'graph export - test.pdf',
+          type: 'figure',
+          path: 'test.pdf'
+        });
+        libraries = new StataHandler().getOutputs(
+          ' gr export "C:\\Stats\\test.pdf" , as(pdf) replace '
+        );
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'gr export - "C:\\Stats\\test.pdf"',
+          type: 'figure',
+          path: '"C:\\Stats\\test.pdf"'
+        });
+      });
+      it('should ignore save locations for figures when command case mismatches', () => {
+        const libraries = new StataHandler().getOutputs('Graph Export "test.pdf"');
+        expect(libraries.length).toEqual(0);
+      });
+      it('should ignore commented figure save locations', () => {
+        expect(new StataHandler().getOutputs('#graph export "test.pdf"').length).toEqual(0);
+        expect(new StataHandler().getOutputs(' #graph export "test.pdf"').length).toEqual(0);
+        expect(new StataHandler().getOutputs('  #  graph export "test.pdf"').length).toEqual(0);
+      });
+      it('should handle multiple figure outputs in a single string', () => {
+        const libraries = new StataHandler().getOutputs(
+          'graph export "c:\\dev\\test.pdf"\r\n di x \r\n graph export test.pdf, as(pdf) replace\r\r gr export "C:\\Stats\\test.pdf" , as(pdf) replace  \r\n di y '
+        );
+        expect(libraries.length).toEqual(3);
+      });
+      it('should retrieve save locations for logs', () => {
+        let libraries = new StataHandler().getOutputs('cmdlog using C:\\dev\\test.log');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'cmdlog - C:\\dev\\test.log',
+          type: 'log',
+          path: 'C:\\dev\\test.log'
+        });
+        libraries = new StataHandler().getOutputs('cmdlog using "tmp.log"');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'cmdlog - "tmp.log"',
+          type: 'log',
+          path: '"tmp.log"'
+        });
+        libraries = new StataHandler().getOutputs(' log   using    tmp2.log  ');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'log - tmp2.log',
+          type: 'log',
+          path: 'tmp2.log'
+        });
+      });
+      it('should ignore save locations for logs when command case mismatches', () => {
+        const libraries = new StataHandler().getOutputs('Cmd Log Using "test.log"');
+        expect(libraries.length).toEqual(0);
+      });
+      it('should ignore commented log save locations', () => {
+        expect(new StataHandler().getOutputs('#cmdlog using "tmp.log"').length).toEqual(0);
+        expect(new StataHandler().getOutputs(' #cmdlog using "tmp.log"').length).toEqual(0);
+        expect(new StataHandler().getOutputs('   #  cmdlog using "tmp.log"').length).toEqual(0);
+      });
+      it('should handle multiple log outputs in a single string', () => {
+        const libraries = new StataHandler().getOutputs(
+          'cmdlog using C:\\dev\\test.log\r\n di x \r\n cmdlog using "tmp.log"\r\r log   using    tmp2.log  \r\n di y '
+        );
+        expect(libraries.length).toEqual(3);
+      });
+    });
   });
 });
