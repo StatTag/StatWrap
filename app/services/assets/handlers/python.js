@@ -100,7 +100,7 @@ export default class PythonHandler extends BaseCodeHandler {
 
     const figureMatches = [
       ...text.matchAll(
-        /(plot|savefig|imsave|imwrite|save)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)$/gim
+        /^[^#]*?(plot|savefig|imsave|imwrite|save)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)$/gm
       )
     ];
     for (let index = 0; index < figureMatches.length; index++) {
@@ -115,7 +115,7 @@ export default class PythonHandler extends BaseCodeHandler {
 
     const pandasMatches = [
       ...text.matchAll(
-        /(to_parquet|to_csv|to_pickle|to_hdf|to_sql|to_excel|to_json|to_html|to_feather|to_latex|to_stata|to_markdown)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim
+        /^[^#]*?(to_parquet|to_csv|to_pickle|to_hdf|to_sql|to_excel|to_json|to_html|to_feather|to_latex|to_stata|to_markdown)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gm
       )
     ];
     for (let index = 0; index < pandasMatches.length; index++) {
@@ -130,7 +130,7 @@ export default class PythonHandler extends BaseCodeHandler {
 
     const fileMatches = [
       ...text.matchAll(
-        /(open)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s,]*(['"]{1,}[\s\S]+?['"]{1,})?[\s\S]*?\)/gim
+        /^[^#]*?(open)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s,]*(['"]{1,}[\s\S]+?['"]{1,})?[\s\S]*?\)/gm
       )
     ];
     for (let index = 0; index < fileMatches.length; index++) {
@@ -166,7 +166,7 @@ export default class PythonHandler extends BaseCodeHandler {
     // 3 - alias for the import
     //     e.g., "import one as two" --> m[3]: "two"
     const matches = [
-      ...text.matchAll(/^(?:from[ ]+(\S+)[ ]+)?import[ ]+(.+?)(?:[ ]+as[ ]+(\S+))?[ ]*$/gm)
+      ...text.matchAll(/^[^#]*?(?:from[ ]+(\S+)[ ]+)?import[ ]+(.+?)(?:[ ]+as[ ]+(\S+))?[ ]*$/gm)
     ];
     for (let index = 0; index < matches.length; index++) {
       const match = matches[index];

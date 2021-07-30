@@ -258,7 +258,7 @@ describe('services', () => {
       });
       it('should retrieve multiple libraries', () => {
         const libraries = new PythonHandler().getLibraries(
-          'from one import two\nimport three\nimport four as five'
+          'from one import two\n import three\n  import four as five'
         );
         expect(libraries.length).toEqual(3);
         expect(libraries[0]).toMatchObject({
@@ -279,6 +279,11 @@ describe('services', () => {
           import: 'four',
           alias: 'five'
         });
+      });
+      it('should ignore commented out lines', () => {
+        expect(new PythonHandler().getLibraries('# from one import two').length).toEqual(0);
+        expect(new PythonHandler().getLibraries('   #from one import two').length).toEqual(0);
+        expect(new PythonHandler().getLibraries('   #    from one import two').length).toEqual(0);
       });
     });
     describe('getOutputs', () => {
@@ -310,6 +315,10 @@ describe('services', () => {
           type: 'figure',
           path: "'image_new.jpg'"
         });
+      });
+      it('should ignore save locations for figures when command case mismatches', () => {
+        const libraries = new PythonHandler().getOutputs("cf.SAVEFIG('C:\\dev\\test.png')");
+        expect(libraries.length).toEqual(0);
       });
       it('should handle multiple figure outputs in a single string', () => {
         const libraries = new PythonHandler().getOutputs(
@@ -351,6 +360,10 @@ describe('services', () => {
           "df.to_markdown('C:\\dev\\test.md')\r\nprint('hello')\r\ndf.to_html(\r\n  'test.html'\r\n  )\r\n\r\n   df.to_json('test.json',orient='records' )\r\ndf.to_json(test,orient='records' )"
         );
         expect(libraries.length).toEqual(3);
+      });
+      it('should ignore save locations for pandas output when command case mismatches', () => {
+        const libraries = new PythonHandler().getOutputs("cf.To_Markdown('C:\\dev\\test.png')");
+        expect(libraries.length).toEqual(0);
       });
       it('should ignore locations for standard IO open that are read-only', () => {
         let libraries = new PythonHandler().getOutputs('f = open("myfile.jpg", "rb", buffering=0)');
@@ -399,6 +412,16 @@ describe('services', () => {
           'f = open("test.dat", "w")\r\n\r\nprint("Hello world")\r\n\r\n\t  f = open("test.txt", "wb", buffering=0)  \r\nf = open ( "test.dat" ) '
         );
         expect(libraries.length).toEqual(2);
+      });
+      it('should ignore save locations for IO output when command case mismatches', () => {
+        const libraries = new PythonHandler().getOutputs("OPEN('C:\\dev\\test.png', 'w')");
+        expect(libraries.length).toEqual(0);
+      });
+      it('should ignore commented out IO output lines', () => {
+        expect(new PythonHandler().getOutputs('# f = open("test.dat", "w")').length).toEqual(0);
+        expect(new PythonHandler().getOutputs("   #df.to_csv('test.csv')").length).toEqual(0);
+        // eslint-disable-next-line prettier/prettier
+        expect(new PythonHandler().getOutputs('   #    f = open("test.dat", "w")').length).toEqual(0);
       });
     });
     describe('getInputs', () => {
