@@ -69,6 +69,63 @@ export default class StataHandler extends BaseCodeHandler {
       });
     }
 
+    // TODO: The following scenarios are not currently handled
+    // 1 - Multi-line
+    //   export excel \\
+    //     mydata2 ,\\
+    //     nolabel
+    // 2 - sasxport with 'if' statement
+    //   export sasxport5 v1 v2 v3 using mydata if tvar==2010
+    const exportMatches = [
+      ...text.matchAll(
+        /^\s*?((?:export\s+(?:excel|delimited|sasxport5|sasxport8|dbase))|outfile)\s+?(?:(?:.*)using\s+([^,]+?)|([^,]+?))\s*?(?:$|[\r\n,])/gm
+      )
+    ];
+    for (let index = 0; index < exportMatches.length; index++) {
+      const match = exportMatches[index];
+      // Depending on what matches, the path will be either in group 2 or 3
+      const path = match[2] ? match[2].trim() : match[3].trim();
+      outputs.push({
+        id: `${match[1]} - ${path}`,
+        type: 'data',
+        path
+      });
+    }
+
+    // estout is a package, but used pretty widely and supported in StatTag so we
+    // are supporting it here.
+    const estMatches = [
+      ...text.matchAll(
+        /^\s*(est(?:out|add|tab))\s+(?:using)\s+([^,\r\n,#]+?\.[^,\r\n,#]+?)(?:[, \r\n,#]|$)/gm
+      )
+    ];
+    for (let index = 0; index < estMatches.length; index++) {
+      const match = estMatches[index];
+      const path = match[2].trim();
+      outputs.push({
+        id: `${match[1]} - ${path}`,
+        type: 'data',
+        path
+      });
+    }
+
+    // tableone is a package, but used pretty widely and supported in StatTag so we
+    // are supporting it here.
+    const table1Matches = [
+      ...text.matchAll(
+        /^\s*(table1)[\s\S]+?(?:saving)\s*?\(\s*([^,\r\n,#]+?\.[^,\r\n,#]+?)\s*[,\r\n,#][\s\S]*?\)\s*?$/gm
+      )
+    ];
+    for (let index = 0; index < table1Matches.length; index++) {
+      const match = table1Matches[index];
+      const path = match[2].trim();
+      outputs.push({
+        id: `${match[1]} - ${path}`,
+        type: 'data',
+        path
+      });
+    }
+
     return outputs;
   }
 

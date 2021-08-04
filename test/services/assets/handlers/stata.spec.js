@@ -439,6 +439,172 @@ describe('services', () => {
         );
         expect(libraries.length).toEqual(3);
       });
+      it('should retrieve save locations for export commands', () => {
+        let libraries = new StataHandler().getOutputs('export excel mydata ');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'export excel - mydata',
+          type: 'data',
+          path: 'mydata'
+        });
+        libraries = new StataHandler().getOutputs('export delimited v1 v2 v3 using "mydata.txt"');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'export delimited - "mydata.txt"',
+          type: 'data',
+          path: '"mydata.txt"'
+        });
+        libraries = new StataHandler().getOutputs(' outfile using mydata, wide ');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'outfile - mydata',
+          type: 'data',
+          path: 'mydata'
+        });
+        libraries = new StataHandler().getOutputs(' export sasxport8  mydata  ,  replace  ');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'export sasxport8 - mydata',
+          type: 'data',
+          path: 'mydata'
+        });
+        libraries = new StataHandler().getOutputs('export dbase "C:\\test\\test.db"');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'export dbase - "C:\\test\\test.db"',
+          type: 'data',
+          path: '"C:\\test\\test.db"'
+        });
+      });
+      it('should ignore save locations for export when command case mismatches', () => {
+        const libraries = new StataHandler().getOutputs('Outfile using mydata, wide');
+        expect(libraries.length).toEqual(0);
+      });
+      it('should ignore commented export save locations', () => {
+        expect(new StataHandler().getOutputs('#outfile using mydata, wide').length).toEqual(0);
+        expect(new StataHandler().getOutputs(' #outfile using mydata, wide').length).toEqual(0);
+        expect(new StataHandler().getOutputs('  # outfile using mydata, wide ').length).toEqual(0);
+      });
+      it('should handle multiple export outputs in a single string', () => {
+        const libraries = new StataHandler().getOutputs(
+          'export delimited v1 v2 v3 using "mydata.txt"\r\n  export sasxport8  mydata  ,  replace  \r\n di x \r\n Outfile using mydata, wide  \r\n    export dbase "C:\\test\\test.db"'
+        );
+        expect(libraries.length).toEqual(3);
+      });
+      it('should retrieve save locations for est commands', () => {
+        let libraries = new StataHandler().getOutputs('esttab using C:\\dev\\test.csv');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'esttab - C:\\dev\\test.csv',
+          type: 'data',
+          path: 'C:\\dev\\test.csv'
+        });
+        libraries = new StataHandler().getOutputs('estout using "tmp.csv"\r\n');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'estout - "tmp.csv"',
+          type: 'data',
+          path: '"tmp.csv"'
+        });
+        libraries = new StataHandler().getOutputs(
+          ' esttab  using  example.csv , replace wide plain'
+        );
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'esttab - example.csv',
+          type: 'data',
+          path: 'example.csv'
+        });
+      });
+      it('should ignore save locations for est when command case mismatches', () => {
+        const libraries = new StataHandler().getOutputs('Estout using "tmp.csv"');
+        expect(libraries.length).toEqual(0);
+      });
+      it('should ignore save locations for est if there is no file extension', () => {
+        let libraries = new StataHandler().getOutputs('estadd using test csv');
+        expect(libraries.length).toEqual(0);
+        libraries = new StataHandler().getOutputs('estadd using \r\n#test.csv');
+        expect(libraries.length).toEqual(0);
+      });
+      it('should ignore commented est save locations', () => {
+        expect(new StataHandler().getOutputs('#esttab using test.csv').length).toEqual(0);
+        expect(new StataHandler().getOutputs(' #esttab using test.csv').length).toEqual(0);
+        expect(new StataHandler().getOutputs('  # esttab using test.csv ').length).toEqual(0);
+      });
+      it('should handle multiple est outputs in a single string', () => {
+        const libraries = new StataHandler().getOutputs(
+          'estadd using test.csv\r\ndi x\r\nestout using test.csv\r\n\r\nestout using C:\\test.csv\r\n  estout using "C:\\test.csv"  \r\nesttab using example.csv , replace wide plain \r \n  esttab  using  example.csv ,  replace  wide  plain \nestadd using test csv \nestadd using test .csv\nestout using /c:/test.csv'
+        );
+        expect(libraries.length).toEqual(8);
+      });
+      it('should retrieve save locations for table1 commands', () => {
+        let libraries = new StataHandler().getOutputs(
+          'table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(C:\\dev\\testing.csv, replace)'
+        );
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'table1 - C:\\dev\\testing.csv',
+          type: 'data',
+          path: 'C:\\dev\\testing.csv'
+        });
+        libraries = new StataHandler().getOutputs(
+          ' table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(  testing.csv , replace) '
+        );
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'table1 - testing.csv',
+          type: 'data',
+          path: 'testing.csv'
+        });
+        libraries = new StataHandler().getOutputs(
+          ' table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving("testing 2.csv", replace)'
+        );
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'table1 - "testing 2.csv"',
+          type: 'data',
+          path: '"testing 2.csv"'
+        });
+      });
+      it('should ignore save locations for est when command table1 mismatches', () => {
+        const libraries = new StataHandler().getOutputs(
+          'Table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing.csv, replace)'
+        );
+        expect(libraries.length).toEqual(0);
+      });
+      it('should ignore save locations for table1 if there is no file extension', () => {
+        let libraries = new StataHandler().getOutputs(
+          'table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing csv, replace)'
+        );
+        expect(libraries.length).toEqual(0);
+        libraries = new StataHandler().getOutputs(
+          'table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(\r\n#testing csv, replace)'
+        );
+        expect(libraries.length).toEqual(0);
+      });
+      it('should ignore commented table1 save locations', () => {
+        expect(
+          new StataHandler().getOutputs(
+            '#table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing.csv, replace)'
+          ).length
+        ).toEqual(0);
+        expect(
+          new StataHandler().getOutputs(
+            ' # table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing.csv, replace)'
+          ).length
+        ).toEqual(0);
+        expect(
+          new StataHandler().getOutputs(
+            '  #  table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing.csv, replace) '
+          ).length
+        ).toEqual(0);
+      });
+      it('should handle multiple table1 outputs in a single string', () => {
+        const libraries = new StataHandler().getOutputs(
+          '\r\n table1 , vars ( gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving ( testing.csv , replace ) \r\ntable1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing.csv, replace)\r\ntable1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing, replace)'
+        );
+        expect(libraries.length).toEqual(2);
+      });
     });
   });
 });
