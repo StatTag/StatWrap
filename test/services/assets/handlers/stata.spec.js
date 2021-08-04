@@ -475,6 +475,13 @@ describe('services', () => {
           type: 'data',
           path: '"C:\\test\\test.db"'
         });
+        libraries = new StataHandler().getOutputs('xmlsave "/Users/test/test.xml"');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'xmlsave - "/Users/test/test.xml"',
+          type: 'data',
+          path: '"/Users/test/test.xml"'
+        });
       });
       it('should ignore save locations for export when command case mismatches', () => {
         const libraries = new StataHandler().getOutputs('Outfile using mydata, wide');
@@ -488,6 +495,44 @@ describe('services', () => {
       it('should handle multiple export outputs in a single string', () => {
         const libraries = new StataHandler().getOutputs(
           'export delimited v1 v2 v3 using "mydata.txt"\r\n  export sasxport8  mydata  ,  replace  \r\n di x \r\n Outfile using mydata, wide  \r\n    export dbase "C:\\test\\test.db"'
+        );
+        expect(libraries.length).toEqual(3);
+      });
+      it('should retrieve save locations for put* commands', () => {
+        let libraries = new StataHandler().getOutputs("putdocx save 'test', replace");
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "putdocx - 'test'",
+          type: 'data',
+          path: "'test'"
+        });
+        libraries = new StataHandler().getOutputs('putpdf save example.pdf');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'putpdf - example.pdf',
+          type: 'data',
+          path: 'example.pdf'
+        });
+        libraries = new StataHandler().getOutputs(' putexcel  save  "C:\\Documents\\test.xlsx" ');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'putexcel - "C:\\Documents\\test.xlsx"',
+          type: 'data',
+          path: '"C:\\Documents\\test.xlsx"'
+        });
+      });
+      it('should ignore save locations for put* when command case mismatches', () => {
+        const libraries = new StataHandler().getOutputs('PutPdf save example.pdf');
+        expect(libraries.length).toEqual(0);
+      });
+      it('should ignore commented put* locations', () => {
+        expect(new StataHandler().getOutputs('#putpdf save example.pdf').length).toEqual(0);
+        expect(new StataHandler().getOutputs(' #putpdf save example.pdf').length).toEqual(0);
+        expect(new StataHandler().getOutputs('  # putpdf save example.pdf ').length).toEqual(0);
+      });
+      it('should handle multiple put* commands in a single string', () => {
+        const libraries = new StataHandler().getOutputs(
+          'putdocx save \'test\', replace\r\n putpdf save example.pdf \r\n\r\n di x\r\n  putexcel  save  "C:\\Documents\\test.xlsx" '
         );
         expect(libraries.length).toEqual(3);
       });
@@ -604,6 +649,91 @@ describe('services', () => {
           '\r\n table1 , vars ( gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving ( testing.csv , replace ) \r\ntable1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing.csv, replace)\r\ntable1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing, replace)'
         );
         expect(libraries.length).toEqual(2);
+      });
+    });
+    describe('getInputs', () => {
+      it('should handle empty/blank inputs', () => {
+        expect(new StataHandler().getInputs('').length).toEqual(0);
+        expect(new StataHandler().getInputs(null).length).toEqual(0);
+        expect(new StataHandler().getInputs(undefined).length).toEqual(0);
+        expect(new StataHandler().getInputs('display x').length).toEqual(0);
+      });
+      it('should retrieve save locations for import commands', () => {
+        let libraries = new StataHandler().getInputs('import excel mydata ');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'import excel - mydata',
+          type: 'data',
+          path: 'mydata'
+        });
+        libraries = new StataHandler().getInputs('import delimited "mydata.txt", varnames(5)');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'import delimited - "mydata.txt"',
+          type: 'data',
+          path: '"mydata.txt"'
+        });
+        libraries = new StataHandler().getInputs(
+          ' infile str16 name sex:sexfmt age using persons, wide '
+        );
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'infile - persons',
+          type: 'data',
+          path: 'persons'
+        });
+        libraries = new StataHandler().getInputs('inf using test.raw');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'inf - test.raw',
+          type: 'data',
+          path: 'test.raw'
+        });
+        libraries = new StataHandler().getInputs(
+          'infix acc_rate 1-4 spdlimit 6-7 acc_pts 9-11 using test.raw'
+        );
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'infix - test.raw',
+          type: 'data',
+          path: 'test.raw'
+        });
+        libraries = new StataHandler().getInputs(' import sasxport5  mydata  , novallabels  ');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'import sasxport5 - mydata',
+          type: 'data',
+          path: 'mydata'
+        });
+        libraries = new StataHandler().getInputs('import dbase "C:\\test\\test.db"');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'import dbase - "C:\\test\\test.db"',
+          type: 'data',
+          path: '"C:\\test\\test.db"'
+        });
+        libraries = new StataHandler().getInputs('xmluse "/Users/test/test.xml", doctype(dta)');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'xmluse - "/Users/test/test.xml"',
+          type: 'data',
+          path: '"/Users/test/test.xml"'
+        });
+      });
+      it('should ignore save locations for export when command case mismatches', () => {
+        const libraries = new StataHandler().getInputs('Infile using mydata, wide');
+        expect(libraries.length).toEqual(0);
+      });
+      it('should ignore commented export save locations', () => {
+        expect(new StataHandler().getInputs('#infile using mydata, wide').length).toEqual(0);
+        expect(new StataHandler().getInputs(' #infile using mydata, wide').length).toEqual(0);
+        expect(new StataHandler().getInputs('  # infile using mydata, wide ').length).toEqual(0);
+      });
+      it('should handle multiple export outputs in a single string', () => {
+        const libraries = new StataHandler().getInputs(
+          'import delimited "mydata.txt", varnames(5)\r\n inf using test.raw \r\ndi x\r\n  import  sasxport5  mydata  , novallabels  \r\nInfile using mydata, wide'
+        );
+        expect(libraries.length).toEqual(3);
       });
     });
   });

@@ -39,6 +39,38 @@ export default class StataHandler extends BaseCodeHandler {
     }
   }
 
+  getInputs(text) {
+    const inputs = [];
+    if (!text || text.trim() === '') {
+      return inputs;
+    }
+
+    // TODO: The following scenarios are not currently handled
+    // 1 - Multi-line
+    //   export excel \\
+    //     mydata2 ,\\
+    //     nolabel
+    // 2 - sasxport with 'if' statement
+    //   export sasxport5 v1 v2 v3 using mydata if tvar==2010
+    const importMatches = [
+      ...text.matchAll(
+        /^\s*?((?:import\s+(?:excel|delimited|sasxport|sasxport5|sasxport8|dbase))|(?:infile|inf|infix|xmluse))\s+?(?:(?:.*)using\s+([^,]+?)|([^,]+?))\s*?(?:$|[\r\n,])/gm
+      )
+    ];
+    for (let index = 0; index < importMatches.length; index++) {
+      const match = importMatches[index];
+      // Depending on what matches, the path will be either in group 2 or 3
+      const path = match[2] ? match[2].trim() : match[3].trim();
+      inputs.push({
+        id: `${match[1]} - ${path}`,
+        type: 'data',
+        path
+      });
+    }
+
+    return inputs;
+  }
+
   getOutputs(text) {
     const outputs = [];
     if (!text || text.trim() === '') {
@@ -78,13 +110,26 @@ export default class StataHandler extends BaseCodeHandler {
     //   export sasxport5 v1 v2 v3 using mydata if tvar==2010
     const exportMatches = [
       ...text.matchAll(
-        /^\s*?((?:export\s+(?:excel|delimited|sasxport5|sasxport8|dbase))|outfile)\s+?(?:(?:.*)using\s+([^,]+?)|([^,]+?))\s*?(?:$|[\r\n,])/gm
+        /^\s*?((?:export\s+(?:excel|delimited|sasxport|sasxport5|sasxport8|dbase))|outfile|xmlsave)\s+?(?:(?:.*)using\s+([^,]+?)|([^,]+?))\s*?(?:$|[\r\n,])/gm
       )
     ];
     for (let index = 0; index < exportMatches.length; index++) {
       const match = exportMatches[index];
       // Depending on what matches, the path will be either in group 2 or 3
       const path = match[2] ? match[2].trim() : match[3].trim();
+      outputs.push({
+        id: `${match[1]} - ${path}`,
+        type: 'data',
+        path
+      });
+    }
+
+    const putMatches = [
+      ...text.matchAll(/^\s*(putdocx|putexcel|putpdf)\s+save\s+([\s\S]+?)(?:,[\s\S]+?)?$/gm)
+    ];
+    for (let index = 0; index < putMatches.length; index++) {
+      const match = putMatches[index];
+      const path = match[2].trim();
       outputs.push({
         id: `${match[1]} - ${path}`,
         type: 'data',
