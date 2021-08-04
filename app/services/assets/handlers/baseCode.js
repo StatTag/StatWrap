@@ -87,6 +87,8 @@ export default class BaseCodeHandler {
       try {
         const contents = fs.readFileSync(asset.uri, 'utf8');
         metadata.libraries = this.getLibraries(contents);
+        metadata.outputs = this.getOutputs(contents);
+        metadata.inputs = this.getInputs(contents);
       } catch {
         metadata.error = 'Unable to read code file';
         asset.metadata.push(metadata);

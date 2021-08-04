@@ -142,7 +142,9 @@ describe('services', () => {
               id: '/test/path/test.sas',
               package: '/test/path/test.sas'
             }
-          ]
+          ],
+          inputs: [],
+          outputs: []
         });
       });
 
@@ -178,11 +180,15 @@ describe('services', () => {
         const response = new SASHandler().scan(testAsset);
         const expectedMetadata1 = {
           id: 'StatWrap.SASHandler',
-          libraries: []
+          libraries: [],
+          inputs: [],
+          outputs: []
         };
         const expectedMetadata2 = {
           id: 'StatWrap.SASHandler',
-          libraries: []
+          libraries: [],
+          inputs: [],
+          outputs: []
         };
         expect(response.metadata.length).toEqual(0);
         expect(response.children[0].metadata.length).toEqual(1);

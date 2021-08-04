@@ -11,7 +11,9 @@ const ICON_TYPES = {
   SAS: `${ICON_PATH}sas.svg`,
   STATA: `${ICON_PATH}stata.png`,
   GENERIC: `${ICON_PATH}generic.svg`,
-  LIBRARY: `${ICON_PATH}library.svg`
+  LIBRARY: `${ICON_PATH}library.svg`,
+  DATA: `${ICON_PATH}data.svg`,
+  FIGURE: `${ICON_PATH}figure.svg`
 };
 
 /**
@@ -30,6 +32,10 @@ function CodeNode({ node, renderType }) {
     iconUrl = ICON_TYPES.STATA;
   } else if (node.assetType === 'dependency') {
     iconUrl = ICON_TYPES.LIBRARY;
+  } else if (node.assetType === 'data') {
+    iconUrl = ICON_TYPES.DATA;
+  } else if (node.assetType === 'figure') {
+    iconUrl = ICON_TYPES.FIGURE;
   }
 
   let element = (

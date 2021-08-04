@@ -143,7 +143,9 @@ describe('services', () => {
               id: 'base',
               package: 'base'
             }
-          ]
+          ],
+          inputs: [],
+          outputs: []
         });
       });
 
@@ -184,11 +186,15 @@ describe('services', () => {
               id: 'base',
               package: 'base'
             }
-          ]
+          ],
+          inputs: [],
+          outputs: []
         };
         const expectedMetadata2 = {
           id: 'StatWrap.RHandler',
-          libraries: []
+          libraries: [],
+          inputs: [],
+          outputs: []
         };
         expect(response.metadata.length).toEqual(0);
         expect(response.children[0].metadata.length).toEqual(1);

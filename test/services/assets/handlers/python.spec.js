@@ -144,7 +144,9 @@ describe('services', () => {
               import: 'sys',
               alias: null
             }
-          ]
+          ],
+          inputs: [],
+          outputs: []
         });
       });
 
@@ -187,11 +189,15 @@ describe('services', () => {
               import: 'sys',
               alias: null
             }
-          ]
+          ],
+          inputs: [],
+          outputs: []
         };
         const expectedMetadata2 = {
           id: 'StatWrap.PythonHandler',
-          libraries: []
+          libraries: [],
+          inputs: [],
+          outputs: []
         };
         expect(response.metadata.length).toEqual(0);
         expect(response.children[0].metadata.length).toEqual(1);
