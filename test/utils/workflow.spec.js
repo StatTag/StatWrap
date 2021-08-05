@@ -158,8 +158,8 @@ describe('services', () => {
             { id: 'sys', assetType: 'dependency' }
           ],
           links: [
-            { source: '1/1', target: 'dplyr' },
-            { source: '2', target: 'sys' }
+            { source: 'dplyr', target: '1/1' },
+            { source: 'sys', target: '2' }
           ]
         });
       });
@@ -221,8 +221,8 @@ describe('services', () => {
             { id: '2', assetType: 'python' }
           ],
           links: [
-            { source: '1/1', target: 'sys' },
-            { source: '2', target: 'sys' }
+            { source: 'sys', target: '1/1' },
+            { source: 'sys', target: '2' }
           ]
         });
       });
