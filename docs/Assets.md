@@ -71,3 +71,106 @@ Every handler should implement the following interface:
 | -------- | ---------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `scan`   | `asset` (Object) | Object | Performs the main work of the asset handler in identifying relevant metadata and other information for a root asset specified by `asset`. It is assumed that each handler will recursively process all descendant assets. Each handler will add an object to the `metadata` collection, if it handles the specified asset. This is expected to include an `id` attribute that is the value of `id()`. |
 | `id`     | (None)           | string | Returns a descriptive identifier for the handler, used to track which handler produced specific results.                                                                                                                                                                                                                                                                                              |
+
+## Asset Metadata
+
+Multiple elements can be looked at, which can vary by asset type. For example, what we look at for a folder would differ from a Python code file, and those would differ from a web service/API or a database. Understanding then that metadata is going to be both flowing and growing for each type of asset, here are some of the things we are looking for.
+
+### Python Code Files
+
+We collect 3 categories of metadata for Python code files:
+
+**Inputs**
+
+| Category       | Example Functions | Data Type |
+| -------------- | ----------------- | --------- |
+| Figures/images | `imread`          | `figure`  |
+| Pandas         | `read_*`          | `data`    |
+| Python I/O     | `open`            | `data`    |
+
+**Outputs**
+
+| Category                             | Example Functions    | Data Type |
+| ------------------------------------ | -------------------- | --------- |
+| Figures/images - PyPlot, ImageMagick | `savefig`, `imwrite` | `figure`  |
+| Pandas                               | `to_*`               | `data`    |
+| Python I/O                           | `open`               |
+
+**Libraries**
+
+Packages and modules, including aliases
+
+### R Code Files
+
+We collect 3 categories of metadata for R code files:
+
+**Inputs**
+
+| Category      | Example Functions | Data Type |
+| ------------- | ----------------- | --------- |
+| R data import | `read.*`          | `data`    |
+| readr         | `read_*`          | `data`    |
+| R connections | `file`, `bzfile`  | `data`    |
+| Source        | `source`          | `code`    |
+
+**Outputs**
+
+| Category      | Example Functions | Data Type |
+| ------------- | ----------------- | --------- |
+| R plots       | `pdf`, `png`      | `figure`  |
+| ggplot        | `ggsave`          | `figure`  |
+| R data export | `write.*`         | `data`    |
+| readr         | `write_*`         | `data`    |
+| R connections | `file`, `bzfile`  | `data`    |
+
+**Libraries**
+
+Regular library includes
+
+### SAS Code Files
+
+We collect 3 categories of metadata for SAS code files:
+
+**Inputs**
+
+| Category   | Example Functions | Data Type |
+| ---------- | ----------------- | --------- |
+| SAS PROC   | `PROC IMPORT`     | `data`    |
+| SAS infile | `infile`          | `data`    |
+
+**Outputs**
+
+| Category    | Example Functions     | Data Type |
+| ----------- | --------------------- | --------- |
+| ODS figures | `ODS PDF`, `ODS PS`   | `figure`  |
+| ODS data    | `ODS CSV`, `ODS HTML` | `data`    |
+| SAS PROC    | `PROC EXPORT`         | `data`    |
+
+**Libraries**
+
+References to macros and libraries via path or via `fileref`.
+
+### Stata Code Files
+
+We collect 3 categories of metadata for Stata code files:
+
+**Inputs**
+
+| Category      | Example Functions        | Data Type |
+| ------------- | ------------------------ | --------- |
+| Stata imports | `import excel`, `infile` | `data`    |
+
+**Outputs**
+
+| Category        | Example Functions         | Data Type |
+| --------------- | ------------------------- | --------- |
+| Stata graph     | `graph export`            | `figure`  |
+| Stata logs      | `log using`               | `log`     |
+| Stata export    | `export excel`, `outfile` | `data`    |
+| Document export | `putdocx`, `putpdf`       | `data`    |
+| estout package  | `estout using`            | `data`    |
+| table1 package  | `table1 saving`           | `data`    |
+
+**Libraries**
+
+External programs and plugins, and references to Do files to run via another script.
