@@ -22,9 +22,11 @@ module.exports = api => {
     presets: [
       [
         require('@babel/preset-env'),
-        {
-          targets: { electron: require('electron/package.json').version }
-        }
+        // After upgrading electron, this started throwing errors for some reason.  Commenting out
+        // as it doesn't seem to be needed, but leaving in in case we need to revert.
+        // {
+        //   targets: { electron: require('electron/package.json').version }
+        // }
       ],
       require('@babel/preset-flow'),
       [require('@babel/preset-react'), { development }]
