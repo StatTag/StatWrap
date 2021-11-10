@@ -15,7 +15,14 @@ const FILE_IGNORE_LIST = [
   '.keep', // We use these within our template projects
   '.statwrap-project.json', // ProjectService DefaultProjectFile -- circular dependency, so we need to use literal
   StatWrapFiles.LOG,
-  StatWrapFiles.BASE_FOLDER
+  StatWrapFiles.BASE_FOLDER,
+  '.git',
+  '.gitignore',
+  '.vs',
+  '.pytest_cache',
+  '.ipynb_checkpoints',
+  '.Rhistory',
+  '.Rproj.user'
 ];
 
 /**
