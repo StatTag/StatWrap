@@ -79,7 +79,8 @@ const createWindow = async () => {
     width: 1024,
     height: 728,
     webPreferences: {
-      nodeIntegration: true
+      nodeIntegration: true,
+      enableRemoteModule: true
     }
   });
 
