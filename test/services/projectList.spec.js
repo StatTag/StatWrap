@@ -316,5 +316,79 @@ describe('services', () => {
         expect(fs.writeFileSync).not.toHaveBeenCalled();
       });
     });
+
+    describe('writeProjectList', () => {
+      // These first two are explicit documentation/confirmation that we aren't going to check
+      // for null/undefined.  This is a utility method, and we have reasonable assurances that
+      // the input should be set.  But if not, we should throw an error.
+      it('should throw an error if the project list is null', () => {
+        // This is a TypeError because JSON conversion can handle null input.
+        expect(() => new ProjectListService().writeProjectList('test.json', null)).toThrow(
+          TypeError
+        );
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+      });
+      it('should throw an error if the project list is undefined', () => {
+        // This is a SyntaxError because JSON conversion doesn't like undefined
+        expect(() => new ProjectListService().writeProjectList('test.json', undefined)).toThrow(
+          SyntaxError
+        );
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+      });
+
+      it('should write out an empty project list', () => {
+        const service = new ProjectListService();
+        service.writeProjectList('.statwrap-projects.json', []);
+        expect(fs.writeFileSync).toHaveBeenCalledWith('.statwrap-projects.json', '[]');
+      });
+
+      it('should leave a project untouched if there are no assets listed', () => {
+        const service = new ProjectListService();
+        const project = [
+          {
+            formatVersion: '1',
+            id: '1234',
+            favorite: false,
+            lastAccessed: '2020-12-22T22:27:53.368Z',
+            name: 'test',
+            path: '/Users/test/test'
+          }
+        ];
+        service.writeProjectList('.statwrap-projects.json', project);
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+          '.statwrap-projects.json',
+          JSON.stringify(project)
+        );
+      });
+
+      it('should remove assets from all projects in the list', () => {
+        const service = new ProjectListService();
+        const project = [
+          {
+            formatVersion: '1',
+            id: '1234',
+            favorite: false,
+            lastAccessed: '2020-12-22T22:27:53.368Z',
+            name: 'test',
+            path: '/Users/test/test',
+            assets: [{ id: '1' }]
+          },
+          {
+            formatVersion: '1',
+            id: '1235',
+            favorite: false,
+            lastAccessed: '2020-12-22T22:27:53.368Z',
+            name: 'test2',
+            path: '/Users/test/test2',
+            assets: [{ id: '1' }]
+          }
+        ];
+        service.writeProjectList('.statwrap-projects.json', project);
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+          '.statwrap-projects.json',
+          '[{"formatVersion":"1","id":"1234","favorite":false,"lastAccessed":"2020-12-22T22:27:53.368Z","name":"test","path":"/Users/test/test"},{"formatVersion":"1","id":"1235","favorite":false,"lastAccessed":"2020-12-22T22:27:53.368Z","name":"test2","path":"/Users/test/test2"}]'
+        );
+      });
+    });
   });
 });

@@ -7,6 +7,13 @@ const DefaultProjectListFile = '.statwrap-projects.json';
 
 export { DefaultProjectListFile };
 
+/**
+ * ProjectListService
+ *
+ * Responsible for managing the user's list of configured projects.  Because
+ * user configurations are considered machine-specific, all references
+ * to file/directory URIs can be assumed to be absolute paths.
+ */
 export default class ProjectListService {
   // Toggle the status of a project on our list as a 'Favorite' project
   // return: true if the project was updated, false otherwise
@@ -26,7 +33,7 @@ export default class ProjectListService {
     }
 
     project.favorite = !project.favorite;
-    fs.writeFileSync(filePath, JSON.stringify(projectList));
+    this.writeProjectList(filePath, projectList);
     return true;
   }
 
@@ -46,7 +53,7 @@ export default class ProjectListService {
     }
 
     projectList.splice(index, 1);
-    fs.writeFileSync(filePath, JSON.stringify(projectList));
+    this.writeProjectList(filePath, projectList);
     return true;
   }
 
@@ -61,7 +68,7 @@ export default class ProjectListService {
     } catch {
       // Do nothing if there's an error, it just means file path doesn't exist yet.
       // We will initialize the file
-      fs.writeFileSync(filePath, '[]');
+      this.writeProjectList(filePath, []);
     }
 
     const data = fs.readFileSync(filePath);
@@ -70,7 +77,7 @@ export default class ProjectListService {
     // If we have a match based on ID or path, don't add it again.
     if (!projectList.some(x => x.id === project.id || x.path === project.path)) {
       projectList.push(project);
-      fs.writeFileSync(filePath, JSON.stringify(projectList));
+      this.writeProjectList(filePath, projectList);
     }
   }
 
@@ -86,6 +93,27 @@ export default class ProjectListService {
     if (!project.path || project.path.trim() === '') {
       throw new Error('The project path is required, but is currently empty');
     }
+  }
+
+  /**
+   * Utility method to take a project list and write it to a file on disk.  This will
+   * perform any manipulation/cleaning of the project list data to ensure we are only
+   * saving the minimum information needed.
+   *
+   * @param {URI} filePath The absolute path to the project file
+   * @param {Array} projectList The array of projects to write to the project list file
+   */
+  writeProjectList(filePath, projectList) {
+    // This is a performance hit, but gives us assurance we've got copies of all elements
+    // in the array, and nested objects within those elements.
+    const projectListCopy = JSON.parse(JSON.stringify(projectList));
+    // Remove assets.  Everything else can stay.
+    projectListCopy.forEach(x => {
+      if (x.assets) {
+        delete x.assets;
+      }
+    });
+    fs.writeFileSync(filePath, JSON.stringify(projectListCopy));
   }
 
   loadProjectListFromFile(filePath = DefaultProjectListFile) {
