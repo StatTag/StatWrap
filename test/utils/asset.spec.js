@@ -467,5 +467,299 @@ describe('services', () => {
         expect(AssetUtil.getAssetNameFromUri({ uriii: 'test' })).toEqual('');
       });
     });
+
+    describe('relativeToAbsolutePath', () => {
+      it('should return null if given an empty object', () => {
+        expect(AssetUtil.relativeToAbsolutePath('/root/path', null)).toBe(null);
+        expect(AssetUtil.relativeToAbsolutePath('/root/path', undefined)).toBe(null);
+      });
+
+      it('should return null if no uri attribute is provided', () => {
+        expect(AssetUtil.relativeToAbsolutePath('/root/path', {})).toBe(null);
+      });
+
+      it('should return the root path if the uri is empty', () => {
+        expect(AssetUtil.relativeToAbsolutePath('/root/path', { uri: '' })).toBe('/root/path');
+        // Trailing spaces are preserved on macOS
+        expect(AssetUtil.relativeToAbsolutePath('/root/path', { uri: '  ' })).toBe('/root/path/  ');
+      });
+
+      // We don't need to replicate full tests for path.resolve (which this function is using), but we do
+      // want to establish a few tests to document our expected behavior.
+      it('should resolve the absolute path', () => {
+        expect(AssetUtil.relativeToAbsolutePath('/root/path', { uri: 'a' })).toBe('/root/path/a');
+        expect(AssetUtil.relativeToAbsolutePath('/root/path', { uri: './a' })).toBe('/root/path/a');
+        expect(AssetUtil.relativeToAbsolutePath('/root/path', { uri: 'a/b/c/d' })).toBe(
+          '/root/path/a/b/c/d'
+        );
+        // TODO: Need an assessment if this is a security risk and if we should restrict how we navigate
+        // beyond the project root
+        expect(AssetUtil.relativeToAbsolutePath('/root/path', { uri: '../a' })).toBe('/root/a');
+        expect(AssetUtil.relativeToAbsolutePath('/root/path', { uri: 'a/..' })).toBe('/root/path');
+      });
+    });
+
+    describe('recursiveRelativeToAbsolutePath', () => {
+      it('should return an empty asset object if that is what is passed in', () => {
+        expect(AssetUtil.recursiveRelativeToAbsolutePath('/root/path', null)).toBe(null);
+        expect(AssetUtil.recursiveRelativeToAbsolutePath('/root/path', undefined)).toBe(undefined);
+      });
+
+      it('should return the asset object if the project path is not provided', () => {
+        const assets = {
+          uri: '/tmp/root'
+        };
+        expect(AssetUtil.recursiveRelativeToAbsolutePath(null, assets)).toBe(assets);
+        expect(AssetUtil.recursiveRelativeToAbsolutePath(undefined, assets)).toBe(assets);
+      });
+
+      it('should make all relative paths into absolute paths', () => {
+        const assets = {
+          uri: '',
+          type: 'directory',
+          children: [
+            {
+              uri: 'a',
+              type: 'directory',
+              children: [
+                {
+                  uri: 'a/b',
+                  type: 'file'
+                }
+              ]
+            },
+            {
+              uri: 'b',
+              type: 'file'
+            }
+          ]
+        };
+        // This is the answer we expect
+        const absolutePathAssets = {
+          uri: '/root/path',
+          type: 'directory',
+          children: [
+            {
+              uri: '/root/path/a',
+              type: 'directory',
+              children: [
+                {
+                  uri: '/root/path/a/b',
+                  type: 'file'
+                }
+              ]
+            },
+            {
+              uri: '/root/path/b',
+              type: 'file'
+            }
+          ]
+        };
+        expect(AssetUtil.recursiveRelativeToAbsolutePath('/root/path', assets)).toStrictEqual(
+          absolutePathAssets
+        );
+      });
+
+      it('should not modify non-file and non-directory entries', () => {
+        const assets = {
+          uri: '',
+          type: 'directory',
+          children: [
+            {
+              uri: 'https://api',
+              type: 'api',
+              children: [
+                {
+                  uri: 'https://api/a/b',
+                  type: 'api'
+                }
+              ]
+            },
+            {
+              uri: 'README.md',
+              type: 'file'
+            },
+            {
+              uri: 'b',
+              type: 'database'
+            }
+          ]
+        };
+        // This is the answer we expect
+        const absolutePathAssets = {
+          uri: '/root/path',
+          type: 'directory',
+          children: [
+            {
+              uri: 'https://api',
+              type: 'api',
+              children: [
+                {
+                  uri: 'https://api/a/b',
+                  type: 'api'
+                }
+              ]
+            },
+            {
+              uri: '/root/path/README.md',
+              type: 'file'
+            },
+            {
+              uri: 'b',
+              type: 'database'
+            }
+          ]
+        };
+        expect(AssetUtil.recursiveRelativeToAbsolutePath('/root/path', assets)).toStrictEqual(
+          absolutePathAssets
+        );
+      });
+    });
+
+    describe('absoluteToRelativePath', () => {
+      it('should return null if given an empty object', () => {
+        expect(AssetUtil.absoluteToRelativePath('/root/path', null)).toBe(null);
+        expect(AssetUtil.absoluteToRelativePath('/root/path', undefined)).toBe(null);
+      });
+
+      it('should return null if no uri attribute is provided', () => {
+        expect(AssetUtil.absoluteToRelativePath('/root/path', {})).toBe(null);
+      });
+
+      it('should return null if the uri is not absolute', () => {
+        expect(AssetUtil.absoluteToRelativePath('/root/path', { uri: '' })).toBe(null);
+        // Trailing spaces are preserved on macOS
+        expect(AssetUtil.absoluteToRelativePath('/root/path', { uri: '  ' })).toBe(null);
+      });
+
+      // We don't need to replicate full tests for path.resolve (which this function is using), but we do
+      // want to establish a few tests to document our expected behavior.
+      it('should resolve the absolute path', () => {
+        expect(AssetUtil.absoluteToRelativePath('/root/path', { uri: '/root/path/a' })).toBe('a');
+        expect(AssetUtil.absoluteToRelativePath('/root/path', { uri: '/root/path/a/b/c/d' })).toBe(
+          'a/b/c/d'
+        );
+        // TODO: Need an assessment if this is a security risk and if we should restrict how we navigate
+        // beyond the project root
+        expect(AssetUtil.absoluteToRelativePath('/root/path', { uri: '/root/a' })).toBe('../a');
+      });
+    });
+
+    describe('recursiveAbsoluteToRelativePath', () => {
+      it('should return an empty asset object if that is what is passed in', () => {
+        expect(AssetUtil.recursiveAbsoluteToRelativePath('/root/path', null)).toBe(null);
+        expect(AssetUtil.recursiveAbsoluteToRelativePath('/root/path', undefined)).toBe(undefined);
+      });
+
+      it('should return the asset object if the project path is not provided', () => {
+        const assets = {
+          uri: '/tmp/root'
+        };
+        expect(AssetUtil.recursiveAbsoluteToRelativePath(null, assets)).toBe(assets);
+        expect(AssetUtil.recursiveAbsoluteToRelativePath(undefined, assets)).toBe(assets);
+      });
+
+      it('should make all absolute paths into relative paths', () => {
+        const relativePathAssets = {
+          uri: '',
+          type: 'directory',
+          children: [
+            {
+              uri: 'a',
+              type: 'directory',
+              children: [
+                {
+                  uri: 'a/b',
+                  type: 'file'
+                }
+              ]
+            },
+            {
+              uri: 'b',
+              type: 'file'
+            }
+          ]
+        };
+        // This is the answer we expect
+        const absolutePathAssets = {
+          uri: '/root/path',
+          type: 'directory',
+          children: [
+            {
+              uri: '/root/path/a',
+              type: 'directory',
+              children: [
+                {
+                  uri: '/root/path/a/b',
+                  type: 'file'
+                }
+              ]
+            },
+            {
+              uri: '/root/path/b',
+              type: 'file'
+            }
+          ]
+        };
+        expect(
+          AssetUtil.recursiveAbsoluteToRelativePath('/root/path', absolutePathAssets)
+        ).toStrictEqual(relativePathAssets);
+      });
+
+      it('should not modify non-file and non-directory entries', () => {
+        const relativePathAssets = {
+          uri: '',
+          type: 'directory',
+          children: [
+            {
+              uri: 'https://api',
+              type: 'api',
+              children: [
+                {
+                  uri: 'https://api/a/b',
+                  type: 'api'
+                }
+              ]
+            },
+            {
+              uri: 'README.md',
+              type: 'file'
+            },
+            {
+              uri: 'b',
+              type: 'database'
+            }
+          ]
+        };
+        // This is the answer we expect
+        const absolutePathAssets = {
+          uri: '/root/path',
+          type: 'directory',
+          children: [
+            {
+              uri: 'https://api',
+              type: 'api',
+              children: [
+                {
+                  uri: 'https://api/a/b',
+                  type: 'api'
+                }
+              ]
+            },
+            {
+              uri: '/root/path/README.md',
+              type: 'file'
+            },
+            {
+              uri: 'b',
+              type: 'database'
+            }
+          ]
+        };
+        expect(
+          AssetUtil.recursiveAbsoluteToRelativePath('/root/path', absolutePathAssets)
+        ).toStrictEqual(relativePathAssets);
+      });
+    });
   });
 });

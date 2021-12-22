@@ -25,7 +25,6 @@ const dependencyGraph = props => {
   const { assets } = props;
 
   const data = WorkflowUtil.getAllDependenciesAsGraph(assets);
-  console.log(data);
   let graph = null;
   if (data && data.nodes && data.nodes.length > 0) {
     graph = <Graph id="graph-id" data={data} config={graphConfig} />;

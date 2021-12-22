@@ -28,6 +28,7 @@ import StataHandler from './services/assets/handlers/stata';
 import Messages from './constants/messages';
 import Constants from './constants/constants';
 import AssetsConfig from './constants/assets-config';
+import AssetUtil from './utils/asset';
 
 export default class AppUpdater {
   constructor() {
@@ -132,6 +133,14 @@ app.on('activate', () => {
   if (mainWindow === null) createWindow();
 });
 
+/**
+ * Utility function to save a project's configuration details.
+ *
+ * This function assumes that the project's assets are absolute and need
+ * to be convered to relative.
+ * @param {object} project The project object that needs to be saved
+ * @returns
+ */
 const saveProject = project => {
   const response = {
     project,
@@ -147,7 +156,10 @@ const saveProject = project => {
       }
       projectConfig.description = project.description;
       projectConfig.categories = project.categories;
-      projectConfig.assets = project.assets;
+      projectConfig.assets = AssetUtil.recursiveAbsoluteToRelativePath(
+        project.path,
+        project.assets
+      );
       projectConfig.notes = project.notes;
       projectConfig.people = project.people;
       projectService.saveProjectFile(project.path, projectConfig);
@@ -170,6 +182,16 @@ const saveProject = project => {
   return response;
 };
 
+/**
+ * Load the user's project list.  This is specific to the user, and the path to the root
+ * of the project folder will be specific to the user's current setup (e.g., OS, drive
+ * mappings).
+ *
+ * Because this will return all metadata associated with the project, including information
+ * about assets, it will handle converting the relative paths for files and directories
+ * into absolute paths.  This will allow all other code to assume that they will be given
+ * absolute paths and not need to perform any path conversion.
+ */
 ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
   const response = {
     projects: null,
@@ -197,7 +219,10 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
         fullProject.loadError = true;
       } else {
         fullProject.name = metadata.name;
-        fullProject.assets = metadata.assets;
+        fullProject.assets = AssetUtil.recursiveRelativeToAbsolutePath(
+          project.path,
+          metadata.assets
+        );
         fullProject.description = metadata.description;
         fullProject.categories = metadata.categories;
         fullProject.notes = metadata.notes;
@@ -294,6 +319,10 @@ ipcMain.on(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, async (event, projectId) 
   event.sender.send(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, response);
 });
 
+/**
+ * Create a new project - instantiating the project metadata within the project root,
+ * and also registering the project within the user's project list.
+ */
 ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
   const response = {
     project: {},
@@ -391,8 +420,14 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
 //   return new Promise(resolve => setTimeout(resolve, milliseconds));
 // };
 
-// Given a project, scan the details of that project, which includes scanning all assets registered
-// with the project for information.
+/**
+ * Given a project, scan the details of that project, which includes scanning all assets registered
+ * with the project for information.
+ *
+ * Internally this will handle converting the relative paths that are stored for assets (if they are
+ * files or directories) into absolute paths.  This will allow all other code to assume that they
+ * will be given absolute paths and not need to perform any path conversion.
+ */
 ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
   const response = {
     project,
@@ -416,7 +451,7 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
       new SASHandler(),
       new StataHandler()
     ]);
-    response.assets = service.scan(project.path);
+    response.assets = service.scan(project.path); // Returns absolute paths
 
     // We have decided (for now) to keep notes separate from other asset metadata.  Notes will be
     // considered first-class attributes instead of being embedded in metadata.  Because of this
@@ -429,6 +464,11 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
     if (!projectConfig.assets) {
       console.log('No assets registered with the project - assuming this is a newly added project');
     } else {
+      // Convert relative to absolute paths, otherwise the note URIs won't match
+      projectConfig.assets = AssetUtil.recursiveRelativeToAbsolutePath(
+        project.path,
+        projectConfig.assets
+      );
       projectService.addNotesAndAttributesToAssets(response.assets, projectConfig.assets);
     }
 
@@ -461,6 +501,9 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
   event.sender.send(Messages.SCAN_PROJECT_RESPONSE, response);
 });
 
+/**
+ * Write a single project log entry to the log file.
+ */
 ipcMain.on(
   Messages.WRITE_PROJECT_LOG_REQUEST,
   async (event, projectPath, type, title, description, details, level, user) => {
@@ -492,6 +535,9 @@ ipcMain.on(
   }
 );
 
+/**
+ * Read from disk the project log file.  Return all of the log entries.
+ */
 ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
   const response = {
     logs: null,
@@ -536,17 +582,21 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
   });
 });
 
-// Given a project, update its information and save that information to the project configuration
-// file.
+/**
+ * Given a project, update its information and save that information to the project
+ * configuration file.
+ */
 ipcMain.on(Messages.UPDATE_PROJECT_REQUEST, async (event, project) => {
   const response = saveProject(project);
 
   // console.log(response);
-  // await sleep(5000);
+  // await sleep(5000);  // Use to test delays.  Leave disabled in production.
   event.sender.send(Messages.UPDATE_PROJECT_RESPONSE, response);
 });
 
-// Perform all system information gathering
+/**
+ * Perform all system information gathering
+ */
 ipcMain.on(Messages.LOAD_USER_INFO_REQUEST, async event => {
   const response = {
     user: Constants.UndefinedDefaults.USER,
@@ -620,6 +670,9 @@ ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, mode, project, p
   event.sender.send(Messages.CREATE_UPDATE_PERSON_RESPONSE, response);
 });
 
+/**
+ * Received when the current user's profile information needs to be saved
+ */
 ipcMain.on(Messages.SAVE_USER_PROFILE_REQUEST, async (event, user) => {
   const response = {
     user,

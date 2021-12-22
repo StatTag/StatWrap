@@ -1,5 +1,7 @@
+/* eslint-disable no-underscore-dangle */
 import path from 'path';
 import last from 'lodash/last';
+import constants from '../constants/constants';
 
 // We do have a dependency cycle here, but it is just to grab a constant value.
 // No circular functions exist (and we need to make sure it stays that way).
@@ -126,6 +128,105 @@ export default class AssetUtil {
       notes.push(AssetUtil.getAllNotes(asset.children[index]));
     }
     return notes.flat();
+  }
+
+  /**
+   * Recursively convert all nested asset URIs from relative path to absolute path
+   * @param {string} projectPath The URI to the root path of the project
+   * @param {object} assets The root asset that we want to convert paths
+   *                        for (for all descendants)
+   */
+  static recursiveRelativeToAbsolutePath(projectPath, assets) {
+    return AssetUtil.recursivePathConversion(projectPath, assets, AssetUtil.relativeToAbsolutePath);
+  }
+
+  /**
+   * For an asset, convert its URI from a relative path to an absolute
+   * path, if it is a file or directory type.
+   *
+   * This will return the absolute path.  It will not modify the asset.
+   *
+   * @param {string} projectPath The URI to the root path of the project
+   * @param {object} asset The asset that we want to convert the path for
+   */
+  static relativeToAbsolutePath(projectPath, asset) {
+    if (!asset || asset.uri == null || asset.uri === undefined) {
+      return null;
+    }
+
+    return path.resolve(projectPath, asset.uri);
+  }
+
+  /**
+   * Recursively call a path conversion function for assets.
+   * @param {string} projectPath The URI to the root path of the project
+   * @param {object} assets The root asset that we want to convert paths
+   *                        for (for all descendants)
+   * @param {function} workerFn The conversion function to call.
+   */
+  static recursivePathConversion(projectPath, assets, workerFn) {
+    if (!assets || projectPath == null || projectPath === undefined) {
+      return assets;
+    }
+
+    // Ensure nested objects are deeply copied
+    const assetsCopy = JSON.parse(JSON.stringify(assets));
+    return AssetUtil._recursivePathConversion(projectPath, assetsCopy, workerFn);
+  }
+
+  /**
+   * Internal worker method to handle the recursive calls.
+   * @param {string} projectPath The URI to the root path of the project
+   * @param {object} asset The current asset that we want to conver paths for (including all children)
+   * @param {function} workerFn The conversion function to call.
+   * @returns The original version of assets with uri fields updated
+   */
+  static _recursivePathConversion(projectPath, asset, workerFn) {
+    // We only do this for files and directories
+    if (asset.type === constants.AssetType.FILE || asset.type === constants.AssetType.DIRECTORY) {
+      asset.uri = workerFn(projectPath, asset);
+    }
+
+    if (asset.children) {
+      for (let index = 0; index < asset.children.length; index++) {
+        asset.children[index] = AssetUtil._recursivePathConversion(
+          projectPath,
+          asset.children[index],
+          workerFn
+        );
+      }
+    }
+
+    return asset;
+  }
+
+  /**
+   * Recursively convert all nested asset URIs from absolute path to relative path
+   * @param {string} projectPath The URI to the root path of the project
+   * @param {object} assets The root asset that we want to convert paths
+   *                        for (for all descendants)
+   */
+  static recursiveAbsoluteToRelativePath(projectPath, assets) {
+    return AssetUtil.recursivePathConversion(projectPath, assets, AssetUtil.absoluteToRelativePath);
+  }
+
+  /**
+   * For an asset, convert its URI from a relative path to an absolute
+   * path, if it is a file or directory type.
+   *
+   * This will return the relative path.  It will not modify the asset.
+   * If there is no URI or the URI is not an absolute path, it will return
+   * null.
+   *
+   * @param {string} projectPath The URI to the root path of the project
+   * @param {object} asset The asset that we want to convert the path for
+   */
+  static absoluteToRelativePath(projectPath, asset) {
+    if (!asset || asset.uri == null || asset.uri === undefined || !path.isAbsolute(asset.uri)) {
+      return null;
+    }
+
+    return path.relative(projectPath, asset.uri);
   }
 
   /**

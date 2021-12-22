@@ -13,31 +13,35 @@ The structure of an asset is as follows:
 | `uri`         | String | The location of the asset. This must be unique within the project.                                                                                                             |
 | `name`        | String | Optional display name. If no name is provided, this will default to the `uri`                                                                                                  |
 | `type`        | String | The type of the asset. This is a more basic list that captures how the asset is interacted with, not necessarily what it contains. Examples include directory, file, URL, etc. |
-| `contentType` | String | Describe the type of content within the asset. This is more about what the asset does, not where it's stored. ]                                                                |
+| `contentType` | String | Describe the type of content within the asset. This is more about what the asset does, not where it's stored.                                                                  |
 | `attributes`  | Array  | A collection of objects containing additional attributes about the asset. The contents and composition of attributes is driven by the asset type                               |
+
+This structure applies to the asset when it's in memory, and when it is saved in configuration/metadata files. An important consideration is that for assets to be resolvable across multiple users, we cannot store the `uri` as the absolute path, and when it is in memory it is inefficient to have it only be relative (requiring us to make it absolute). To work around this, we will adopt the following convention:
+
+**READING** - whenever a class reads asset information, and it contains file/directory assets, the class is responsible for translating the relative path to an absolute paths.
+
+**WRITING** - whenever a class is writing asset information, and it contains file/directory assets, the class is responsible for translating the absolute path to a relative path.
+
+This will centralize the responsibility of the asset URI translation, and allows all other classes to assume that a URI is truly a fully-qualified path. From a code standpoint, the actual reading/writing should only be done within the `main.dev.js` implementation. Supporting classes used within here should clearly document if they are responsible for modifying paths. If not, the class assumes it will be given absolute paths (if it uses paths for any of its work).
 
 ## Asset Attributes
 
-The master list of attributes is loaded from [app/constants/assets-config.js]. This returns the entire configuration object for assets, and the `attributes` element of this object has the attribute configuration.
+The master list of attributes is loaded from [app/constants/assets-config.js](app/constants/assets-config.js). This returns the entire configuration object for assets, and the `attributes` element of this object has the attribute configuration.
 
 Each attribute entry is configured as follows:
 
-| Item      | Type   | Description                                                                                                      |
-| --------- | ------ | ---------------------------------------------------------------------------------------------------------------- |
-| `id`      | String | Unique human-readable identifier for the attribute. This should be unique across all attributes within StatWrap. |
-| `display` | String | The display label to use when rendering the attribute                                                            |
-| `details` | String | Extended descriptive information about how to interpret the attribute                                            |
-| `type`    | String | The type of attribute. This can include:                                                                         |
-
-- bool - a boolean/checkbox
-- text - a short string
-  |
-  | `appliesTo` | Array | The asset types that use this attribute |
+| Item        | Type   | Description                                                                                                      |
+| ----------- | ------ | ---------------------------------------------------------------------------------------------------------------- |
+| `id`        | String | Unique human-readable identifier for the attribute. This should be unique across all attributes within StatWrap. |
+| `display`   | String | The display label to use when rendering the attribute                                                            |
+| `details`   | String | Extended descriptive information about how to interpret the attribute                                            |
+| `type`      | String | The type of attribute. This can include:<br/>- bool - a boolean/checkbox<br/>- text - a short string             |
+| `appliesTo` | Array  | The asset types that use this attribute                                                                          |
 
 ## Discovering Assets
 
 Asset discovery is going to be more than just files and folders, but that is where we're going to start initially.  
-For our initial work, we will start at the root of the project's file folder and recursively scan every file and folder. We want to make sure we're not being overly intrusive on anything the user has in their folders.
+For our initial work, we will start at the root of the project's file folder and recursively scan every file and folder underneath it. We want to make sure we're not being overly intrusive on anything the user has in their folders, so scanning needs to be a 'light touch'.
 
 ### AssetService
 

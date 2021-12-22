@@ -100,8 +100,8 @@ export default class ProjectListService {
    * perform any manipulation/cleaning of the project list data to ensure we are only
    * saving the minimum information needed.
    *
-   * @param {URI} filePath The absolute path to the project file
-   * @param {Array} projectList The array of projects to write to the project list file
+   * @param {string} filePath The absolute path to the project file
+   * @param {array} projectList The array of projects to write to the project list file
    */
   writeProjectList(filePath, projectList) {
     // This is a performance hit, but gives us assurance we've got copies of all elements

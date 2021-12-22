@@ -55,6 +55,14 @@ export default class AssetService {
     return Constants.AssetContentType.OTHER;
   }
 
+  /**
+   * Scan a URI for all available assets.  This is done recursively for all available assets.
+   *
+   * This will return URIs as absolute paths (not relative).
+   *
+   * @param {string} uri The base URI to recursively scan
+   * @returns An asset object which contains nested assets
+   */
   scan(uri) {
     // This will throw an error if it can't access the uri
     fs.accessSync(uri);
