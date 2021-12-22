@@ -226,7 +226,10 @@ export default class AssetUtil {
       return null;
     }
 
-    return path.relative(projectPath, asset.uri);
+    // Normalize relative paths to POSIX style path separators so that the relative
+    // path URI matches across OSes.
+    const relativePath = path.relative(projectPath, asset.uri);
+    return relativePath.split(path.sep).join(path.posix.sep);
   }
 
   /**

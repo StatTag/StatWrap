@@ -30,7 +30,7 @@ The list of projects will be stored in the user's application data folder, in a 
 
 StatWrap approaches projects as having one higher-level container that serves as the base for the project. For most projects this will be a folder, but we will refer to it here as a "container" just to provide a more general name. Not everything must live in that container, it is just the unit of organization that StatTag uses. The project file then provides the metadata to describe the project, and can be shipped along with the project even if the recipient doesn't use StatWrap.
 
-Note that for file-based assets, all paths will be stored **relative** to the project root. This will allow StatWrap to operate the same regardless of the exact URI for the root of the project. Internally, StatWrap will construct the fully qualified path when needed.
+Note that for file-based assets, all paths will be stored **relative** to the project root. This will allow StatWrap to operate the same regardless of the exact URI for the root of the project. Internally, StatWrap will construct the fully qualified path when needed. When it converts paths to relative, it will normalize them to use POSIX separators (e.g., my\win\path would be my/win/path). Without this normalization, URI matching wouldn't work across OSes.
 
 ### Configuration Location
 

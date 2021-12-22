@@ -478,15 +478,24 @@ describe('services', () => {
         expect(AssetUtil.relativeToAbsolutePath('/root/path', {})).toBe(null);
       });
 
-      it('should return the root path if the uri is empty', () => {
+      it.onMac('should return the root path if the uri is empty', () => {
         expect(AssetUtil.relativeToAbsolutePath('/root/path', { uri: '' })).toBe('/root/path');
         // Trailing spaces are preserved on macOS
         expect(AssetUtil.relativeToAbsolutePath('/root/path', { uri: '  ' })).toBe('/root/path/  ');
       });
+      it.onWindows('should return the root path if the uri is empty', () => {
+        expect(AssetUtil.relativeToAbsolutePath('C:\\root\\path', { uri: '' })).toBe(
+          'C:\\root\\path'
+        );
+        // Trailing spaces are preserved on macOS
+        expect(AssetUtil.relativeToAbsolutePath('C:\\root\\path', { uri: '  ' })).toBe(
+          'C:\\root\\path\\  '
+        );
+      });
 
       // We don't need to replicate full tests for path.resolve (which this function is using), but we do
       // want to establish a few tests to document our expected behavior.
-      it('should resolve the absolute path', () => {
+      it.onMac('should resolve the absolute path', () => {
         expect(AssetUtil.relativeToAbsolutePath('/root/path', { uri: 'a' })).toBe('/root/path/a');
         expect(AssetUtil.relativeToAbsolutePath('/root/path', { uri: './a' })).toBe('/root/path/a');
         expect(AssetUtil.relativeToAbsolutePath('/root/path', { uri: 'a/b/c/d' })).toBe(
@@ -496,6 +505,25 @@ describe('services', () => {
         // beyond the project root
         expect(AssetUtil.relativeToAbsolutePath('/root/path', { uri: '../a' })).toBe('/root/a');
         expect(AssetUtil.relativeToAbsolutePath('/root/path', { uri: 'a/..' })).toBe('/root/path');
+      });
+      it.onWindows('should resolve the absolute path', () => {
+        expect(AssetUtil.relativeToAbsolutePath('C:\\root\\path', { uri: 'a' })).toBe(
+          'C:\\root\\path\\a'
+        );
+        expect(AssetUtil.relativeToAbsolutePath('C:\\root\\path', { uri: './a' })).toBe(
+          'C:\\root\\path\\a'
+        );
+        expect(AssetUtil.relativeToAbsolutePath('C:\\root\\path', { uri: 'a/b/c/d' })).toBe(
+          'C:\\root\\path\\a\\b\\c\\d'
+        );
+        // TODO: Need an assessment if this is a security risk and if we should restrict how we navigate
+        // beyond the project root
+        expect(AssetUtil.relativeToAbsolutePath('C:\\root\\path', { uri: '..\\a' })).toBe(
+          'C:\\root\\a'
+        );
+        expect(AssetUtil.relativeToAbsolutePath('C:\\root\\path', { uri: 'a\\..' })).toBe(
+          'C:\\root\\path'
+        );
       });
     });
 
@@ -513,7 +541,7 @@ describe('services', () => {
         expect(AssetUtil.recursiveRelativeToAbsolutePath(undefined, assets)).toBe(assets);
       });
 
-      it('should make all relative paths into absolute paths', () => {
+      it.onMac('should make all relative paths into absolute paths', () => {
         const assets = {
           uri: '',
           type: 'directory',
@@ -560,7 +588,54 @@ describe('services', () => {
         );
       });
 
-      it('should not modify non-file and non-directory entries', () => {
+      it.onWindows('should make all relative paths into absolute paths', () => {
+        const assets = {
+          uri: '',
+          type: 'directory',
+          children: [
+            {
+              uri: 'a',
+              type: 'directory',
+              children: [
+                {
+                  uri: 'a/b',
+                  type: 'file'
+                }
+              ]
+            },
+            {
+              uri: 'b',
+              type: 'file'
+            }
+          ]
+        };
+        // This is the answer we expect
+        const absolutePathAssets = {
+          uri: 'C:\\root\\path',
+          type: 'directory',
+          children: [
+            {
+              uri: 'C:\\root\\path\\a',
+              type: 'directory',
+              children: [
+                {
+                  uri: 'C:\\root\\path\\a\\b',
+                  type: 'file'
+                }
+              ]
+            },
+            {
+              uri: 'C:\\root\\path\\b',
+              type: 'file'
+            }
+          ]
+        };
+        expect(AssetUtil.recursiveRelativeToAbsolutePath('C:\\root\\path', assets)).toStrictEqual(
+          absolutePathAssets
+        );
+      });
+
+      it.onMac('should not modify non-file and non-directory entries', () => {
         const assets = {
           uri: '',
           type: 'directory',
@@ -614,6 +689,61 @@ describe('services', () => {
           absolutePathAssets
         );
       });
+
+      it.onWindows('should not modify non-file and non-directory entries', () => {
+        const assets = {
+          uri: '',
+          type: 'directory',
+          children: [
+            {
+              uri: 'https://api',
+              type: 'api',
+              children: [
+                {
+                  uri: 'https://api/a/b',
+                  type: 'api'
+                }
+              ]
+            },
+            {
+              uri: 'README.md',
+              type: 'file'
+            },
+            {
+              uri: 'b',
+              type: 'database'
+            }
+          ]
+        };
+        // This is the answer we expect
+        const absolutePathAssets = {
+          uri: 'C:\\root\\path',
+          type: 'directory',
+          children: [
+            {
+              uri: 'https://api',
+              type: 'api',
+              children: [
+                {
+                  uri: 'https://api/a/b',
+                  type: 'api'
+                }
+              ]
+            },
+            {
+              uri: 'C:\\root\\path\\README.md',
+              type: 'file'
+            },
+            {
+              uri: 'b',
+              type: 'database'
+            }
+          ]
+        };
+        expect(AssetUtil.recursiveRelativeToAbsolutePath('C:\\root\\path', assets)).toStrictEqual(
+          absolutePathAssets
+        );
+      });
     });
 
     describe('absoluteToRelativePath', () => {
@@ -624,6 +754,7 @@ describe('services', () => {
 
       it('should return null if no uri attribute is provided', () => {
         expect(AssetUtil.absoluteToRelativePath('/root/path', {})).toBe(null);
+        expect(AssetUtil.absoluteToRelativePath('C:\\root\\path', {})).toBe(null);
       });
 
       it('should return null if the uri is not absolute', () => {
@@ -634,7 +765,7 @@ describe('services', () => {
 
       // We don't need to replicate full tests for path.resolve (which this function is using), but we do
       // want to establish a few tests to document our expected behavior.
-      it('should resolve the absolute path', () => {
+      it.onMac('should resolve the absolute path', () => {
         expect(AssetUtil.absoluteToRelativePath('/root/path', { uri: '/root/path/a' })).toBe('a');
         expect(AssetUtil.absoluteToRelativePath('/root/path', { uri: '/root/path/a/b/c/d' })).toBe(
           'a/b/c/d'
@@ -642,6 +773,19 @@ describe('services', () => {
         // TODO: Need an assessment if this is a security risk and if we should restrict how we navigate
         // beyond the project root
         expect(AssetUtil.absoluteToRelativePath('/root/path', { uri: '/root/a' })).toBe('../a');
+      });
+      it.onWindows('should resolve the absolute path', () => {
+        expect(
+          AssetUtil.absoluteToRelativePath('C:\\root\\path', { uri: 'C:\\root\\path\\a' })
+        ).toBe('a');
+        expect(
+          AssetUtil.absoluteToRelativePath('C:\\root\\path', { uri: 'C:\\root\\path\\a\\b\\c\\d' })
+        ).toBe('a/b/c/d');
+        // TODO: Need an assessment if this is a security risk and if we should restrict how we navigate
+        // beyond the project root
+        expect(AssetUtil.absoluteToRelativePath('C:\\root\\path', { uri: 'C:\\root\\a' })).toBe(
+          '../a'
+        );
       });
     });
 
@@ -659,7 +803,7 @@ describe('services', () => {
         expect(AssetUtil.recursiveAbsoluteToRelativePath(undefined, assets)).toBe(assets);
       });
 
-      it('should make all absolute paths into relative paths', () => {
+      it.onMac('should make all absolute paths into relative paths', () => {
         const relativePathAssets = {
           uri: '',
           type: 'directory',
@@ -705,8 +849,54 @@ describe('services', () => {
           AssetUtil.recursiveAbsoluteToRelativePath('/root/path', absolutePathAssets)
         ).toStrictEqual(relativePathAssets);
       });
+      it.onWindows('should make all absolute paths into relative paths', () => {
+        const relativePathAssets = {
+          uri: '',
+          type: 'directory',
+          children: [
+            {
+              uri: 'a',
+              type: 'directory',
+              children: [
+                {
+                  uri: 'a/b',
+                  type: 'file'
+                }
+              ]
+            },
+            {
+              uri: 'b',
+              type: 'file'
+            }
+          ]
+        };
+        // This is the answer we expect
+        const absolutePathAssets = {
+          uri: 'C:\\root\\path',
+          type: 'directory',
+          children: [
+            {
+              uri: 'C:\\root\\path\\a',
+              type: 'directory',
+              children: [
+                {
+                  uri: 'C:\\root\\path\\a\\b',
+                  type: 'file'
+                }
+              ]
+            },
+            {
+              uri: 'C:\\root\\path\\b',
+              type: 'file'
+            }
+          ]
+        };
+        expect(
+          AssetUtil.recursiveAbsoluteToRelativePath('C:\\root\\path', absolutePathAssets)
+        ).toStrictEqual(relativePathAssets);
+      });
 
-      it('should not modify non-file and non-directory entries', () => {
+      it.onMac('should not modify non-file and non-directory entries', () => {
         const relativePathAssets = {
           uri: '',
           type: 'directory',
@@ -758,6 +948,60 @@ describe('services', () => {
         };
         expect(
           AssetUtil.recursiveAbsoluteToRelativePath('/root/path', absolutePathAssets)
+        ).toStrictEqual(relativePathAssets);
+      });
+      it.onWindows('should not modify non-file and non-directory entries', () => {
+        const relativePathAssets = {
+          uri: '',
+          type: 'directory',
+          children: [
+            {
+              uri: 'https://api',
+              type: 'api',
+              children: [
+                {
+                  uri: 'https://api/a/b',
+                  type: 'api'
+                }
+              ]
+            },
+            {
+              uri: 'README.md',
+              type: 'file'
+            },
+            {
+              uri: 'b',
+              type: 'database'
+            }
+          ]
+        };
+        // This is the answer we expect
+        const absolutePathAssets = {
+          uri: 'C:\\root\\path',
+          type: 'directory',
+          children: [
+            {
+              uri: 'https://api',
+              type: 'api',
+              children: [
+                {
+                  uri: 'https://api/a/b',
+                  type: 'api'
+                }
+              ]
+            },
+            {
+              uri: 'C:\\root\\path\\README.md',
+              type: 'file'
+            },
+            {
+              uri: 'b',
+              type: 'database'
+            }
+          ]
+        };
+        expect(
+          AssetUtil.recursiveAbsoluteToRelativePath('C:\\root\\path', absolutePathAssets)
         ).toStrictEqual(relativePathAssets);
       });
     });
