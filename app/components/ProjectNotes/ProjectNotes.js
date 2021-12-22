@@ -109,20 +109,32 @@ const projectNotes = props => {
 
   useEffect(() => {
     setPending(false);
-    if (props.project && props.project.notes) {
-      const mappedProjectNotes = props.project.notes.map(n => {
-        return { type: 'Project', updated: n.updated, author: n.author, content: n.content };
-      });
-      const mappedAssetNotes = AssetUtil.getAllNotes(props.project.assets).map(n => {
-        return {
-          type: 'Asset',
-          uri: n.uri,
-          updated: n.updated,
-          author: n.author,
-          content: n.content
-        };
-      });
-      setFeed([...mappedProjectNotes, ...mappedAssetNotes]);
+
+    if (props.project) {
+      let mappedProjectNotes = [];
+      if (props.project.notes) {
+        mappedProjectNotes = props.project.notes.map(n => {
+          return { type: 'Project', updated: n.updated, author: n.author, content: n.content };
+        });
+      }
+
+      let mappedAssetNotes = [];
+      if (props.project.assets) {
+        mappedAssetNotes = AssetUtil.getAllNotes(props.project.assets).map(n => {
+          return {
+            type: 'Asset',
+            uri: n.uri,
+            updated: n.updated,
+            author: n.author,
+            content: n.content
+          };
+        });
+      }
+      if (mappedAssetNotes.length > 0 || mappedProjectNotes.length > 0) {
+        setFeed([...mappedProjectNotes, ...mappedAssetNotes]);
+      } else {
+        setFeed(null);
+      }
       return;
     }
     setFeed(null);
