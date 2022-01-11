@@ -2,7 +2,7 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable react/prop-types */
 import * as React from 'react';
-import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+import { createTheme, ThemeProvider } from '@material-ui/core/styles';
 import { AppBar, Toolbar, Typography, IconButton } from '@material-ui/core';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SearchIcon from '@material-ui/icons/Search';
@@ -110,7 +110,7 @@ export default class App extends React.Component {
 
   render() {
     const { children } = this.props;
-    const theme = createMuiTheme({
+    const theme = createTheme({
       palette: {
         type: 'light'
       },
