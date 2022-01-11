@@ -185,7 +185,7 @@
     "babel-loader": "^8.0.6",
     "babel-plugin-dev-expression": "^0.2.2",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
-    "chalk": "^3.0.0",
+    "chalk": "^2.0.0",
     "concurrently": "^5.0.1",
     "cross-env": "^6.0.3",
     "cross-spawn": "^7.0.1",
