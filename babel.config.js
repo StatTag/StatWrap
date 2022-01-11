@@ -47,6 +47,11 @@ module.exports = api => {
         require('@babel/plugin-proposal-nullish-coalescing-operator'),
         { loose: false }
       ],
+
+      // Disable warnings
+      ["@babel/plugin-proposal-private-methods", { "loose": true }],
+      ["@babel/plugin-proposal-private-property-in-object", { "loose": true }],
+
       require('@babel/plugin-proposal-do-expressions'),
 
       // Stage 2
