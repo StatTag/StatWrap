@@ -1,7 +1,7 @@
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@material-ui/core';
+import { Button } from '@mui/material';
 import AssetNode from './AssetNode/AssetNode';
 import AssetUtil from '../../utils/asset';
 import Constants from '../../constants/constants';

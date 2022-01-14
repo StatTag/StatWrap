@@ -1,23 +1,14 @@
 import React from 'react';
-import {
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  Avatar
-} from '@material-ui/core';
-import NewReleasesIcon from '@material-ui/icons/NewReleases';
-import FolderIcon from '@material-ui/icons/Folder';
-import FileCopyIcon from '@material-ui/icons/FileCopy';
+import { List, ListItem, ListItemAvatar, ListItemText, Avatar } from '@mui/material';
+import NewReleasesIcon from '@mui/icons-material/NewReleases';
+import FolderIcon from '@mui/icons-material/Folder';
+import FileCopyIcon from '@mui/icons-material/FileCopy';
 import Constants from '../../../constants/constants';
 
 export default function CreateProject(props) {
   return (
     <List>
-      <ListItem
-        button
-        onClick={() => props.onSelect(Constants.ProjectType.NEW_PROJECT_TYPE)}
-      >
+      <ListItem button onClick={() => props.onSelect(Constants.ProjectType.NEW_PROJECT_TYPE)}>
         <ListItemAvatar>
           <Avatar>
             <NewReleasesIcon />
@@ -28,10 +19,7 @@ export default function CreateProject(props) {
           secondary="Start a new project in a brand new directory"
         />
       </ListItem>
-      <ListItem
-        button
-        onClick={() => props.onSelect(Constants.ProjectType.EXISTING_PROJECT_TYPE)}
-      >
+      <ListItem button onClick={() => props.onSelect(Constants.ProjectType.EXISTING_PROJECT_TYPE)}>
         <ListItemAvatar>
           <Avatar>
             <FolderIcon />
@@ -42,10 +30,7 @@ export default function CreateProject(props) {
           secondary="Associate a project with an existing directory"
         />
       </ListItem>
-      <ListItem
-        button
-        onClick={() => props.onSelect(Constants.ProjectType.CLONE_PROJECT_TYPE)}
-      >
+      <ListItem button onClick={() => props.onSelect(Constants.ProjectType.CLONE_PROJECT_TYPE)}>
         <ListItemAvatar>
           <Avatar>
             <FileCopyIcon />

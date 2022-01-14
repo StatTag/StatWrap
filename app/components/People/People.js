@@ -2,8 +2,7 @@
 import React, { useState, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { FaTh, FaThList } from 'react-icons/fa';
-import { Button } from '@material-ui/core';
-import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab';
+import { Button, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import CreateUpdatePersonDialog from '../../containers/CreateUpdatePersonDialog/CreateUpdatePersonDialog';
 import PeopleCardList from './PeopleCardList/PeopleCardList';
 import PeopleTable from './PeopleTable/PeopleTable';

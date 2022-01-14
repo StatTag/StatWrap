@@ -1,7 +1,7 @@
 /* eslint-disable react/forbid-prop-types */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { IconButton } from '@material-ui/core';
+import { IconButton } from '@mui/material';
 import { FaTrash, FaEdit } from 'react-icons/fa';
 import styled from 'styled-components';
 import DataTable from 'react-data-table-component';

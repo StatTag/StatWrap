@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { Button } from '@material-ui/core';
-import { remote } from 'electron';
+import { Button } from '@mui/material';
+import { dialog } from '@electron/remote';
 import PropTypes from 'prop-types';
 import Error from '../Error/Error';
 import ConfigFileInfo from '../ConfigFileInfo/ConfigFileInfo';
@@ -16,7 +16,7 @@ class ExistingDirectory extends Component {
   }
 
   handleBrowseDirectory = () => {
-    remote.dialog
+    dialog
       .showOpenDialog({
         title: 'Select the root path of your project',
         properties: ['openDirectory']

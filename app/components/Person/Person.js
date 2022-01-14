@@ -1,6 +1,6 @@
 /* eslint-disable react/forbid-prop-types */
 import React from 'react';
-import { IconButton } from '@material-ui/core';
+import { IconButton } from '@mui/material';
 import PropTypes from 'prop-types';
 import { FaUser, FaTrash, FaEdit } from 'react-icons/fa';
 import TagViewer from '../TagViewer/TagViewer';

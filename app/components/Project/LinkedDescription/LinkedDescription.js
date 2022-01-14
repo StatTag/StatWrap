@@ -1,8 +1,8 @@
 /* eslint-disable react/no-children-prop */
 /* eslint-disable react/forbid-prop-types */
 import React, { useState } from 'react';
-import { remote } from 'electron';
-import { Button } from '@material-ui/core';
+import { dialog } from '@electron/remote';
+import { Button } from '@mui/material';
 import PropTypes from 'prop-types';
 import Error from '../../Error/Error';
 import styles from './LinkedDescription.css';
@@ -16,7 +16,7 @@ const linkedDescription = props => {
   }, [props.uri]);
 
   const handleBrowseFile = () => {
-    remote.dialog
+    dialog
       .showOpenDialog({
         title: 'Select the file that contains the project description',
         properties: ['openFile'],

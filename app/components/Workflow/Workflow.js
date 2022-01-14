@@ -1,4 +1,4 @@
-import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab';
+import { ToggleButtonGroup, ToggleButton } from '@mui/material';
 import React from 'react';
 import DependencyGraph from './DependencyGraph/DependencyGraph';
 import DependencyTree from './DependencyTree/DependencyTree';

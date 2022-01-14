@@ -1,7 +1,7 @@
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Grid } from '@material-ui/core';
+import { Grid } from '@mui/material';
 import ProjectTemplateList from '../ProjectTemplateList/ProjectTemplateList';
 import ProjectTemplatePreview from '../ProjectTemplatePreview/ProjectTemplatePreview';
 import styles from './SelectProjectTemplate.css';

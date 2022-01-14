@@ -1,10 +1,10 @@
 import React from 'react';
-import { withStyles } from '@material-ui/core/styles';
-import Accordion from '@material-ui/core/Accordion';
-import MuiAccordionSummary from '@material-ui/core/AccordionSummary';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import Typography from '@material-ui/core/Typography';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { withStyles } from '@mui/styles';
+import Accordion from '@mui/material/Accordion';
+import MuiAccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import Typography from '@mui/material/Typography';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AssetAttributes from '../AssetAttributes/AssetAttributes';
 import NoteEditor from '../NoteEditor/NoteEditor';
 import styles from './AssetDetails.css';

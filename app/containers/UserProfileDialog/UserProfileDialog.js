@@ -4,7 +4,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Draggable from 'react-draggable';
-import { Dialog, DialogActions, DialogTitle, Button, Paper } from '@material-ui/core';
+import { Dialog, DialogActions, DialogTitle, Button, Paper } from '@mui/material';
 import { ipcRenderer } from 'electron';
 import Messages from '../../constants/messages';
 import Constants from '../../constants/constants';

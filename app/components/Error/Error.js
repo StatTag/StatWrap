@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import ErrorIcon from '@material-ui/icons/Error';
+import ErrorIcon from '@mui/icons-material/Error';
 import styles from './Error.css';
 
 const error = props => {

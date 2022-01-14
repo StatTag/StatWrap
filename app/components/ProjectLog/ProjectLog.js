@@ -1,7 +1,7 @@
 /* eslint-disable react/forbid-prop-types */
 import React, { useEffect, useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@material-ui/core';
+import { Button } from '@mui/material';
 import styled from 'styled-components';
 import DataTable from 'react-data-table-component';
 import Error from '../Error/Error';

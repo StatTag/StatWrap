@@ -14,6 +14,7 @@ import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import log from 'electron-log';
 import winston from 'winston';
+import { initialize, enable as enableRemote } from '@electron/remote/main';
 import MenuBuilder from './menu';
 import ProjectService from './services/project';
 import ProjectListService, { DefaultProjectListFile } from './services/projectList';
@@ -29,6 +30,9 @@ import Messages from './constants/messages';
 import Constants from './constants/constants';
 import AssetsConfig from './constants/assets-config';
 import AssetUtil from './utils/asset';
+
+// Initialize @electron/remote
+initialize();
 
 export default class AppUpdater {
   constructor() {
@@ -85,6 +89,9 @@ const createWindow = async () => {
       contextIsolation: false
     }
   });
+
+  // Enable electron remote
+  enableRemote(mainWindow.webContents);
 
   mainWindow.loadURL(`file://${__dirname}/app.html`);
 

@@ -1,7 +1,7 @@
 /* eslint-disable react/forbid-prop-types */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { List, ListItem, ListItemText } from '@material-ui/core';
+import { List, ListItem, ListItemText } from '@mui/material';
 
 function ProjectTemplateList(props) {
   let projectTypeList = null;

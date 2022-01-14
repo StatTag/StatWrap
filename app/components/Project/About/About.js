@@ -2,7 +2,7 @@
 /* eslint-disable react/no-children-prop */
 /* eslint-disable react/forbid-prop-types */
 import React, { useState } from 'react';
-import { Button, Box } from '@material-ui/core';
+import { Button, Box } from '@mui/material';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 import PropTypes from 'prop-types';

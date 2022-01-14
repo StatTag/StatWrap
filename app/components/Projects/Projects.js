@@ -3,9 +3,9 @@
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { IconButton, CircularProgress } from '@material-ui/core';
-import AddIcon from '@material-ui/icons/Add';
-import RefreshIcon from '@material-ui/icons/Refresh';
+import { IconButton, CircularProgress } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import ProjectEntry from './ProjectEntry/ProjectEntry';
 import Error from '../Error/Error';
 import styles from './Projects.css';

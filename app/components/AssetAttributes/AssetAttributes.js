@@ -1,5 +1,5 @@
 import React from 'react';
-import { Checkbox, FormControlLabel } from '@material-ui/core';
+import { Checkbox, FormControlLabel } from '@mui/material';
 import styles from './AssetAttributes.css';
 
 const assetAttributes = props => {

@@ -2,11 +2,11 @@
 /* eslint-disable no-lonely-if */
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
-import { Tab, Tabs } from '@material-ui/core';
-import { TabPanel, TabContext } from '@material-ui/lab';
-import { withStyles } from '@material-ui/core/styles/';
-import IconButton from '@material-ui/core/IconButton';
-import { Star, StarBorder } from '@material-ui/icons';
+import { Tab, Tabs } from '@mui/material';
+import { TabPanel, TabContext } from '@mui/lab';
+import { withStyles } from '@mui/styles/';
+import IconButton from '@mui/material/IconButton';
+import { Star, StarBorder } from '@mui/icons-material';
 import PropTypes from 'prop-types';
 import EditableLabel from '../EditableLabel/EditableLabel';
 import Welcome from '../Welcome/Welcome';

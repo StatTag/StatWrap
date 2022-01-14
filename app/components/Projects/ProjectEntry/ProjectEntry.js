@@ -1,9 +1,11 @@
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable react/destructuring-assignment */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
-import { Tooltip } from '@material-ui/core';
-import PortableWifiOffIcon from '@material-ui/icons/PortableWifiOff';
+import { withStyles } from '@mui/styles';
+import { Tooltip } from '@mui/material';
+import PortableWifiOffIcon from '@mui/icons-material/PortableWifiOff';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import styles from './ProjectEntry.css';
 

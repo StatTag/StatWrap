@@ -2,11 +2,11 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable react/prop-types */
 import * as React from 'react';
-import { createTheme, ThemeProvider } from '@material-ui/core/styles';
-import { AppBar, Toolbar, Typography, IconButton } from '@material-ui/core';
-import SettingsIcon from '@material-ui/icons/Settings';
-import SearchIcon from '@material-ui/icons/Search';
-import HomeIcon from '@material-ui/icons/Home';
+import { createTheme, ThemeProvider, adaptV4Theme } from '@mui/material/styles';
+import { AppBar, Toolbar, Typography, IconButton } from '@mui/material';
+import SettingsIcon from '@mui/icons-material/Settings';
+import SearchIcon from '@mui/icons-material/Search';
+import HomeIcon from '@mui/icons-material/Home';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
   faFolder,
@@ -110,14 +110,16 @@ export default class App extends React.Component {
 
   render() {
     const { children } = this.props;
-    const theme = createTheme({
-      palette: {
-        type: 'light'
-      },
-      typography: {
-        fontSize: 12
-      }
-    });
+    const theme = createTheme(
+      adaptV4Theme({
+        palette: {
+          type: 'light'
+        },
+        typography: {
+          fontSize: 12
+        }
+      })
+    );
     let userProfileDialog = null;
     if (this.state.settings && this.state.settings.user) {
       userProfileDialog = (

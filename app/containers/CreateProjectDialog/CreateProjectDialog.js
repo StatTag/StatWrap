@@ -4,9 +4,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Draggable from 'react-draggable';
-import { Dialog, DialogActions, DialogTitle, Button, Paper } from '@material-ui/core';
-import ArrowBackIcon from '@material-ui/icons/ArrowBackIos';
-import ArrowForwardIcon from '@material-ui/icons/ArrowForwardIos';
+import { Dialog, DialogActions, DialogTitle, Button, Paper } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBackIos';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForwardIos';
 import { ipcRenderer } from 'electron';
 import Constants from '../../constants/constants';
 import CreateProject from './CreateProject/CreateProject';
