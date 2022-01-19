@@ -1,13 +1,12 @@
 import fs from 'fs';
 import os from 'os';
-import { v4 as uuid } from 'uuid';
 import username from 'username';
 import UserService, { PersonDirectoryLimit } from '../../app/services/user';
 
 jest.mock('fs');
 jest.mock('os');
 jest.mock('username');
-jest.mock('uuid');
+jest.mock('uuid/v4', () => () => '1-2-3');
 
 const TEST_USER_HOME_PATH = process.platform === 'win32' ? 'C:\\Users\\test\\' : '/User/test/';
 os.homedir.mockReturnValue(TEST_USER_HOME_PATH);
@@ -162,7 +161,6 @@ describe('services', () => {
         expect(settings.directory[1].id).toEqual('A-b-c');
       });
       it('should add a new person when the id is empty', () => {
-        uuid.mockImplementation(() => '1-2-3');
         const settings = {};
         expect(
           new UserService().upsertPersonInUserDirectory(settings, {
