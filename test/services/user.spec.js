@@ -1,12 +1,18 @@
 import fs from 'fs';
 import os from 'os';
 import username from 'username';
+// Note: uuid mocking fixed/broke/fixed?  May need to remove this line
+// if it breaks again.
+import { v4 as uuid } from 'uuid';
 import UserService, { PersonDirectoryLimit } from '../../app/services/user';
 
 jest.mock('fs');
 jest.mock('os');
 jest.mock('username');
-jest.mock('uuid/v4', () => () => '1-2-3');
+jest.mock('uuid');
+// Note: uuid mocking fixed/broken/fixed?  May need to re-enable this and
+// remove line farther down and above if it breaks again.
+// jest.mock('uuid/v4', () => () => '1-2-3');
 
 const TEST_USER_HOME_PATH = process.platform === 'win32' ? 'C:\\Users\\test\\' : '/User/test/';
 os.homedir.mockReturnValue(TEST_USER_HOME_PATH);
@@ -161,6 +167,11 @@ describe('services', () => {
         expect(settings.directory[1].id).toEqual('A-b-c');
       });
       it('should add a new person when the id is empty', () => {
+        // Note: uuid mocking fixed/broke/fixed?  May need to remove this line
+        // if it breaks again.
+        uuid.mockImplementationOnce(() => {
+          return '1-2-3';
+        });
         const settings = {};
         expect(
           new UserService().upsertPersonInUserDirectory(settings, {
