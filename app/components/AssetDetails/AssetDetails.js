@@ -7,6 +7,8 @@ import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AssetAttributes from '../AssetAttributes/AssetAttributes';
 import NoteEditor from '../NoteEditor/NoteEditor';
+import Loading from '../Loading/Loading';
+import SourceControlHistory from '../SourceControlHistory/SourceControlHistory';
 import styles from './AssetDetails.css';
 
 const AccordionSummary = withStyles({
@@ -34,7 +36,9 @@ const assetDetails = props => {
     onUpdatedNote,
     onDeletedNote,
     onUpdatedAttribute,
-    assetAttributes
+    assetAttributes,
+    sourceControlEnabled,
+    dynamicDetails
   } = props;
   const updatedNoteHandler = (note, text) => {
     if (note) {
@@ -58,10 +62,57 @@ const assetDetails = props => {
     }
   };
 
+  let sourceControlAccordion = null;
+  if (sourceControlEnabled) {
+    let dynamicDetailsContainer = <Loading>Please wait while file history loads...</Loading>;
+    if (dynamicDetails) {
+      dynamicDetailsContainer = <SourceControlHistory history={dynamicDetails.sourceControl} />;
+    }
+    sourceControlAccordion = (
+      <Accordion expanded>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="source-control-content"
+          id="source-control-header"
+          className={styles.heading}
+        >
+          <Typography className={styles.headingTitle}>Source Control</Typography>
+        </AccordionSummary>
+        <AccordionDetails className={styles.details}>{dynamicDetailsContainer}</AccordionDetails>
+      </Accordion>
+    );
+  }
+
+  let hasNotes = false;
+  let notesLabel = 'Notes (0)';
+  if (asset) {
+    if (asset.notes) {
+      notesLabel = `Notes (${asset.notes.length})`;
+      hasNotes = asset.notes.length > 0;
+    }
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.title}>{asset.uri}</div>
-      <Accordion>
+      <Accordion expanded={hasNotes}>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="notes-content"
+          id="notes-header"
+          className={styles.heading}
+        >
+          <Typography className={styles.headingTitle}>{notesLabel}</Typography>
+        </AccordionSummary>
+        <AccordionDetails className={styles.details}>
+          <NoteEditor
+            notes={asset.notes}
+            onDelete={deleteNoteHandler}
+            onEditingComplete={updatedNoteHandler}
+          />
+        </AccordionDetails>
+      </Accordion>
+      <Accordion defaultExpanded>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="notes-attributes"
@@ -78,23 +129,7 @@ const assetDetails = props => {
           />
         </AccordionDetails>
       </Accordion>
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="notes-content"
-          id="notes-header"
-          className={styles.heading}
-        >
-          <Typography className={styles.headingTitle}>Notes</Typography>
-        </AccordionSummary>
-        <AccordionDetails className={styles.details}>
-          <NoteEditor
-            notes={asset.notes}
-            onDelete={deleteNoteHandler}
-            onEditingComplete={updatedNoteHandler}
-          />
-        </AccordionDetails>
-      </Accordion>
+      {sourceControlAccordion}
     </div>
   );
 };

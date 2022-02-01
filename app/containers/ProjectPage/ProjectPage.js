@@ -40,6 +40,10 @@ class ProjectPage extends Component {
       // UI element to inform us what the popup project list menu is attached to
       projectListMenuAnchor: null,
 
+      // The dynamic details for the selected asset.  Maybe should think of a better way to pass this
+      // down the compoonent chain, but for now it works
+      assetDynamicDetails: null,
+
       // This key is part of a trick to get React to throw out and recreate the Create Project
       // dialog when we have disposed of it - either by creating a project or cancelling.  This
       // tracks a sequential number that, when changed, signals React that the dialog can be
@@ -61,6 +65,8 @@ class ProjectPage extends Component {
     this.handleUpdateProjectResponse = this.handleUpdateProjectResponse.bind(this);
     this.handleLoadProjectLogResponse = this.handleLoadProjectLogResponse.bind(this);
     this.handleRefreshProjectLog = this.handleRefreshProjectLog.bind(this);
+    this.handleScanAssetDynamicDetailsResponse = this.handleScanAssetDynamicDetailsResponse.bind(this);
+    this.handleAssetSelected = this.handleAssetSelected.bind(this);
   }
 
   componentDidMount() {
@@ -76,7 +82,9 @@ class ProjectPage extends Component {
     ipcRenderer.on(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
 
     ipcRenderer.on(Messages.LOAD_PROJECT_LOG_RESPONSE, this.handleLoadProjectLogResponse);
-    ipcRenderer.on(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog)
+    ipcRenderer.on(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
+
+    ipcRenderer.on(Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE, this.handleScanAssetDynamicDetailsResponse);
   }
 
   componentWillUnmount() {
@@ -88,6 +96,17 @@ class ProjectPage extends Component {
     ipcRenderer.removeListener(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
     ipcRenderer.removeListener(Messages.LOAD_PROJECT_LOG_RESPONSE, this.handleLoadProjectLogResponse);
     ipcRenderer.removeListener(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
+    ipcRenderer.removeListener(Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE, this.handleScanAssetDynamicDetailsResponse);
+  }
+
+  handleScanAssetDynamicDetailsResponse(sender, response) {
+    this.setState({assetDynamicDetails: response.details});
+  }
+
+  handleAssetSelected(asset) {
+    // When an asset is selected, clear the existing dynamic details so they reload.
+    this.setState({assetDynamicDetails: null});
+    ipcRenderer.send(Messages.SCAN_ASSET_DYNAMIC_DETAILS_REQUEST, this.state.selectedProject, asset);
   }
 
   handleLoadProjectListResponse(sender, response) {
@@ -129,7 +148,10 @@ class ProjectPage extends Component {
         return { selectedProject };
       }
 
-      const projectWithAssets = {...selectedProject, assets: response.error ? {error: response.error, errorMessage: response.errorMessage} : response.assets};
+      const projectWithAssets = {...selectedProject,
+        sourceControlEnabled: response.project.sourceControlEnabled,
+        assets: response.error ? {error: response.error, errorMessage: response.errorMessage} : response.assets
+      };
       return { selectedProject: projectWithAssets };
     });
   }
@@ -242,7 +264,9 @@ class ProjectPage extends Component {
             project={this.state.selectedProject}
             logs={this.state.selectedProjectLogs}
             onUpdated={this.handleProjectUpdate}
+            onAssetSelected={this.handleAssetSelected}
             configuration={{assetAttributes: this.state.assetAttributes}}
+            assetDynamicDetails={this.state.assetDynamicDetails}
           />
         </ResizablePanels>
         <CreateProjectDialog

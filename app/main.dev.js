@@ -18,6 +18,7 @@ import { initialize, enable as enableRemote } from '@electron/remote/main';
 import MenuBuilder from './menu';
 import ProjectService from './services/project';
 import ProjectListService, { DefaultProjectListFile } from './services/projectList';
+import SourceControlService from './services/sourceControl';
 import ProjectTemplateService from './services/projectTemplate';
 import AssetService from './services/assets/asset';
 import UserService, { DefaultSettingsFile } from './services/user';
@@ -54,6 +55,7 @@ const LOG_ROW_LIMIT = 10000000000;
 
 const projectTemplateService = new ProjectTemplateService();
 const projectService = new ProjectService();
+const sourceControlService = new SourceControlService();
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -451,62 +453,69 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
     return;
   }
 
-  try {
-    const service = new AssetService([
-      new FileHandler(),
-      new PythonHandler(),
-      new RHandler(),
-      new SASHandler(),
-      new StataHandler()
-    ]);
-    response.assets = service.scan(project.path); // Returns absolute paths
+  (async () => {
+    try {
+      const service = new AssetService([
+        new FileHandler(),
+        new PythonHandler(),
+        new RHandler(),
+        new SASHandler(),
+        new StataHandler()
+      ]);
+      response.assets = service.scan(project.path); // Returns absolute paths
 
-    // We have decided (for now) to keep notes separate from other asset metadata.  Notes will be
-    // considered first-class attributes instead of being embedded in metadata.  Because of this
-    // decision, we are adding in the notes after the regular asset scanning & processing.
-    let projectConfig = projectService.loadProjectFile(project.path);
-    if (!projectConfig) {
-      projectConfig = projectService.createProjectConfig(project.id, project.name);
-    }
+      // We have decided (for now) to keep notes separate from other asset metadata.  Notes will be
+      // considered first-class attributes instead of being embedded in metadata.  Because of this
+      // decision, we are adding in the notes after the regular asset scanning & processing.
+      let projectConfig = projectService.loadProjectFile(project.path);
+      if (!projectConfig) {
+        projectConfig = projectService.createProjectConfig(project.id, project.name);
+      }
 
-    if (!projectConfig.assets) {
-      console.log('No assets registered with the project - assuming this is a newly added project');
-    } else {
-      // Convert relative to absolute paths, otherwise the note URIs won't match
-      projectConfig.assets = AssetUtil.recursiveRelativeToAbsolutePath(
-        project.path,
-        projectConfig.assets
+      if (!projectConfig.assets) {
+        console.log(
+          'No assets registered with the project - assuming this is a newly added project'
+        );
+      } else {
+        // Convert relative to absolute paths, otherwise the note URIs won't match
+        projectConfig.assets = AssetUtil.recursiveRelativeToAbsolutePath(
+          project.path,
+          projectConfig.assets
+        );
+        projectService.addNotesAndAttributesToAssets(response.assets, projectConfig.assets);
+      }
+
+      // When we scan a project, we need to detect all possible changes that could exist from the existing
+      // project entry that gets sent.  Otherwise the UI can get out of sync.  We need to make sure we merge
+      // in additional properties here for the project that's going back.  Keep in mind that the project
+      // object we get is structured differently from the stored project config, which is why we need to
+      // add parts instead of just using the whole object.
+      response.project.categories = projectConfig.categories;
+      response.project.description = projectConfig.description;
+      response.project.notes = projectConfig.notes;
+      response.project.people = projectConfig.people;
+      response.project.assets = response.assets;
+      response.project.sourceControlEnabled = await sourceControlService.hasSourceControlEnabled(
+        project.path
       );
-      projectService.addNotesAndAttributesToAssets(response.assets, projectConfig.assets);
+
+      const saveResponse = saveProject(response.project);
+      response.project = saveResponse.project; // Pick up any enrichment from saveProject
+      if (saveResponse.error) {
+        response.error = saveResponse.error;
+        response.errorMessage = saveResponse.errorMessage;
+      }
+    } catch (e) {
+      response.error = true;
+      response.errorMessage =
+        'There was an unexpected error when scanning the project for additional information';
+      console.log(e);
     }
 
-    // When we scan a project, we need to detect all possible changes that could exist from the existing
-    // project entry that gets sent.  Otherwise the UI can get out of sync.  We need to make sure we merge
-    // in additional properties here for the project that's going back.  Keep in mind that the project
-    // object we get is structured differently from the stored project config, which is why we need to
-    // add parts instead of just using the whole object.
-    response.project.categories = projectConfig.categories;
-    response.project.description = projectConfig.description;
-    response.project.notes = projectConfig.notes;
-    response.project.people = projectConfig.people;
-    response.project.assets = response.assets;
-
-    const saveResponse = saveProject(response.project);
-    response.project = saveResponse.project; // Pick up any enrichment from saveProject
-    if (saveResponse.error) {
-      response.error = saveResponse.error;
-      response.errorMessage = saveResponse.errorMessage;
-    }
-  } catch (e) {
-    response.error = true;
-    response.errorMessage =
-      'There was an unexpected error when scanning the project for additional information';
-    console.log(e);
-  }
-
-  // console.log(response);
-  // await sleep(5000);
-  event.sender.send(Messages.SCAN_PROJECT_RESPONSE, response);
+    // console.log(response);
+    // await sleep(5000);
+    event.sender.send(Messages.SCAN_PROJECT_RESPONSE, response);
+  })();
 });
 
 /**
@@ -715,4 +724,51 @@ ipcMain.on(Messages.SAVE_USER_PROFILE_REQUEST, async (event, user) => {
     console.log(e);
   }
   event.sender.send(Messages.SAVE_USER_PROFILE_RESPONSE, response);
+});
+
+/**
+ * Several attributes related to assets are cached/saved.  However, some things may change on a more
+ * frequent basis to the point we do not want to cache then and instead want to pull them in real time.
+ * We'll call these 'dynamic details' to clarify.
+ */
+ipcMain.on(Messages.SCAN_ASSET_DYNAMIC_DETAILS_REQUEST, async (event, project, asset) => {
+  const response = {
+    project,
+    asset,
+    details: null,
+    error: false,
+    errorMessage: ''
+  };
+
+  // If the project or asset is null, it means nothing was selected in the list and we just want to reset.
+  // This is not an error, so the error fields remain cleared.
+  if (project === null || asset === null) {
+    event.sender.send(Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE, response);
+    return;
+  }
+
+  (async () => {
+    try {
+      // If source control isn't enabled, leave early.  This isn't an error we need to report.
+      const hasSourceControlEnabled = await sourceControlService.hasSourceControlEnabled(
+        project.path
+      );
+      if (!hasSourceControlEnabled) {
+        event.sender.send(Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE, response);
+        return;
+      }
+
+      response.details = {
+        // Just source control for now, but structuring to add more types of details in the future
+        sourceControl: await sourceControlService.getFileHistory(project.path, asset.uri)
+      };
+    } catch (e) {
+      response.error = true;
+      response.errorMessage =
+        'There was an unexpected error when scanning the asset for additional information';
+      console.log(e);
+    }
+
+    event.sender.send(Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE, response);
+  })();
 });

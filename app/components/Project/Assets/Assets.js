@@ -13,7 +13,9 @@ const assets = props => {
     onUpdatedAssetNote,
     onDeletedAssetNote,
     onUpdatedAssetAttribute,
-    assetAttributes
+    onSelectedAsset,
+    assetAttributes,
+    dynamicDetails
   } = props;
   const [selectedAsset, setSelectedAsset] = useState();
 
@@ -25,8 +27,14 @@ const assets = props => {
     if (project && project.assets && selectedAsset) {
       const updatedAsset = AssetUtil.findDescendantAssetByUri(project.assets, selectedAsset.uri);
       setSelectedAsset(updatedAsset);
+      if (onSelectedAsset) {
+        onSelectedAsset(updatedAsset);
+      }
     } else {
       setSelectedAsset(null);
+      if (onSelectedAsset) {
+        onSelectedAsset(null);
+      }
     }
   }, [project]);
 
@@ -41,6 +49,8 @@ const assets = props => {
         onDeletedNote={onDeletedAssetNote}
         onUpdatedAttribute={onUpdatedAssetAttribute}
         assetAttributes={assetAttributes}
+        sourceControlEnabled={project.sourceControlEnabled}
+        dynamicDetails={dynamicDetails}
       />
     ) : null;
     if (project.assets) {
@@ -51,7 +61,12 @@ const assets = props => {
           <div className={styles.tree}>
             <AssetTree
               project={project}
-              onSelectAsset={asset => setSelectedAsset(asset)}
+              onSelectAsset={asset => {
+                setSelectedAsset(asset);
+                if (onSelectedAsset) {
+                  onSelectedAsset(asset);
+                }
+              }}
               selectedAsset={selectedAsset}
             />
           </div>

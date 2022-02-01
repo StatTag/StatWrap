@@ -13,6 +13,9 @@ module.exports = {
   SCAN_PROJECT_REQUEST: 'statwrap-scan-project-request',
   SCAN_PROJECT_RESPONSE: 'statwrap-scan-project-response',
 
+  SCAN_ASSET_DYNAMIC_DETAILS_REQUEST: 'statwrap-scan-asset-dynamic-details-request',
+  SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE: 'statwrap-scan-asset-dynamic-details-response',
+
   TOGGLE_PROJECT_FAVORITE_REQUEST: 'statwrap-toggle-project-favorite-request',
   TOGGLE_PROJECT_FAVORITE_RESPONSE: 'statwrap-toggle-project-favorite-response',
 

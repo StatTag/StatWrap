@@ -347,6 +347,12 @@ class Project extends Component<Props> {
     }
   };
 
+  assetSelectedHandler = asset => {
+    if (this.props.onAssetSelected) {
+      this.props.onAssetSelected(asset);
+    }
+  };
+
   projectDeleteNoteHandler = (project, note) => {
     const currentProject = { ...this.props.project };
     if (currentProject.id !== project.id) {
@@ -474,7 +480,9 @@ class Project extends Component<Props> {
           onUpdatedAssetNote={this.assetUpsertNoteHandler}
           onDeletedAssetNote={this.assetDeleteNoteHandler}
           onUpdatedAssetAttribute={this.assetUpdateAttributeHandler}
+          onSelectedAsset={this.assetSelectedHandler}
           assetAttributes={this.props.configuration.assetAttributes}
+          dynamicDetails={this.props.assetDynamicDetails}
         />
       ) : null;
       const workflow = this.props.project ? <Workflow project={this.props.project} /> : null;
@@ -582,6 +590,7 @@ Project.propTypes = {
   project: PropTypes.object,
   classes: PropTypes.object,
   onUpdated: PropTypes.func,
+  onAssetSelected: PropTypes.func,
   // This object has the following structure:
   // {
   //   logs: array<string>   - the actual log data
@@ -591,15 +600,18 @@ Project.propTypes = {
   // This object has the following structure:
   // {
   // }
-  configuration: PropTypes.object
+  configuration: PropTypes.object,
+  assetDynamicDetails: PropTypes.object
 };
 
 Project.defaultProps = {
   project: null,
   classes: null,
   onUpdated: null,
+  onAssetSelected: null,
   logs: null,
-  configuration: null
+  configuration: null,
+  assetDynamicDetails: null
 };
 
 Project.contextType = UserContext;
