@@ -22,25 +22,27 @@ const filterComponent = props => {
       return;
     }
 
-    console.log(filter[categoryIndex]);
-    const filterIndex = filter[categoryIndex].values.findIndex(x => x === filterKey);
+    const filterIndex = filter[categoryIndex].values.findIndex(x => x.key === filterKey);
     if (filterIndex === -1) {
       return;
     }
 
-    console.log(filterIndex);
+    filter[categoryIndex].values[filterIndex].value = value;
+    setFilter(filter);
+
+    console.log(filter);
   };
 
   const filterElements = [];
   filter.forEach(x => {
-    const valueElements = x.values.map(val => {
+    const valueElements = x.values.map(f => {
       return (
         <FilterItem
           onChecked={handleFilterChecked}
-          key={val}
-          filter={val}
+          key={f.key}
+          filter={f.key}
           category={x.category}
-          label={val}
+          label={f.label}
         />
       );
     });
