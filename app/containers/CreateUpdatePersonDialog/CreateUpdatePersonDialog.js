@@ -129,7 +129,7 @@ class CreateUpdatePersonDialog extends Component {
     if (projectMode) {
       roles = (
         <div className={styles.formRow}>
-          <label>Roles:</label>
+          <label className={styles.personLabel}>Roles:</label>
           <TagEditor tags={this.state.roles} onChange={this.handleRolesChanged} />
         </div>
       );
@@ -192,8 +192,9 @@ class CreateUpdatePersonDialog extends Component {
           {directory}
           <div className={styles.formBody}>
             <div className={styles.formRow}>
-              <label>Name:</label>
+              <label className={styles.personLabel}>Name:</label>
               <input
+                className={styles.personInput}
                 type="text"
                 id={styles.firstName}
                 name="firstName"
@@ -202,6 +203,7 @@ class CreateUpdatePersonDialog extends Component {
                 onChange={this.handleInputChange}
               />
               <input
+                className={styles.personInput}
                 type="text"
                 id={styles.lastName}
                 name="lastName"
@@ -211,8 +213,9 @@ class CreateUpdatePersonDialog extends Component {
               />
             </div>
             <div className={styles.formRow}>
-              <label>Affiliation:</label>
+              <label className={styles.personLabel}>Affiliation:</label>
               <input
+                className={styles.personInput}
                 type="text"
                 name="affiliation"
                 value={this.state.affiliation}

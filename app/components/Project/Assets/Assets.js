@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Error from '../../Error/Error';
 import AssetTree from '../../AssetTree/AssetTree';
 import AssetDetails from '../../AssetDetails/AssetDetails';
+import AssetFilter from '../../Filter/Filter';
 import Loading from '../../Loading/Loading';
 import AssetUtil from '../../../utils/asset';
 import styles from './Assets.css';
@@ -58,6 +59,7 @@ const assets = props => {
         <Error>{project.assets.errorMessage}</Error>
       ) : (
         <>
+          <AssetFilter assets={project.assets} mode="asset" />
           <div className={styles.tree}>
             <AssetTree
               project={project}

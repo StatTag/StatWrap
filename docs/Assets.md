@@ -1,4 +1,4 @@
-# Assests
+# Assets
 
 ## About
 

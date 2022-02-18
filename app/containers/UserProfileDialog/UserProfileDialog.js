@@ -114,6 +114,7 @@ class UserProfileDialog extends Component {
               <input
                 type="text"
                 id={styles.firstName}
+                className={styles.input}
                 name="firstName"
                 placeholder="First"
                 value={this.state.firstName}
@@ -122,6 +123,7 @@ class UserProfileDialog extends Component {
               <input
                 type="text"
                 id={styles.lastName}
+                className={styles.input}
                 name="lastName"
                 placeholder="Last"
                 value={this.state.lastName}
@@ -131,6 +133,7 @@ class UserProfileDialog extends Component {
             <div className={styles.formRow}>
               <label className={styles.label}>Display Name:</label>
               <input
+                className={styles.input}
                 type="text"
                 name="displayName"
                 placeholder="The name to show in the app, log entries, etc."
@@ -141,6 +144,7 @@ class UserProfileDialog extends Component {
             <div className={styles.formRow}>
               <label className={styles.label}>Affiliation:</label>
               <input
+                className={styles.input}
                 type="text"
                 name="affiliation"
                 value={this.state.affiliation}

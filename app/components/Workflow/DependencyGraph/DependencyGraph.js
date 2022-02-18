@@ -3,10 +3,11 @@ import React from 'react';
 import { Graph } from 'react-d3-graph';
 import WorkflowUtil from '../../../utils/workflow';
 import CodeNode from './CustomNodes/Code/CodeNode';
+import DependencyFilter from '../../Filter/Filter';
 import styles from './DependencyGraph.css';
 
 const graphConfig = {
-  nodeHighlightBehavior: false,
+  nodeHighlightBehavior: true,
   directed: true,
   maxZoom: 8,
   minZoom: 0.1,
@@ -29,7 +30,14 @@ const dependencyGraph = props => {
   if (data && data.nodes && data.nodes.length > 0) {
     graph = <Graph id="graph-id" data={data} config={graphConfig} />;
   }
-  return <div className={styles.container}>{graph}</div>;
+  return (
+    <div className={styles.container}>
+      <div>
+        <DependencyFilter assets={assets} mode="dependency" />
+      </div>
+      <div className={styles.graph}>{graph}</div>
+    </div>
+  );
 };
 
 export default dependencyGraph;

@@ -1,0 +1,13 @@
+.container {
+  font-size: 0.8em;
+  padding-top: 10px;
+  float: left;
+}
+
+.category {
+  margin-bottom: 10px;
+}
+
+.categoryHeader {
+  font-weight: bold;
+}

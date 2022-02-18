@@ -2,8 +2,12 @@
   margin: 5px;
 }
 
+.filter {
+  width: 15%;
+}
+
 .tree {
-  width: 66%;
+  width: 50%;
   margin: 0;
   padding: 0;
   display: inline-block;
@@ -11,7 +15,7 @@
 }
 
 .details {
-  width: 33%;
+  width: 35%;
   margin: 0;
   padding: 0;
   display: inline-block;

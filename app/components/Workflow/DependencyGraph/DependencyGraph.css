@@ -1,9 +1,9 @@
-.container {
+.container, .graph {
   width: 100%;
   height: 100%;
 }
 
-.container svg {
+.graph svg {
   width: inherit !important;
   height: inherit !important;
   position: fixed;

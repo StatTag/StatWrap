@@ -1,4 +1,4 @@
-label {
+.personLabel {
   flex: 0 0 15%;
 }
 
@@ -6,7 +6,7 @@ label {
   color: white;
 }
 
-input {
+.personInput {
   width: 100%;
 }
 

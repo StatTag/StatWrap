@@ -1,0 +1,7 @@
+.container {
+  display: block;
+}
+
+.filterCheck {
+  transform: scale(0.8);
+}

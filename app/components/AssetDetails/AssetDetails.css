@@ -3,10 +3,11 @@
 
 .title {
   margin-bottom: 10px;
-  border-bottom: solid 1px black;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 0.8em;
+  font-weight: bold;
 }
 
 .heading {
