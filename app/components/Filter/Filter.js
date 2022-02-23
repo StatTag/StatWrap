@@ -30,7 +30,9 @@ const filterComponent = props => {
     filter[categoryIndex].values[filterIndex].value = value;
     setFilter(filter);
 
-    console.log(filter);
+    if (props.onFilterChanged) {
+      props.onFilterChanged(filter);
+    }
   };
 
   const filterElements = [];

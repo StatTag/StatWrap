@@ -81,6 +81,79 @@ describe('utils', () => {
           }
         ]);
       });
+      it('only returns Content Type filters if there are files', () => {
+        expect(
+          ProjectUtil.getAssetFilters({
+            type: Constants.AssetType.DIRECTORY,
+            contentType: Constants.AssetContentType.OTHER,
+            children: [
+              {
+                type: Constants.AssetType.DIRECTORY,
+                contentType: Constants.AssetContentType.data
+              }
+            ]
+          })
+        ).toStrictEqual([
+          {
+            category: 'Asset Type',
+            values: [
+              {
+                key: Constants.AssetType.DIRECTORY,
+                label: Constants.AssetType.DIRECTORY,
+                value: true
+              }
+            ]
+          }
+        ]);
+      });
+      it('only returns Code File Type filters if there are code files', () => {
+        expect(
+          ProjectUtil.getAssetFilters({
+            type: Constants.AssetType.DIRECTORY,
+            children: [
+              {
+                type: Constants.AssetType.DIRECTORY,
+                children: [
+                  { type: Constants.AssetType.FILE, contentType: Constants.AssetContentType.OTHER },
+                  // In reality this would be a code file, but we're fabricating it so that
+                  // we can confirm it's not returning a filter
+                  {
+                    type: Constants.AssetType.FILE,
+                    contentType: Constants.AssetContentType.OTHER,
+                    metadata: [
+                      {
+                        id: 'StatWrap.PythonHandler'
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          })
+        ).toStrictEqual([
+          {
+            category: 'Asset Type',
+            values: [
+              {
+                key: Constants.AssetType.DIRECTORY,
+                label: Constants.AssetType.DIRECTORY,
+                value: true
+              },
+              { key: Constants.AssetType.FILE, label: Constants.AssetType.FILE, value: true }
+            ]
+          },
+          {
+            category: 'Content Type',
+            values: [
+              {
+                key: Constants.AssetContentType.OTHER,
+                label: Constants.AssetContentType.OTHER,
+                value: true
+              }
+            ]
+          }
+        ]);
+      });
     });
 
     describe('getWorkflowFilters', () => {
@@ -221,7 +294,7 @@ describe('utils', () => {
           ]
         });
       });
-      it('applies multiple filters and filters out empty directories', () => {
+      it('leaves empty directories after non-directory filtering is applied', () => {
         const filters = [
           {
             category: 'Asset Type',
@@ -229,7 +302,7 @@ describe('utils', () => {
               {
                 key: Constants.AssetType.DIRECTORY,
                 label: Constants.AssetType.DIRECTORY,
-                value: false
+                value: true
               },
               {
                 key: Constants.AssetType.FILE,
@@ -283,8 +356,12 @@ describe('utils', () => {
           ]
         };
         expect(ProjectUtil.getFilteredAssets(assets, filters)).toStrictEqual({
+          uri: 'test1',
+          type: Constants.AssetType.DIRECTORY,
           children: [
             {
+              uri: 'test1/test2',
+              type: Constants.AssetType.DIRECTORY,
               children: [
                 {
                   uri: 'test1/test2/a',
@@ -292,9 +369,497 @@ describe('utils', () => {
                   contentType: Constants.AssetContentType.OTHER
                 }
               ]
+            },
+            {
+              uri: 'test1/test3',
+              type: Constants.AssetType.DIRECTORY,
+              children: []
             }
           ]
         });
+      });
+      it('leaves empty directories when no filtering is needed', () => {
+        const filters = [
+          {
+            category: 'Asset Type',
+            values: [
+              {
+                key: Constants.AssetType.DIRECTORY,
+                label: Constants.AssetType.DIRECTORY,
+                value: true
+              },
+              {
+                key: Constants.AssetType.FILE,
+                label: Constants.AssetType.FILE,
+                value: true
+              }
+            ]
+          },
+          {
+            category: 'Content Type',
+            values: [
+              {
+                key: Constants.AssetContentType.CODE,
+                label: Constants.AssetContentType.CODE,
+                value: true
+              }
+            ]
+          }
+        ];
+        const assets = {
+          uri: 'test1',
+          type: Constants.AssetType.DIRECTORY,
+          children: [
+            {
+              uri: 'test1/test2',
+              type: Constants.AssetType.DIRECTORY,
+              children: [
+                {
+                  uri: 'test1/test2/a',
+                  type: Constants.AssetType.FILE,
+                  contentType: Constants.AssetContentType.OTHER
+                },
+                {
+                  uri: 'test1/test2/b',
+                  type: Constants.AssetType.FILE,
+                  contentType: Constants.AssetContentType.CODE
+                }
+              ]
+            },
+            {
+              uri: 'test1/test3',
+              type: Constants.AssetType.DIRECTORY
+            }
+          ]
+        };
+        expect(ProjectUtil.getFilteredAssets(assets, filters)).toStrictEqual(assets);
+      });
+    });
+    it('retains directories even with a filtered out content type if directories are shown', () => {
+      const filters = [
+        {
+          category: 'Asset Type',
+          values: [
+            {
+              key: Constants.AssetType.DIRECTORY,
+              label: Constants.AssetType.DIRECTORY,
+              value: true
+            },
+            {
+              key: Constants.AssetType.FILE,
+              label: Constants.AssetType.FILE,
+              value: true
+            }
+          ]
+        },
+        {
+          category: 'Content Type',
+          values: [
+            {
+              key: Constants.AssetContentType.OTHER,
+              label: Constants.AssetContentType.OTHER,
+              value: false
+            }
+          ]
+        },
+        {
+          category: 'Code File Type',
+          values: [
+            {
+              key: 'generic',
+              label: 'generic',
+              value: false
+            }
+          ]
+        }
+      ];
+      const assets = {
+        uri: 'test1',
+        type: Constants.AssetType.DIRECTORY,
+        contentType: Constants.AssetContentType.OTHER,
+        children: [
+          {
+            uri: 'test1/test2',
+            type: Constants.AssetType.DIRECTORY,
+            contentType: Constants.AssetContentType.OTHER,
+            children: [
+              {
+                uri: 'test1/test2/a',
+                type: Constants.AssetType.FILE,
+                contentType: Constants.AssetContentType.OTHER
+              }
+            ]
+          },
+          {
+            uri: 'test1/test3',
+            type: Constants.AssetType.DIRECTORY,
+            contentType: Constants.AssetContentType.OTHER,
+            children: [
+              {
+                uri: 'test1/test3/c',
+                type: Constants.AssetType.FILE,
+                contentType: Constants.AssetContentType.CODE,
+                metadata: [
+                  {
+                    id: 'StatWrap.RHandler'
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      };
+      expect(ProjectUtil.getFilteredAssets(assets, filters)).toStrictEqual({
+        uri: 'test1',
+        type: Constants.AssetType.DIRECTORY,
+        contentType: Constants.AssetContentType.OTHER,
+        children: [
+          {
+            uri: 'test1/test2',
+            type: Constants.AssetType.DIRECTORY,
+            contentType: Constants.AssetContentType.OTHER,
+            children: []
+          },
+          {
+            uri: 'test1/test3',
+            type: Constants.AssetType.DIRECTORY,
+            contentType: Constants.AssetContentType.OTHER,
+            children: [
+              {
+                uri: 'test1/test3/c',
+                type: Constants.AssetType.FILE,
+                contentType: Constants.AssetContentType.CODE,
+                metadata: [
+                  {
+                    id: 'StatWrap.RHandler'
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      });
+    });
+    it('applies all filters', () => {
+      const filters = [
+        {
+          category: 'Asset Type',
+          values: [
+            {
+              key: Constants.AssetType.DIRECTORY,
+              label: Constants.AssetType.DIRECTORY,
+              value: false
+            },
+            {
+              key: Constants.AssetType.FILE,
+              label: Constants.AssetType.FILE,
+              value: true
+            }
+          ]
+        },
+        {
+          category: 'Content Type',
+          values: [
+            {
+              key: Constants.AssetContentType.OTHER,
+              label: Constants.AssetContentType.OTHER,
+              value: false
+            }
+          ]
+        },
+        {
+          category: 'Code File Type',
+          values: [
+            {
+              key: 'python',
+              label: 'python',
+              value: false
+            },
+            {
+              key: 'r',
+              label: 'r',
+              value: true
+            }
+          ]
+        }
+      ];
+      const assets = {
+        uri: 'test1',
+        type: Constants.AssetType.DIRECTORY,
+        children: [
+          {
+            uri: 'test1/test2',
+            type: Constants.AssetType.DIRECTORY,
+            children: [
+              {
+                uri: 'test1/test2/a',
+                type: Constants.AssetType.FILE,
+                contentType: Constants.AssetContentType.OTHER
+              },
+              {
+                uri: 'test1/test2/b',
+                type: Constants.AssetType.FILE,
+                contentType: Constants.AssetContentType.CODE,
+                metadata: [
+                  {
+                    id: 'StatWrap.PythonHandler'
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            uri: 'test1/test3',
+            type: Constants.AssetType.DIRECTORY,
+            children: [
+              {
+                uri: 'test1/test3/c',
+                type: Constants.AssetType.FILE,
+                contentType: Constants.AssetContentType.CODE,
+                metadata: [
+                  {
+                    id: 'StatWrap.PythonHandler'
+                  }
+                ]
+              },
+              {
+                uri: 'test1/test3/d',
+                type: Constants.AssetType.FILE,
+                contentType: Constants.AssetContentType.CODE,
+                metadata: [
+                  {
+                    id: 'StatWrap.RHandler'
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      };
+      expect(ProjectUtil.getFilteredAssets(assets, filters)).toStrictEqual({
+        children: [
+          {
+            children: [
+              {
+                uri: 'test1/test3/d',
+                type: Constants.AssetType.FILE,
+                contentType: Constants.AssetContentType.CODE,
+                metadata: [
+                  {
+                    id: 'StatWrap.RHandler'
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      });
+    });
+    it('only filters out Code File Type for code files', () => {
+      const filters = [
+        {
+          category: 'Code File Type',
+          values: [
+            {
+              key: 'generic',
+              label: 'generic',
+              value: false
+            }
+          ]
+        }
+      ];
+      const assets = {
+        uri: 'test1',
+        type: Constants.AssetType.DIRECTORY,
+        children: [
+          {
+            uri: 'test1/a',
+            type: Constants.AssetType.FILE,
+            contentType: Constants.AssetContentType.OTHER
+          }
+        ]
+      };
+      expect(ProjectUtil.getFilteredAssets(assets, filters)).toStrictEqual(assets);
+    });
+  });
+  describe('isDirectoryFilteredOut', () => {
+    it('returns false null/empty filters', () => {
+      expect(ProjectUtil.isDirectoryFilteredOut(null)).toBe(false);
+      expect(ProjectUtil.isDirectoryFilteredOut(undefined)).toBe(false);
+      expect(ProjectUtil.isDirectoryFilteredOut([])).toBe(false);
+    });
+    it('returns false when there is no Asset Type filter present', () => {
+      const filters = [
+        {
+          category: 'Content Type',
+          values: [
+            {
+              key: Constants.AssetContentType.OTHER,
+              label: Constants.AssetContentType.OTHER,
+              value: false
+            }
+          ]
+        }
+      ];
+      expect(ProjectUtil.isDirectoryFilteredOut(filters)).toBe(false);
+    });
+    it('returns false when there is no directory filter present', () => {
+      const filters = [
+        {
+          category: 'Asset Type',
+          values: [
+            {
+              key: Constants.AssetType.FILE,
+              label: Constants.AssetType.FILE,
+              value: true
+            }
+          ]
+        }
+      ];
+      expect(ProjectUtil.isDirectoryFilteredOut(filters)).toBe(false);
+    });
+    it('returns false when the directory filter is on', () => {
+      const filters = [
+        {
+          category: 'Asset Type',
+          values: [
+            {
+              key: Constants.AssetType.DIRECTORY,
+              label: Constants.AssetType.DIRECTORY,
+              value: true
+            },
+            {
+              key: Constants.AssetType.FILE,
+              label: Constants.AssetType.FILE,
+              value: true
+            }
+          ]
+        }
+      ];
+      expect(ProjectUtil.isDirectoryFilteredOut(filters)).toBe(false);
+    });
+    it('returns true when the directory filter is off', () => {
+      const filters = [
+        {
+          category: 'Asset Type',
+          values: [
+            {
+              key: Constants.AssetType.DIRECTORY,
+              label: Constants.AssetType.DIRECTORY,
+              value: false
+            },
+            {
+              key: Constants.AssetType.FILE,
+              label: Constants.AssetType.FILE,
+              value: true
+            }
+          ]
+        }
+      ];
+      expect(ProjectUtil.isDirectoryFilteredOut(filters)).toBe(true);
+    });
+  });
+
+  describe('flattenFilteredAssets', () => {
+    it('returns null for null/empty asset', () => {
+      expect(ProjectUtil.flattenFilteredAssets(null)).toBeNull();
+      expect(ProjectUtil.flattenFilteredAssets(undefined)).toBeNull();
+    });
+
+    it('returns returns a stub for an empty asset object', () => {
+      expect(ProjectUtil.flattenFilteredAssets({})).toStrictEqual({
+        uri: 'Filtered List',
+        children: []
+      });
+    });
+    it('flattens a single level of descendants', () => {
+      const assets = {
+        children: [
+          {
+            uri: 'test1/a',
+            type: Constants.AssetType.FILE,
+            contentType: Constants.AssetContentType.OTHER
+          },
+          {
+            uri: 'test1/b',
+            type: Constants.AssetType.FILE,
+            contentType: Constants.AssetContentType.CODE
+          }
+        ]
+      };
+      expect(ProjectUtil.flattenFilteredAssets(assets)).toStrictEqual({
+        uri: 'Filtered List',
+        children: [
+          {
+            uri: 'test1/a',
+            type: Constants.AssetType.FILE,
+            contentType: Constants.AssetContentType.OTHER
+          },
+          {
+            uri: 'test1/b',
+            type: Constants.AssetType.FILE,
+            contentType: Constants.AssetContentType.CODE
+          }
+        ]
+      });
+    });
+    it('flattens nested descendants', () => {
+      const assets = {
+        children: [
+          {
+            children: [
+              {
+                uri: 'test1/test2/a',
+                type: Constants.AssetType.FILE,
+                contentType: Constants.AssetContentType.OTHER
+              },
+              {
+                uri: 'test1/test2/b',
+                type: Constants.AssetType.FILE,
+                contentType: Constants.AssetContentType.CODE
+              }
+            ]
+          },
+          {
+            children: [
+              {
+                uri: 'test1/test3/c',
+                type: Constants.AssetType.FILE,
+                contentType: Constants.AssetContentType.CODE
+              },
+              {
+                uri: 'test1/test3/d',
+                type: Constants.AssetType.FILE,
+                contentType: Constants.AssetContentType.CODE
+              }
+            ]
+          }
+        ]
+      };
+      expect(ProjectUtil.flattenFilteredAssets(assets)).toStrictEqual({
+        uri: 'Filtered List',
+        children: [
+          {
+            uri: 'test1/test2/a',
+            type: Constants.AssetType.FILE,
+            contentType: Constants.AssetContentType.OTHER
+          },
+          {
+            uri: 'test1/test2/b',
+            type: Constants.AssetType.FILE,
+            contentType: Constants.AssetContentType.CODE
+          },
+          {
+            uri: 'test1/test3/c',
+            type: Constants.AssetType.FILE,
+            contentType: Constants.AssetContentType.CODE
+          },
+          {
+            uri: 'test1/test3/d',
+            type: Constants.AssetType.FILE,
+            contentType: Constants.AssetContentType.CODE
+          }
+        ]
       });
     });
   });

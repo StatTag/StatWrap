@@ -3,7 +3,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Button } from '@mui/material';
 import AssetNode from './AssetNode/AssetNode';
-import AssetUtil from '../../utils/asset';
 import Constants from '../../constants/constants';
 import styles from './AssetTree.css';
 
@@ -55,19 +54,20 @@ class AssetTree extends Component {
       }
 
       // If we're expanding, we need to recursively add every folder URI.
-      expandedNodes.push(this.props.project.assets.uri);
-      if (this.props.project.assets.children) {
-        this.props.project.assets.children.forEach(c => this.setNodeExpanded(c, expandedNodes));
+      expandedNodes.push(this.props.assets.uri);
+      if (this.props.assets.children) {
+        this.props.assets.children.forEach(c => this.setNodeExpanded(c, expandedNodes));
       }
       return { expandedNodes };
     });
   };
 
   render() {
-    const filteredAssets = !this.props.project.assets
-      ? null
-      : AssetUtil.filterIncludedFileAssets(this.props.project.assets);
-    const assetTree = !filteredAssets ? null : (
+    // const filteredAssets = !this.props.assets
+    //   ? null
+    //   : AssetUtil.filterIncludedFileAssets(this.props.assets);
+
+    const assetTree = !this.props.assets ? null : (
       <>
         <div>
           <Button onClick={() => this.setExpandAll(true)}>Expand All</Button>
@@ -76,8 +76,8 @@ class AssetTree extends Component {
         <AssetNode
           onClick={this.handleClick}
           root
-          key={filteredAssets.uri}
-          node={filteredAssets}
+          key={this.props.assets.uri}
+          node={this.props.assets}
           openNodes={this.state.expandedNodes}
           selectedAsset={this.props.selectedAsset}
           onToggle={this.onToggle}
@@ -90,7 +90,7 @@ class AssetTree extends Component {
 }
 
 AssetTree.propTypes = {
-  project: PropTypes.object.isRequired,
+  assets: PropTypes.object.isRequired,
   onSelectAsset: PropTypes.func.isRequired,
   selectedAsset: PropTypes.object
 };

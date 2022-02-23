@@ -2,6 +2,7 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable func-names */
 import WorkflowUtil from './workflow';
+import Constants from '../constants/constants';
 
 /*
   Within StatWrap, we organize filters like this:
@@ -24,7 +25,7 @@ const _codeTypeFunc = function(x) {
   if (!x || !x.metadata) {
     return null;
   }
-  return WorkflowUtil.getAssetType(x);
+  return x.contentType === Constants.AssetContentType.CODE && WorkflowUtil.getAssetType(x);
 };
 
 /* eslint-disable no-underscore-dangle */
@@ -43,6 +44,9 @@ export default class ProjectUtil {
     // Only add the filter value if we don't already have it.
     const key = getter(asset);
     if (key && filter.values.findIndex(x => x.key === key) === -1) {
+      if (filter.category === 'Content Type') {
+        console.log(asset.uri, key);
+      }
       filter.values.push({ key, label: key, value: true });
     }
     if (asset.children) {
@@ -75,7 +79,8 @@ export default class ProjectUtil {
     }
 
     const contentTypeFilter = { category: 'Content Type', values: [] };
-    const contentTypeFunc = x => x.contentType;
+    // Content types should only apply to files
+    const contentTypeFunc = x => x.type === Constants.AssetType.FILE && x.contentType;
     ProjectUtil._processAssetAndDescendantsForFilter(assets, contentTypeFilter, contentTypeFunc);
     if (contentTypeFilter.values.length > 0) {
       filters.push(contentTypeFilter);
@@ -124,12 +129,25 @@ export default class ProjectUtil {
         // retain child items
         const catFilter = f.values.some(v => !v.value && v.key === asset.type) ? 1 : 0;
         filterOut = Math.max(catFilter, filterOut);
-      } else if (f.category === 'Content Type') {
-        const catFilter = f.values.some(v => !v.value && v.key === asset.contentType) ? 2 : 0;
-        filterOut = Math.max(catFilter, filterOut);
-      } else if (f.category === 'Code File Type') {
-        const catFilter = f.values.some(v => !v.value && WorkflowUtil.getAssetType(v.key)) ? 2 : 0;
-        filterOut = Math.max(catFilter, filterOut);
+      }
+      // Directories may get assigned a content type or code file type, just because
+      // of how asset processing assigns those, but for filtering purposes directories
+      // should not consider those a relevant filter.  We are going to specify the
+      // asset types where we want those to apply, considering we will be adding more
+      // asset types in the future.
+      if (asset.type === Constants.AssetType.FILE) {
+        if (f.category === 'Content Type') {
+          const catFilter = f.values.some(v => !v.value && v.key === asset.contentType) ? 2 : 0;
+          filterOut = Math.max(catFilter, filterOut);
+        } else if (
+          // Code File Type should only apply to files that have a code content type
+          f.category === 'Code File Type' &&
+          asset.contentType === Constants.AssetContentType.CODE
+        ) {
+          // eslint-disable-next-line prettier/prettier
+          const catFilter = f.values.some(v => !v.value && WorkflowUtil.getAssetType(asset) === v.key) ? 2 : 0;
+          filterOut = Math.max(catFilter, filterOut);
+        }
       }
     }
 
@@ -173,6 +191,61 @@ export default class ProjectUtil {
     }
 
     return asset;
+  }
+
+  /**
+   * Utility function to determine if, for a collection of filters, we have
+   * the directory filter available, and if it is turned off.
+   * @param {object} filter The filter to be applied
+   * @returns true if directories are being filtered out
+   */
+  static isDirectoryFilteredOut(filter) {
+    if (!filter || filter === undefined) {
+      return false;
+    }
+
+    const assetTypeIndex = filter.findIndex(x => x.category === 'Asset Type');
+    if (assetTypeIndex !== -1) {
+      const directoryIndex = filter[assetTypeIndex].values.findIndex(
+        y => y.key === Constants.AssetType.DIRECTORY
+      );
+      if (directoryIndex !== -1) {
+        return !filter[assetTypeIndex].values[directoryIndex].value;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Internal worker function to recusively add valid assets to the flat array
+   * @param {object} asset The current asset we are processing
+   * @param {array} flattenedList The flat array of assets that we will add to
+   */
+  static _flattenFilteredAssets(asset, flattenedList) {
+    if (asset.children) {
+      asset.children.forEach(x => ProjectUtil._flattenFilteredAssets(x, flattenedList));
+    }
+    if (asset.uri) {
+      flattenedList.push(asset);
+    }
+  }
+
+  /**
+   * Once a filter is applied, we may end up with stub objects where containers
+   * like directories used to be. In that case, this method will recursively
+   * turn our asset and its descendants into a flattened children array under a
+   * stub asset container.
+   * @param {object} assets The assets object to flatten
+   */
+  static flattenFilteredAssets(assets) {
+    if (!assets || assets === undefined) {
+      return null;
+    }
+
+    const flattenedList = [];
+    ProjectUtil._flattenFilteredAssets(assets, flattenedList);
+    return { uri: 'Filtered List', children: flattenedList };
   }
 
   /**
