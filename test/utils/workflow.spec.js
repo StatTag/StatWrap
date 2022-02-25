@@ -269,6 +269,12 @@ describe('services', () => {
                       module: 'sys',
                       import: null,
                       alias: null
+                    },
+                    {
+                      id: 'pandas',
+                      module: 'pandas',
+                      import: null,
+                      alias: null
                     }
                   ],
                   inputs: [
@@ -313,6 +319,21 @@ describe('services', () => {
                 value: true
               }
             ]
+          },
+          {
+            category: 'Dependencies/Libraries',
+            values: [
+              {
+                key: 'pandas',
+                label: 'pandas',
+                value: true
+              },
+              {
+                key: 'sys',
+                label: 'sys',
+                value: true
+              }
+            ]
           }
         ];
         const graph = WorkflowUtil.getAllDependenciesAsGraph(asset, filters);
@@ -323,6 +344,123 @@ describe('services', () => {
           ],
           links: [{ source: 'r.csv', target: '1/1' }]
         });
+      });
+    });
+    it('should filter out specific libraries from the graph', () => {
+      const asset = {
+        uri: '/test/1',
+        children: [
+          {
+            uri: '/test/1/1',
+            children: [
+              {
+                uri: '/test/1/1/1',
+                metadata: [
+                  {
+                    id: 'StatWrap.RHandler',
+                    libraries: [
+                      {
+                        id: 'dplyr',
+                        package: 'dplyr'
+                      }
+                    ],
+                    inputs: [
+                      {
+                        id: 'r.csv',
+                        type: Constants.DependencyType.DATA,
+                        path: 'r.csv'
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            uri: '/test/1/2',
+            metadata: [
+              {
+                id: 'StatWrap.PythonHandler',
+                libraries: [
+                  {
+                    id: 'sys',
+                    module: 'sys',
+                    import: null,
+                    alias: null
+                  },
+                  {
+                    id: 'pandas',
+                    module: 'pandas',
+                    import: null,
+                    alias: null
+                  }
+                ],
+                inputs: [
+                  {
+                    id: 'tmp',
+                    type: Constants.DependencyType.DATA,
+                    path: 'python.csv'
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      };
+      const filters = [
+        {
+          category: 'Code File Type',
+          values: [
+            {
+              key: 'python',
+              label: 'python',
+              value: true
+            },
+            {
+              key: 'r',
+              label: 'r',
+              value: false
+            }
+          ]
+        },
+        {
+          category: 'Inputs and Outputs',
+          values: [
+            {
+              key: 'dependency',
+              label: 'dependency',
+              value: true
+            },
+            {
+              key: 'data',
+              label: 'data',
+              value: false
+            }
+          ]
+        },
+        {
+          category: 'Dependencies/Libraries',
+          values: [
+            {
+              key: 'pandas',
+              label: 'pandas',
+              value: false
+            },
+            {
+              key: 'sys',
+              label: 'sys',
+              value: true
+            }
+          ]
+        }
+      ];
+      const graph = WorkflowUtil.getAllDependenciesAsGraph(asset, filters);
+      expect(graph).toEqual({
+        nodes: [
+          { id: '2', assetType: 'python' },
+          { id: 'sys', assetType: 'dependency' }
+        ],
+        links: [{ source: 'sys', target: '2' }]
       });
     });
 

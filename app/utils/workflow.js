@@ -49,10 +49,14 @@ export default class WorkflowUtil {
       ? filters.findIndex(x => x.category === 'Code File Type')
       : -1;
     const typeFilter = typeFilterIndex === -1 ? null : filters[typeFilterIndex];
-    const depedencyFilterIndex = applyFilter
+    const ioFilterIndex = applyFilter
       ? filters.findIndex(x => x.category === 'Inputs and Outputs')
       : -1;
-    const dependencyFilter = depedencyFilterIndex === -1 ? null : filters[depedencyFilterIndex];
+    const ioFilter = ioFilterIndex === -1 ? null : filters[ioFilterIndex];
+    const dependencyFilterIndex = applyFilter
+      ? filters.findIndex(x => x.category === 'Dependencies/Libraries')
+      : -1;
+    const dependencyFilter = dependencyFilterIndex === -1 ? null : filters[dependencyFilterIndex];
     const allDeps = WorkflowUtil.getAllDependencies(asset, asset.uri);
     for (let index = 0; index < allDeps.length; index++) {
       const entry = allDeps[index];
@@ -68,11 +72,11 @@ export default class WorkflowUtil {
         for (let depIndex = 0; depIndex < entry.dependencies.length; depIndex++) {
           const dependency = entry.dependencies[depIndex];
 
-          // If we have a dependency filter to apply, and we are supposed to filter this
+          // If we have an I/O filter to apply, and we are supposed to filter this
           // dependency out, skip further processing.
           if (
-            dependencyFilter &&
-            dependencyFilter.values.some(
+            ioFilter &&
+            ioFilter.values.some(
               x =>
                 // Only consider filters that are turned off
                 !x.value &&
@@ -81,6 +85,17 @@ export default class WorkflowUtil {
                 // a dependency.type and it matches the key, filter it out.
                 (x.key === dependency.type ||
                   (x.key === Constants.DependencyType.DEPENDENCY && !dependency.type))
+            )
+          ) {
+            continue;
+          }
+
+          // Final filtering check for dependencies if it matches a specific dependency/
+          // library that we need to filter out, then skip adding it.
+          if (
+            dependencyFilter &&
+            dependencyFilter.values.some(
+              x => !x.value && !dependency.type && x.key === dependency.id
             )
           ) {
             continue;

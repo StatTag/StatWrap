@@ -268,6 +268,13 @@ export default class ProjectUtil {
     return ProjectUtil._processFiltersForAssetAndDescendants(assets, filter);
   }
 
+  static _sortAndAddFilter(filter, filters) {
+    if (filter && filter.values.length > 0) {
+      filter.values.sort((a, b) => (a.label > b.label ? 1 : b.label > a.label ? -1 : 0));
+      filters.push(filter);
+    }
+  }
+
   /**
    * Return the collection of filters that may be applied for this project.  This is geared towards
    * the Workflow view
@@ -286,7 +293,8 @@ export default class ProjectUtil {
     }
 
     // We get back a flat list of dependencies, so no recursive processing is needed for these
-    const dependenciesFilter = { category: 'Inputs and Outputs', values: [] };
+    const ioFilter = { category: 'Inputs and Outputs', values: [] };
+    const dependencyFilter = { category: 'Dependencies/Libraries', values: [] };
     const assetDepedencies = WorkflowUtil.getAllDependencies(assets);
     if (!assetDepedencies) {
       return filters;
@@ -295,18 +303,17 @@ export default class ProjectUtil {
       if (x.assetType && x.assetType !== 'generic') {
         x.dependencies.forEach(d => {
           const type = d.type ? d.type : Constants.DependencyType.DEPENDENCY;
-          if (dependenciesFilter.values.findIndex(i => i.key === type) === -1) {
-            dependenciesFilter.values.push({ key: type, label: type, value: true });
+          if (ioFilter.values.findIndex(i => i.key === type) === -1) {
+            ioFilter.values.push({ key: type, label: type, value: true });
+          }
+          if (!d.type && dependencyFilter.values.findIndex(i => i.key === d.id) === -1) {
+            dependencyFilter.values.push({ key: d.id, label: d.id, value: true });
           }
         });
       }
     });
-    if (dependenciesFilter.values.length > 0) {
-      dependenciesFilter.values.sort((a, b) =>
-        a.label > b.label ? 1 : b.label > a.label ? -1 : 0
-      );
-      filters.push(dependenciesFilter);
-    }
+    ProjectUtil._sortAndAddFilter(ioFilter, filters);
+    ProjectUtil._sortAndAddFilter(dependencyFilter, filters);
 
     return filters;
   }

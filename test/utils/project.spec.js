@@ -256,7 +256,20 @@ describe('utils', () => {
             assetType: 'r',
             dependencies: [
               {
+                id: 'r.csv',
                 type: 'data'
+              }
+            ]
+          },
+          {
+            asset: 'test2',
+            assetType: 'python',
+            dependencies: [
+              {
+                id: 'sys',
+                module: 'sys',
+                import: null,
+                alias: null
               }
             ]
           },
@@ -266,7 +279,9 @@ describe('utils', () => {
             assetType: 'python',
             dependencies: [
               {
-                type: 'data'
+                id: 'python.csv',
+                type: 'data',
+                path: 'python.csv'
               }
             ]
           },
@@ -276,6 +291,7 @@ describe('utils', () => {
             assetType: 'r',
             dependencies: [
               {
+                id: 'aaa',
                 type: 'aaa'
               }
             ]
@@ -330,8 +346,13 @@ describe('utils', () => {
             category: 'Inputs and Outputs',
             values: [
               { key: 'aaa', label: 'aaa', value: true },
-              { key: 'data', label: 'data', value: true }
+              { key: 'data', label: 'data', value: true },
+              { key: 'dependency', label: 'dependency', value: true }
             ]
+          },
+          {
+            category: 'Dependencies/Libraries',
+            values: [{ key: 'sys', label: 'sys', value: true }]
           }
         ]);
       });
