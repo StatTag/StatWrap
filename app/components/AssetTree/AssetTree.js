@@ -1,7 +1,6 @@
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@mui/material';
 import AssetNode from './AssetNode/AssetNode';
 import Constants from '../../constants/constants';
 import styles from './AssetTree.css';
@@ -63,26 +62,16 @@ class AssetTree extends Component {
   };
 
   render() {
-    // const filteredAssets = !this.props.assets
-    //   ? null
-    //   : AssetUtil.filterIncludedFileAssets(this.props.assets);
-
     const assetTree = !this.props.assets ? null : (
-      <>
-        <div>
-          <Button onClick={() => this.setExpandAll(true)}>Expand All</Button>
-          <Button onClick={() => this.setExpandAll(false)}>Collapse All</Button>
-        </div>
-        <AssetNode
-          onClick={this.handleClick}
-          root
-          key={this.props.assets.uri}
-          node={this.props.assets}
-          openNodes={this.state.expandedNodes}
-          selectedAsset={this.props.selectedAsset}
-          onToggle={this.onToggle}
-        />
-      </>
+      <AssetNode
+        onClick={this.handleClick}
+        root
+        key={this.props.assets.uri}
+        node={this.props.assets}
+        openNodes={this.state.expandedNodes}
+        selectedAsset={this.props.selectedAsset}
+        onToggle={this.onToggle}
+      />
     );
 
     return <div className={styles.container}>{assetTree}</div>;

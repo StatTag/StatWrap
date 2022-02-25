@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { IconButton } from '@mui/material';
+import { FaPaperclip, FaPlusSquare, FaMinusSquare } from 'react-icons/fa';
 import Error from '../../Error/Error';
 import AssetTree from '../../AssetTree/AssetTree';
 import AssetDetails from '../../AssetDetails/AssetDetails';
@@ -21,6 +23,7 @@ const assetsComponent = props => {
   } = props;
   const [selectedAsset, setSelectedAsset] = useState();
   const [assets, setAssets] = useState(null);
+  const treeRef = React.useRef(null);
 
   const filteredProjectAssets =
     !project || !project.assets ? null : AssetUtil.filterIncludedFileAssets(project.assets);
@@ -44,6 +47,14 @@ const assetsComponent = props => {
     }
   }, [project]);
 
+  useEffect(() => {
+    if (project && project.assets) {
+      setAssets(AssetUtil.filterIncludedFileAssets(project.assets));
+    } else {
+      setAssets(null);
+    }
+  }, [project]);
+
   // Whenever the filter changes, update the list of assets to include only
   // those that should be displayed.
   const handleFilterChanged = filter => {
@@ -61,13 +72,7 @@ const assetsComponent = props => {
     setAssets(filteredAssets);
   };
 
-  useEffect(() => {
-    if (project && project.assets) {
-      setAssets(AssetUtil.filterIncludedFileAssets(project.assets));
-    } else {
-      setAssets(null);
-    }
-  }, [project]);
+  const handleGroupAssets = () => {};
 
   let assetDisplay = null;
   if (project) {
@@ -98,8 +103,34 @@ const assetsComponent = props => {
             onFilterChanged={handleFilterChanged}
           />
           <div className={styles.tree}>
+            <div className={styles.toolbar}>
+              <IconButton
+                onClick={() => treeRef.current.setExpandAll(true)}
+                className={styles.toolbarButton}
+                aria-label="expand all tree items"
+                fontSize="small"
+              >
+                <FaPlusSquare fontSize="small" /> &nbsp;Expand Assets
+              </IconButton>
+              <IconButton
+                onClick={() => treeRef.current.setExpandAll(false)}
+                className={styles.toolbarButton}
+                aria-label="collapse all tree items"
+                fontSize="small"
+              >
+                <FaMinusSquare fontSize="small" /> &nbsp;Collapse Assets
+              </IconButton>
+              <IconButton
+                onClick={handleGroupAssets}
+                className={styles.toolbarButton}
+                aria-label="group assets together"
+              >
+                <FaPaperclip fontSize="small" /> &nbsp; Group Assets
+              </IconButton>
+            </div>
             <AssetTree
               assets={assets}
+              ref={treeRef}
               onSelectAsset={asset => {
                 setSelectedAsset(asset);
                 if (onSelectedAsset) {
