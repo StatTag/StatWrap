@@ -1,4 +1,5 @@
 import BaseCodeHandler from './baseCode';
+import Constants from '../../../constants/constants';
 
 // Python file extensions that we will scan.  This is derived from the following SO post:
 // https://stackoverflow.com/a/18032741/5670646
@@ -50,7 +51,7 @@ export default class PythonHandler extends BaseCodeHandler {
       const path = match[2].trim();
       inputs.push({
         id: `${match[1]} - ${path}`,
-        type: 'figure',
+        type: Constants.DependencyType.FIGURE,
         path
       });
     }
@@ -65,7 +66,7 @@ export default class PythonHandler extends BaseCodeHandler {
       const path = match[2].trim();
       inputs.push({
         id: `${match[1]} - ${path}`,
-        type: 'data',
+        type: Constants.DependencyType.DATA,
         path
       });
     }
@@ -83,7 +84,7 @@ export default class PythonHandler extends BaseCodeHandler {
       if (isOutput) {
         inputs.push({
           id: `${match[1]} - ${path}`,
-          type: 'data',
+          type: Constants.DependencyType.DATA,
           path
         });
       }
@@ -108,7 +109,7 @@ export default class PythonHandler extends BaseCodeHandler {
       const path = match[2].trim();
       outputs.push({
         id: `${match[1]} - ${path}`,
-        type: 'figure',
+        type: Constants.DependencyType.FIGURE,
         path
       });
     }
@@ -123,7 +124,7 @@ export default class PythonHandler extends BaseCodeHandler {
       const path = match[2].trim();
       outputs.push({
         id: `${match[1]} - ${path}`,
-        type: 'data',
+        type: Constants.DependencyType.DATA,
         path
       });
     }
@@ -141,7 +142,7 @@ export default class PythonHandler extends BaseCodeHandler {
       if (isOutput) {
         outputs.push({
           id: `${match[1]} - ${path}`,
-          type: 'data',
+          type: Constants.DependencyType.DATA,
           path
         });
       }

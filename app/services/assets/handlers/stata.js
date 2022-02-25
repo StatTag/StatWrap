@@ -1,4 +1,5 @@
 import BaseCodeHandler from './baseCode';
+import Constants from '../../../constants/constants';
 
 // R file extensions that we will scan.
 // All lookups should be lowercase - we will do lowercase conversion before comparison.
@@ -63,7 +64,7 @@ export default class StataHandler extends BaseCodeHandler {
       const path = match[2] ? match[2].trim() : match[3].trim();
       inputs.push({
         id: `${match[1]} - ${path}`,
-        type: 'data',
+        type: Constants.DependencyType.DATA,
         path
       });
     }
@@ -85,7 +86,7 @@ export default class StataHandler extends BaseCodeHandler {
       const path = match[2].trim();
       outputs.push({
         id: `${match[1]} - ${path}`,
-        type: 'figure',
+        type: Constants.DependencyType.FIGURE,
         path
       });
     }
@@ -119,7 +120,7 @@ export default class StataHandler extends BaseCodeHandler {
       const path = match[2] ? match[2].trim() : match[3].trim();
       outputs.push({
         id: `${match[1]} - ${path}`,
-        type: 'data',
+        type: Constants.DependencyType.DATA,
         path
       });
     }
@@ -132,7 +133,7 @@ export default class StataHandler extends BaseCodeHandler {
       const path = match[2].trim();
       outputs.push({
         id: `${match[1]} - ${path}`,
-        type: 'data',
+        type: Constants.DependencyType.DATA,
         path
       });
     }
@@ -149,7 +150,7 @@ export default class StataHandler extends BaseCodeHandler {
       const path = match[2].trim();
       outputs.push({
         id: `${match[1]} - ${path}`,
-        type: 'data',
+        type: Constants.DependencyType.DATA,
         path
       });
     }
@@ -166,7 +167,7 @@ export default class StataHandler extends BaseCodeHandler {
       const path = match[2].trim();
       outputs.push({
         id: `${match[1]} - ${path}`,
-        type: 'data',
+        type: Constants.DependencyType.DATA,
         path
       });
     }

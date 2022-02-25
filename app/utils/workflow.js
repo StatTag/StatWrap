@@ -1,9 +1,11 @@
+/* eslint-disable no-continue */
 /* eslint-disable no-underscore-dangle */
 import AssetUtil from './asset';
 import PythonHandler from '../services/assets/handlers/python';
 import RHandler from '../services/assets/handlers/r';
 import SASHandler from '../services/assets/handlers/sas';
 import StataHandler from '../services/assets/handlers/stata';
+import Constants from '../constants/constants';
 
 export default class WorkflowUtil {
   static getAssetType(asset) {
@@ -28,10 +30,11 @@ export default class WorkflowUtil {
   /**
    * Build a graph (collection of nodes and links) for an asset and all of
    * its descendants
-   * @param {object} asset
+   * @param {object} asset The root asset to build the graph from.
+   * @param {array} filters The filters to apply (if applicable)
    * @returns An react-d3-graph object containing nodes and links attributes
    */
-  static getAllDependenciesAsGraph(asset) {
+  static getAllDependenciesAsGraph(asset, filters) {
     const graph = {
       nodes: [],
       links: []
@@ -41,26 +44,62 @@ export default class WorkflowUtil {
       return graph;
     }
 
+    const applyFilter = filters !== null && filters !== undefined && filters.length > 0;
+    const typeFilterIndex = applyFilter
+      ? filters.findIndex(x => x.category === 'Code File Type')
+      : -1;
+    const typeFilter = typeFilterIndex === -1 ? null : filters[typeFilterIndex];
+    const depedencyFilterIndex = applyFilter
+      ? filters.findIndex(x => x.category === 'Inputs and Outputs')
+      : -1;
+    const dependencyFilter = depedencyFilterIndex === -1 ? null : filters[depedencyFilterIndex];
     const allDeps = WorkflowUtil.getAllDependencies(asset, asset.uri);
     for (let index = 0; index < allDeps.length; index++) {
       const entry = allDeps[index];
       if (entry.asset && entry.dependencies && entry.dependencies.length > 0) {
+        // If we have a code file type filter to apply, and we are supposed to filter this
+        // asset out, skip further processing.
+        if (typeFilter && typeFilter.values.some(x => !x.value && x.key === entry.assetType)) {
+          continue;
+        }
+
         // Given how we traverse, we can assume assets will be unique
         graph.nodes.push({ id: entry.asset, assetType: entry.assetType });
         for (let depIndex = 0; depIndex < entry.dependencies.length; depIndex++) {
           const dependency = entry.dependencies[depIndex];
+
+          // If we have a dependency filter to apply, and we are supposed to filter this
+          // dependency out, skip further processing.
+          if (
+            dependencyFilter &&
+            dependencyFilter.values.some(
+              x =>
+                // Only consider filters that are turned off
+                !x.value &&
+                // If the filter is for dependencies, it is a match if there is
+                // no dependency.type value (we leave that empty).  If there is
+                // a dependency.type and it matches the key, filter it out.
+                (x.key === dependency.type ||
+                  (x.key === Constants.DependencyType.DEPENDENCY && !dependency.type))
+            )
+          ) {
+            continue;
+          }
+
           const dependencyId = dependency.id;
           // We need to see if we already have an dependency before we add it as a node (to avoid
           // duplicate nodes with the same ID).
           if (!graph.nodes.some(n => n.id === dependencyId)) {
             graph.nodes.push({
               id: dependencyId,
-              assetType: dependency.type ? dependency.type : 'dependency'
+              assetType: dependency.type ? dependency.type : Constants.DependencyType.DEPENDENCY
             });
           }
           // Likewise, we have to make sure that any edge is unique before we add it
-          const source = dependency.direction === 'in' ? dependencyId : entry.asset;
-          const target = dependency.direction === 'in' ? entry.asset : dependencyId;
+          const source =
+            dependency.direction === Constants.DependencyDirection.IN ? dependencyId : entry.asset;
+          const target =
+            dependency.direction === Constants.DependencyDirection.IN ? entry.asset : dependencyId;
           if (!graph.links.some(l => l.source === source && l.target === target)) {
             graph.links.push({ source, target });
           }
@@ -157,43 +196,19 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, RHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, SASHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, StataHandler.id, libraries, inputs, outputs);
-    // const pythonMetadata = AssetUtil.getHandlerMetadata(PythonHandler.id, asset.metadata);
-    // if (pythonMetadata) {
-    //   libraries.push(...pythonMetadata.libraries);
-    //   inputs.push(...pythonMetadata.inputs);
-    //   outputs.push(...pythonMetadata.outputs);
-    // }
-    // const rMetadata = AssetUtil.getHandlerMetadata(RHandler.id, asset.metadata);
-    // if (rMetadata) {
-    //   libraries.push(...rMetadata.libraries);
-    //   inputs.push(...rMetadata.inputs);
-    //   outputs.push(...rMetadata.outputs);
-    // }
-    // const sasMetadata = AssetUtil.getHandlerMetadata(SASHandler.id, asset.metadata);
-    // if (sasMetadata) {
-    //   libraries.push(...sasMetadata.libraries);
-    //   inputs.push(...sasMetadata.inputs);
-    //   outputs.push(...sasMetadata.outputs);
-    // }
-    // const stataMetadata = AssetUtil.getHandlerMetadata(StataHandler.id, asset.metadata);
-    // if (stataMetadata) {
-    //   libraries.push(...stataMetadata.libraries);
-    //   inputs.push(...stataMetadata.inputs);
-    //   outputs.push(...stataMetadata.outputs);
-    // }
+
     return libraries
       .map(e => {
-        return { ...e, direction: 'in' };
+        return { ...e, direction: Constants.DependencyDirection.IN };
       })
       .concat(
         inputs.map(e => {
-          return { ...e, direction: 'in' };
+          return { ...e, direction: Constants.DependencyDirection.IN };
         }),
         outputs.map(e => {
-          return { ...e, direction: 'out' };
+          return { ...e, direction: Constants.DependencyDirection.OUT };
         })
       );
-    // return libraries.concat(inputs, outputs);
   }
 
   /**

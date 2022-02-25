@@ -44,9 +44,6 @@ export default class ProjectUtil {
     // Only add the filter value if we don't already have it.
     const key = getter(asset);
     if (key && filter.values.findIndex(x => x.key === key) === -1) {
-      if (filter.category === 'Content Type') {
-        console.log(asset.uri, key);
-      }
       filter.values.push({ key, label: key, value: true });
     }
     if (asset.children) {
@@ -286,6 +283,29 @@ export default class ProjectUtil {
     ProjectUtil._processAssetAndDescendantsForFilter(assets, codeTypeFilter, _codeTypeFunc);
     if (codeTypeFilter.values.length > 0) {
       filters.push(codeTypeFilter);
+    }
+
+    // We get back a flat list of dependencies, so no recursive processing is needed for these
+    const dependenciesFilter = { category: 'Inputs and Outputs', values: [] };
+    const assetDepedencies = WorkflowUtil.getAllDependencies(assets);
+    if (!assetDepedencies) {
+      return filters;
+    }
+    assetDepedencies.forEach(x => {
+      if (x.assetType && x.assetType !== 'generic') {
+        x.dependencies.forEach(d => {
+          const type = d.type ? d.type : Constants.DependencyType.DEPENDENCY;
+          if (dependenciesFilter.values.findIndex(i => i.key === type) === -1) {
+            dependenciesFilter.values.push({ key: type, label: type, value: true });
+          }
+        });
+      }
+    });
+    if (dependenciesFilter.values.length > 0) {
+      dependenciesFilter.values.sort((a, b) =>
+        a.label > b.label ? 1 : b.label > a.label ? -1 : 0
+      );
+      filters.push(dependenciesFilter);
     }
 
     return filters;

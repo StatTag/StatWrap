@@ -2,6 +2,7 @@
 /* eslint-disable valid-jsdoc */
 import React from 'react';
 import styles from './CodeNode.css';
+import Constants from '../../../../../constants/constants';
 
 const ICON_PATH = './images/';
 
@@ -32,9 +33,9 @@ function CodeNode({ node, renderType }) {
     iconUrl = ICON_TYPES.STATA;
   } else if (node.assetType === 'dependency') {
     iconUrl = ICON_TYPES.LIBRARY;
-  } else if (node.assetType === 'data') {
+  } else if (node.assetType === Constants.DependencyType.DATA) {
     iconUrl = ICON_TYPES.DATA;
-  } else if (node.assetType === 'figure') {
+  } else if (node.assetType === Constants.DependencyType.FIGURE) {
     iconUrl = ICON_TYPES.FIGURE;
   }
 

@@ -50,5 +50,16 @@ module.exports = {
   DescriptionContentType: {
     URI: 'URI',
     MARKDOWN: 'Markdown'
+  },
+
+  DependencyDirection: {
+    IN: 'in',
+    OUT: 'out'
+  },
+
+  DependencyType: {
+    DEPENDENCY: 'dependency',
+    FIGURE: 'figure',
+    DATA: 'data'
   }
 };

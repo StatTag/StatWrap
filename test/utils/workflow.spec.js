@@ -1,4 +1,6 @@
+/* eslint-disable no-underscore-dangle */
 import WorkflowUtil from '../../app/utils/workflow';
+import Constants from '../../app/constants/constants';
 
 describe('services', () => {
   describe('WorkwlowUtil', () => {
@@ -224,6 +226,102 @@ describe('services', () => {
             { source: 'sys', target: '1/1' },
             { source: 'sys', target: '2' }
           ]
+        });
+      });
+      it('should filter out items from the graph', () => {
+        const asset = {
+          uri: '/test/1',
+          children: [
+            {
+              uri: '/test/1/1',
+              children: [
+                {
+                  uri: '/test/1/1/1',
+                  metadata: [
+                    {
+                      id: 'StatWrap.RHandler',
+                      libraries: [
+                        {
+                          id: 'dplyr',
+                          package: 'dplyr'
+                        }
+                      ],
+                      inputs: [
+                        {
+                          id: 'r.csv',
+                          type: Constants.DependencyType.DATA,
+                          path: 'r.csv'
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              uri: '/test/1/2',
+              metadata: [
+                {
+                  id: 'StatWrap.PythonHandler',
+                  libraries: [
+                    {
+                      id: 'sys',
+                      module: 'sys',
+                      import: null,
+                      alias: null
+                    }
+                  ],
+                  inputs: [
+                    {
+                      id: 'tmp',
+                      type: Constants.DependencyType.DATA,
+                      path: 'python.csv'
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        };
+        const filters = [
+          {
+            category: 'Code File Type',
+            values: [
+              {
+                key: 'python',
+                label: 'python',
+                value: false
+              },
+              {
+                key: 'r',
+                label: 'r',
+                value: true
+              }
+            ]
+          },
+          {
+            category: 'Inputs and Outputs',
+            values: [
+              {
+                key: 'dependency',
+                label: 'dependency',
+                value: false
+              },
+              {
+                key: 'data',
+                label: 'data',
+                value: true
+              }
+            ]
+          }
+        ];
+        const graph = WorkflowUtil.getAllDependenciesAsGraph(asset, filters);
+        expect(graph).toEqual({
+          nodes: [
+            { id: '1/1', assetType: 'r' },
+            { id: 'r.csv', assetType: 'data' }
+          ],
+          links: [{ source: 'r.csv', target: '1/1' }]
         });
       });
     });

@@ -1,5 +1,7 @@
+/* eslint-disable no-underscore-dangle */
 import ProjectUtil from '../../app/utils/project';
 import Constants from '../../app/constants/constants';
+import WorkflowUtil from '../../app/utils/workflow';
 
 describe('utils', () => {
   describe('ProjectUtil', () => {
@@ -156,6 +158,10 @@ describe('utils', () => {
       });
     });
 
+    // Tests for getWorkflowFilters may seem a little light.  We need to make sure we have good coverage,
+    // but this method makes heavy use of other functions that are otherwise tested.  Because we don't need
+    // to exhaustively re-test those used functions, this covers the code/situations specific to this new
+    // function.
     describe('getWorkflowFilters', () => {
       it('returns an empty filter for null/empty assets', () => {
         expect(ProjectUtil.getWorkflowFilters(null)).toStrictEqual([]);
@@ -166,6 +172,168 @@ describe('utils', () => {
         expect(
           ProjectUtil.getWorkflowFilters({ type: Constants.AssetType.DIRECTORY })
         ).toStrictEqual([]);
+      });
+      it('does not return IO filter when asset has no dependency', () => {
+        jest.spyOn(WorkflowUtil, 'getAllDependencies').mockReturnValue([]);
+        const assets = {
+          type: Constants.AssetType.FILE,
+          contentType: Constants.AssetContentType.CODE,
+          metadata: [
+            {
+              id: 'StatWrap.PythonHandler'
+            }
+          ]
+        };
+        expect(ProjectUtil.getWorkflowFilters(assets)).toStrictEqual([
+          {
+            category: 'Code File Type',
+            values: [{ key: 'python', label: 'python', value: true }]
+          }
+        ]);
+      });
+      it('does not return filters when there are no code files', () => {
+        jest.spyOn(WorkflowUtil, 'getAllDependencies').mockReturnValue([
+          {
+            asset: 'test',
+            // Everything else looks like a code file, but we've set this to 'generic' so
+            // that means it should never be considered a code file when we are building
+            // our filter.
+            assetType: 'generic',
+            dependencies: [
+              {
+                type: 'data'
+              }
+            ]
+          }
+        ]);
+        const assets = {
+          type: Constants.AssetType.FILE,
+          contentType: Constants.AssetContentType.OTHER,
+          metadata: [
+            {
+              id: 'StatWrap.PythonHandler'
+            }
+          ]
+        };
+        expect(ProjectUtil.getWorkflowFilters(assets)).toStrictEqual([]);
+      });
+      it('returns a filter for a single asset', () => {
+        jest.spyOn(WorkflowUtil, 'getAllDependencies').mockReturnValue([
+          {
+            asset: 'test',
+            assetType: 'python',
+            dependencies: [
+              {
+                type: 'data'
+              }
+            ]
+          }
+        ]);
+        const assets = {
+          type: Constants.AssetType.FILE,
+          contentType: Constants.AssetContentType.CODE,
+          metadata: [
+            {
+              id: 'StatWrap.PythonHandler'
+            }
+          ]
+        };
+        expect(ProjectUtil.getWorkflowFilters(assets)).toStrictEqual([
+          {
+            category: 'Code File Type',
+            values: [{ key: 'python', label: 'python', value: true }]
+          },
+          {
+            category: 'Inputs and Outputs',
+            values: [{ key: 'data', label: 'data', value: true }]
+          }
+        ]);
+      });
+      it('returns and sorts filters for multiple assets', () => {
+        jest.spyOn(WorkflowUtil, 'getAllDependencies').mockReturnValue([
+          {
+            asset: 'test',
+            assetType: 'r',
+            dependencies: [
+              {
+                type: 'data'
+              }
+            ]
+          },
+          // Make sure we remove duplicates
+          {
+            asset: 'test2',
+            assetType: 'python',
+            dependencies: [
+              {
+                type: 'data'
+              }
+            ]
+          },
+          // Not a real dependency type, but tests sorting
+          {
+            asset: 'test3',
+            assetType: 'r',
+            dependencies: [
+              {
+                type: 'aaa'
+              }
+            ]
+          }
+        ]);
+        const assets = {
+          type: Constants.AssetType.DIRECTORY,
+          children: [
+            {
+              type: Constants.AssetType.DIRECTORY,
+              children: [
+                {
+                  type: Constants.AssetType.FILE,
+                  contentType: Constants.AssetContentType.CODE,
+                  metadata: [
+                    {
+                      id: 'StatWrap.RHandler'
+                    }
+                  ]
+                },
+                {
+                  type: Constants.AssetType.FILE,
+                  contentType: Constants.AssetContentType.CODE,
+                  metadata: [
+                    {
+                      id: 'StatWrap.PythonHandler'
+                    }
+                  ]
+                },
+                {
+                  type: Constants.AssetType.FILE,
+                  contentType: Constants.AssetContentType.CODE,
+                  metadata: [
+                    {
+                      id: 'StatWrap.RHandler'
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        };
+        expect(ProjectUtil.getWorkflowFilters(assets)).toStrictEqual([
+          {
+            category: 'Code File Type',
+            values: [
+              { key: 'python', label: 'python', value: true },
+              { key: 'r', label: 'r', value: true }
+            ]
+          },
+          {
+            category: 'Inputs and Outputs',
+            values: [
+              { key: 'aaa', label: 'aaa', value: true },
+              { key: 'data', label: 'data', value: true }
+            ]
+          }
+        ]);
       });
     });
 
