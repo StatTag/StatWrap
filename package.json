@@ -302,7 +302,7 @@
     "source-map-support": "^0.5.16",
     "styled-components": "^5.2.1",
     "stylelint-config-standard-scss": "^3.0.0",
-    "url-parse": "^1.5.6",
+    "url-parse": "^1.5.8",
     "username": "^5.1.0",
     "uuid": "^8.1.0",
     "winston": "^3.3.3",
