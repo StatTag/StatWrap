@@ -21,3 +21,7 @@
   display: inline-block;
   vertical-align: top;
 }
+
+.toolbarButton {
+  font-size: 0.8rem !important;
+}

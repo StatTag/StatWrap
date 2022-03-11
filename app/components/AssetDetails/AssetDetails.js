@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { withStyles } from '@mui/styles';
 import Accordion from '@mui/material/Accordion';
 import MuiAccordionSummary from '@mui/material/AccordionSummary';
@@ -40,6 +40,24 @@ const assetDetails = props => {
     sourceControlEnabled,
     dynamicDetails
   } = props;
+
+  const [expandNotes, setExpandNotes] = useState(false);
+  const [notesLabel, setNotesLabel] = useState('Notes (0)');
+
+  useEffect(() => {
+    if (asset && asset.notes) {
+      setNotesLabel(`Notes (${asset.notes.length})`);
+      setExpandNotes(asset.notes.length > 0);
+    } else {
+      setNotesLabel(`Notes (0)`);
+      setExpandNotes(false);
+    }
+  }, [asset]);
+
+  const clickNotesAccordionHandler = () => {
+    setExpandNotes(prevState => !prevState);
+  };
+
   const updatedNoteHandler = (note, text) => {
     if (note) {
       if (onUpdatedNote) {
@@ -69,7 +87,7 @@ const assetDetails = props => {
       dynamicDetailsContainer = <SourceControlHistory history={dynamicDetails.sourceControl} />;
     }
     sourceControlAccordion = (
-      <Accordion expanded>
+      <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="source-control-content"
@@ -83,24 +101,16 @@ const assetDetails = props => {
     );
   }
 
-  let hasNotes = false;
-  let notesLabel = 'Notes (0)';
-  if (asset) {
-    if (asset.notes) {
-      notesLabel = `Notes (${asset.notes.length})`;
-      hasNotes = asset.notes.length > 0;
-    }
-  }
-
   return (
     <div className={styles.container}>
       <div className={styles.title}>{asset.uri}</div>
-      <Accordion expanded={hasNotes}>
+      <Accordion expanded={expandNotes}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="notes-content"
           id="notes-header"
           className={styles.heading}
+          onClick={clickNotesAccordionHandler}
         >
           <Typography className={styles.headingTitle}>{notesLabel}</Typography>
         </AccordionSummary>
