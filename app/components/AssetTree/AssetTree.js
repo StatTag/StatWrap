@@ -66,11 +66,14 @@ class AssetTree extends Component {
       <AssetNode
         onClick={this.handleClick}
         root
+        id={this.props.assets.uri}
         key={this.props.assets.uri}
         node={this.props.assets}
         openNodes={this.state.expandedNodes}
         selectedAsset={this.props.selectedAsset}
+        checkboxes={this.props.checkboxes}
         onToggle={this.onToggle}
+        onCheck={this.props.onCheckAsset}
       />
     );
 
@@ -81,11 +84,15 @@ class AssetTree extends Component {
 AssetTree.propTypes = {
   assets: PropTypes.object.isRequired,
   onSelectAsset: PropTypes.func.isRequired,
-  selectedAsset: PropTypes.object
+  onCheckAsset: PropTypes.func,
+  selectedAsset: PropTypes.object,
+  checkboxes: PropTypes.bool
 };
 
 AssetTree.defaultProps = {
-  selectedAsset: null
+  selectedAsset: null,
+  checkboxes: false,
+  onCheckAsset: null
 };
 
 export default AssetTree;

@@ -178,3 +178,16 @@ We collect 3 categories of metadata for Stata code files:
 **Libraries**
 
 External programs and plugins, and references to Do files to run via another script.
+
+## Asset Groups
+
+By default StatWrap mimics the traditional hierarchical file system view. However, we realize that not all assets will be within a single file system (or may not even be files / folders). Also, we want to allow users to establish other groups of assets that make sense to them. Asset Groups will be a way for users to do this, and StatWrap will store these within the [Project](Projects.md) metadata.
+
+For a project, the asset groups will be stored as part of an array within the `assetGroups` attribute, and each object will have the following structure:
+
+| Item      | Type     | Description                                                                                                                                         |
+| --------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`      | `uuid`   | A generated unique identifier for the asset group within the project                                                                                |
+| `name`    | `string` | The display name of the asset group. Within the user interface we will require the user to make this unique to avoid confusion.                     |
+| `details` | `string` | User-provided details and description of what the asset group contains/represents                                                                   |
+| `assets`  | `array`  | Array of asset URIs that are part of the group. Assets that are related to file system objects will be converted to relative paths for portability. |

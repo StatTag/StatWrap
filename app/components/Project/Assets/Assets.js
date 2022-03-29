@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { IconButton } from '@mui/material';
-import { FaPaperclip, FaPlusSquare, FaMinusSquare } from 'react-icons/fa';
+import { FaPaperclip, FaPlusSquare, FaMinusSquare, FaSave, FaBan } from 'react-icons/fa';
+import AssetGroupDialog from '../../../containers/AssetGroupDialog/AssetGroupDialog';
 import Error from '../../Error/Error';
 import AssetTree from '../../AssetTree/AssetTree';
 import AssetDetails from '../../AssetDetails/AssetDetails';
 import AssetFilter from '../../Filter/Filter';
 import Loading from '../../Loading/Loading';
 import AssetUtil from '../../../utils/asset';
+import GeneralUtil from '../../../utils/general';
 import ProjectUtil from '../../../utils/project';
 import styles from './Assets.css';
 
@@ -24,9 +26,23 @@ const assetsComponent = props => {
   const [selectedAsset, setSelectedAsset] = useState();
   const [assets, setAssets] = useState(null);
   const treeRef = React.useRef(null);
+  const [mode, setMode] = useState('default'); // 'default', 'paperclip'
+  // This key is part of a trick to get React to throw out and recreate the Asset Group
+  // dialog when we have disposed of it - either by creating a project or cancelling.  This
+  // tracks a sequential number that, when changed, signals React that the dialog can be
+  // recreated. We don't care what this key is, it just has to change.
+  const [dialogKey, setDialogKey] = useState(0);
+  // UI state flag to let us know when we're in the process of adding/editing a group
+  const [editingGroup, setEditingGroup] = useState(false);
+  const [groupedAssets, setGroupedAssets] = useState([]);
 
   const filteredProjectAssets =
     !project || !project.assets ? null : AssetUtil.filterIncludedFileAssets(project.assets);
+
+  // Reset the mode whenever the project is changed
+  useEffect(() => {
+    setMode('default');
+  }, [project]);
 
   // Because our project property can change, the asset that we have in state as the selected
   // asset may have actually changed.  We need to detect that and refresh the selected asset
@@ -72,7 +88,28 @@ const assetsComponent = props => {
     setAssets(filteredAssets);
   };
 
-  const handleGroupAssets = () => {};
+  const handleSaveAssetGroup = () => {
+    setDialogKey(dialogKey + 1);
+    setEditingGroup(true);
+    setMode('default');
+  };
+
+  const handleCloseAssetGroupDialog = () => {
+    setEditingGroup(false);
+  };
+
+  const handleSavedAssetGroup = data => {
+    console.log(data);
+  };
+
+  const handleCheckAsset = (asset, value) => {
+    console.log(asset, value);
+    setGroupedAssets(prevState => {
+      const newAssetGroup = [...prevState];
+      GeneralUtil.toggleStringInArray(newAssetGroup, asset, value);
+      return newAssetGroup;
+    });
+  };
 
   let assetDisplay = null;
   if (project) {
@@ -90,6 +127,28 @@ const assetsComponent = props => {
       />
     ) : null;
     if (assets) {
+      let subMenu = null;
+      if (mode === 'paperclip') {
+        subMenu = (
+          <>
+            <IconButton
+              className={styles.toolbarButton}
+              aria-label="save asset group"
+              onClick={handleSaveAssetGroup}
+            >
+              <FaSave fontSize="small" /> &nbsp; Save Asset Group
+            </IconButton>
+            <IconButton
+              className={styles.toolbarButton}
+              aria-label="cancel creating asset group"
+              onClick={() => setMode('default')}
+            >
+              <FaBan fontSize="small" /> &nbsp; Cancel
+            </IconButton>
+          </>
+        );
+      }
+
       // Note that for the AssetFilter component, we always want that to be the original
       // full list of assets.  That's why we use project.assets for that component's
       // propery, and the assets state variable for the AssetTree.
@@ -121,16 +180,20 @@ const assetsComponent = props => {
                 <FaMinusSquare fontSize="small" /> &nbsp;Collapse Assets
               </IconButton>
               <IconButton
-                onClick={handleGroupAssets}
+                onClick={() => setMode('paperclip')}
                 className={styles.toolbarButton}
+                disabled={mode === 'paperclip'}
                 aria-label="group assets together"
               >
-                <FaPaperclip fontSize="small" /> &nbsp; Group Assets
+                <FaPaperclip fontSize="small" /> &nbsp; New Asset Group
               </IconButton>
+              {subMenu}
             </div>
             <AssetTree
               assets={assets}
               ref={treeRef}
+              checkboxes={mode === 'paperclip'}
+              onCheckAsset={handleCheckAsset}
               onSelectAsset={asset => {
                 setSelectedAsset(asset);
                 if (onSelectedAsset) {
@@ -141,6 +204,13 @@ const assetsComponent = props => {
             />
           </div>
           <div className={styles.details}>{assetDetails}</div>
+          <AssetGroupDialog
+            key={dialogKey}
+            open={editingGroup}
+            onClose={handleCloseAssetGroupDialog}
+            onSave={handleSavedAssetGroup}
+            assets={groupedAssets}
+          />
         </>
       );
     }

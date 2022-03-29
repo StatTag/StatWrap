@@ -89,4 +89,27 @@ export default class GeneralUtil {
 
     return user.name.display;
   }
+
+  /**
+   * Modify an array of strings to either add the string (if include is true), or ensure
+   * it is removed if include is false.
+   * @param {array} array Array of strings
+   * @param {string} item String item to include or exclude
+   * @param {bool} include Whether or not to include item in array
+   * @returns The updated array
+   */
+  static toggleStringInArray(array, item, include) {
+    // If the input array is null or undefined, we will not process it and just return
+    if (array === null || array === undefined || item === null || item === undefined) {
+      return array;
+    }
+
+    const index = array.indexOf(item);
+    if (index === -1 && include) {
+      array.push(item);
+    } else if (index > -1 && !include) {
+      array.splice(index, 1);
+    }
+    return array;
+  }
 }

@@ -1,5 +1,5 @@
 /* eslint-disable react/forbid-prop-types */
-import React from 'react';
+import React, { useState } from 'react';
 import { FaFile, FaFolder, FaFolderOpen, FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
@@ -27,9 +27,28 @@ const NodeIcon = styled.div`
   margin-right: ${props => (props.marginRight ? props.marginRight : 5)}px;
 `;
 
+const StyledInput = styled.input`
+  margin-right: 5px;
+`;
+
 const AssetNode = props => {
+  const [checked, setChecked] = useState(false);
   const { node, root, openNodes, selectedAsset, level, onToggle, onRightClick, onClick } = props;
   const isOpen = root || openNodes.includes(node.uri);
+
+  const handleChecked = () => {
+    setChecked(prevState => {
+      if (props.onCheck) {
+        props.onCheck(props.id, !prevState);
+      }
+
+      return !prevState;
+    });
+  };
+
+  const checkbox = props.checkboxes ? (
+    <StyledInput checked={checked} onChange={handleChecked} type="checkbox" />
+  ) : null;
   return (
     <>
       <StyledTreeNode
@@ -52,7 +71,7 @@ const AssetNode = props => {
           {node.type === Constants.AssetType.DIRECTORY &&
             (isOpen ? <FaChevronDown /> : <FaChevronRight />)}
         </NodeIcon>
-
+        {checkbox}
         <NodeIcon marginRight={10}>
           {node.type === Constants.AssetType.FILE && <FaFile />}
           {node.type === Constants.AssetType.DIRECTORY && isOpen === true && <FaFolderOpen />}
@@ -67,6 +86,7 @@ const AssetNode = props => {
           ? null
           : node.children.map(childNode => (
               <AssetNode
+                id={childNode.uri}
                 key={childNode.uri}
                 node={childNode}
                 level={level + 1}
@@ -75,6 +95,8 @@ const AssetNode = props => {
                 onToggle={onToggle}
                 onClick={onClick}
                 onRightClick={onRightClick}
+                checkboxes={props.checkboxes}
+                onCheck={props.onCheck}
               />
             )))}
     </>
@@ -82,6 +104,7 @@ const AssetNode = props => {
 };
 
 AssetNode.propTypes = {
+  id: PropTypes.string.isRequired,
   node: PropTypes.object.isRequired,
   root: PropTypes.bool,
   selectedAsset: PropTypes.object,
@@ -89,7 +112,9 @@ AssetNode.propTypes = {
   onToggle: PropTypes.func,
   onRightClick: PropTypes.func,
   onClick: PropTypes.func,
-  openNodes: PropTypes.array
+  onCheck: PropTypes.func,
+  openNodes: PropTypes.array,
+  checkboxes: PropTypes.bool
 };
 
 AssetNode.defaultProps = {
@@ -97,9 +122,11 @@ AssetNode.defaultProps = {
   onToggle: null,
   onRightClick: null,
   onClick: null,
+  onCheck: null,
   level: 0,
   selectedAsset: null,
-  openNodes: []
+  openNodes: [],
+  checkboxes: false
 };
 
 export default AssetNode;

@@ -727,6 +727,21 @@ ipcMain.on(Messages.SAVE_USER_PROFILE_REQUEST, async (event, user) => {
 });
 
 /**
+ * Called when the user is trying to create a new group of assets
+ */
+ipcMain.on(Messages.SAVE_ASSET_GROUP_REQUEST, async (event, data) => {
+  const response = {
+    data,
+    error: false,
+    errorMessage: ''
+  };
+
+  console.log(response);
+
+  event.sender.send(Messages.SAVE_ASSET_GROUP_RESPONSE, response);
+});
+
+/**
  * Several attributes related to assets are cached/saved.  However, some things may change on a more
  * frequent basis to the point we do not want to cache then and instead want to pull them in real time.
  * We'll call these 'dynamic details' to clarify.
