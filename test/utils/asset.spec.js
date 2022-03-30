@@ -1,4 +1,5 @@
 import AssetUtil from '../../app/utils/asset';
+import Constants from '../../app/constants/constants';
 
 describe('services', () => {
   describe('AssetUtil', () => {
@@ -29,6 +30,30 @@ describe('services', () => {
         ];
         expect(AssetUtil.getHandlerMetadata('Test.Id', metadata)).not.toBeNull();
         expect(AssetUtil.getHandlerMetadata('INVALID', metadata)).toBeNull();
+      });
+    });
+
+    describe('shouldConvertPath', () => {
+      it('should return false when there is no asset', () => {
+        expect(AssetUtil.shouldConvertPath(null)).toBe(false);
+        expect(AssetUtil.shouldConvertPath(undefined)).toBe(false);
+      });
+
+      it('should return false when there is no type specified', () => {
+        expect(AssetUtil.shouldConvertPath({})).toBe(false);
+        expect(AssetUtil.shouldConvertPath({ type: null })).toBe(false);
+        expect(AssetUtil.shouldConvertPath({ type: undefined })).toBe(false);
+      });
+
+      it('should return false when the type is not a file system type', () => {
+        expect(AssetUtil.shouldConvertPath({ type: 'other' })).toBe(false);
+        expect(AssetUtil.shouldConvertPath({ type: 'fileish' })).toBe(false);
+      });
+
+      it('should return true when the type is a file system type', () => {
+        expect(AssetUtil.shouldConvertPath({ type: Constants.AssetType.FILE })).toBe(true);
+        expect(AssetUtil.shouldConvertPath({ type: Constants.AssetType.DIRECTORY })).toBe(true);
+        expect(AssetUtil.shouldConvertPath({ type: Constants.AssetType.FOLDER })).toBe(true);
       });
     });
 
@@ -1003,6 +1028,294 @@ describe('services', () => {
         expect(
           AssetUtil.recursiveAbsoluteToRelativePath('C:\\root\\path', absolutePathAssets)
         ).toStrictEqual(relativePathAssets);
+      });
+    });
+
+    describe('absoluteToRelativePathForArray', () => {
+      it('should return an empty array if that is what is passed in', () => {
+        expect(AssetUtil.absoluteToRelativePathForArray('/root/path', null)).toBe(null);
+        expect(AssetUtil.absoluteToRelativePathForArray('/root/path', undefined)).toBe(undefined);
+        expect(AssetUtil.absoluteToRelativePathForArray('/root/path', [])).toStrictEqual([]);
+      });
+      it.onMac('should not modify non-file and non-directory entries', () => {
+        const absolutePathAssets = [
+          {
+            uri: '/root/path',
+            type: 'directory'
+          },
+          {
+            uri: 'https://api/a/b',
+            type: 'api'
+          },
+          {
+            uri: 'b',
+            type: 'database'
+          }
+        ];
+        // This is the answer we expect
+        const relativePathAssets = [
+          {
+            uri: '',
+            type: 'directory'
+          },
+          {
+            uri: 'https://api/a/b',
+            type: 'api'
+          },
+          {
+            uri: 'b',
+            type: 'database'
+          }
+        ];
+        expect(
+          AssetUtil.absoluteToRelativePathForArray('/root/path', absolutePathAssets)
+        ).toStrictEqual(relativePathAssets);
+      });
+      it.onWindows('should not modify non-file and non-directory entries', () => {
+        const absolutePathAssets = [
+          {
+            uri: 'C:\\root\\path',
+            type: 'directory'
+          },
+          {
+            uri: 'https://api/a/b',
+            type: 'api'
+          },
+          {
+            uri: 'b',
+            type: 'database'
+          }
+        ];
+        // This is the answer we expect
+        const relativePathAssets = [
+          {
+            uri: '',
+            type: 'directory'
+          },
+          {
+            uri: 'https://api/a/b',
+            type: 'api'
+          },
+          {
+            uri: 'b',
+            type: 'database'
+          }
+        ];
+        expect(
+          AssetUtil.absoluteToRelativePathForArray('C:\\root\\path', absolutePathAssets)
+        ).toStrictEqual(relativePathAssets);
+      });
+      it.onMac('should modify file and directory entries', () => {
+        const absolutePathAssets = [
+          {
+            uri: '/root/path',
+            type: Constants.AssetType.DIRECTORY
+          },
+          {
+            uri: '/root/path/folder',
+            type: Constants.AssetType.FOLDER // Testing the alias for directory
+          },
+          {
+            uri: '/root/path/folder/file',
+            type: Constants.AssetType.FILE
+          }
+        ];
+        // This is the answer we expect
+        const relativePathAssets = [
+          {
+            uri: '',
+            type: Constants.AssetType.DIRECTORY
+          },
+          {
+            uri: 'folder',
+            type: Constants.AssetType.FOLDER
+          },
+          {
+            uri: 'folder/file',
+            type: Constants.AssetType.FILE
+          }
+        ];
+        expect(
+          AssetUtil.absoluteToRelativePathForArray('/root/path', absolutePathAssets)
+        ).toStrictEqual(relativePathAssets);
+      });
+      it.onWindows('should modify file and directory entries', () => {
+        const absolutePathAssets = [
+          {
+            uri: 'C:\\root\\path',
+            type: Constants.AssetType.DIRECTORY
+          },
+          {
+            uri: 'C:\\root\\path\\folder',
+            type: Constants.AssetType.FOLDER // Testing the alias for directory
+          },
+          {
+            uri: 'C:\\root\\path\\folder\\file',
+            type: Constants.AssetType.FILE
+          }
+        ];
+        // This is the answer we expect
+        const relativePathAssets = [
+          {
+            uri: '',
+            type: Constants.AssetType.DIRECTORY
+          },
+          {
+            uri: 'folder',
+            type: Constants.AssetType.FOLDER
+          },
+          {
+            uri: 'folder\\file',
+            type: Constants.AssetType.FILE
+          }
+        ];
+        expect(
+          AssetUtil.absoluteToRelativePathForArray('C:\\root\\path', absolutePathAssets)
+        ).toStrictEqual(relativePathAssets);
+      });
+    });
+
+    describe('relativeToAbsolutePathForArray', () => {
+      it('should return an empty array if that is what is passed in', () => {
+        expect(AssetUtil.relativeToAbsolutePathForArray('/root/path', null)).toBe(null);
+        expect(AssetUtil.relativeToAbsolutePathForArray('/root/path', undefined)).toBe(undefined);
+        expect(AssetUtil.relativeToAbsolutePathForArray('/root/path', [])).toStrictEqual([]);
+      });
+      it.onMac('should not modify non-file and non-directory entries', () => {
+        const absolutePathAssets = [
+          {
+            uri: '/root/path',
+            type: 'directory'
+          },
+          {
+            uri: 'https://api/a/b',
+            type: 'api'
+          },
+          {
+            uri: 'b',
+            type: 'database'
+          }
+        ];
+        // This is the answer we expect
+        const relativePathAssets = [
+          {
+            uri: '',
+            type: 'directory'
+          },
+          {
+            uri: 'https://api/a/b',
+            type: 'api'
+          },
+          {
+            uri: 'b',
+            type: 'database'
+          }
+        ];
+        expect(
+          AssetUtil.relativeToAbsolutePathForArray('/root/path', relativePathAssets)
+        ).toStrictEqual(absolutePathAssets);
+      });
+      it.onWindows('should not modify non-file and non-directory entries', () => {
+        const absolutePathAssets = [
+          {
+            uri: 'C:\\root\\path',
+            type: 'directory'
+          },
+          {
+            uri: 'https://api/a/b',
+            type: 'api'
+          },
+          {
+            uri: 'b',
+            type: 'database'
+          }
+        ];
+        // This is the answer we expect
+        const relativePathAssets = [
+          {
+            uri: '',
+            type: 'directory'
+          },
+          {
+            uri: 'https://api/a/b',
+            type: 'api'
+          },
+          {
+            uri: 'b',
+            type: 'database'
+          }
+        ];
+        expect(
+          AssetUtil.relativeToAbsolutePathForArray('C:\\root\\path', relativePathAssets)
+        ).toStrictEqual(absolutePathAssets);
+      });
+      it.onMac('should modify file and directory entries', () => {
+        const absolutePathAssets = [
+          {
+            uri: '/root/path',
+            type: Constants.AssetType.DIRECTORY
+          },
+          {
+            uri: '/root/path/folder',
+            type: Constants.AssetType.FOLDER // Testing the alias for directory
+          },
+          {
+            uri: '/root/path/folder/file',
+            type: Constants.AssetType.FILE
+          }
+        ];
+        // This is the answer we expect
+        const relativePathAssets = [
+          {
+            uri: '',
+            type: Constants.AssetType.DIRECTORY
+          },
+          {
+            uri: 'folder',
+            type: Constants.AssetType.FOLDER
+          },
+          {
+            uri: 'folder/file',
+            type: Constants.AssetType.FILE
+          }
+        ];
+        expect(
+          AssetUtil.relativeToAbsolutePathForArray('/root/path', relativePathAssets)
+        ).toStrictEqual(absolutePathAssets);
+      });
+      it.onWindows('should modify file and directory entries', () => {
+        const absolutePathAssets = [
+          {
+            uri: 'C:\\root\\path',
+            type: Constants.AssetType.DIRECTORY
+          },
+          {
+            uri: 'C:\\root\\path\\folder',
+            type: Constants.AssetType.FOLDER // Testing the alias for directory
+          },
+          {
+            uri: 'C:\\root\\path\\folder\\file',
+            type: Constants.AssetType.FILE
+          }
+        ];
+        // This is the answer we expect
+        const relativePathAssets = [
+          {
+            uri: '',
+            type: Constants.AssetType.DIRECTORY
+          },
+          {
+            uri: 'folder',
+            type: Constants.AssetType.FOLDER
+          },
+          {
+            uri: 'folder\\file',
+            type: Constants.AssetType.FILE
+          }
+        ];
+        expect(
+          AssetUtil.relativeToAbsolutePathForArray('C:\\root\\path', relativePathAssets)
+        ).toStrictEqual(absolutePathAssets);
       });
     });
   });

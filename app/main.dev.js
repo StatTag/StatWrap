@@ -31,6 +31,7 @@ import Messages from './constants/messages';
 import Constants from './constants/constants';
 import AssetsConfig from './constants/assets-config';
 import AssetUtil from './utils/asset';
+import ProjectUtil from './utils/project';
 
 // Initialize @electron/remote
 initialize();
@@ -172,6 +173,10 @@ const saveProject = project => {
       );
       projectConfig.notes = project.notes;
       projectConfig.people = project.people;
+      projectConfig.assetGroups = AssetUtil.absoluteToRelativePathForArray(
+        project.path,
+        project.assetGroups
+      );
       projectService.saveProjectFile(project.path, projectConfig);
 
       // Reload the project configuration.  Depending on what's changed, we may need to re-load it
@@ -237,6 +242,10 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
         fullProject.categories = metadata.categories;
         fullProject.notes = metadata.notes;
         fullProject.people = metadata.people;
+        fullProject.assetGroups = AssetUtil.relativeToAbsolutePathForArray(
+          project.path,
+          metadata.assetGroups
+        );
         fullProject.loadError = false;
       }
       return fullProject;
@@ -498,6 +507,7 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
       response.project.sourceControlEnabled = await sourceControlService.hasSourceControlEnabled(
         project.path
       );
+      response.project.assetGroups = projectConfig.assetGroups;
 
       const saveResponse = saveProject(response.project);
       response.project = saveResponse.project; // Pick up any enrichment from saveProject
@@ -729,15 +739,42 @@ ipcMain.on(Messages.SAVE_USER_PROFILE_REQUEST, async (event, user) => {
 /**
  * Called when the user is trying to create a new group of assets
  */
-ipcMain.on(Messages.SAVE_ASSET_GROUP_REQUEST, async (event, data) => {
+ipcMain.on(Messages.SAVE_ASSET_GROUP_REQUEST, async (event, project, group) => {
   const response = {
-    data,
+    project,
+    group,
     error: false,
     errorMessage: ''
   };
 
-  console.log(response);
+  if (!project || project === undefined) {
+    response.error = true;
+    response.errorMessage = 'There was an error saving the asset group - no project was provided';
+    event.sender.send(Messages.SAVE_ASSET_GROUP_RESPONSE, response);
+    return;
+  }
 
+  if (!group || group === undefined) {
+    response.error = true;
+    response.errorMessage =
+      'There was an error saving the asset group - no asset group was provided';
+    event.sender.send(Messages.SAVE_ASSET_GROUP_RESPONSE, response);
+    return;
+  }
+
+  AssetUtil.absoluteToRelativePathForArray(project.path, group.assets);
+  ProjectUtil.upsertAssetGroup(project, group);
+
+  // Do the saving of the project with the group details.  If this fails for any reason, capture and
+  // return the error we get.
+  const projectResponse = saveProject(project);
+  if (projectResponse.error) {
+    response.error = projectResponse.error;
+    response.errorMessage = projectResponse.errorMessage;
+  }
+
+  console.log(response);
+  // await sleep(5000);  // Use to test delays.  Leave disabled in production.
   event.sender.send(Messages.SAVE_ASSET_GROUP_RESPONSE, response);
 });
 

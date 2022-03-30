@@ -25,6 +25,7 @@ class AssetGroupDialog extends Component {
     super(props);
     console.log(props);
     this.state = {
+      project: props.project,
       errorMessage: null,
       id: props.id ? props.id : null,
       name: props.name ? props.name : '',
@@ -51,7 +52,7 @@ class AssetGroupDialog extends Component {
   handleSaveAssetGroupCompleted(sender, response) {
     if (response && !response.error) {
       if (this.props.onSave) {
-        this.props.onSave(response.data);
+        this.props.onSave(response.group);
       }
       this.props.onClose(true);
     } else {
@@ -67,7 +68,7 @@ class AssetGroupDialog extends Component {
       assets: this.state.assets
     };
     console.log(group);
-    ipcRenderer.send(Messages.SAVE_ASSET_GROUP_REQUEST, group);
+    ipcRenderer.send(Messages.SAVE_ASSET_GROUP_REQUEST, this.state.project, group);
   }
 
   handleInputChange(event) {
@@ -140,13 +141,14 @@ class AssetGroupDialog extends Component {
 }
 
 AssetGroupDialog.propTypes = {
+  project: PropTypes.object.isRequired,
   id: PropTypes.string,
   name: PropTypes.string,
   details: PropTypes.string,
   assets: PropTypes.array,
   onClose: PropTypes.func.isRequired,
   open: PropTypes.bool,
-  // Triggered on a successful save of the person
+  // Triggered on a successful save of the group
   onSave: PropTypes.func
 };
 

@@ -206,6 +206,7 @@ const assetsComponent = props => {
           <div className={styles.details}>{assetDetails}</div>
           <AssetGroupDialog
             key={dialogKey}
+            project={project}
             open={editingGroup}
             onClose={handleCloseAssetGroupDialog}
             onSave={handleSavedAssetGroup}

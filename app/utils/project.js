@@ -1,8 +1,12 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable func-names */
+import { v4 as uuid } from 'uuid';
 import WorkflowUtil from './workflow';
 import Constants from '../constants/constants';
+
+// Used to verify that we have at least one non-whitespace character in a string
+const oneNonWhitespaceRegex = new RegExp('\\S');
 
 /*
   Within StatWrap, we organize filters like this:
@@ -316,5 +320,66 @@ export default class ProjectUtil {
     ProjectUtil._sortAndAddFilter(dependencyFilter, filters);
 
     return filters;
+  }
+
+  /**
+   * Utility function to determine if the asset group provided is valid or not.
+   * @param {string} name Name of the asset group
+   * @returns bool True if the name is valid, and false otherwise.
+   */
+  static validateAssetGroupName(name) {
+    return !(!name || !oneNonWhitespaceRegex.test(name));
+  }
+
+  /**
+   * Utility function to handle adding or updating an asset group within a project
+   * @param {object} project The project object, assumed to be recently loaded.
+   * @param {object} group The asset group to add to the project's collection
+   * @returns object Will be the asset group record (with the assigned ID, if applicable) if the upsert succeeded.
+   * If the upsert did not succeed, it will throw an exception.  If successful, the change will be reflected
+   * in the `project` object. Even if no actual change is needed, this function will still
+   * return the asset group.
+   */
+  static upsertAssetGroup(project, group) {
+    if (!project) {
+      throw new Error('The project object cannot be null or undefined');
+    } else if (!group) {
+      throw new Error('The group object cannot be null or undefined');
+    } else if (!ProjectUtil.validateAssetGroupName(group.name)) {
+      throw new Error(
+        'The asset group name is required, and must be at least one non-whitespace character in length.'
+      );
+    }
+
+    // Initialize the assetGroups array if it doesn't exist already in the object
+    if (!project.assetGroups || project.assetGroups === undefined) {
+      project.assetGroups = [];
+    }
+
+    // If we have an ID for the group, we need to see if it already exists.  That is
+    // our indicator of each group - we won't do any name checks.  If there is no group
+    // ID, we need to generate one and then can just add it.
+    let addGroupToArray = false;
+    if (group.id) {
+      const existingGroup = project.assetGroups.find(p => p.id === group.id);
+      if (existingGroup) {
+        // Copy over only what attributes need to be saved in the directory.  Some
+        // attributs may be specific to the project entry for the person.
+        existingGroup.name = group.name;
+        existingGroup.details = group.details;
+        existingGroup.assets = group.assets;
+      } else {
+        addGroupToArray = true;
+      }
+    } else {
+      group.id = uuid();
+      addGroupToArray = true;
+    }
+
+    if (addGroupToArray) {
+      project.assetGroups.push(group);
+    }
+
+    return group;
   }
 }

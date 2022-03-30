@@ -1,7 +1,12 @@
 /* eslint-disable no-underscore-dangle */
+// Note: uuid mocking fixed/broke/fixed?  May need to remove this line
+// if it breaks again.
+import { v4 as uuid } from 'uuid';
 import ProjectUtil from '../../app/utils/project';
 import Constants from '../../app/constants/constants';
 import WorkflowUtil from '../../app/utils/workflow';
+
+jest.mock('uuid');
 
 describe('utils', () => {
   describe('ProjectUtil', () => {
@@ -1050,6 +1055,136 @@ describe('utils', () => {
           }
         ]
       });
+    });
+  });
+
+  describe('validateAssetGroupName', () => {
+    it('should not consider a null or undefined name valid', () => {
+      expect(ProjectUtil.validateAssetGroupName(null)).toBe(false);
+      expect(ProjectUtil.validateAssetGroupName(undefined)).toBe(false);
+    });
+    it('should not consider valid a name with an empty or whitespace only first component', () => {
+      expect(ProjectUtil.validateAssetGroupName('')).toBe(false);
+      expect(ProjectUtil.validateAssetGroupName(' ')).toBe(false);
+      expect(ProjectUtil.validateAssetGroupName('\t')).toBe(false);
+      expect(ProjectUtil.validateAssetGroupName('\n')).toBe(false);
+      expect(ProjectUtil.validateAssetGroupName('\r')).toBe(false);
+    });
+    it('should consider valid names with at least one letter', () => {
+      expect(ProjectUtil.validateAssetGroupName('T')).toBe(true);
+      expect(ProjectUtil.validateAssetGroupName('Test')).toBe(true);
+    });
+    it('should consider valid names with at least one letter along with whitespace', () => {
+      expect(ProjectUtil.validateAssetGroupName('T ')).toBe(true);
+      expect(ProjectUtil.validateAssetGroupName(' T ')).toBe(true);
+      expect(ProjectUtil.validateAssetGroupName('\tT')).toBe(true);
+      expect(ProjectUtil.validateAssetGroupName('T\r')).toBe(true);
+      expect(ProjectUtil.validateAssetGroupName('T\n')).toBe(true);
+    });
+  });
+
+  describe('upsertAssetGroup', () => {
+    it('should throw an exception if the project is null or undefined', () => {
+      expect(() => ProjectUtil.upsertAssetGroup(null, {})).toThrow(Error);
+      expect(() => ProjectUtil.upsertAssetGroup(undefined, {})).toThrow(Error);
+    });
+    it('should throw an exception if the group is null or undefined', () => {
+      expect(() => ProjectUtil.upsertAssetGroup({}, null)).toThrow(Error);
+      expect(() => ProjectUtil.upsertAssetGroup({}, undefined)).toThrow(Error);
+    });
+    it('should throw an exception if the group name is invalid', () => {
+      expect(() => ProjectUtil.upsertAssetGroup({}, '')).toThrow(Error);
+    });
+    it('should initialize the asset group collection in an empty project object', () => {
+      const project = {};
+      expect(
+        ProjectUtil.upsertAssetGroup(project, {
+          id: '1-2-3',
+          name: 'Test'
+        })
+      ).not.toBeNull();
+      expect(project.assetGroups).not.toBeNull();
+    });
+    it('should add a new person when the id is provided', () => {
+      const project = {};
+      const assetGroup = {
+        id: '1-2-3',
+        name: 'Test'
+      };
+      expect(ProjectUtil.upsertAssetGroup(project, assetGroup)).not.toBeNull();
+      expect(project.assetGroups[0].id).toEqual('1-2-3');
+      expect(project.assetGroups[0].name).toEqual(assetGroup.name);
+    });
+    it('should add a new group when the id differs in case', () => {
+      const project = {
+        assetGroups: [
+          {
+            id: 'a-b-c',
+            name: 'Test'
+          }
+        ]
+      };
+      expect(
+        ProjectUtil.upsertAssetGroup(project, {
+          id: 'A-b-c',
+          name: 'Other'
+        })
+      ).not.toBeNull();
+      expect(project.assetGroups[1].id).toEqual('A-b-c');
+    });
+    it('should add a new group when the id is empty', () => {
+      // Note: uuid mocking fixed/broke/fixed?  May need to remove this line
+      // if it breaks again.
+      uuid.mockImplementationOnce(() => {
+        return '1-2-3';
+      });
+      const project = {};
+      expect(
+        ProjectUtil.upsertAssetGroup(project, {
+          name: 'Test'
+        })
+      ).not.toBeNull();
+      expect(project.assetGroups[0]).toEqual({
+        id: '1-2-3',
+        name: 'Test'
+      });
+    });
+    it('should update an existing person', () => {
+      const project = {
+        assetGroups: [
+          {
+            id: '1-2-3',
+            name: 'Test',
+            details: 'Testing',
+            assets: [{ uri: 'test' }]
+          }
+        ]
+      };
+      const updatedGroup = {
+        id: '1-2-3',
+        name: 'Updated',
+        details: 'Updated details',
+        assets: []
+      };
+      expect(ProjectUtil.upsertAssetGroup(project, updatedGroup)).not.toBeNull();
+      expect(project.assetGroups[0]).toEqual(updatedGroup);
+    });
+    it('should fail to update an existing person if the update person is invalid', () => {
+      const project = {
+        assetGroups: [
+          {
+            id: '1-2-3',
+            name: 'Test',
+            details: 'Testing',
+            assets: [{ uri: 'test' }]
+          }
+        ]
+      };
+      const updatedGroup = {
+        id: '1-2-3'
+      };
+      expect(() => ProjectUtil.upsertAssetGroup(project, updatedGroup)).toThrow(Error);
+      expect(project.assetGroups[0]).not.toEqual(updatedGroup);
     });
   });
 });
