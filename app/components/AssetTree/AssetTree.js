@@ -66,7 +66,6 @@ class AssetTree extends Component {
       <AssetNode
         onClick={this.handleClick}
         root
-        id={this.props.assets.uri}
         key={this.props.assets.uri}
         node={this.props.assets}
         openNodes={this.state.expandedNodes}

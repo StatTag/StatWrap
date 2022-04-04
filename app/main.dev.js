@@ -173,7 +173,7 @@ const saveProject = project => {
       );
       projectConfig.notes = project.notes;
       projectConfig.people = project.people;
-      projectConfig.assetGroups = AssetUtil.absoluteToRelativePathForArray(
+      projectConfig.assetGroups = ProjectUtil.absoluteToRelativePathForAssetGroups(
         project.path,
         project.assetGroups
       );
@@ -736,47 +736,96 @@ ipcMain.on(Messages.SAVE_USER_PROFILE_REQUEST, async (event, user) => {
   event.sender.send(Messages.SAVE_USER_PROFILE_RESPONSE, response);
 });
 
-/**
- * Called when the user is trying to create a new group of assets
- */
-ipcMain.on(Messages.SAVE_ASSET_GROUP_REQUEST, async (event, project, group) => {
-  const response = {
-    project,
-    group,
-    error: false,
-    errorMessage: ''
-  };
+// /**
+//  * Called when the user is trying to create a new group of assets
+//  */
+// ipcMain.on(Messages.CREATE_UPDATE_ASSET_GROUP_REQUEST, async (event, project, group) => {
+//   const response = {
+//     project,
+//     group,
+//     error: false,
+//     errorMessage: ''
+//   };
 
-  if (!project || project === undefined) {
-    response.error = true;
-    response.errorMessage = 'There was an error saving the asset group - no project was provided';
-    event.sender.send(Messages.SAVE_ASSET_GROUP_RESPONSE, response);
-    return;
-  }
+//   if (!project || project === undefined) {
+//     response.error = true;
+//     response.errorMessage = 'There was an error saving the asset group - no project was provided';
+//     event.sender.send(Messages.CREATE_UPDATE_ASSET_GROUP_RESPONSE, response);
+//     return;
+//   }
 
-  if (!group || group === undefined) {
-    response.error = true;
-    response.errorMessage =
-      'There was an error saving the asset group - no asset group was provided';
-    event.sender.send(Messages.SAVE_ASSET_GROUP_RESPONSE, response);
-    return;
-  }
+//   if (!group || group === undefined) {
+//     response.error = true;
+//     response.errorMessage =
+//       'There was an error saving the asset group - no asset group was provided';
+//     event.sender.send(Messages.CREATE_UPDATE_ASSET_GROUP_RESPONSE, response);
+//     return;
+//   }
 
-  AssetUtil.absoluteToRelativePathForArray(project.path, group.assets);
-  ProjectUtil.upsertAssetGroup(project, group);
+//   AssetUtil.absoluteToRelativePathForArray(project.path, group.assets);
+//   ProjectUtil.upsertAssetGroup(project, group);
 
-  // Do the saving of the project with the group details.  If this fails for any reason, capture and
-  // return the error we get.
-  const projectResponse = saveProject(project);
-  if (projectResponse.error) {
-    response.error = projectResponse.error;
-    response.errorMessage = projectResponse.errorMessage;
-  }
+//   // Do the saving of the project with the group details.  If this fails for any reason, capture and
+//   // return the error we get.
+//   const projectResponse = saveProject(project);
+//   if (projectResponse.error) {
+//     response.error = projectResponse.error;
+//     response.errorMessage = projectResponse.errorMessage;
+//   }
 
-  console.log(response);
-  // await sleep(5000);  // Use to test delays.  Leave disabled in production.
-  event.sender.send(Messages.SAVE_ASSET_GROUP_RESPONSE, response);
-});
+//   console.log(response);
+//   // await sleep(5000);  // Use to test delays.  Leave disabled in production.
+//   event.sender.send(Messages.CREATE_UPDATE_ASSET_GROUP_RESPONSE, response);
+// });
+
+// /**
+//  * Called when the user is trying to delete a group of assets
+//  */
+// ipcMain.on(Messages.REMOVE_ASSET_GROUP_REQUEST, async (event, project, group) => {
+//   const response = {
+//     project,
+//     group,
+//     error: false,
+//     errorMessage: ''
+//   };
+
+//   if (!project || project === undefined) {
+//     response.error = true;
+//     response.errorMessage = 'There was an error removing the asset group - no project was provided';
+//     event.sender.send(Messages.REMOVE_ASSET_GROUP_RESPONSE, response);
+//     return;
+//   }
+
+//   if (!group || group === undefined) {
+//     response.error = true;
+//     response.errorMessage =
+//       'There was an error removing the asset group - no asset group was provided';
+//     event.sender.send(Messages.REMOVE_ASSET_GROUP_RESPONSE, response);
+//     return;
+//   }
+
+//   if (!group.id || group.id === undefined) {
+//     response.error = true;
+//     response.errorMessage =
+//       'There was an error removing the asset group - no asset group ID was provided';
+//     event.sender.send(Messages.REMOVE_ASSET_GROUP_RESPONSE, response);
+//     return;
+//   }
+
+//   ProjectUtil.removeAssetGroup(project, group);
+
+//   // Do the saving of the project with the group details.  If this fails for any reason, capture and
+//   // return the error we get.
+//   const projectResponse = saveProject(project);
+//   if (projectResponse.error) {
+//     response.error = projectResponse.error;
+//     response.errorMessage = projectResponse.errorMessage;
+//   }
+
+//   console.log(response);
+//   // await sleep(5000);  // Use to test delays.  Leave disabled in production.
+//   event.sender.send(Messages.REMOVE_ASSET_GROUP_RESPONSE, response);
+// });
 
 /**
  * Several attributes related to assets are cached/saved.  However, some things may change on a more

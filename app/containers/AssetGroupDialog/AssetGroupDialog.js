@@ -6,7 +6,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Draggable from 'react-draggable';
 import { Dialog, DialogActions, DialogTitle, Button, Paper } from '@mui/material';
-import { ipcRenderer } from 'electron';
 import Messages from '../../constants/messages';
 import Error from '../../components/Error/Error';
 import UserContext from '../../contexts/User';
@@ -23,7 +22,6 @@ function PaperComponent(props) {
 class AssetGroupDialog extends Component {
   constructor(props) {
     super(props);
-    console.log(props);
     this.state = {
       project: props.project,
       errorMessage: null,
@@ -35,30 +33,30 @@ class AssetGroupDialog extends Component {
 
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleSaveAssetGroup = this.handleSaveAssetGroup.bind(this);
-    this.handleSaveAssetGroupCompleted = this.handleSaveAssetGroupCompleted.bind(this);
+    // this.handleSaveAssetGroupCompleted = this.handleSaveAssetGroupCompleted.bind(this);
   }
 
   componentDidMount() {
-    ipcRenderer.on(Messages.SAVE_ASSET_GROUP_RESPONSE, this.handleSaveAssetGroupCompleted);
+    // ipcRenderer.on(Messages.CREATE_UPDATE_ASSET_GROUP_RESPONSE, this.handleSaveAssetGroupCompleted);
   }
 
   componentWillUnmount() {
-    ipcRenderer.removeListener(
-      Messages.SAVE_ASSET_GROUP_RESPONSE,
-      this.handleSaveAssetGroupCompleted
-    );
+    // ipcRenderer.removeListener(
+    //   Messages.CREATE_UPDATE_ASSET_GROUP_RESPONSE,
+    //   this.handleSaveAssetGroupCompleted
+    // );
   }
 
-  handleSaveAssetGroupCompleted(sender, response) {
-    if (response && !response.error) {
-      if (this.props.onSave) {
-        this.props.onSave(response.group);
-      }
-      this.props.onClose(true);
-    } else {
-      this.setState({ errorMessage: response.errorMessage });
-    }
-  }
+  // handleSaveAssetGroupCompleted(sender, response) {
+  //   if (response && !response.error) {
+  //     if (this.props.onSave) {
+  //       this.props.onSave(response.group);
+  //     }
+  //     this.props.onClose(true);
+  //   } else {
+  //     this.setState({ errorMessage: response.errorMessage });
+  //   }
+  // }
 
   handleSaveAssetGroup() {
     const group = {
@@ -68,7 +66,11 @@ class AssetGroupDialog extends Component {
       assets: this.state.assets
     };
     console.log(group);
-    ipcRenderer.send(Messages.SAVE_ASSET_GROUP_REQUEST, this.state.project, group);
+    // ipcRenderer.send(Messages.CREATE_UPDATE_ASSET_GROUP_REQUEST, this.state.project, group);
+    if (this.props.onSave) {
+      this.props.onSave(group);
+    }
+    // this.props.onClose(true);
   }
 
   handleInputChange(event) {

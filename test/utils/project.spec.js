@@ -1083,15 +1083,56 @@ describe('utils', () => {
     });
   });
 
-  describe('upsertAssetGroup', () => {
+  describe('_validateProjectAndGroup', () => {
     it('should throw an exception if the project is null or undefined', () => {
-      expect(() => ProjectUtil.upsertAssetGroup(null, {})).toThrow(Error);
-      expect(() => ProjectUtil.upsertAssetGroup(undefined, {})).toThrow(Error);
+      expect(() => ProjectUtil._validateProjectAndGroup(null, {}, false)).toThrow(Error);
+      expect(() => ProjectUtil._validateProjectAndGroup(undefined, {}, false)).toThrow(Error);
     });
     it('should throw an exception if the group is null or undefined', () => {
-      expect(() => ProjectUtil.upsertAssetGroup({}, null)).toThrow(Error);
-      expect(() => ProjectUtil.upsertAssetGroup({}, undefined)).toThrow(Error);
+      expect(() => ProjectUtil._validateProjectAndGroup({}, null, false)).toThrow(Error);
+      expect(() => ProjectUtil._validateProjectAndGroup({}, undefined, false)).toThrow(Error);
     });
+    it('should throw an exception if the group ID is expected', () => {
+      expect(() => ProjectUtil._validateProjectAndGroup({}, { name: 'test' }, true)).toThrow(Error);
+      expect(() =>
+        ProjectUtil._validateProjectAndGroup({}, { id: null, name: 'test' }, true)
+      ).toThrow(Error);
+      expect(() =>
+        ProjectUtil._validateProjectAndGroup({}, { id: undefined, name: 'test' }, true)
+      ).toThrow(Error);
+      expect(() =>
+        ProjectUtil._validateProjectAndGroup({}, { id: '', name: 'test' }, true)
+      ).toThrow(Error);
+    });
+    it('should not throw an exception if the group ID is not expected and is not provided', () => {
+      expect(() => ProjectUtil._validateProjectAndGroup({}, { name: 'test' }, false)).not.toThrow(
+        Error
+      );
+      expect(() =>
+        ProjectUtil._validateProjectAndGroup({}, { id: null, name: 'test' }, false)
+      ).not.toThrow(Error);
+      expect(() =>
+        ProjectUtil._validateProjectAndGroup({}, { id: undefined, name: 'test' }, false)
+      ).not.toThrow(Error);
+      expect(() =>
+        ProjectUtil._validateProjectAndGroup({}, { id: '', name: 'test' }, false)
+      ).not.toThrow(Error);
+    });
+    it('should not throw an exception if the group ID is expected and is provided', () => {
+      expect(() =>
+        ProjectUtil._validateProjectAndGroup({}, { id: 'a-b-c-d-e', name: 'test' }, true)
+      ).not.toThrow(Error);
+      // We are taking IDs exactly as they come, so whitespace is 'valid' (for now)
+      expect(() =>
+        ProjectUtil._validateProjectAndGroup({}, { id: '  ', name: 'test' }, true)
+      ).not.toThrow(Error);
+    });
+  });
+
+  describe('upsertAssetGroup', () => {
+    // We are not doing tests for parameter checks because they are covered by the tests
+    // for _validateProjectAndGroup
+
     it('should throw an exception if the group name is invalid', () => {
       expect(() => ProjectUtil.upsertAssetGroup({}, '')).toThrow(Error);
     });
@@ -1185,6 +1226,48 @@ describe('utils', () => {
       };
       expect(() => ProjectUtil.upsertAssetGroup(project, updatedGroup)).toThrow(Error);
       expect(project.assetGroups[0]).not.toEqual(updatedGroup);
+    });
+  });
+
+  describe('removeAssetGroup', () => {
+    // We are not doing tests for parameter checks because they are covered by the tests
+    // for _validateProjectAndGroup
+
+    it('should handle when there is an undefined assetGroup collection in the project', () => {
+      const project = {};
+      const assetGroup = {
+        id: '1-2-3',
+        name: 'Test'
+      };
+      ProjectUtil.removeAssetGroup(project, assetGroup);
+      expect(project.assetGroups).toEqual(undefined);
+    });
+    it('should handle when there is a null assetGroup collection in the project', () => {
+      const project = { assetGroups: null };
+      const assetGroup = {
+        id: '1-2-3',
+        name: 'Test'
+      };
+      ProjectUtil.removeAssetGroup(project, assetGroup);
+      expect(project.assetGroups).toBeNull();
+    });
+    it('should remove an existing asset group', () => {
+      const project = { assetGroups: [{ id: '1-2-3', name: 'Test' }] };
+      const assetGroup = {
+        id: '1-2-3',
+        name: 'Test'
+      };
+      ProjectUtil.removeAssetGroup(project, assetGroup);
+      expect(project.assetGroups.length).toEqual(0);
+    });
+    it('should not remove anything if there is no matching asset group ID', () => {
+      const project = { assetGroups: [{ id: '1-2-3', name: 'Test' }] };
+      const assetGroup = {
+        id: '1-2-4',
+        name: 'Test'
+      };
+      ProjectUtil.removeAssetGroup(project, assetGroup);
+      expect(project.assetGroups.length).toEqual(1);
     });
   });
 });

@@ -39,7 +39,7 @@ const AssetNode = props => {
   const handleChecked = () => {
     setChecked(prevState => {
       if (props.onCheck) {
-        props.onCheck(props.id, !prevState);
+        props.onCheck(props.node, !prevState);
       }
 
       return !prevState;
@@ -86,7 +86,6 @@ const AssetNode = props => {
           ? null
           : node.children.map(childNode => (
               <AssetNode
-                id={childNode.uri}
                 key={childNode.uri}
                 node={childNode}
                 level={level + 1}
@@ -104,7 +103,6 @@ const AssetNode = props => {
 };
 
 AssetNode.propTypes = {
-  id: PropTypes.string.isRequired,
   node: PropTypes.object.isRequired,
   root: PropTypes.bool,
   selectedAsset: PropTypes.object,

@@ -44,7 +44,11 @@ module.exports = {
 
     PERSON_ADDED: 'Person Added',
     PERSON_UPDATED: 'Person Updated',
-    PERSON_DELETED: 'Person Deleted'
+    PERSON_DELETED: 'Person Deleted',
+
+    ASSET_GROUP_ADDED: 'Asset Group Added',
+    ASSET_GROUP_UPDATED: 'Asset Group Updated',
+    ASSET_GROUP_DELETED: 'Asset Group Deleted'
   },
 
   DescriptionContentType: {

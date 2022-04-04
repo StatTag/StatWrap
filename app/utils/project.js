@@ -3,6 +3,7 @@
 /* eslint-disable func-names */
 import { v4 as uuid } from 'uuid';
 import WorkflowUtil from './workflow';
+import AssetUtil from './asset';
 import Constants from '../constants/constants';
 
 // Used to verify that we have at least one non-whitespace character in a string
@@ -332,15 +333,13 @@ export default class ProjectUtil {
   }
 
   /**
-   * Utility function to handle adding or updating an asset group within a project
-   * @param {object} project The project object, assumed to be recently loaded.
-   * @param {object} group The asset group to add to the project's collection
-   * @returns object Will be the asset group record (with the assigned ID, if applicable) if the upsert succeeded.
-   * If the upsert did not succeed, it will throw an exception.  If successful, the change will be reflected
-   * in the `project` object. Even if no actual change is needed, this function will still
-   * return the asset group.
+   * Utility function to avoid duplicating parameter checks in our create/update/remove asset group methods
+   * @param {object} project The project to validate
+   * @param {object} group The group to validate
+   * @param {bool} groupShouldExist If we should check that the group is an existing group.  Set to false when called
+   *  for a new group.
    */
-  static upsertAssetGroup(project, group) {
+  static _validateProjectAndGroup(project, group, groupShouldExist) {
     if (!project) {
       throw new Error('The project object cannot be null or undefined');
     } else if (!group) {
@@ -350,6 +349,25 @@ export default class ProjectUtil {
         'The asset group name is required, and must be at least one non-whitespace character in length.'
       );
     }
+
+    if (groupShouldExist) {
+      if (!group.id || group.id === undefined || group.id === '') {
+        throw new Error('The asset group ID cannot be null or undefined');
+      }
+    }
+  }
+
+  /**
+   * Utility function to handle adding or updating an asset group within a project
+   * @param {object} project The project object, assumed to be recently loaded.
+   * @param {object} group The asset group to add to the project's collection
+   * @returns object Will be the asset group record (with the assigned ID, if applicable) if the upsert succeeded.
+   * If the upsert did not succeed, it will throw an exception.  If successful, the change will be reflected
+   * in the `project` object. Even if no actual change is needed, this function will still
+   * return the asset group.
+   */
+  static upsertAssetGroup(project, group) {
+    ProjectUtil._validateProjectAndGroup(project, group, false);
 
     // Initialize the assetGroups array if it doesn't exist already in the object
     if (!project.assetGroups || project.assetGroups === undefined) {
@@ -381,5 +399,43 @@ export default class ProjectUtil {
     }
 
     return group;
+  }
+
+  /**
+   * Utility function to handle removing an asset group within a project.  Modifies the project parameter.
+   * @param {object} project The project object, assumed to be recently loaded.
+   * @param {object} group The asset group to remove from to the project's collection
+   */
+  static removeAssetGroup(project, group) {
+    ProjectUtil._validateProjectAndGroup(project, group, true);
+
+    // If there is no asset group collection, we're done - there's nothing to remove.
+    if (!project.assetGroups || project.assetGroups === undefined) {
+      return;
+    }
+
+    // If we don't find the asset group, we're going to let it slide silently for now.
+    const existingGroupIndex = project.assetGroups.findIndex(p => p.id === group.id);
+    if (existingGroupIndex > -1) {
+      project.assetGroups.splice(existingGroupIndex, 1);
+    }
+  }
+
+  /**
+   * Given an array of asset groups, convert all of the asset paths from absolute paths to relative paths.
+   * This will not modify the assetGroup parameters.
+   * @param {string} projectPath The fully qualified path of the project
+   * @param {array} assetGroups Array of asset group objects
+   * @returns A modified copy of assetGroups that has the paths converted from absolute to relative
+   */
+  static absoluteToRelativePathForAssetGroups(projectPath, assetGroups) {
+    const modifiedAssetGroups = [...assetGroups];
+    for (let index = 0; index < modifiedAssetGroups.length; index++) {
+      modifiedAssetGroups[index].assets = AssetUtil.absoluteToRelativePathForArray(
+        projectPath,
+        modifiedAssetGroups[index].assets
+      );
+    }
+    return modifiedAssetGroups;
   }
 }

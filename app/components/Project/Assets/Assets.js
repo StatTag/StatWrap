@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { IconButton } from '@mui/material';
-import { FaPaperclip, FaPlusSquare, FaMinusSquare, FaSave, FaBan } from 'react-icons/fa';
+import { FaPlusSquare, FaSave, FaBan, FaFolderOpen, FaFolderMinus } from 'react-icons/fa';
 import AssetGroupDialog from '../../../containers/AssetGroupDialog/AssetGroupDialog';
 import Error from '../../Error/Error';
 import AssetTree from '../../AssetTree/AssetTree';
 import AssetDetails from '../../AssetDetails/AssetDetails';
 import AssetFilter from '../../Filter/Filter';
+import EditableSelect from '../../EditableSelect/EditableSelect';
 import Loading from '../../Loading/Loading';
 import AssetUtil from '../../../utils/asset';
-import GeneralUtil from '../../../utils/general';
 import ProjectUtil from '../../../utils/project';
 import styles from './Assets.css';
 
@@ -20,6 +20,9 @@ const assetsComponent = props => {
     onDeletedAssetNote,
     onUpdatedAssetAttribute,
     onSelectedAsset,
+    onAddedAssetGroup,
+    onUpdatedAssetGroup,
+    onDeletedAssetGroup,
     assetAttributes,
     dynamicDetails
   } = props;
@@ -88,7 +91,9 @@ const assetsComponent = props => {
     setAssets(filteredAssets);
   };
 
-  const handleSaveAssetGroup = () => {
+  // When the user triggers saving an Asset Group, update the UI so the dialog
+  // appears to enter the asset group details.
+  const handleStartSaveAssetGroup = () => {
     setDialogKey(dialogKey + 1);
     setEditingGroup(true);
     setMode('default');
@@ -98,17 +103,47 @@ const assetsComponent = props => {
     setEditingGroup(false);
   };
 
-  const handleSavedAssetGroup = data => {
-    console.log(data);
+  const handleSavedAssetGroup = group => {
+    if (onAddedAssetGroup) {
+      onAddedAssetGroup(group);
+    }
+    setEditingGroup(false);
   };
 
+  // When the user selects a checkbox next to an asset - initially used just for building
+  // asset groups, but consider if it could be more broadly repurposed.
   const handleCheckAsset = (asset, value) => {
-    console.log(asset, value);
     setGroupedAssets(prevState => {
       const newAssetGroup = [...prevState];
-      GeneralUtil.toggleStringInArray(newAssetGroup, asset, value);
+      const index = newAssetGroup.findIndex(x => x.uri === asset.uri);
+      // We only need to consider adding and removing - there are other branches of logic
+      // that are essentialy noops.
+      if (index === -1 && value) {
+        // Add it to the array if it's not there and we need it added.  Note we are only pulling
+        // over a subset of the fields - the minimum needed for managing the group.
+        newAssetGroup.push({ uri: asset.uri, type: asset.type });
+      } else if (index > -1 && !value) {
+        // Remove it from the array if it's there and we don't want it
+        newAssetGroup.splice(index, 1);
+      }
       return newAssetGroup;
     });
+  };
+
+  const handleSelectAssetGroup = group => {
+    console.log(group);
+  };
+
+  const handleEditAssetGroup = group => {
+    if (onUpdatedAssetGroup) {
+      onUpdatedAssetGroup(group);
+    }
+  };
+
+  const handleDeleteAssetGroup = group => {
+    if (onDeletedAssetGroup) {
+      onDeletedAssetGroup(group);
+    }
   };
 
   let assetDisplay = null;
@@ -134,7 +169,7 @@ const assetsComponent = props => {
             <IconButton
               className={styles.toolbarButton}
               aria-label="save asset group"
-              onClick={handleSaveAssetGroup}
+              onClick={handleStartSaveAssetGroup}
             >
               <FaSave fontSize="small" /> &nbsp; Save Asset Group
             </IconButton>
@@ -169,7 +204,7 @@ const assetsComponent = props => {
                 aria-label="expand all tree items"
                 fontSize="small"
               >
-                <FaPlusSquare fontSize="small" /> &nbsp;Expand Assets
+                <FaFolderOpen fontSize="small" /> &nbsp;Expand
               </IconButton>
               <IconButton
                 onClick={() => treeRef.current.setExpandAll(false)}
@@ -177,7 +212,7 @@ const assetsComponent = props => {
                 aria-label="collapse all tree items"
                 fontSize="small"
               >
-                <FaMinusSquare fontSize="small" /> &nbsp;Collapse Assets
+                <FaFolderMinus fontSize="small" /> &nbsp;Collapse
               </IconButton>
               <IconButton
                 onClick={() => setMode('paperclip')}
@@ -185,8 +220,15 @@ const assetsComponent = props => {
                 disabled={mode === 'paperclip'}
                 aria-label="group assets together"
               >
-                <FaPaperclip fontSize="small" /> &nbsp; New Asset Group
+                <FaPlusSquare fontSize="small" /> &nbsp; New Group
               </IconButton>
+              <EditableSelect
+                title="Select group"
+                data={project.assetGroups}
+                onSelectItem={handleSelectAssetGroup}
+                onEditItem={handleEditAssetGroup}
+                onDeleteItem={handleDeleteAssetGroup}
+              />
               {subMenu}
             </div>
             <AssetTree

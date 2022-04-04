@@ -41,6 +41,9 @@ module.exports = {
   REMOVE_PROJECT_PERSON_REQUEST: 'statwrap-remove-project-person-request',
   REMOVE_PROJECT_PERSON_RESPONSE: 'statwrap-remove-project-person-response',
 
-  SAVE_ASSET_GROUP_REQUEST: 'statwrap-save-asset-group-request',
-  SAVE_ASSET_GROUP_RESPONSE: 'statwrap-save-asset-group-response'
+  // TODO Can probably be removed - keeping for now while testing
+  // CREATE_UPDATE_ASSET_GROUP_REQUEST: 'statwrap-create-update-asset-group-request',
+  // CREATE_UPDATE_ASSET_GROUP_RESPONSE: 'statwrap-create-update-asset-group-response',
+  // REMOVE_ASSET_GROUP_REQUEST: 'statwrap-remove-asset-group-request',
+  // REMOVE_ASSET_GROUP_RESPONSE: 'statwrap-remove-asset-group-response'
 };
