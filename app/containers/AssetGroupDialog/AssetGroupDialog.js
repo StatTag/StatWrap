@@ -6,7 +6,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Draggable from 'react-draggable';
 import { Dialog, DialogActions, DialogTitle, Button, Paper } from '@mui/material';
-import Messages from '../../constants/messages';
 import Error from '../../components/Error/Error';
 import UserContext from '../../contexts/User';
 import styles from './AssetGroupDialog.css';
@@ -23,7 +22,6 @@ class AssetGroupDialog extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      project: props.project,
       errorMessage: null,
       id: props.id ? props.id : null,
       name: props.name ? props.name : '',
@@ -33,30 +31,7 @@ class AssetGroupDialog extends Component {
 
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleSaveAssetGroup = this.handleSaveAssetGroup.bind(this);
-    // this.handleSaveAssetGroupCompleted = this.handleSaveAssetGroupCompleted.bind(this);
   }
-
-  componentDidMount() {
-    // ipcRenderer.on(Messages.CREATE_UPDATE_ASSET_GROUP_RESPONSE, this.handleSaveAssetGroupCompleted);
-  }
-
-  componentWillUnmount() {
-    // ipcRenderer.removeListener(
-    //   Messages.CREATE_UPDATE_ASSET_GROUP_RESPONSE,
-    //   this.handleSaveAssetGroupCompleted
-    // );
-  }
-
-  // handleSaveAssetGroupCompleted(sender, response) {
-  //   if (response && !response.error) {
-  //     if (this.props.onSave) {
-  //       this.props.onSave(response.group);
-  //     }
-  //     this.props.onClose(true);
-  //   } else {
-  //     this.setState({ errorMessage: response.errorMessage });
-  //   }
-  // }
 
   handleSaveAssetGroup() {
     const group = {
@@ -65,12 +40,10 @@ class AssetGroupDialog extends Component {
       details: this.state.details,
       assets: this.state.assets
     };
-    console.log(group);
-    // ipcRenderer.send(Messages.CREATE_UPDATE_ASSET_GROUP_REQUEST, this.state.project, group);
+
     if (this.props.onSave) {
       this.props.onSave(group);
     }
-    // this.props.onClose(true);
   }
 
   handleInputChange(event) {
@@ -143,7 +116,6 @@ class AssetGroupDialog extends Component {
 }
 
 AssetGroupDialog.propTypes = {
-  project: PropTypes.object.isRequired,
   id: PropTypes.string,
   name: PropTypes.string,
   details: PropTypes.string,

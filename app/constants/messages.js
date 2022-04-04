@@ -39,11 +39,5 @@ module.exports = {
   REMOVE_DIRECTORY_PERSON_REQUEST: 'statwrap-remove-directory-person-request',
   REMOVE_DIRECTORY_PERSON_RESPONSE: 'statwrap-remove-directory-person-response',
   REMOVE_PROJECT_PERSON_REQUEST: 'statwrap-remove-project-person-request',
-  REMOVE_PROJECT_PERSON_RESPONSE: 'statwrap-remove-project-person-response',
-
-  // TODO Can probably be removed - keeping for now while testing
-  // CREATE_UPDATE_ASSET_GROUP_REQUEST: 'statwrap-create-update-asset-group-request',
-  // CREATE_UPDATE_ASSET_GROUP_RESPONSE: 'statwrap-create-update-asset-group-response',
-  // REMOVE_ASSET_GROUP_REQUEST: 'statwrap-remove-asset-group-request',
-  // REMOVE_ASSET_GROUP_RESPONSE: 'statwrap-remove-asset-group-response'
+  REMOVE_PROJECT_PERSON_RESPONSE: 'statwrap-remove-project-person-response'
 };
