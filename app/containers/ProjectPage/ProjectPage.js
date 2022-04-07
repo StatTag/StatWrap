@@ -53,6 +53,7 @@ class ProjectPage extends Component {
 
     this.handleLoadProjectListResponse = this.handleLoadProjectListResponse.bind(this);
     this.refreshProjectsHandler = this.refreshProjectsHandler.bind(this);
+    this.handleFavoriteClick = this.handleFavoriteClick.bind(this);
     this.handleAddProject = this.handleAddProject.bind(this);
     this.handleCloseAddProject = this.handleCloseAddProject.bind(this);
     this.handleLoadConfigurationResponse = this.handleLoadConfigurationResponse.bind(this);
@@ -208,10 +209,12 @@ class ProjectPage extends Component {
   handleProjectUpdate(project, type, title, description, details) {
     // Update our cached list of projects from which we get the selected projects.  We want to ensure
     // these are kept in sync with any updates.
-    const { projects } = this.state;
-    const foundIndex = projects.findIndex(x => x.id === project.id);
-    projects[foundIndex] = project;
-    this.setState({ projects });
+    this.setState(prevState => {
+      const { projects } = prevState;
+      const foundIndex = projects.findIndex(x => x.id === project.id);
+      projects[foundIndex] = project;
+      return { projects };
+    });
 
     ipcRenderer.send(Messages.UPDATE_PROJECT_REQUEST, project);
 
@@ -228,10 +231,12 @@ class ProjectPage extends Component {
     else {
       // Update our cached list of projects from which we get the selected projects.  We want to ensure
       // these are kept in sync with any updates.
-      const { projects } = this.state;
-      const foundIndex = projects.findIndex(x => x.id === response.project.id);
-      projects[foundIndex] = response.project;
-      this.setState({ selectedProject: response.project, projects });
+      this.setState(prevState => {
+        const { projects } = prevState;
+        const foundIndex = projects.findIndex(x => x.id === response.project.id);
+        projects[foundIndex] = response.project;
+        return { selectedProject: response.project, projects };
+      });
     }
   }
 

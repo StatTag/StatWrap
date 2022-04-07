@@ -1,5 +1,5 @@
 /* eslint-disable react/forbid-prop-types */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaFile, FaFolder, FaFolderOpen, FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
@@ -32,9 +32,25 @@ const StyledInput = styled.input`
 `;
 
 const AssetNode = props => {
-  const [checked, setChecked] = useState(false);
-  const { node, root, openNodes, selectedAsset, level, onToggle, onRightClick, onClick } = props;
+  const {
+    node,
+    root,
+    openNodes,
+    checkedNodes,
+    selectedAsset,
+    level,
+    checkboxes,
+    onToggle,
+    onRightClick,
+    onClick
+  } = props;
   const isOpen = root || openNodes.includes(node.uri);
+  const isChecked = checkboxes && (root || checkedNodes.includes(node.uri));
+  const [checked, setChecked] = useState(isChecked);
+
+  useEffect(() => {
+    setChecked(checkboxes && checkedNodes.includes(node.uri));
+  }, [checkedNodes]);
 
   const handleChecked = () => {
     setChecked(prevState => {
@@ -91,10 +107,11 @@ const AssetNode = props => {
                 level={level + 1}
                 selectedAsset={selectedAsset}
                 openNodes={openNodes}
+                checkedNodes={checkedNodes}
                 onToggle={onToggle}
                 onClick={onClick}
                 onRightClick={onRightClick}
-                checkboxes={props.checkboxes}
+                checkboxes={checkboxes}
                 onCheck={props.onCheck}
               />
             )))}
@@ -112,6 +129,7 @@ AssetNode.propTypes = {
   onClick: PropTypes.func,
   onCheck: PropTypes.func,
   openNodes: PropTypes.array,
+  checkedNodes: PropTypes.array,
   checkboxes: PropTypes.bool
 };
 
@@ -124,6 +142,7 @@ AssetNode.defaultProps = {
   level: 0,
   selectedAsset: null,
   openNodes: [],
+  checkedNodes: [],
   checkboxes: false
 };
 

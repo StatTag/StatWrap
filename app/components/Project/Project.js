@@ -5,6 +5,7 @@ import React, { Component } from 'react';
 import { Tab, Tabs } from '@mui/material';
 import { TabPanel, TabContext } from '@mui/lab';
 import { withStyles } from '@mui/styles/';
+import { cloneDeep } from 'lodash';
 import IconButton from '@mui/material/IconButton';
 import { Star, StarBorder } from '@mui/icons-material';
 import PropTypes from 'prop-types';
@@ -483,12 +484,13 @@ class Project extends Component<Props> {
   };
 
   assetGroupAddedHandler = group => {
+    const user = this.context;
     const currentProject = { ...this.props.project };
 
     const action = {
       type: ActionType.ASSET_GROUP_ADDED,
       title: ActionType.ASSET_GROUP_ADDED,
-      description: 'Created new asset group',
+      description: `${user} created asset group ${group.name}`,
       details: group
     };
 
@@ -505,7 +507,27 @@ class Project extends Component<Props> {
   };
 
   assetGroupUpdatedHandler = group => {
-    console.log(group);
+    const user = this.context;
+    const currentProject = { ...this.props.project };
+
+    const oldAssetGroup = cloneDeep(this.props.project.assetGroups.find(x => x.id === group.id));
+    const action = {
+      type: ActionType.ASSET_GROUP_UPDATED,
+      title: ActionType.ASSET_GROUP_UPDATED,
+      description: `${user} updated asset group ${group.name} ${group.id}`,
+      details: { old: oldAssetGroup, new: group }
+    };
+
+    ProjectUtil.upsertAssetGroup(currentProject, group);
+    if (this.props.onUpdated) {
+      this.props.onUpdated(
+        currentProject,
+        action.type,
+        action.title,
+        action.description,
+        action.details
+      );
+    }
   };
 
   render() {

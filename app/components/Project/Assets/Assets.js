@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { IconButton } from '@mui/material';
 import { FaPlusSquare, FaSave, FaBan, FaFolderOpen, FaFolderMinus } from 'react-icons/fa';
+import { cloneDeep } from 'lodash';
 import AssetGroupDialog from '../../../containers/AssetGroupDialog/AssetGroupDialog';
 import Error from '../../Error/Error';
 import AssetTree from '../../AssetTree/AssetTree';
@@ -38,6 +39,7 @@ const assetsComponent = props => {
   // UI state flag to let us know when we're in the process of adding/editing a group
   const [editingGroup, setEditingGroup] = useState(false);
   const [groupedAssets, setGroupedAssets] = useState([]);
+  const [currentAssetGroup, setCurrentAssetGroup] = useState(null);
 
   const filteredProjectAssets =
     !project || !project.assets ? null : AssetUtil.filterIncludedFileAssets(project.assets);
@@ -104,8 +106,12 @@ const assetsComponent = props => {
   };
 
   const handleSavedAssetGroup = group => {
-    if (onAddedAssetGroup) {
-      onAddedAssetGroup(group);
+    if (group.id === null || group.id === undefined) {
+      if (onAddedAssetGroup) {
+        onAddedAssetGroup(group);
+      }
+    } else if (onUpdatedAssetGroup) {
+      onUpdatedAssetGroup(group);
     }
     setEditingGroup(false);
   };
@@ -131,19 +137,31 @@ const assetsComponent = props => {
   };
 
   const handleSelectAssetGroup = group => {
-    console.log(group);
+    setCurrentAssetGroup(cloneDeep(group));
   };
 
   const handleEditAssetGroup = group => {
-    if (onUpdatedAssetGroup) {
-      onUpdatedAssetGroup(group);
-    }
+    const clonedGroup = cloneDeep(group);
+    setCurrentAssetGroup(clonedGroup);
+    treeRef.current.setPreCheckedNodes(clonedGroup.assets.map(x => x.uri));
+    setMode('paperclip');
   };
 
   const handleDeleteAssetGroup = group => {
+    // If we just deleted the selected asset group, clear the selection
+    if (currentAssetGroup && currentAssetGroup.id === group.id) {
+      setCurrentAssetGroup(null);
+    }
+
     if (onDeletedAssetGroup) {
       onDeletedAssetGroup(group);
     }
+  };
+
+  const handleStartAssetGroupMode = () => {
+    setCurrentAssetGroup(null);
+    treeRef.current.setPreCheckedNodes([]);
+    setMode('paperclip');
   };
 
   let assetDisplay = null;
@@ -165,7 +183,7 @@ const assetsComponent = props => {
       let subMenu = null;
       if (mode === 'paperclip') {
         subMenu = (
-          <>
+          <div className={styles.toolbar}>
             <IconButton
               className={styles.toolbarButton}
               aria-label="save asset group"
@@ -180,7 +198,7 @@ const assetsComponent = props => {
             >
               <FaBan fontSize="small" /> &nbsp; Cancel
             </IconButton>
-          </>
+          </div>
         );
       }
 
@@ -215,7 +233,7 @@ const assetsComponent = props => {
                 <FaFolderMinus fontSize="small" /> &nbsp;Collapse
               </IconButton>
               <IconButton
-                onClick={() => setMode('paperclip')}
+                onClick={handleStartAssetGroupMode}
                 className={styles.toolbarButton}
                 disabled={mode === 'paperclip'}
                 aria-label="group assets together"
@@ -224,13 +242,15 @@ const assetsComponent = props => {
               </IconButton>
               <EditableSelect
                 title="Select group"
+                disabled={mode === 'paperclip'}
                 data={project.assetGroups}
+                selectedItem={currentAssetGroup}
                 onSelectItem={handleSelectAssetGroup}
                 onEditItem={handleEditAssetGroup}
                 onDeleteItem={handleDeleteAssetGroup}
               />
-              {subMenu}
             </div>
+            {subMenu}
             <AssetTree
               assets={assets}
               ref={treeRef}
@@ -252,6 +272,9 @@ const assetsComponent = props => {
             onClose={handleCloseAssetGroupDialog}
             onSave={handleSavedAssetGroup}
             assets={groupedAssets}
+            id={currentAssetGroup ? currentAssetGroup.id : ''}
+            name={currentAssetGroup ? currentAssetGroup.name : ''}
+            details={currentAssetGroup ? currentAssetGroup.details : ''}
           />
         </>
       );

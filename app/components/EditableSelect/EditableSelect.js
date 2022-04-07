@@ -7,31 +7,36 @@ import { FaChevronDown, FaEdit, FaTrash } from 'react-icons/fa';
 import styles from './EditableSelect.css';
 
 const editableSelect = props => {
-  const { title, data, onEditItem, onDeleteItem } = props;
+  const { title, data, selectedItem, disabled, onSelectItem, onEditItem, onDeleteItem } = props;
   const boxRef = React.useRef();
   const [displayValue, setDisplayValue] = React.useState(title);
-  const [value, setValue] = React.useState(null);
   const [listOpen, setListOpen] = React.useState(false);
 
   const toggleList = () => {
     setListOpen(prevState => !prevState);
   };
 
+  React.useEffect(() => {
+    // If there is no selected item, or if it doesn't match the selected
+    // value that was there before, clear the display.
+    setDisplayValue(selectedItem ? selectedItem.name : title);
+  }, [data, selectedItem]);
+
   const handleSelectItem = item => {
-    console.log(item);
-    if (item) {
-      setValue(item.id);
-      setDisplayValue(item.name);
-    } else {
-      setValue(null);
-      setDisplayValue(title);
-    }
+    setDisplayValue(item ? item.name : title);
     setListOpen(false);
+
+    if (onSelectItem) {
+      onSelectItem(item);
+    }
   };
 
-  const handleItemClick = (item, fn) => {
+  const handleItemClick = (item, fn, updateSelection) => {
     if (fn) {
       fn(item);
+    }
+    if (updateSelection) {
+      setDisplayValue(item.name);
     }
     setListOpen(false);
   };
@@ -39,12 +44,15 @@ const editableSelect = props => {
   let items = null;
   if (data) {
     items = [
-      <hr />,
+      <hr key="separator" />,
       data.map(d => {
         return (
           <li
             key={d.id}
-            className={[styles.listItem, d.id === value ? styles.selected : ''].join(' ')}
+            className={[
+              styles.listItem,
+              selectedItem && d.id === selectedItem.id ? styles.selected : ''
+            ].join(' ')}
           >
             <div className={styles.itemContainer} onClick={() => handleSelectItem(d)}>
               <div className={styles.itemName}>{d.name}</div>
@@ -53,14 +61,14 @@ const editableSelect = props => {
             <IconButton
               className={styles.itemButton}
               aria-label="edit item"
-              onClick={() => handleItemClick(d, onEditItem)}
+              onClick={() => handleItemClick(d, onEditItem, true)}
             >
               <FaEdit fontSize="small" />
             </IconButton>
             <IconButton
               className={styles.itemButton}
               aria-label="delete item"
-              onClick={() => handleItemClick(d, onDeleteItem)}
+              onClick={() => handleItemClick(d, onDeleteItem, false)}
             >
               <FaTrash fontSize="small" />
             </IconButton>
@@ -76,6 +84,7 @@ const editableSelect = props => {
         className={styles.toolbarButton}
         aria-label="select item from list"
         onClick={toggleList}
+        disabled={disabled}
       >
         {displayValue} &nbsp;
         <FaChevronDown fontSize="small" />

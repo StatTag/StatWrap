@@ -21,6 +21,7 @@ function PaperComponent(props) {
 class AssetGroupDialog extends Component {
   constructor(props) {
     super(props);
+    console.log(props);
     this.state = {
       errorMessage: null,
       id: props.id ? props.id : null,
@@ -95,6 +96,7 @@ class AssetGroupDialog extends Component {
                 id={styles.details}
                 name="details"
                 rows="4"
+                value={this.state.details}
                 placeholder="About my asset group..."
                 onChange={this.handleInputChange}
               />

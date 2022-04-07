@@ -7,11 +7,13 @@ import styles from './AssetTree.css';
 
 // This implementation borrows heavily from: https://github.com/davidtran/simple-treeview
 // Many thanks to davidtran for the implementation to get us started!
+// Additional thanks to https://github.com/jakezatecky/react-checkbox-tree - reviewed and
+// inspired how we handle managing checkbox state.
 
 class AssetTree extends Component {
   constructor(props) {
     super(props);
-    this.state = { expandedNodes: [] };
+    this.state = { expandedNodes: [], checkedNodes: [] };
   }
 
   handleClick = node => {
@@ -44,6 +46,10 @@ class AssetTree extends Component {
     }
   };
 
+  setPreCheckedNodes = nodes => {
+    this.setState({ checkedNodes: nodes });
+  };
+
   setExpandAll = expand => {
     this.setState(() => {
       const expandedNodes = [];
@@ -61,6 +67,23 @@ class AssetTree extends Component {
     });
   };
 
+  handleCheck = (node, value) => {
+    this.setState(prevState => {
+      const checkedNodes = [...prevState.checkedNodes];
+      const index = checkedNodes.indexOf(node.uri);
+      if (index === -1) {
+        checkedNodes.push(node.uri);
+      } else {
+        checkedNodes.splice(index, 1);
+      }
+      return { checkedNodes };
+    });
+
+    if (this.props.onCheckAsset) {
+      this.props.onCheckAsset(node, value);
+    }
+  };
+
   render() {
     const assetTree = !this.props.assets ? null : (
       <AssetNode
@@ -69,10 +92,11 @@ class AssetTree extends Component {
         key={this.props.assets.uri}
         node={this.props.assets}
         openNodes={this.state.expandedNodes}
+        checkedNodes={this.state.checkedNodes}
         selectedAsset={this.props.selectedAsset}
         checkboxes={this.props.checkboxes}
         onToggle={this.onToggle}
-        onCheck={this.props.onCheckAsset}
+        onCheck={this.handleCheck}
       />
     );
 

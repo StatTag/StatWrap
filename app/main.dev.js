@@ -14,6 +14,7 @@ import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import log from 'electron-log';
 import winston from 'winston';
+import { cloneDeep } from 'lodash';
 import { initialize, enable as enableRemote } from '@electron/remote/main';
 import MenuBuilder from './menu';
 import ProjectService from './services/project';
@@ -173,9 +174,10 @@ const saveProject = project => {
       );
       projectConfig.notes = project.notes;
       projectConfig.people = project.people;
+      projectConfig.assetGroups = cloneDeep(project.assetGroups);
       projectConfig.assetGroups = ProjectUtil.absoluteToRelativePathForAssetGroups(
         project.path,
-        project.assetGroups
+        projectConfig.assetGroups
       );
       projectService.saveProjectFile(project.path, projectConfig);
 
@@ -242,7 +244,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
         fullProject.categories = metadata.categories;
         fullProject.notes = metadata.notes;
         fullProject.people = metadata.people;
-        fullProject.assetGroups = AssetUtil.relativeToAbsolutePathForArray(
+        fullProject.assetGroups = ProjectUtil.relativeToAbsolutePathForAssetGroups(
           project.path,
           metadata.assetGroups
         );
@@ -507,7 +509,10 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
       response.project.sourceControlEnabled = await sourceControlService.hasSourceControlEnabled(
         project.path
       );
-      response.project.assetGroups = projectConfig.assetGroups;
+      response.project.assetGroups = ProjectUtil.relativeToAbsolutePathForAssetGroups(
+        project.path,
+        projectConfig.assetGroups
+      );
 
       const saveResponse = saveProject(response.project);
       response.project = saveResponse.project; // Pick up any enrichment from saveProject
@@ -615,7 +620,6 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
  */
 ipcMain.on(Messages.UPDATE_PROJECT_REQUEST, async (event, project) => {
   const response = saveProject(project);
-
   // console.log(response);
   // await sleep(5000);  // Use to test delays.  Leave disabled in production.
   event.sender.send(Messages.UPDATE_PROJECT_RESPONSE, response);

@@ -428,10 +428,42 @@ export default class ProjectUtil {
    * @param {array} assetGroups Array of asset group objects
    * @returns A modified copy of assetGroups that has the paths converted from absolute to relative
    */
+  // TODO - unit tests!!
   static absoluteToRelativePathForAssetGroups(projectPath, assetGroups) {
+    // If the array of asset groups isn't defined, we will return an empty array just to start
+    // initializing the collection.
+    if (assetGroups === null || assetGroups === undefined) {
+      return [];
+    }
+
     const modifiedAssetGroups = [...assetGroups];
     for (let index = 0; index < modifiedAssetGroups.length; index++) {
       modifiedAssetGroups[index].assets = AssetUtil.absoluteToRelativePathForArray(
+        projectPath,
+        modifiedAssetGroups[index].assets
+      );
+    }
+    return modifiedAssetGroups;
+  }
+
+  /**
+   * Given an array of asset groups, convert all of the asset paths from relative paths to absolute paths.
+   * This will not modify the assetGroup parameters.
+   * @param {string} projectPath The fully qualified path of the project
+   * @param {array} assetGroups Array of asset group objects
+   * @returns A modified copy of assetGroups that has the paths converted from relative to absolute
+   */
+  // TODO - unit tests!!
+  static relativeToAbsolutePathForAssetGroups(projectPath, assetGroups) {
+    // If the array of asset groups isn't defined, we will return an empty array just to start
+    // initializing the collection.
+    if (assetGroups === null || assetGroups === undefined) {
+      return [];
+    }
+
+    const modifiedAssetGroups = [...assetGroups];
+    for (let index = 0; index < modifiedAssetGroups.length; index++) {
+      modifiedAssetGroups[index].assets = AssetUtil.relativeToAbsolutePathForArray(
         projectPath,
         modifiedAssetGroups[index].assets
       );
