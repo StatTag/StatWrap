@@ -2,8 +2,8 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable react/prop-types */
 import * as React from 'react';
-import { createTheme, ThemeProvider, adaptV4Theme } from '@mui/material/styles';
-import { AppBar, Toolbar, Typography, IconButton } from '@mui/material';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { AppBar, Toolbar, IconButton } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SearchIcon from '@mui/icons-material/Search';
 import HomeIcon from '@mui/icons-material/Home';
@@ -110,16 +110,27 @@ export default class App extends React.Component {
 
   render() {
     const { children } = this.props;
-    const theme = createTheme(
-      adaptV4Theme({
-        palette: {
-          type: 'light'
+    const theme = createTheme({
+      palette: {
+        type: 'light',
+        primary: {
+          main: '#222222'
         },
-        typography: {
-          fontSize: 12
+        secondary: {
+          main: '#f50057'
         }
-      })
-    );
+      }
+    });
+    // const theme = createTheme(
+    //   adaptV4Theme({
+    //     palette: {
+    //       type: 'light'
+    //     },
+    //     typography: {
+    //       fontSize: 12
+    //     }
+    //   })
+    // );
     let userProfileDialog = null;
     if (this.state.settings && this.state.settings.user) {
       userProfileDialog = (
@@ -150,7 +161,7 @@ export default class App extends React.Component {
           <SettingsContext.Provider value={this.state.settings}>
             <AppBar position="static">
               <Toolbar className={styles.toolbar}>
-                <Typography variant="h6">StatWrap</Typography>
+                <img alt="StatWrap logo" src="images/banner.png" />
                 <section className={styles.rightToolbar}>
                   <Link to={routes.HOME} className={styles.navigation}>
                     <IconButton aria-label="home">
