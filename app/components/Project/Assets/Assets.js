@@ -12,6 +12,41 @@ import Loading from '../../Loading/Loading';
 import AssetUtil from '../../../utils/asset';
 import ProjectUtil from '../../../utils/project';
 import styles from './Assets.css';
+import constants from '../../../constants/constants';
+
+function filterAssets(assets, filter) {
+  if (!assets || assets === undefined) {
+    return {};
+  }
+
+  let filteredAssetList = AssetUtil.filterIncludedFileAssets(assets);
+
+  if (filter && filter !== undefined) {
+    filteredAssetList = ProjectUtil.getFilteredAssets(filteredAssetList, filter);
+    if (ProjectUtil.isDirectoryFilteredOut(filter)) {
+      filteredAssetList = ProjectUtil.flattenFilteredAssets(filteredAssetList);
+      if (filteredAssetList) {
+        filteredAssetList.type = constants.AssetType.FILTER;
+      }
+    }
+  }
+
+  // If filteredAssets ends up becoming null, we are going to set it to an
+  // empty object so our UI still displays.
+  if (!filteredAssetList) {
+    filteredAssetList = {};
+  }
+
+  return filteredAssetList;
+}
+
+function filterProjectAssets(project, filter) {
+  if (!project || project === undefined || !project.assets || project.assets === undefined) {
+    return {};
+  }
+
+  return filterAssets(project.assets, filter);
+}
 
 const assetsComponent = props => {
   const {
@@ -28,7 +63,6 @@ const assetsComponent = props => {
     dynamicDetails
   } = props;
   const [selectedAsset, setSelectedAsset] = useState();
-  const [assets, setAssets] = useState(null);
   const treeRef = React.useRef(null);
   const [mode, setMode] = useState('default'); // 'default', 'paperclip'
   // This key is part of a trick to get React to throw out and recreate the Asset Group
@@ -41,8 +75,10 @@ const assetsComponent = props => {
   const [groupedAssets, setGroupedAssets] = useState([]);
   const [currentAssetGroup, setCurrentAssetGroup] = useState(null);
 
-  const filteredProjectAssets =
-    !project || !project.assets ? null : AssetUtil.filterIncludedFileAssets(project.assets);
+  // const filteredProjectAssets = filterAssets(!project || !project.assets ? null : project.assets);
+  //   !project || !project.assets ? null : AssetUtil.filterIncludedFileAssets(project.assets);
+  const filteredProjectAssets = filterProjectAssets(project, null);
+  const [assets, setAssets] = useState(filteredProjectAssets);
 
   // Reset the mode whenever the project is changed
   useEffect(() => {
@@ -69,17 +105,16 @@ const assetsComponent = props => {
   }, [project]);
 
   useEffect(() => {
-    if (project && project.assets) {
-      setAssets(AssetUtil.filterIncludedFileAssets(project.assets));
-    } else {
-      setAssets(null);
-    }
+    // When the project changes, reset our interface, filters, etc.
+    setAssets(filterProjectAssets(project, null));
+    setCurrentAssetGroup(null);
+    setGroupedAssets(null);
   }, [project]);
 
   // Whenever the filter changes, update the list of assets to include only
   // those that should be displayed.
   const handleFilterChanged = filter => {
-    let filteredAssets = ProjectUtil.getFilteredAssets(filteredProjectAssets, filter);
+    /* let filteredAssets = ProjectUtil.getFilteredAssets(filteredProjectAssets, filter);
     if (ProjectUtil.isDirectoryFilteredOut(filter)) {
       filteredAssets = ProjectUtil.flattenFilteredAssets(filteredAssets);
     }
@@ -88,9 +123,9 @@ const assetsComponent = props => {
     // empty object so our UI still displays.
     if (!filteredAssets) {
       filteredAssets = {};
-    }
+    } */
 
-    setAssets(filteredAssets);
+    setAssets(filterProjectAssets(project, filter));
   };
 
   // When the user triggers saving an Asset Group, update the UI so the dialog
@@ -120,7 +155,7 @@ const assetsComponent = props => {
   // asset groups, but consider if it could be more broadly repurposed.
   const handleCheckAsset = (asset, value) => {
     setGroupedAssets(prevState => {
-      const newAssetGroup = [...prevState];
+      const newAssetGroup = prevState ? [...prevState] : [];
       const index = newAssetGroup.findIndex(x => x.uri === asset.uri);
       // We only need to consider adding and removing - there are other branches of logic
       // that are essentialy noops.
@@ -137,7 +172,18 @@ const assetsComponent = props => {
   };
 
   const handleSelectAssetGroup = group => {
-    setCurrentAssetGroup(cloneDeep(group));
+    if (group === null) {
+      setCurrentAssetGroup(null);
+      setAssets(filterProjectAssets(project, null));
+    } else {
+      const clonedAssetGroup = cloneDeep(group);
+      setCurrentAssetGroup(clonedAssetGroup);
+      setAssets({
+        uri: clonedAssetGroup.name,
+        type: constants.AssetType.ASSET_GROUP,
+        children: clonedAssetGroup.assets
+      });
+    }
   };
 
   const handleEditAssetGroup = group => {

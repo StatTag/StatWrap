@@ -1,6 +1,14 @@
 /* eslint-disable react/forbid-prop-types */
 import React, { useEffect, useState } from 'react';
-import { FaFile, FaFolder, FaFolderOpen, FaChevronDown, FaChevronRight } from 'react-icons/fa';
+import {
+  FaFile,
+  FaFolder,
+  FaFolderOpen,
+  FaChevronDown,
+  FaChevronRight,
+  FaPaperclip,
+  FaFilter
+} from 'react-icons/fa';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import AssetUtil from '../../../utils/asset';
@@ -92,6 +100,8 @@ const AssetNode = props => {
           {node.type === Constants.AssetType.FILE && <FaFile />}
           {node.type === Constants.AssetType.DIRECTORY && isOpen === true && <FaFolderOpen />}
           {node.type === Constants.AssetType.DIRECTORY && !isOpen && <FaFolder />}
+          {node.type === Constants.AssetType.ASSET_GROUP && <FaPaperclip />}
+          {node.type === Constants.AssetType.FILTER && <FaFilter />}
         </NodeIcon>
 
         <span role="button">{AssetUtil.getAssetNameFromUri(node)}</span>
