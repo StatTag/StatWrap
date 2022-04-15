@@ -1,0 +1,44 @@
+.container {
+  border: solid 1px gray;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.toolbarButton {
+  font-size: 0.8rem !important;
+}
+
+.listContainer {
+  margin-top: 30px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  font-size: 0.8rem;
+  margin: 10px;
+}
+
+.listItem {
+  padding: 10px;
+  display: flex;
+}
+
+.listItem:hover,
+.selected {
+  background-color: #eee;
+  cursor: pointer;
+}
+
+.itemDetails {
+  font-size: 0.6rem;
+}
+
+.itemContainer {
+  flex: 1;
+}
+
+.itemButton {
+  text-align: right;
+  vertical-align: top;
+}

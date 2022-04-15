@@ -122,5 +122,36 @@ describe('services', () => {
         ).toBe('Display Name');
       });
     });
+
+    describe('toggleStringInArray', () => {
+      it('handles a null or undefined input array', () => {
+        expect(GeneralUtil.toggleStringInArray(null, 'test', true)).toBe(null);
+        expect(GeneralUtil.toggleStringInArray(undefined, 'test', true)).toBe(undefined);
+      });
+      it('ignores null or undefined items', () => {
+        expect(GeneralUtil.toggleStringInArray([], null, true)).toStrictEqual([]);
+        expect(GeneralUtil.toggleStringInArray([], undefined, true)).toStrictEqual([]);
+      });
+      it('adds an item to the array when included', () => {
+        expect(GeneralUtil.toggleStringInArray([], 'test', true)).toStrictEqual(['test']);
+        expect(GeneralUtil.toggleStringInArray(['test'], 'test2', true)).toStrictEqual([
+          'test',
+          'test2'
+        ]);
+      });
+      it('does not add a duplicate item to the array when included', () => {
+        expect(GeneralUtil.toggleStringInArray(['test'], 'test', true)).toStrictEqual(['test']);
+        expect(GeneralUtil.toggleStringInArray(['test', 'test2'], 'test2', true)).toStrictEqual([
+          'test',
+          'test2'
+        ]);
+      });
+      it('removes an item from the array when excluded', () => {
+        expect(GeneralUtil.toggleStringInArray(['test'], 'test', false)).toStrictEqual([]);
+      });
+      it('does not remove a non-existant item from the array when excluded', () => {
+        expect(GeneralUtil.toggleStringInArray(['test'], 'test2', false)).toStrictEqual(['test']);
+      });
+    });
   });
 });

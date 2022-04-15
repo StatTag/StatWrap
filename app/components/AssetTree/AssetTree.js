@@ -1,18 +1,19 @@
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@mui/material';
 import AssetNode from './AssetNode/AssetNode';
 import Constants from '../../constants/constants';
 import styles from './AssetTree.css';
 
 // This implementation borrows heavily from: https://github.com/davidtran/simple-treeview
 // Many thanks to davidtran for the implementation to get us started!
+// Additional thanks to https://github.com/jakezatecky/react-checkbox-tree - reviewed and
+// inspired how we handle managing checkbox state.
 
 class AssetTree extends Component {
   constructor(props) {
     super(props);
-    this.state = { expandedNodes: [] };
+    this.state = { expandedNodes: [], checkedNodes: [] };
   }
 
   handleClick = node => {
@@ -45,6 +46,10 @@ class AssetTree extends Component {
     }
   };
 
+  setPreCheckedNodes = nodes => {
+    this.setState({ checkedNodes: nodes });
+  };
+
   setExpandAll = expand => {
     this.setState(() => {
       const expandedNodes = [];
@@ -62,27 +67,37 @@ class AssetTree extends Component {
     });
   };
 
-  render() {
-    // const filteredAssets = !this.props.assets
-    //   ? null
-    //   : AssetUtil.filterIncludedFileAssets(this.props.assets);
+  handleCheck = (node, value) => {
+    this.setState(prevState => {
+      const checkedNodes = [...prevState.checkedNodes];
+      const index = checkedNodes.indexOf(node.uri);
+      if (index === -1) {
+        checkedNodes.push(node.uri);
+      } else {
+        checkedNodes.splice(index, 1);
+      }
+      return { checkedNodes };
+    });
 
+    if (this.props.onCheckAsset) {
+      this.props.onCheckAsset(node, value);
+    }
+  };
+
+  render() {
     const assetTree = !this.props.assets ? null : (
-      <>
-        <div>
-          <Button onClick={() => this.setExpandAll(true)}>Expand All</Button>
-          <Button onClick={() => this.setExpandAll(false)}>Collapse All</Button>
-        </div>
-        <AssetNode
-          onClick={this.handleClick}
-          root
-          key={this.props.assets.uri}
-          node={this.props.assets}
-          openNodes={this.state.expandedNodes}
-          selectedAsset={this.props.selectedAsset}
-          onToggle={this.onToggle}
-        />
-      </>
+      <AssetNode
+        onClick={this.handleClick}
+        root
+        key={this.props.assets.uri}
+        node={this.props.assets}
+        openNodes={this.state.expandedNodes}
+        checkedNodes={this.state.checkedNodes}
+        selectedAsset={this.props.selectedAsset}
+        checkboxes={this.props.checkboxes}
+        onToggle={this.onToggle}
+        onCheck={this.handleCheck}
+      />
     );
 
     return <div className={styles.container}>{assetTree}</div>;
@@ -92,11 +107,15 @@ class AssetTree extends Component {
 AssetTree.propTypes = {
   assets: PropTypes.object.isRequired,
   onSelectAsset: PropTypes.func.isRequired,
-  selectedAsset: PropTypes.object
+  onCheckAsset: PropTypes.func,
+  selectedAsset: PropTypes.object,
+  checkboxes: PropTypes.bool
 };
 
 AssetTree.defaultProps = {
-  selectedAsset: null
+  selectedAsset: null,
+  checkboxes: false,
+  onCheckAsset: null
 };
 
 export default AssetTree;

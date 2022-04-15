@@ -1,0 +1,50 @@
+.label {
+  flex: 0 0 20%;
+  font-size: 0.8rem;
+}
+
+.title {
+  color: white;
+}
+
+.input {
+  width: 100%;
+}
+
+input::placeholder {
+  opacity: 0.7;
+}
+
+#details {
+  width: 100%;
+  font-family: inherit;
+  min-height: 20px;
+}
+
+#name {
+  flex: 0 0 80%;
+}
+
+.formBody {
+  margin: 10px;
+  width: auto;
+}
+
+.formRow {
+  display: flex;
+  flex-direction: row;
+  margin-right: 10px;
+  margin-left: 10px;
+  padding-bottom: 5px;
+  padding-top: 5px;
+}
+
+.separator {
+  padding-top: 10px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.id {
+  font-size: 0.9rem;
+}

@@ -1,6 +1,14 @@
 /* eslint-disable react/forbid-prop-types */
-import React from 'react';
-import { FaFile, FaFolder, FaFolderOpen, FaChevronDown, FaChevronRight } from 'react-icons/fa';
+import React, { useEffect, useState } from 'react';
+import {
+  FaFile,
+  FaFolder,
+  FaFolderOpen,
+  FaChevronDown,
+  FaChevronRight,
+  FaPaperclip,
+  FaFilter
+} from 'react-icons/fa';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import AssetUtil from '../../../utils/asset';
@@ -27,9 +35,44 @@ const NodeIcon = styled.div`
   margin-right: ${props => (props.marginRight ? props.marginRight : 5)}px;
 `;
 
+const StyledInput = styled.input`
+  margin-right: 5px;
+`;
+
 const AssetNode = props => {
-  const { node, root, openNodes, selectedAsset, level, onToggle, onRightClick, onClick } = props;
+  const {
+    node,
+    root,
+    openNodes,
+    checkedNodes,
+    selectedAsset,
+    level,
+    checkboxes,
+    onToggle,
+    onRightClick,
+    onClick
+  } = props;
   const isOpen = root || openNodes.includes(node.uri);
+  const isChecked = checkboxes && (root || checkedNodes.includes(node.uri));
+  const [checked, setChecked] = useState(isChecked);
+
+  useEffect(() => {
+    setChecked(checkboxes && checkedNodes.includes(node.uri));
+  }, [checkedNodes]);
+
+  const handleChecked = () => {
+    setChecked(prevState => {
+      if (props.onCheck) {
+        props.onCheck(props.node, !prevState);
+      }
+
+      return !prevState;
+    });
+  };
+
+  const checkbox = props.checkboxes ? (
+    <StyledInput checked={checked} onChange={handleChecked} type="checkbox" />
+  ) : null;
   return (
     <>
       <StyledTreeNode
@@ -52,11 +95,13 @@ const AssetNode = props => {
           {node.type === Constants.AssetType.DIRECTORY &&
             (isOpen ? <FaChevronDown /> : <FaChevronRight />)}
         </NodeIcon>
-
+        {checkbox}
         <NodeIcon marginRight={10}>
           {node.type === Constants.AssetType.FILE && <FaFile />}
           {node.type === Constants.AssetType.DIRECTORY && isOpen === true && <FaFolderOpen />}
           {node.type === Constants.AssetType.DIRECTORY && !isOpen && <FaFolder />}
+          {node.type === Constants.AssetType.ASSET_GROUP && <FaPaperclip />}
+          {node.type === Constants.AssetType.FILTER && <FaFilter />}
         </NodeIcon>
 
         <span role="button">{AssetUtil.getAssetNameFromUri(node)}</span>
@@ -72,9 +117,12 @@ const AssetNode = props => {
                 level={level + 1}
                 selectedAsset={selectedAsset}
                 openNodes={openNodes}
+                checkedNodes={checkedNodes}
                 onToggle={onToggle}
                 onClick={onClick}
                 onRightClick={onRightClick}
+                checkboxes={checkboxes}
+                onCheck={props.onCheck}
               />
             )))}
     </>
@@ -89,7 +137,10 @@ AssetNode.propTypes = {
   onToggle: PropTypes.func,
   onRightClick: PropTypes.func,
   onClick: PropTypes.func,
-  openNodes: PropTypes.array
+  onCheck: PropTypes.func,
+  openNodes: PropTypes.array,
+  checkedNodes: PropTypes.array,
+  checkboxes: PropTypes.bool
 };
 
 AssetNode.defaultProps = {
@@ -97,9 +148,12 @@ AssetNode.defaultProps = {
   onToggle: null,
   onRightClick: null,
   onClick: null,
+  onCheck: null,
   level: 0,
   selectedAsset: null,
-  openNodes: []
+  openNodes: [],
+  checkedNodes: [],
+  checkboxes: false
 };
 
 export default AssetNode;

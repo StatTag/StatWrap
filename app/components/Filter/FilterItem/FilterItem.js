@@ -3,7 +3,7 @@ import React from 'react';
 import styles from './FilterItem.css';
 
 const filterItem = props => {
-  const { onChecked, category, filter } = props;
+  const { disabled, onChecked, category, filter } = props;
   const [checked, setChecked] = React.useState(true);
 
   React.useEffect(() => {
@@ -23,6 +23,7 @@ const filterItem = props => {
         type="checkbox"
         checked={checked}
         onChange={handleChange}
+        disabled={disabled}
       />{' '}
       {props.label}
     </label>

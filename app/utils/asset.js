@@ -131,6 +131,24 @@ export default class AssetUtil {
   }
 
   /**
+   *
+   * @param {object} asset The asset to check if we should do path conversion on it
+   * @returns true if we should do path conversion
+   */
+  static shouldConvertPath(asset) {
+    if (!asset || asset === undefined) {
+      return false;
+    }
+
+    // We only do this for files and directories
+    return (
+      asset.type === constants.AssetType.FILE ||
+      asset.type === constants.AssetType.DIRECTORY ||
+      asset.type === constants.AssetType.FOLDER
+    );
+  }
+
+  /**
    * Recursively convert all nested asset URIs from relative path to absolute path
    * @param {string} projectPath The URI to the root path of the project
    * @param {object} assets The root asset that we want to convert paths
@@ -183,7 +201,7 @@ export default class AssetUtil {
    */
   static _recursivePathConversion(projectPath, asset, workerFn) {
     // We only do this for files and directories
-    if (asset.type === constants.AssetType.FILE || asset.type === constants.AssetType.DIRECTORY) {
+    if (AssetUtil.shouldConvertPath(asset)) {
       asset.uri = workerFn(projectPath, asset);
     }
 
@@ -208,6 +226,47 @@ export default class AssetUtil {
    */
   static recursiveAbsoluteToRelativePath(projectPath, assets) {
     return AssetUtil.recursivePathConversion(projectPath, assets, AssetUtil.absoluteToRelativePath);
+  }
+
+  /**
+   * Worker function to convert all asset URIs in the array using the provided path
+   * conversion function.  This will modify the assets parameter provided.
+   * @param {string} projectPath The URI to the root path of the project
+   * @param {array} assets The assets that we want to convert paths for
+   * @param {function} workerFn The function to do path conversion
+   * @returns The assets parameter that is passed in
+   */
+  static _convertPathForArray(projectPath, assets, workerFn) {
+    if (!assets || assets === undefined) {
+      return assets;
+    }
+
+    for (let index = 0; index < assets.length; index++) {
+      if (AssetUtil.shouldConvertPath(assets[index])) {
+        assets[index].uri = workerFn(projectPath, assets[index]);
+      }
+    }
+    return assets;
+  }
+
+  /**
+   * Convert all asset URIs in the array from absolute path to relative path.
+   * This will modify the assets parameter provided.
+   * @param {string} projectPath The URI to the root path of the project
+   * @param {array} assets The assets that we want to convert paths for
+   */
+  static absoluteToRelativePathForArray(projectPath, assets) {
+    return AssetUtil._convertPathForArray(projectPath, assets, AssetUtil.absoluteToRelativePath);
+  }
+
+  /**
+   * Convert all asset URIs in the array from absolute path to relative path.
+   * This will modify the assets parameter provided.
+   * @param {string} projectPath The URI to the root path of the project
+   * @param {array} assets The assets that we want to convert paths for
+   */
+  static relativeToAbsolutePathForArray(projectPath, assets) {
+    return AssetUtil._convertPathForArray(projectPath, assets, AssetUtil.relativeToAbsolutePath);
   }
 
   /**

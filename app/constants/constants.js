@@ -16,7 +16,11 @@ module.exports = {
   AssetType: {
     DIRECTORY: 'directory',
     FOLDER: 'directory', // 'DIRECTORY' is the preferred name, but we know we'll use this sometimes
-    FILE: 'file'
+    FILE: 'file',
+
+    // These are not a real asset types, but are used in our tree control
+    ASSET_GROUP: 'asset-group',
+    FILTER: 'filter'
   },
 
   AssetContentType: {
@@ -44,7 +48,11 @@ module.exports = {
 
     PERSON_ADDED: 'Person Added',
     PERSON_UPDATED: 'Person Updated',
-    PERSON_DELETED: 'Person Deleted'
+    PERSON_DELETED: 'Person Deleted',
+
+    ASSET_GROUP_ADDED: 'Asset Group Added',
+    ASSET_GROUP_UPDATED: 'Asset Group Updated',
+    ASSET_GROUP_DELETED: 'Asset Group Deleted'
   },
 
   DescriptionContentType: {

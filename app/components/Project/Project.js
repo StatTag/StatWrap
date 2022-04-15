@@ -5,6 +5,7 @@ import React, { Component } from 'react';
 import { Tab, Tabs } from '@mui/material';
 import { TabPanel, TabContext } from '@mui/lab';
 import { withStyles } from '@mui/styles/';
+import { cloneDeep } from 'lodash';
 import IconButton from '@mui/material/IconButton';
 import { Star, StarBorder } from '@mui/icons-material';
 import PropTypes from 'prop-types';
@@ -19,6 +20,7 @@ import ProjectNotes from '../ProjectNotes/ProjectNotes';
 import { ActionType, DescriptionContentType } from '../../constants/constants';
 import AssetUtil from '../../utils/asset';
 import NoteUtil from '../../utils/note';
+import ProjectUtil from '../../utils/project';
 import GeneralUtil from '../../utils/general';
 import styles from './Project.css';
 import UserContext from '../../contexts/User';
@@ -254,6 +256,7 @@ class Project extends Component<Props> {
       action.type = ActionType.NOTE_ADDED;
       action.description = `Added note to asset ${asset.uri}`;
       action.details = note;
+      // TODO - fix bug here - should be failing
       assetsCopy.push(newAsset);
     } else {
       this.upsertNoteHandler(existingAsset, 'asset', asset.uri, action, text, note);
@@ -458,6 +461,75 @@ class Project extends Component<Props> {
     }
   };
 
+  assetGroupDeletedHandler = group => {
+    const currentProject = { ...this.props.project };
+
+    const action = {
+      type: ActionType.ASSET_GROUP_DELETED,
+      title: ActionType.ASSET_GROUP_DELETED,
+      description: 'Deleted asset group',
+      details: group
+    };
+
+    ProjectUtil.removeAssetGroup(currentProject, group);
+    if (this.props.onUpdated) {
+      this.props.onUpdated(
+        currentProject,
+        action.type,
+        action.title,
+        action.description,
+        action.details
+      );
+    }
+  };
+
+  assetGroupAddedHandler = group => {
+    const user = this.context;
+    const currentProject = { ...this.props.project };
+
+    const action = {
+      type: ActionType.ASSET_GROUP_ADDED,
+      title: ActionType.ASSET_GROUP_ADDED,
+      description: `${user} created asset group ${group.name}`,
+      details: group
+    };
+
+    ProjectUtil.upsertAssetGroup(currentProject, group);
+    if (this.props.onUpdated) {
+      this.props.onUpdated(
+        currentProject,
+        action.type,
+        action.title,
+        action.description,
+        action.details
+      );
+    }
+  };
+
+  assetGroupUpdatedHandler = group => {
+    const user = this.context;
+    const currentProject = { ...this.props.project };
+
+    const oldAssetGroup = cloneDeep(this.props.project.assetGroups.find(x => x.id === group.id));
+    const action = {
+      type: ActionType.ASSET_GROUP_UPDATED,
+      title: ActionType.ASSET_GROUP_UPDATED,
+      description: `${user} updated asset group ${group.name} ${group.id}`,
+      details: { old: oldAssetGroup, new: group }
+    };
+
+    ProjectUtil.upsertAssetGroup(currentProject, group);
+    if (this.props.onUpdated) {
+      this.props.onUpdated(
+        currentProject,
+        action.type,
+        action.title,
+        action.description,
+        action.details
+      );
+    }
+  };
+
   render() {
     const tabStyle = { root: this.props.classes.tabRoot, selected: this.props.classes.tabSelected };
     const tabPanelStyle = { root: this.props.classes.tabPanel };
@@ -481,6 +553,9 @@ class Project extends Component<Props> {
           onDeletedAssetNote={this.assetDeleteNoteHandler}
           onUpdatedAssetAttribute={this.assetUpdateAttributeHandler}
           onSelectedAsset={this.assetSelectedHandler}
+          onAddedAssetGroup={this.assetGroupAddedHandler}
+          onUpdatedAssetGroup={this.assetGroupUpdatedHandler}
+          onDeletedAssetGroup={this.assetGroupDeletedHandler}
           assetAttributes={this.props.configuration.assetAttributes}
           dynamicDetails={this.props.assetDynamicDetails}
         />

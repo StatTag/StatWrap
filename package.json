@@ -228,7 +228,6 @@
     "rimraf": "^3.0.0",
     "sass-loader": "^8.0.0",
     "sinon": "^7.5.0",
-    "spectron": "^9.0.0",
     "style-loader": "^1.0.1",
     "stylelint": "^14.2.0",
     "stylelint-config-prettier": "^8.0.0",
