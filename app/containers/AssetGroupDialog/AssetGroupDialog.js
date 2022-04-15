@@ -21,7 +21,6 @@ function PaperComponent(props) {
 class AssetGroupDialog extends Component {
   constructor(props) {
     super(props);
-    console.log(props);
     this.state = {
       errorMessage: null,
       id: props.id ? props.id : null,

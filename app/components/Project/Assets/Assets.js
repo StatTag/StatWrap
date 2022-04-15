@@ -11,6 +11,7 @@ import EditableSelect from '../../EditableSelect/EditableSelect';
 import Loading from '../../Loading/Loading';
 import AssetUtil from '../../../utils/asset';
 import ProjectUtil from '../../../utils/project';
+import ProjectService from '../../../services/project';
 import styles from './Assets.css';
 import constants from '../../../constants/constants';
 
@@ -72,18 +73,18 @@ const assetsComponent = props => {
   const [dialogKey, setDialogKey] = useState(0);
   // UI state flag to let us know when we're in the process of adding/editing a group
   const [editingGroup, setEditingGroup] = useState(false);
+  // Array of currently selected assets that are either for an existing asset group, or
+  // that could be added to a new asset group.
   const [groupedAssets, setGroupedAssets] = useState([]);
+  // Object that represents the currently selected asset group - either to be displayed, or
+  // the one currently being edited.
   const [currentAssetGroup, setCurrentAssetGroup] = useState(null);
-
-  // const filteredProjectAssets = filterAssets(!project || !project.assets ? null : project.assets);
-  //   !project || !project.assets ? null : AssetUtil.filterIncludedFileAssets(project.assets);
+  // If the asset list filter is enabled or disabled
+  const [filterEnabled, setFilterEnabled] = useState(true);
   const filteredProjectAssets = filterProjectAssets(project, null);
   const [assets, setAssets] = useState(filteredProjectAssets);
 
-  // Reset the mode whenever the project is changed
-  useEffect(() => {
-    setMode('default');
-  }, [project]);
+  const projectService = new ProjectService();
 
   // Because our project property can change, the asset that we have in state as the selected
   // asset may have actually changed.  We need to detect that and refresh the selected asset
@@ -106,25 +107,16 @@ const assetsComponent = props => {
 
   useEffect(() => {
     // When the project changes, reset our interface, filters, etc.
+    setMode('default');
     setAssets(filterProjectAssets(project, null));
     setCurrentAssetGroup(null);
     setGroupedAssets(null);
+    setFilterEnabled(true);
   }, [project]);
 
   // Whenever the filter changes, update the list of assets to include only
   // those that should be displayed.
   const handleFilterChanged = filter => {
-    /* let filteredAssets = ProjectUtil.getFilteredAssets(filteredProjectAssets, filter);
-    if (ProjectUtil.isDirectoryFilteredOut(filter)) {
-      filteredAssets = ProjectUtil.flattenFilteredAssets(filteredAssets);
-    }
-
-    // If filteredAssets ends up becoming null, we are going to set it to an
-    // empty object so our UI still displays.
-    if (!filteredAssets) {
-      filteredAssets = {};
-    } */
-
     setAssets(filterProjectAssets(project, filter));
   };
 
@@ -171,24 +163,55 @@ const assetsComponent = props => {
     });
   };
 
+  /**
+   * Update the UI/state to reflect the currently selected asset group.  If we are displaying
+   * an asset group, we also want to disable the filters.  In the future we likely want to make
+   * filtering available, but are keeping it simple for now.
+   * @param {object} group The selected asset group (null if nothing is selected)
+   */
   const handleSelectAssetGroup = group => {
     if (group === null) {
       setCurrentAssetGroup(null);
+      setGroupedAssets(null);
       setAssets(filterProjectAssets(project, null));
+      setFilterEnabled(true);
     } else {
-      const clonedAssetGroup = cloneDeep(group);
-      setCurrentAssetGroup(clonedAssetGroup);
-      setAssets({
-        uri: clonedAssetGroup.name,
+      const clonedGroup = cloneDeep(group);
+
+      // Define a new assets object.  This is because our asset structure requires a
+      // top-level asset object, under which all of our grouped assets can go as its
+      // children.
+      const groupAssets = {
+        uri: clonedGroup.name,
         type: constants.AssetType.ASSET_GROUP,
-        children: clonedAssetGroup.assets
-      });
+        children: clonedGroup.assets
+      };
+
+      // Make sure we merge in the notes and attributes.  We don't store those for the
+      // group asset definition, so it needs to be added in here.
+      projectService.addNotesAndAttributesToAssets(groupAssets, project.assets);
+
+      // Update the UI to reflect the asset group.
+      setCurrentAssetGroup(clonedGroup);
+      setGroupedAssets(clonedGroup.assets);
+      setAssets(groupAssets);
+      setFilterEnabled(false);
     }
   };
 
+  /**
+   * When we begin editing the group, we need to consider a few parts of the state and UI that need updates:
+   *  1. We need to establish the currently selected group to the one being edited
+   *  2. The list of "selected" assets needs to be the assets specified in the asset group we're editing
+   *  3. The currently displayed asset tree needs to include all assets
+   *  4. The mode needs to be set to 'paperclip'
+   * @param {object} group The group that is being edited
+   */
   const handleEditAssetGroup = group => {
     const clonedGroup = cloneDeep(group);
+    setAssets(filterProjectAssets(project, null));
     setCurrentAssetGroup(clonedGroup);
+    setGroupedAssets(clonedGroup.assets);
     treeRef.current.setPreCheckedNodes(clonedGroup.assets.map(x => x.uri));
     setMode('paperclip');
   };
@@ -204,8 +227,12 @@ const assetsComponent = props => {
     }
   };
 
-  const handleStartAssetGroupMode = () => {
+  /**
+   * Prepare the state/UI for creating a new asset group
+   */
+  const handleNewAssetGroup = () => {
     setCurrentAssetGroup(null);
+    setGroupedAssets(null);
     treeRef.current.setPreCheckedNodes([]);
     setMode('paperclip');
   };
@@ -258,6 +285,7 @@ const assetsComponent = props => {
           <AssetFilter
             assets={filteredProjectAssets}
             mode="asset"
+            disabled={!filterEnabled}
             onFilterChanged={handleFilterChanged}
           />
           <div className={styles.tree}>
@@ -279,7 +307,7 @@ const assetsComponent = props => {
                 <FaFolderMinus fontSize="small" /> &nbsp;Collapse
               </IconButton>
               <IconButton
-                onClick={handleStartAssetGroupMode}
+                onClick={handleNewAssetGroup}
                 className={styles.toolbarButton}
                 disabled={mode === 'paperclip'}
                 aria-label="group assets together"

@@ -614,6 +614,51 @@ describe('services', () => {
         expect(updatedAssets.children[1].notes.length).toBe(0);
         expect(updatedAssets.children[1].attributes).toEqual({});
       });
+
+      it('will copy over the notes and attributes when the structure does not match', () => {
+        const service = new ProjectService();
+        // This mimics a flat structure, not the normal hierarchical structure
+        const assets = {
+          uri: '/Test/Asset',
+          children: [
+            {
+              uri: '/Test/Asset/1'
+            },
+            {
+              uri: '/Test/Asset/1/a'
+            },
+            {
+              uri: '/Test/Asset/2'
+            },
+            {
+              uri: '/Test/Asset/2/a'
+            }
+          ]
+        };
+        const assetsWithNotes = {
+          uri: '/Test/Asset',
+          attributes: { test: 0 },
+          children: [
+            {
+              uri: '/Test/Asset/1',
+              attributes: { test: 1 },
+              children: [{ uri: '/Test/Asset/1/a', notes: [{ id: '3', content: 'Test 3' }] }],
+              notes: [{ id: '2', content: 'Test 2' }]
+            }
+          ]
+        };
+
+        const updatedAssets = service.addNotesAndAttributesToAssets(assets, assetsWithNotes, false);
+        expect(updatedAssets.children[0].notes[0]).toEqual(assetsWithNotes.children[0].notes[0]);
+        expect(updatedAssets.children[0].attributes).toEqual({ test: 1 });
+        expect(updatedAssets.children[1].notes[0]).toEqual(
+          assetsWithNotes.children[0].children[0].notes[0]
+        );
+        expect(updatedAssets.children[2].notes.length).toBe(0);
+        expect(updatedAssets.children[2].attributes).toEqual({});
+        expect(updatedAssets.children[3].notes.length).toBe(0);
+        expect(updatedAssets.children[3].attributes).toEqual({});
+      });
     });
 
     describe('createProjectConfig', () => {

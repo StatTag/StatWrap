@@ -239,8 +239,11 @@ export default class ProjectService {
    *
    * @param {object} assets The assets object to merge notes into.  Any notes already in the assets will be replaced.
    * @param {object} assetsWithData The assets with notes and attributes that we will copy from.
+   * @param {bool} followStructure Follow the asset structure hierarchy.  If this is true, it will only attempt to match
+   *   children at the same level.  If false, it will search all descendants for the URI.  Because it is performing a URI
+   *   search, this should not change the results, just improve speed.
    */
-   addNotesAndAttributesToAssets(assets, assetsWithData) {
+   addNotesAndAttributesToAssets(assets, assetsWithData, followStructure = true) {
     if (!assets) {
       throw new Error('The assets object must be specified');
     } else if (!assetsWithData) {
@@ -258,7 +261,8 @@ export default class ProjectService {
     if (assets.children) {
       for (let index = 0; index < assets.children.length; index++) {
         const childAsset = assets.children[index];
-        const childAssetWithData = AssetUtil.findChildAssetByUri(assetsWithData, childAsset.uri);
+        const childAssetWithData = followStructure ? AssetUtil.findChildAssetByUri(assetsWithData, childAsset.uri) :
+          AssetUtil.findDescendantAssetByUri(assetsWithData, childAsset.uri);
         if (childAssetWithData) {
           this.addNotesAndAttributesToAssets(assets.children[index], childAssetWithData);
         } else {

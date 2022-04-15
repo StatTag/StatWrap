@@ -48,6 +48,7 @@ const filterComponent = props => {
           filter={f.key}
           category={x.category}
           label={f.label}
+          disabled={props.disabled}
         />
       );
     });
