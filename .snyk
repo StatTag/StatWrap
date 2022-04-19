@@ -1,0 +1,23 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.12.0
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  SNYK-JS-D3COLOR-1076592:
+    - react-d3-tree > d3-zoom > d3-interpolate > d3-color:
+        reason: No fix available
+        expires: '2022-05-15T21:21:14.711Z'
+    - react-d3-tree > d3-zoom > d3-transition > d3-color:
+        reason: No fix available
+        expires: '2022-05-15T21:21:14.711Z'
+    - react-d3-tree > d3-zoom > d3-transition > d3-interpolate > d3-color:
+        reason: No fix available
+        expires: '2022-05-15T21:21:14.711Z'
+  SNYK-JS-GLOBPARENT-1016905:
+    - resizable-panels-react > webpack > watchpack > watchpack-chokidar2 > chokidar > glob-parent:
+        reason: No fix available
+        expires: '2022-05-15T21:21:14.712Z'
+  SNYK-JS-HIGHLIGHTJS-1048676:
+    - devtron > highlight.js:
+        reason: No fix available
+        expires: '2022-05-15T21:21:14.712Z'
+patch: {}
