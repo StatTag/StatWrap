@@ -1165,7 +1165,7 @@ describe('services', () => {
             type: Constants.AssetType.FOLDER
           },
           {
-            uri: 'folder\\file',
+            uri: 'folder/file', // Note that we are normalizing to POSIX paths, so this is correct for Windows
             type: Constants.AssetType.FILE
           }
         ];
