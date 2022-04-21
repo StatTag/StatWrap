@@ -244,13 +244,13 @@ class ProjectPage extends Component {
     return (
       <div className={styles.container} data-tid="container">
         <ResizablePanels
-          bkcolor="#fff"
+          bkcolor="#fbfaff"
           displayDirection="row"
           width="100%"
           height="100vh"
           panelsSize={[25, 75]}
           sizeUnitMeasure="%"
-          resizerColor="#000"
+          resizerColor="#f6f6f6"
           resizerSize="4px"
         >
           <Projects

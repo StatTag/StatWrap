@@ -8,14 +8,18 @@
   display: inline-block;
 }
 
+/*header*/
+/*text in header*/
 .toolbar {
   min-height: 36px;
   max-height: 36px;
+  background-color: #cccccc;
+  color: #4E2A84;
 }
-
+/*icons in header*/
 .navigation,
 .navigation > button {
-  color: white;
+  color: #4E2A84;
   opacity: 0.75;
   text-decoration: none;
 }
@@ -30,3 +34,6 @@
   margin-left: 20px;
   cursor: pointer;
 }
+
+
+

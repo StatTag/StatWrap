@@ -29,6 +29,7 @@ type Props = {};
 
 // We typically do our styles in a separate CSS, but this has been the best way to
 // override Material-UI specific styles, so we will do it in code.
+/*
 const muiStyles = () => ({
   tabIndicator: {
     backgroundColor: 'white'
@@ -37,14 +38,32 @@ const muiStyles = () => ({
     color: 'white'
   },
   tabRoot: {
-    backgroundColor: '#3c629e',
+    backgroundColor: '#cccccc',
     border: 'solid 1px #000',
     fontSize: '0.8rem'
   },
   tabSelected: {
     backgroundColor: '#ffffff',
-    color: '#000000',
+    border: 'solid 1px #836EAA',
+    color: '#836EAA',
     fontSize: '0.9rem'
+  },
+  tabPanel: {
+    padding: '10px'
+  }
+});
+*/
+const muiStyles = () => ({
+  tabIndicator: {
+    backgroundColor: 'white'
+  },
+  tabRoot: {
+    backgroundColor: '#efefef',
+    fontSize: '0.8rem'
+  },
+  tabSelected: {
+    backgroundColor: '#ffffff',
+    fontSize: '0.8rem'
   },
   tabPanel: {
     padding: '10px'
