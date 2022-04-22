@@ -6,22 +6,31 @@
   display: grid;
   margin-left: 4px;
   margin-right: 2px;
+  border-right: 8px solid transparent;
 }
 
 .container:hover {
   opacity: 0.7;
-  background-color: #dbcbf7;
-  color:white;
+  background-color: #dddddd;
+  color: #333;
   border-radius: 5px;
+  border-right: 8px solid #666;
 }
 
 .selected {
   opacity: 0.7;
   background-color: #aa94d1;
-  color:white;
+  color: white;
   border-radius: 5px;
+  border-right: 8px solid #67518f;
 }
 
+.selected > .path {
+  color:#fff;
+}
+.container:hover > .path {
+  color:#333;
+}
 
 .path,
 .tooltipPath {
@@ -63,6 +72,7 @@
 .placeholder {
   visibility: hidden;
 }
+
 .container:hover .placeholder {
   visibility: visible;
   color: #333;
@@ -88,7 +98,7 @@
 }
 
 .offlineIcon {
-  color: rgb(180, 82, 37);
+  color: rgb(180 82 37);
   padding-left: 10px;
   font-weight: bold;
   vertical-align: middle;
