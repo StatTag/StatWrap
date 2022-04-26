@@ -11,7 +11,7 @@
 
 .container:hover {
   opacity: 0.7;
-  background-color: #dddddd;
+  background-color: #ddd;
   color: #333;
   border-radius: 5px;
   border-right: 8px solid #666;
@@ -26,10 +26,11 @@
 }
 
 .selected > .path {
-  color:#fff;
+  color: #fff;
 }
+
 .container:hover > .path {
-  color:#333;
+  color: #333;
 }
 
 .path,
