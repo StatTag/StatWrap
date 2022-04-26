@@ -4,12 +4,42 @@
   grid-template-columns: 1fr 16px;
   grid-template-rows: 1fr 1fr;
   display: grid;
+  margin-left: 4px;
+  margin-right: 2px;
+  border-right: 8px solid transparent;
 }
 
-.container:hover,
+.container:hover {
+  opacity: 0.7;
+  background-color: #dddddd;
+  color: #333;
+  border-radius: 5px;
+  border-right: 8px solid #666;
+}
+
 .selected {
   opacity: 0.7;
-  background: rgba(0, 0, 0, 0.05);
+  background-color: #aa94d1;
+  color: white;
+  border-radius: 5px;
+  border-right: 8px solid #67518f;
+}
+
+.selected > .path {
+  color:#fff;
+}
+.container:hover > .path {
+  color:#333;
+}
+
+.path,
+.tooltipPath {
+  font-size: 0.6rem;
+  color: #333;
+  vertical-align: top;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .path,
@@ -42,6 +72,7 @@
 .placeholder {
   visibility: hidden;
 }
+
 .container:hover .placeholder {
   visibility: visible;
   color: #333;
@@ -67,7 +98,7 @@
 }
 
 .offlineIcon {
-  color: rgb(180, 82, 37);
+  color: rgb(180 82 37);
   padding-left: 10px;
   font-weight: bold;
   vertical-align: middle;

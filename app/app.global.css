@@ -10,6 +10,51 @@
 
 /* stylelint-disable selector-class-pattern  */
 
+/*
+///////////////////////
+Northwestern secondary color palette
+https://www.northwestern.edu/brand/visual-identity/color-palettes/secondary-palette/
+
+Purples
+----
+Northwestern purple #4E2A84
+
+purple60 #836EAA
+purple30 #B6ACD1
+purple10 #E4E0EE
+purple120 #401F68
+
+richblack80 #342F2E
+richblack50 #716C6B
+richblack20 #BBB8B8
+richblack10 #D8D6D6
+
+
+"brights"
+----
+green #58B947
+green/blue #7FCECD
+blue #5091CD
+yelow #EDE93B
+orange #FFC520
+red #EF553F
+
+"darks"
+----
+green #008656
+green/blue #007FA4
+blue #0D2D6C
+yelow #D9C826
+orange #CA7C1B
+red #D85820
+
+///////////////////////
+custom colors
+----
+light gray (separator) #f6f6f6
+
+*/
+
 body {
   position: relative;
   color: #000;
@@ -45,4 +90,28 @@ body {
 #graph-id-graph-wrapper {
   width: inherit;
   height: inherit;
+}
+
+.tabIndicator {
+  background-color: "white";
+}
+
+.scrollButtons {
+  color: "white";
+}
+
+.tabRoot {
+  background-color: "#cccccc";
+  border: "solid 1px #000";
+  font-size: "0.8rem";
+}
+
+.tabSelected {
+  background-color: "#ffffff";
+  color: "#000000";
+  font-size: "0.9rem";
+}
+
+.tabPanel {
+  padding: "10px";
 }

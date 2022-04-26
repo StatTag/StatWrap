@@ -4,16 +4,17 @@
   color: #000;
   margin: 0;
   overflow: auto;
+  background-color: #fff;
 }
 
 .header {
-  background-color: #4c72be;
+  background-color: #aa94d1;
   margin: 0;
   padding: 0;
 }
 
 .titleContainer {
-  padding: 10px 10px;
+  padding: 10px;
   color: #fff;
 }
 
@@ -48,6 +49,6 @@
 }
 
 .editableLabel {
-  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
   font-size: 1rem;
 }
