@@ -1,8 +1,8 @@
 // import { style } from 'd3-selection';
 import React, { useState, useEffect } from 'react';
 import { Graph } from 'react-d3-graph';
-import WorkflowUtil from '../../../utils/workflow';
 import CodeNode from './CustomNodes/Code/CodeNode';
+import WorkflowUtil from '../../../utils/workflow';
 import DependencyFilter from '../../Filter/Filter';
 import styles from './DependencyGraph.css';
 
@@ -22,7 +22,7 @@ const graphConfig = {
   }
 };
 
-const dependencyGraph = props => {
+const dependencyGraphD3 = props => {
   const { assets } = props;
   const [graphData, setGraphData] = useState(null);
 
@@ -50,7 +50,7 @@ const dependencyGraph = props => {
   }
   return (
     <div className={styles.container}>
-      <div>
+      <div className={styles.filter}>
         <DependencyFilter assets={assets} mode="dependency" onFilterChanged={handleFilterChanged} />
       </div>
       <div className={styles.graph}>{graph}</div>
@@ -58,4 +58,4 @@ const dependencyGraph = props => {
   );
 };
 
-export default dependencyGraph;
+export default dependencyGraphD3;

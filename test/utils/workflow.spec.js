@@ -464,6 +464,94 @@ describe('services', () => {
       });
     });
 
+    describe('getAllDependenciesAsEChartGraph', () => {
+      it('should handle empty/invalid inputs', () => {
+        expect(WorkflowUtil.getAllDependenciesAsEChartGraph(null)).toEqual({
+          nodes: [],
+          links: []
+        });
+        expect(WorkflowUtil.getAllDependenciesAsEChartGraph(undefined)).toEqual({
+          nodes: [],
+          links: []
+        });
+      });
+      it('should translate the graph to the EChart data model', () => {
+        const asset = {
+          uri: '/test/1',
+          children: [
+            {
+              uri: '/test/1/2',
+              metadata: [
+                {
+                  id: 'StatWrap.PythonHandler',
+                  libraries: [
+                    {
+                      id: 'sys',
+                      module: 'sys',
+                      import: null,
+                      alias: null
+                    },
+                    {
+                      id: 'pandas',
+                      module: 'pandas',
+                      import: null,
+                      alias: null
+                    }
+                  ],
+                  inputs: [
+                    {
+                      id: 'tmp',
+                      type: Constants.DependencyType.DATA,
+                      path: 'python.csv'
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        };
+        const graph = WorkflowUtil.getAllDependenciesAsEChartGraph(asset);
+        expect(graph).toEqual({
+          nodes: [
+            {
+              id: '2',
+              name: '2',
+              value: 'python'
+            },
+            {
+              id: 'sys',
+              name: 'sys',
+              value: 'dependency'
+            },
+            {
+              id: 'pandas',
+              name: 'pandas',
+              value: 'dependency'
+            },
+            {
+              id: 'tmp',
+              name: 'tmp',
+              value: 'data'
+            }
+          ],
+          links: [
+            {
+              source: 'sys',
+              target: '2'
+            },
+            {
+              source: 'pandas',
+              target: '2'
+            },
+            {
+              source: 'tmp',
+              target: '2'
+            }
+          ]
+        });
+      });
+    });
+
     describe('getAssetType', () => {
       it('should handle empty/invalid input', () => {
         expect(WorkflowUtil.getAssetType(null)).toEqual('generic');

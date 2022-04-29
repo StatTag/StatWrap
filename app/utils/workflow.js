@@ -29,10 +29,24 @@ export default class WorkflowUtil {
 
   /**
    * Build a graph (collection of nodes and links) for an asset and all of
+   * its descendants.  The graph will be specific for Apache ECharts data format.
+   *
+   * @param {object} asset The root asset to build the graph from
+   * @param {array} filters The filters to apply (if applicable)
+   * @returns An react-d3-graph object containing nodes and links attributes
+   */
+  static getAllDependenciesAsEChartGraph(asset, filters) {
+    const graph = WorkflowUtil.getAllDependenciesAsGraph(asset, filters);
+    graph.nodes = graph.nodes.map(x => ({ id: x.id, name: x.id, value: x.assetType }));
+    return graph;
+  }
+
+  /**
+   * Build a graph (collection of nodes and links) for an asset and all of
    * its descendants
    * @param {object} asset The root asset to build the graph from.
    * @param {array} filters The filters to apply (if applicable)
-   * @returns An react-d3-graph object containing nodes and links attributes
+   * @returns An object containing nodes and links attributes
    */
   static getAllDependenciesAsGraph(asset, filters) {
     const graph = {

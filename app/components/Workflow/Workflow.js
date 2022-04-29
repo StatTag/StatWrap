@@ -1,7 +1,7 @@
 import { ToggleButtonGroup, ToggleButton } from '@mui/material';
 import React from 'react';
-import DependencyGraph from './DependencyGraph/DependencyGraph';
-import DependencyTree from './DependencyTree/DependencyTree';
+import DependencyGraph from './DependencyGraph/DependencyGraphEChart';
+import DependencyTree from './DependencyTree/DependencyTreeEChart';
 import styles from './Workflow.css';
 
 const workflow = props => {

@@ -1,9 +1,19 @@
-.container,
-.graph {
-  width: 100%;
-  height: 100%;
+.container {
+  display: flex;
+  flex-direction: row;
 }
 
+.filter {
+  flex-grow: 0;
+  max-width: 250px;
+}
+
+.graph {
+  flex-grow: 1;
+  height: 75vh;
+}
+
+/* Just for D3 - needs some work */
 .graph svg {
   width: inherit !important;
   height: inherit !important;

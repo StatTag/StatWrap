@@ -11,7 +11,7 @@ const renderCodeNode = node => (
   />
 );
 
-const dependencyGraph = props => {
+const dependencyGraphD3 = props => {
   const { assets } = props;
 
   const data = WorkflowUtil.getAllDependenciesAsTree(assets);
@@ -22,4 +22,4 @@ const dependencyGraph = props => {
   return <div className={styles.container}>{tree}</div>;
 };
 
-export default dependencyGraph;
+export default dependencyGraphD3;
