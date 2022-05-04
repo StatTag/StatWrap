@@ -1,23 +1,10 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import React from 'react';
-import hash from 'object-hash';
 import FilterItem from './FilterItem/FilterItem';
 import styles from './Filter.css';
-import ProjectUtil from '../../utils/project';
 
 const filterComponent = props => {
-  const [filter, setFilter] = React.useState([]);
-  React.useEffect(() => {
-    if (props.assets) {
-      if (props.mode === 'asset') {
-        setFilter(ProjectUtil.getAssetFilters(props.assets));
-      } else if (props.mode === 'dependency') {
-        setFilter(ProjectUtil.getWorkflowFilters(props.assets));
-      }
-    }
-    // Only update on the hash change, otherwise this will trigger even
-    // when the underlying assets prop hasn't changed
-  }, [hash(props.assets)]);
+  const { filter } = props;
 
   const handleFilterChecked = (category, filterKey, value) => {
     const categoryIndex = filter.findIndex(x => x.category === category);
@@ -31,7 +18,6 @@ const filterComponent = props => {
     }
 
     filter[categoryIndex].values[filterIndex].value = value;
-    setFilter(filter);
 
     if (props.onFilterChanged) {
       props.onFilterChanged(filter);
@@ -44,6 +30,7 @@ const filterComponent = props => {
       return (
         <FilterItem
           onChecked={handleFilterChecked}
+          checked={f.value}
           key={f.key}
           filter={f.key}
           category={x.category}

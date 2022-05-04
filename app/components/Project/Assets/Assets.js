@@ -49,6 +49,17 @@ function filterProjectAssets(project, filter) {
   return filterAssets(project.assets, filter);
 }
 
+/**
+ * Utility function to safely reset available filters for a project's assets
+ *
+ * @param {object} project The project we are resetting filters for
+ * @returns An array representing the available filter options, or an empty array if the project is empty,
+ *  null, or has no assets.
+ */
+function resetFilter(project) {
+  return project && project.assets ? ProjectUtil.getAssetFilters(project.assets) : [];
+}
+
 const assetsComponent = props => {
   const {
     project,
@@ -81,6 +92,8 @@ const assetsComponent = props => {
   const [currentAssetGroup, setCurrentAssetGroup] = useState(null);
   // If the asset list filter is enabled or disabled
   const [filterEnabled, setFilterEnabled] = useState(true);
+  // The actual contents of the filter (no filter by default)
+  const [filter, setFilter] = useState([]);
   const filteredProjectAssets = filterProjectAssets(project, null);
   const [assets, setAssets] = useState(filteredProjectAssets);
 
@@ -108,6 +121,7 @@ const assetsComponent = props => {
   useEffect(() => {
     // When the project changes, reset our interface, filters, etc.
     setMode('default');
+    setFilter(resetFilter(project));
     setAssets(filterProjectAssets(project, null));
     setCurrentAssetGroup(null);
     setGroupedAssets(null);
@@ -116,8 +130,9 @@ const assetsComponent = props => {
 
   // Whenever the filter changes, update the list of assets to include only
   // those that should be displayed.
-  const handleFilterChanged = filter => {
-    setAssets(filterProjectAssets(project, filter));
+  const handleFilterChanged = updatedFilter => {
+    setFilter(updatedFilter);
+    setAssets(filterProjectAssets(project, updatedFilter));
   };
 
   // When the user triggers saving an Asset Group, update the UI so the dialog
@@ -125,7 +140,6 @@ const assetsComponent = props => {
   const handleStartSaveAssetGroup = () => {
     setDialogKey(dialogKey + 1);
     setEditingGroup(true);
-    setMode('default');
   };
 
   const handleCloseAssetGroupDialog = () => {
@@ -173,7 +187,7 @@ const assetsComponent = props => {
     if (group === null) {
       setCurrentAssetGroup(null);
       setGroupedAssets(null);
-      setAssets(filterProjectAssets(project, null));
+      setAssets(filterProjectAssets(project, filter));
       setFilterEnabled(true);
     } else {
       const clonedGroup = cloneDeep(group);
@@ -209,11 +223,20 @@ const assetsComponent = props => {
    */
   const handleEditAssetGroup = group => {
     const clonedGroup = cloneDeep(group);
-    setAssets(filterProjectAssets(project, null));
+    setAssets(filterProjectAssets(project, filter));
     setCurrentAssetGroup(clonedGroup);
     setGroupedAssets(clonedGroup.assets);
     treeRef.current.setPreCheckedNodes(clonedGroup.assets.map(x => x.uri));
     setMode('paperclip');
+  };
+
+  const handleCancelEditAssetGroup = () => {
+    // The important thing is resetting the mode to 'default' to get us out of being in
+    // 'edit group' mode
+    setMode('default');
+    // The handleSelectAssetGroup will manage the rest of the UI updates for us, depending
+    // on if we had an asset group selected or not (set in currentAssetGroup).
+    handleSelectAssetGroup(currentAssetGroup);
   };
 
   const handleDeleteAssetGroup = group => {
@@ -231,6 +254,7 @@ const assetsComponent = props => {
    * Prepare the state/UI for creating a new asset group
    */
   const handleNewAssetGroup = () => {
+    setAssets(filterProjectAssets(project, filter));
     setCurrentAssetGroup(null);
     setGroupedAssets(null);
     treeRef.current.setPreCheckedNodes([]);
@@ -267,7 +291,7 @@ const assetsComponent = props => {
             <IconButton
               className={styles.toolbarButton}
               aria-label="cancel creating asset group"
-              onClick={() => setMode('default')}
+              onClick={handleCancelEditAssetGroup}
             >
               <FaBan fontSize="small" /> &nbsp; Cancel
             </IconButton>
@@ -283,7 +307,7 @@ const assetsComponent = props => {
       ) : (
         <>
           <AssetFilter
-            assets={filteredProjectAssets}
+            filter={filter}
             mode="asset"
             disabled={!filterEnabled}
             onFilterChanged={handleFilterChanged}

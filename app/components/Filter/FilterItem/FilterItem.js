@@ -1,19 +1,15 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import React from 'react';
+import PropTypes from 'prop-types';
 import styles from './FilterItem.css';
 
 const filterItem = props => {
-  const { disabled, onChecked, category, filter } = props;
-  const [checked, setChecked] = React.useState(true);
-
-  React.useEffect(() => {
-    if (onChecked) {
-      onChecked(category, filter, checked);
-    }
-  }, [checked]);
+  const { disabled, checked, onChecked, category, filter, label } = props;
 
   const handleChange = () => {
-    setChecked(!checked);
+    if (onChecked) {
+      onChecked(category, filter, !checked);
+    }
   };
 
   return (
@@ -25,9 +21,22 @@ const filterItem = props => {
         onChange={handleChange}
         disabled={disabled}
       />{' '}
-      {props.label}
+      {label}
     </label>
   );
+};
+
+filterItem.propTypes = {
+  disabled: PropTypes.bool.isRequired,
+  checked: PropTypes.bool.isRequired,
+  onChecked: PropTypes.func,
+  category: PropTypes.string.isRequired,
+  filter: PropTypes.string.isRequired,
+  label: PropTypes.string.isRequired
+};
+
+filterItem.defaultProps = {
+  onChecked: null
 };
 
 export default filterItem;
