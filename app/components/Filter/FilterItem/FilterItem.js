@@ -27,7 +27,7 @@ const filterItem = props => {
 };
 
 filterItem.propTypes = {
-  disabled: PropTypes.bool.isRequired,
+  disabled: PropTypes.bool,
   checked: PropTypes.bool.isRequired,
   onChecked: PropTypes.func,
   category: PropTypes.string.isRequired,
@@ -36,6 +36,7 @@ filterItem.propTypes = {
 };
 
 filterItem.defaultProps = {
+  disabled: false,
   onChecked: null
 };
 

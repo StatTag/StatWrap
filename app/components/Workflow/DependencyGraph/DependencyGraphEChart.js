@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
 import WorkflowUtil from '../../../utils/workflow';
+import ProjectUtil from '../../../utils/project';
 import DependencyFilter from '../../Filter/Filter';
 import styles from './DependencyGraph.css';
 import Constants from '../../../constants/constants';
@@ -46,9 +47,12 @@ function getIcon(node) {
 const dependencyGraphEChart = props => {
   const { assets } = props;
   const [graphData, setGraphData] = useState(null);
+  // The actual contents of the filter (no filter by default)
+  const [filter, setFilter] = useState([]);
 
   useEffect(() => {
     if (assets) {
+      setFilter(ProjectUtil.getWorkflowFilters(assets));
       setGraphData(WorkflowUtil.getAllDependenciesAsEChartGraph(assets));
     } else {
       setGraphData(null);
@@ -57,8 +61,9 @@ const dependencyGraphEChart = props => {
 
   // Whenever the filter changes, update the list of assets to include only
   // those that should be displayed.
-  const handleFilterChanged = filter => {
+  const handleFilterChanged = updatedFilter => {
     if (assets) {
+      setFilter(updatedFilter);
       setGraphData(WorkflowUtil.getAllDependenciesAsEChartGraph(assets, filter));
     } else {
       setGraphData(null);
@@ -93,7 +98,7 @@ const dependencyGraphEChart = props => {
   return (
     <div className={styles.container}>
       <div className={styles.filter}>
-        <DependencyFilter assets={assets} mode="dependency" onFilterChanged={handleFilterChanged} />
+        <DependencyFilter filter={filter} mode="dependency" onFilterChanged={handleFilterChanged} />
       </div>
       <div className={styles.graph}>{graph}</div>
     </div>

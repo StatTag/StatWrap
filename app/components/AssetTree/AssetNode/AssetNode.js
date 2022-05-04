@@ -70,9 +70,12 @@ const AssetNode = props => {
     });
   };
 
-  const checkbox = props.checkboxes ? (
-    <StyledInput checked={checked} onChange={handleChecked} type="checkbox" />
-  ) : null;
+  // Allow checkboxes if the checkbox mode is turned on, but not for the root node.  We don't have a really
+  // good way to handle the root node - especially when the root node is a dummy/placeholder node.
+  const checkbox =
+    !root && checkboxes ? (
+      <StyledInput checked={checked} onChange={handleChecked} type="checkbox" />
+    ) : null;
   return (
     <>
       <StyledTreeNode
