@@ -126,7 +126,7 @@ const assetsComponent = props => {
     setCurrentAssetGroup(null);
     setGroupedAssets(null);
     setFilterEnabled(true);
-  }, [project]);
+  }, [project.id]);
 
   // Whenever the filter changes, update the list of assets to include only
   // those that should be displayed.
@@ -250,6 +250,23 @@ const assetsComponent = props => {
     }
   };
 
+  const handlSelectAsset = selAsset => {
+    let asset = selAsset;
+    // When we are showing an asset group, the actual asset objects aren't the complete picture.
+    // The extra logic we use here is to enrich the selected asset, if it's missing some key
+    // information.  The key thing we have right now is if it's missing the 'contentType' attribute.
+    if (asset && (asset.contentType === null || asset.contentType === undefined)) {
+      if (project && project.assets) {
+        asset = AssetUtil.findDescendantAssetByUri(project.assets, asset.uri);
+      }
+    }
+
+    setSelectedAsset(asset);
+    if (onSelectedAsset) {
+      onSelectedAsset(asset);
+    }
+  };
+
   /**
    * Prepare the state/UI for creating a new asset group
    */
@@ -354,12 +371,7 @@ const assetsComponent = props => {
               ref={treeRef}
               checkboxes={mode === 'paperclip'}
               onCheckAsset={handleCheckAsset}
-              onSelectAsset={asset => {
-                setSelectedAsset(asset);
-                if (onSelectedAsset) {
-                  onSelectedAsset(asset);
-                }
-              }}
+              onSelectAsset={handlSelectAsset}
               selectedAsset={selectedAsset}
             />
           </div>
