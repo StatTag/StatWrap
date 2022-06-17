@@ -83,7 +83,7 @@ describe('utils', () => {
             ]
           },
           {
-            category: 'Code File Type',
+            category: 'File Type',
             values: [{ key: 'python', label: 'python', value: true }]
           }
         ]);
@@ -113,7 +113,7 @@ describe('utils', () => {
           }
         ]);
       });
-      it('only returns Code File Type filters if there are code files', () => {
+      it('only returns File Type filters if there are files', () => {
         expect(
           ProjectUtil.getAssetFilters({
             type: Constants.AssetType.DIRECTORY,
@@ -191,7 +191,7 @@ describe('utils', () => {
         };
         expect(ProjectUtil.getWorkflowFilters(assets)).toStrictEqual([
           {
-            category: 'Code File Type',
+            category: 'File Type',
             values: [{ key: 'python', label: 'python', value: true }]
           }
         ]);
@@ -245,7 +245,7 @@ describe('utils', () => {
         };
         expect(ProjectUtil.getWorkflowFilters(assets)).toStrictEqual([
           {
-            category: 'Code File Type',
+            category: 'File Type',
             values: [{ key: 'python', label: 'python', value: true }]
           },
           {
@@ -341,7 +341,7 @@ describe('utils', () => {
         };
         expect(ProjectUtil.getWorkflowFilters(assets)).toStrictEqual([
           {
-            category: 'Code File Type',
+            category: 'File Type',
             values: [
               { key: 'python', label: 'python', value: true },
               { key: 'r', label: 'r', value: true }
@@ -657,7 +657,7 @@ describe('utils', () => {
           ]
         },
         {
-          category: 'Code File Type',
+          category: 'File Type',
           values: [
             {
               key: 'generic',
@@ -762,7 +762,7 @@ describe('utils', () => {
           ]
         },
         {
-          category: 'Code File Type',
+          category: 'File Type',
           values: [
             {
               key: 'python',
@@ -848,32 +848,6 @@ describe('utils', () => {
           }
         ]
       });
-    });
-    it('only filters out Code File Type for code files', () => {
-      const filters = [
-        {
-          category: 'Code File Type',
-          values: [
-            {
-              key: 'generic',
-              label: 'generic',
-              value: false
-            }
-          ]
-        }
-      ];
-      const assets = {
-        uri: 'test1',
-        type: Constants.AssetType.DIRECTORY,
-        children: [
-          {
-            uri: 'test1/a',
-            type: Constants.AssetType.FILE,
-            contentType: Constants.AssetContentType.OTHER
-          }
-        ]
-      };
-      expect(ProjectUtil.getFilteredAssets(assets, filters)).toStrictEqual(assets);
     });
   });
   describe('isDirectoryFilteredOut', () => {

@@ -291,7 +291,7 @@ describe('services', () => {
         };
         const filters = [
           {
-            category: 'Code File Type',
+            category: 'File Type',
             values: [
               {
                 key: 'python',
@@ -409,7 +409,7 @@ describe('services', () => {
       };
       const filters = [
         {
-          category: 'Code File Type',
+          category: 'File Type',
           values: [
             {
               key: 'python',

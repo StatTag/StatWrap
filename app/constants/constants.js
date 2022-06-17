@@ -17,10 +17,12 @@ module.exports = {
     DIRECTORY: 'directory',
     FOLDER: 'directory', // 'DIRECTORY' is the preferred name, but we know we'll use this sometimes
     FILE: 'file',
+    GENERIC: 'generic',
 
-    // These are not a real asset types, but are used in our tree control
+    // These are not a real asset types, but are used in our various controls
     ASSET_GROUP: 'asset-group',
-    FILTER: 'filter'
+    FILTER: 'filter',
+    DEPENDENCY: 'dependency'
   },
 
   AssetContentType: {
@@ -69,5 +71,13 @@ module.exports = {
     DEPENDENCY: 'dependency',
     FIGURE: 'figure',
     DATA: 'data'
+  },
+
+  FilterCategory: {
+    FILE_TYPE: 'File Type',
+    CONTENT_TYPE: 'Content Type',
+    ASSET_TYPE: 'Asset Type',
+    INPUTS_OUTPUTS: 'Inputs and Outputs',
+    DEPENDENCIES: 'Dependencies/Libraries'
   }
 };

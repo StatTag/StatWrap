@@ -73,14 +73,14 @@ export default class ProjectUtil {
       return filters;
     }
 
-    const assetTypeFilter = { category: 'Asset Type', values: [] };
+    const assetTypeFilter = { category: Constants.FilterCategory.ASSET_TYPE, values: [] };
     const assetTypeFunc = x => x.type;
     ProjectUtil._processAssetAndDescendantsForFilter(assets, assetTypeFilter, assetTypeFunc);
     if (assetTypeFilter.values.length > 0) {
       filters.push(assetTypeFilter);
     }
 
-    const contentTypeFilter = { category: 'Content Type', values: [] };
+    const contentTypeFilter = { category: Constants.FilterCategory.CONTENT_TYPE, values: [] };
     // Content types should only apply to files
     const contentTypeFunc = x => x.type === Constants.AssetType.FILE && x.contentType;
     ProjectUtil._processAssetAndDescendantsForFilter(assets, contentTypeFilter, contentTypeFunc);
@@ -88,10 +88,10 @@ export default class ProjectUtil {
       filters.push(contentTypeFilter);
     }
 
-    const codeTypeFilter = { category: 'Code File Type', values: [] };
-    ProjectUtil._processAssetAndDescendantsForFilter(assets, codeTypeFilter, _codeTypeFunc);
-    if (codeTypeFilter.values.length > 0) {
-      filters.push(codeTypeFilter);
+    const fileTypeFilter = { category: Constants.FilterCategory.FILE_TYPE, values: [] };
+    ProjectUtil._processAssetAndDescendantsForFilter(assets, fileTypeFilter, _codeTypeFunc);
+    if (fileTypeFilter.values.length > 0) {
+      filters.push(fileTypeFilter);
     }
 
     return filters;
@@ -126,25 +126,24 @@ export default class ProjectUtil {
       }
 
       const f = filter[filterIndex];
-      if (f.category === 'Asset Type') {
+      if (f.category === Constants.FilterCategory.ASSET_TYPE) {
         // This is the only category (for now) which can trigger us to filter out but
         // retain child items
         const catFilter = f.values.some(v => !v.value && v.key === asset.type) ? 1 : 0;
         filterOut = Math.max(catFilter, filterOut);
       }
-      // Directories may get assigned a content type or code file type, just because
+      // Directories may get assigned a content type or file type, just because
       // of how asset processing assigns those, but for filtering purposes directories
       // should not consider those a relevant filter.  We are going to specify the
       // asset types where we want those to apply, considering we will be adding more
       // asset types in the future.
       if (asset.type === Constants.AssetType.FILE) {
-        if (f.category === 'Content Type') {
+        if (f.category === Constants.FilterCategory.CONTENT_TYPE) {
           const catFilter = f.values.some(v => !v.value && v.key === asset.contentType) ? 2 : 0;
           filterOut = Math.max(catFilter, filterOut);
         } else if (
-          // Code File Type should only apply to files that have a code content type
-          f.category === 'Code File Type' &&
-          asset.contentType === Constants.AssetContentType.CODE
+          // File Type should only apply to files
+          f.category === Constants.FilterCategory.FILE_TYPE
         ) {
           // eslint-disable-next-line prettier/prettier
           const catFilter = f.values.some(v => !v.value && WorkflowUtil.getAssetType(asset) === v.key) ? 2 : 0;
@@ -206,7 +205,9 @@ export default class ProjectUtil {
       return false;
     }
 
-    const assetTypeIndex = filter.findIndex(x => x.category === 'Asset Type');
+    const assetTypeIndex = filter.findIndex(
+      x => x.category === Constants.FilterCategory.ASSET_TYPE
+    );
     if (assetTypeIndex !== -1) {
       const directoryIndex = filter[assetTypeIndex].values.findIndex(
         y => y.key === Constants.AssetType.DIRECTORY
@@ -291,21 +292,21 @@ export default class ProjectUtil {
       return filters;
     }
 
-    const codeTypeFilter = { category: 'Code File Type', values: [] };
-    ProjectUtil._processAssetAndDescendantsForFilter(assets, codeTypeFilter, _codeTypeFunc);
-    if (codeTypeFilter.values.length > 0) {
-      filters.push(codeTypeFilter);
+    const fileTypeFilter = { category: Constants.FilterCategory.FILE_TYPE, values: [] };
+    ProjectUtil._processAssetAndDescendantsForFilter(assets, fileTypeFilter, _codeTypeFunc);
+    if (fileTypeFilter.values.length > 0) {
+      filters.push(fileTypeFilter);
     }
 
     // We get back a flat list of dependencies, so no recursive processing is needed for these
-    const ioFilter = { category: 'Inputs and Outputs', values: [] };
-    const dependencyFilter = { category: 'Dependencies/Libraries', values: [] };
+    const ioFilter = { category: Constants.FilterCategory.INPUTS_OUTPUTS, values: [] };
+    const dependencyFilter = { category: Constants.FilterCategory.DEPENDENCIES, values: [] };
     const assetDepedencies = WorkflowUtil.getAllDependencies(assets);
     if (!assetDepedencies) {
       return filters;
     }
     assetDepedencies.forEach(x => {
-      if (x.assetType && x.assetType !== 'generic') {
+      if (x.assetType && x.assetType !== Constants.AssetType.GENERIC) {
         x.dependencies.forEach(d => {
           const type = d.type ? d.type : Constants.DependencyType.DEPENDENCY;
           if (ioFilter.values.findIndex(i => i.key === type) === -1) {

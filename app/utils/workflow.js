@@ -60,22 +60,22 @@ export default class WorkflowUtil {
 
     const applyFilter = filters !== null && filters !== undefined && filters.length > 0;
     const typeFilterIndex = applyFilter
-      ? filters.findIndex(x => x.category === 'Code File Type')
+      ? filters.findIndex(x => x.category === Constants.FilterCategory.FILE_TYPE)
       : -1;
     const typeFilter = typeFilterIndex === -1 ? null : filters[typeFilterIndex];
     const ioFilterIndex = applyFilter
-      ? filters.findIndex(x => x.category === 'Inputs and Outputs')
+      ? filters.findIndex(x => x.category === Constants.FilterCategory.INPUTS_OUTPUTS)
       : -1;
     const ioFilter = ioFilterIndex === -1 ? null : filters[ioFilterIndex];
     const dependencyFilterIndex = applyFilter
-      ? filters.findIndex(x => x.category === 'Dependencies/Libraries')
+      ? filters.findIndex(x => x.category === Constants.FilterCategory.DEPENDENCIES)
       : -1;
     const dependencyFilter = dependencyFilterIndex === -1 ? null : filters[dependencyFilterIndex];
     const allDeps = WorkflowUtil.getAllDependencies(asset, asset.uri);
     for (let index = 0; index < allDeps.length; index++) {
       const entry = allDeps[index];
       if (entry.asset && entry.dependencies && entry.dependencies.length > 0) {
-        // If we have a code file type filter to apply, and we are supposed to filter this
+        // If we have a file type filter to apply, and we are supposed to filter this
         // asset out, skip further processing.
         if (typeFilter && typeFilter.values.some(x => !x.value && x.key === entry.assetType)) {
           continue;
@@ -171,7 +171,10 @@ export default class WorkflowUtil {
 
     for (let index = 0; index < allDeps.length; index++) {
       const entry = allDeps[index];
-      const depEntry = { name: entry.id, attributes: { assetType: 'dependency' } };
+      const depEntry = {
+        name: entry.id,
+        attributes: { assetType: Constants.AssetType.DEPENDENCY }
+      };
       // Only push dependencies once (to avoid unnecessary clutter)
       // eslint-disable-next-line prettier/prettier
       if (!tree.children.some(x => x.name === depEntry.name
