@@ -7,6 +7,7 @@ import { AppBar, Toolbar, IconButton } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SearchIcon from '@mui/icons-material/Search';
 import HomeIcon from '@mui/icons-material/Home';
+import AboutIcon from '@mui/icons-material/Info';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
   faFolder,
@@ -176,6 +177,11 @@ export default class App extends React.Component {
                   <Link to={routes.CONFIGURATION} className={styles.navigation}>
                     <IconButton aria-label="settings">
                       <SettingsIcon />
+                    </IconButton>
+                  </Link>
+                  <Link to={routes.ABOUT} className={styles.navigation}>
+                    <IconButton aria-label="settings">
+                      <AboutIcon />
                     </IconButton>
                   </Link>
                   <div className={styles.user}>

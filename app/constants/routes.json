@@ -1,5 +1,6 @@
 {
   "HOME": "/",
   "CONFIGURATION": "/config",
-  "SEARCH": "/search"
+  "SEARCH": "/search",
+  "ABOUT": "/about"
 }

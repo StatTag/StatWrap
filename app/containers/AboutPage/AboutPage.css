@@ -1,0 +1,15 @@
+.container {
+  margin: 20px;
+}
+
+.acknowledgement h2 {
+  font-size: 1.3rem;
+}
+
+.acknowledgement div {
+  margin-bottom: 15px;
+}
+
+.packageList {
+  white-space: nowrap;
+}
