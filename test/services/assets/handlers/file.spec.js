@@ -64,9 +64,6 @@ describe('services', () => {
       });
 
       it('should return a response with just the handler name if the file is not accessible', () => {
-        fs.accessSync.mockImplementationOnce(() => {
-          throw new Error();
-        });
         const testAsset = {
           uri: '/Some/Invalid/Path',
           type: 'file',
