@@ -31,7 +31,33 @@ describe('services', () => {
     });
 
     describe('constructor', () => {
-      // TODO - test constructor
+      it('should be okay with an empty array of handlers', () => {
+        let service = new AssetService(null);
+        expect(service.handlers.length).toEqual(0);
+        service = new AssetService(null);
+        expect(service.handlers.length).toEqual(0);
+      });
+      it('should take an array of handlers', () => {
+        const service = new AssetService([new DummyHandler()]);
+        expect(service.handlers.length).toEqual(1);
+      });
+      it('should create an indexed version of the content type/file extension configuration', () => {
+        const contentTypes = [
+          {
+            name: 'HTML',
+            extensions: ['html', 'htm'],
+            categories: ['code', 'documentation']
+          },
+          {
+            name: 'Python',
+            extensions: ['py'],
+            categories: ['code']
+          }
+        ];
+        const service = new AssetService(null, contentTypes);
+        // eslint-disable-next-line dot-notation
+        expect(service.assetContentTypesByCategory['code'].length).toBe(2);
+      });
     });
 
     describe('assetType', () => {
@@ -101,7 +127,7 @@ describe('services', () => {
         expect(response).toEqual({
           uri: testUri,
           type: 'directory',
-          contentType: 'other',
+          contentTypes: ['other'],
           metadata: [],
           children: []
         });
@@ -128,19 +154,19 @@ describe('services', () => {
         expect(response).toEqual({
           uri: testUri,
           type: 'directory',
-          contentType: 'other',
+          contentTypes: ['other'],
           metadata: [],
           children: [
             {
               uri: path.join(testUri, 'Subdir1'),
               type: 'directory',
-              contentType: 'other',
+              contentTypes: ['other'],
               metadata: [],
               children: [
                 {
                   uri: path.join(testUri, 'Subdir1', 'File1'),
                   type: 'file',
-                  contentType: 'other',
+                  contentTypes: ['other'],
                   metadata: []
                 }
               ]
@@ -148,7 +174,7 @@ describe('services', () => {
             {
               uri: path.join(testUri, 'File2'),
               type: 'file',
-              contentType: 'other',
+              contentTypes: ['other'],
               metadata: []
             }
           ]
@@ -172,7 +198,7 @@ describe('services', () => {
           uri: testUri,
           type: 'directory',
           children: [],
-          contentType: 'other',
+          contentTypes: ['other'],
           metadata: [{ id: 'Dummy1' }, { id: 'Dummy2' }]
         });
       });
@@ -183,186 +209,186 @@ describe('services', () => {
         const stat = new fs.Stats();
         stat.isFile.mockReturnValue(false);
         const service = new AssetService();
-        expect(service.assetContentType(null, null)).toBe('other');
-        expect(service.assetContentType(null, undefined)).toBe('other');
-        expect(service.assetContentType(undefined, null)).toBe('other');
-        expect(service.assetContentType(null, stat)).toBe('other');
-        expect(service.assetContentType('', stat)).toBe('other');
+        expect(service.assetContentTypes(null, null)).toStrictEqual(['other']);
+        expect(service.assetContentTypes(null, undefined)).toStrictEqual(['other']);
+        expect(service.assetContentTypes(undefined, null)).toStrictEqual(['other']);
+        expect(service.assetContentTypes(null, stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('', stat)).toStrictEqual(['other']);
       });
 
       it('should identify Python files as code', () => {
         const stat = new fs.Stats();
         stat.isFile.mockReturnValue(true);
         const service = new AssetService();
-        expect(service.assetContentType('test.py', stat)).toBe('code');
-        expect(service.assetContentType('test.py3', stat)).toBe('code');
-        expect(service.assetContentType('test.pyi', stat)).toBe('code');
-        expect(service.assetContentType('test.PYi', stat)).toBe('code');
-        expect(service.assetContentType('test.Py3', stat)).toBe('code');
+        expect(service.assetContentTypes('test.py', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.py3', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.pyi', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.PYi', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.Py3', stat)).toStrictEqual(['code']);
         // False leads...
-        expect(service.assetContentType('test.python', stat)).toBe('other');
-        expect(service.assetContentType('test.py4', stat)).toBe('other');
-        expect(service.assetContentType('test.py.bak', stat)).toBe('other');
-        expect(service.assetContentType('.py', stat)).toBe('other');
-        expect(service.assetContentType('.py.bak', stat)).toBe('other');
+        expect(service.assetContentTypes('test.python', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.py4', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.py.bak', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.py', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.py.bak', stat)).toStrictEqual(['other']);
         stat.isFile.mockReturnValue(false);
-        expect(service.assetContentType('test.py', stat)).toBe('other');
+        expect(service.assetContentTypes('test.py', stat)).toStrictEqual(['other']);
       });
 
       it('should identify R code files as code', () => {
         const stat = new fs.Stats();
         stat.isFile.mockReturnValue(true);
         const service = new AssetService();
-        expect(service.assetContentType('test.r', stat)).toBe('code');
-        expect(service.assetContentType('test.rmd', stat)).toBe('code');
-        expect(service.assetContentType('test.rnw', stat)).toBe('code');
-        expect(service.assetContentType('test.snw', stat)).toBe('code');
-        expect(service.assetContentType('test.R', stat)).toBe('code');
-        expect(service.assetContentType('test.RMD', stat)).toBe('code');
-        expect(service.assetContentType('test.Rmd', stat)).toBe('code');
-        expect(service.assetContentType('test.rNw', stat)).toBe('code');
-        expect(service.assetContentType('test.SNW', stat)).toBe('code');
+        expect(service.assetContentTypes('test.r', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.rmd', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.rnw', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.snw', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.R', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.RMD', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.Rmd', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.rNw', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.SNW', stat)).toStrictEqual(['code']);
         // False leads...
-        expect(service.assetContentType('test.rmdr', stat)).toBe('other');
-        expect(service.assetContentType('test.rnws', stat)).toBe('other');
-        expect(service.assetContentType('test.rm', stat)).toBe('other');
-        expect(service.assetContentType('test.sn', stat)).toBe('other');
-        expect(service.assetContentType('test.r.txt', stat)).toBe('other');
-        expect(service.assetContentType('test.rnw.txt', stat)).toBe('other');
-        expect(service.assetContentType('.r', stat)).toBe('other');
-        expect(service.assetContentType('.r.txt', stat)).toBe('other');
-        expect(service.assetContentType('.rnw', stat)).toBe('other');
-        expect(service.assetContentType('.snw.txt', stat)).toBe('other');
+        expect(service.assetContentTypes('test.rmdr', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.rnws', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.rm', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.sn', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.r.other', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.rnw.other', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.r', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.r.other', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.rnw', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.snw.other', stat)).toStrictEqual(['other']);
         stat.isFile.mockReturnValue(false);
-        expect(service.assetContentType('folder.r', stat)).toBe('other');
-        expect(service.assetContentType('folder.rnw', stat)).toBe('other');
+        expect(service.assetContentTypes('folder.r', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('folder.rnw', stat)).toStrictEqual(['other']);
       });
 
       it('should identify R data files as data', () => {
         const stat = new fs.Stats();
         stat.isFile.mockReturnValue(true);
         const service = new AssetService();
-        expect(service.assetContentType('test.rdata', stat)).toBe('data');
-        expect(service.assetContentType('test.rda', stat)).toBe('data');
-        expect(service.assetContentType('test.RDATA', stat)).toBe('data');
-        expect(service.assetContentType('test.RDA', stat)).toBe('data');
-        expect(service.assetContentType('test.RdAtA', stat)).toBe('data');
+        expect(service.assetContentTypes('test.rdata', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.rda', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.RDATA', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.RDA', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.RdAtA', stat)).toStrictEqual(['data']);
         // False leads...
-        expect(service.assetContentType('test.rdat', stat)).toBe('other');
-        expect(service.assetContentType('testr.data', stat)).toBe('other');
-        expect(service.assetContentType('test.rdata.txt', stat)).toBe('other');
-        expect(service.assetContentType('.rdata', stat)).toBe('other');
-        expect(service.assetContentType('.rda.txt', stat)).toBe('other');
+        expect(service.assetContentTypes('test.rdat', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('testr.data', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.rdata.other', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.rdata', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.rda.other', stat)).toStrictEqual(['other']);
         stat.isFile.mockReturnValue(false);
-        expect(service.assetContentType('folder.rda', stat)).toBe('other');
+        expect(service.assetContentTypes('folder.rda', stat)).toStrictEqual(['other']);
       });
 
       it('should identify SAS code files as code', () => {
         const stat = new fs.Stats();
         stat.isFile.mockReturnValue(true);
         const service = new AssetService();
-        expect(service.assetContentType('test.sas', stat)).toBe('code');
-        expect(service.assetContentType('test.SAS', stat)).toBe('code');
-        expect(service.assetContentType('test.SaS', stat)).toBe('code');
+        expect(service.assetContentTypes('test.sas', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.SAS', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.SaS', stat)).toStrictEqual(['code']);
         // False leads...
-        expect(service.assetContentType('test.sassy', stat)).toBe('other');
-        expect(service.assetContentType('test.sa', stat)).toBe('other');
-        expect(service.assetContentType('test.sas.txt', stat)).toBe('other');
-        expect(service.assetContentType('.sas', stat)).toBe('other');
-        expect(service.assetContentType('.sas.txt', stat)).toBe('other');
+        expect(service.assetContentTypes('test.sassy', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.sa', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.sas.other', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.sas', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.sas.other', stat)).toStrictEqual(['other']);
         stat.isFile.mockReturnValue(false);
-        expect(service.assetContentType('folder.sas', stat)).toBe('other');
+        expect(service.assetContentTypes('folder.sas', stat)).toStrictEqual(['other']);
       });
 
       it('should identify Stata code files as code', () => {
         const stat = new fs.Stats();
         stat.isFile.mockReturnValue(true);
         const service = new AssetService();
-        expect(service.assetContentType('test.do', stat)).toBe('code');
-        expect(service.assetContentType('test.ado', stat)).toBe('code');
-        expect(service.assetContentType('test.mata', stat)).toBe('code');
-        expect(service.assetContentType('test.DO', stat)).toBe('code');
-        expect(service.assetContentType('test.AdO', stat)).toBe('code');
-        expect(service.assetContentType('test.mAtA', stat)).toBe('code');
+        expect(service.assetContentTypes('test.do', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.ado', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.mata', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.DO', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.AdO', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.mAtA', stat)).toStrictEqual(['code']);
         // False leads...
-        expect(service.assetContentType('test.dod', stat)).toBe('other');
-        expect(service.assetContentType('test.mat', stat)).toBe('other');
-        expect(service.assetContentType('test.do.txt', stat)).toBe('other');
-        expect(service.assetContentType('.mata', stat)).toBe('other');
-        expect(service.assetContentType('.ado.txt', stat)).toBe('other');
+        expect(service.assetContentTypes('test.dod', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.mat', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.do.other', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.mata', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.ado.other', stat)).toStrictEqual(['other']);
         stat.isFile.mockReturnValue(false);
-        expect(service.assetContentType('folder.do', stat)).toBe('other');
+        expect(service.assetContentTypes('folder.do', stat)).toStrictEqual(['other']);
       });
 
       it('should identify Stata data files as data', () => {
         const stat = new fs.Stats();
         stat.isFile.mockReturnValue(true);
         const service = new AssetService();
-        expect(service.assetContentType('test.dta', stat)).toBe('data');
-        expect(service.assetContentType('test.DTA', stat)).toBe('data');
-        expect(service.assetContentType('test.dTa', stat)).toBe('data');
+        expect(service.assetContentTypes('test.dta', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.DTA', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.dTa', stat)).toStrictEqual(['data']);
         // False leads...
-        expect(service.assetContentType('test.dta2', stat)).toBe('other');
-        expect(service.assetContentType('test.dt', stat)).toBe('other');
-        expect(service.assetContentType('test.dta.txt', stat)).toBe('other');
-        expect(service.assetContentType('.dta', stat)).toBe('other');
-        expect(service.assetContentType('.dta.txt', stat)).toBe('other');
+        expect(service.assetContentTypes('test.dta2', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.dt', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.dta.other', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.dta', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.dta.other', stat)).toStrictEqual(['other']);
         stat.isFile.mockReturnValue(false);
-        expect(service.assetContentType('folder.dta', stat)).toBe('other');
+        expect(service.assetContentTypes('folder.dta', stat)).toStrictEqual(['other']);
       });
 
       it('should identify SAS data files as data', () => {
         const stat = new fs.Stats();
         stat.isFile.mockReturnValue(true);
         const service = new AssetService();
-        expect(service.assetContentType('test.sas7bdat', stat)).toBe('data');
-        expect(service.assetContentType('test.sd7', stat)).toBe('data');
-        expect(service.assetContentType('test.sas7bvew', stat)).toBe('data');
-        expect(service.assetContentType('test.sv7', stat)).toBe('data');
-        expect(service.assetContentType('test.sas7bndx', stat)).toBe('data');
-        expect(service.assetContentType('test.si7', stat)).toBe('data');
-        expect(service.assetContentType('test.SAS7BNDX', stat)).toBe('data');
-        expect(service.assetContentType('test.SI7', stat)).toBe('data');
-        expect(service.assetContentType('test.sAs7bdAt', stat)).toBe('data');
+        expect(service.assetContentTypes('test.sas7bdat', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.sd7', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.sas7bvew', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.sv7', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.sas7bndx', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.si7', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.SAS7BNDX', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.SI7', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.sAs7bdAt', stat)).toStrictEqual(['data']);
         // False leads...
-        expect(service.assetContentType('test.sas6bdat', stat)).toBe('other');
-        expect(service.assetContentType('test.sas7bda', stat)).toBe('other');
-        expect(service.assetContentType('test.sd7.txt', stat)).toBe('other');
-        expect(service.assetContentType('.sd7', stat)).toBe('other');
-        expect(service.assetContentType('.sas7bvew', stat)).toBe('other');
-        expect(service.assetContentType('.sd7.txt', stat)).toBe('other');
-        expect(service.assetContentType('.sas7bdat.txt', stat)).toBe('other');
+        expect(service.assetContentTypes('test.sas6bdat', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.sas7bda', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.sd7.other', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.sd7', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.sas7bvew', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.sd7.other', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.sas7bdat.other', stat)).toStrictEqual(['other']);
         stat.isFile.mockReturnValue(false);
-        expect(service.assetContentType('folder.sas7bdat', stat)).toBe('other');
-        expect(service.assetContentType('folder.sd7', stat)).toBe('other');
+        expect(service.assetContentTypes('folder.sas7bdat', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('folder.sd7', stat)).toStrictEqual(['other']);
       });
 
       it('should identify general data files as data', () => {
         const stat = new fs.Stats();
         stat.isFile.mockReturnValue(true);
         const service = new AssetService();
-        expect(service.assetContentType('test.csv', stat)).toBe('data');
-        expect(service.assetContentType('test.tsv', stat)).toBe('data');
-        expect(service.assetContentType('test.xls', stat)).toBe('data');
-        expect(service.assetContentType('test.xlsx', stat)).toBe('data');
-        expect(service.assetContentType('test.parquet', stat)).toBe('data');
-        expect(service.assetContentType('test.xml', stat)).toBe('data');
-        expect(service.assetContentType('test.json', stat)).toBe('data');
-        expect(service.assetContentType('test.CSV', stat)).toBe('data');
-        expect(service.assetContentType('test.TSV', stat)).toBe('data');
-        expect(service.assetContentType('test.XlS', stat)).toBe('data');
-        expect(service.assetContentType('test.XlSx', stat)).toBe('data');
-        expect(service.assetContentType('test.XLSx', stat)).toBe('data');
-        expect(service.assetContentType('test.PARquet', stat)).toBe('data');
-        expect(service.assetContentType('test.xML', stat)).toBe('data');
-        expect(service.assetContentType('test.JSON', stat)).toBe('data');
+        expect(service.assetContentTypes('test.csv', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.tsv', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.xls', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.xlsx', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.parquet', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.xml', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.json', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.CSV', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.TSV', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.XlS', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.XlSx', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.XLSx', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.PARquet', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.xML', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('test.JSON', stat)).toStrictEqual(['data']);
         // False leads...
-        expect(service.assetContentType('test.csvs', stat)).toBe('other');
-        expect(service.assetContentType('test.sv', stat)).toBe('other');
-        expect(service.assetContentType('test.xls.txt', stat)).toBe('other');
-        expect(service.assetContentType('.xlsx', stat)).toBe('other');
+        expect(service.assetContentTypes('test.csvs', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.sv', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.xls.other', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.xlsx', stat)).toStrictEqual(['other']);
         stat.isFile.mockReturnValue(false);
-        expect(service.assetContentType('folder.csv', stat)).toBe('other');
+        expect(service.assetContentTypes('folder.csv', stat)).toStrictEqual(['other']);
       });
     });
   });

@@ -308,4 +308,33 @@ export default class AssetUtil {
     }
     return last(uri.split(path.sep));
   }
+
+  /**
+   * Given a URI, return the extension of the asset
+   * From: https://stackoverflow.com/a/12900504
+   *
+   * @param {string or object} item Either a string representing the URI, or an object with a `uri` attribute containing the URI
+   * @returns The extension of the URI
+   */
+  static getExtensionFromUri(item) {
+    if (!item) {
+      return '';
+    }
+
+    let uri = item;
+    if (typeof item === 'object') {
+      uri = item.uri ? item.uri : '';
+    }
+
+    const basename = uri.split(/[\\/]/).pop(); // extract file name from full path
+    // (supports `\\` and `/` separators)
+    const pos = basename.lastIndexOf('.'); // get last position of `.`
+
+    if (basename === '' || pos < 1) {
+      // if file name is empty or ...
+      return ''; //  `.` not found (-1) or comes first (0)
+    }
+
+    return basename.slice(pos + 1); // extract extension ignoring `.`
+  }
 }

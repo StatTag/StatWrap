@@ -112,4 +112,44 @@ export default class GeneralUtil {
     }
     return array;
   }
+
+  /**
+   * Code from: https://itnext.io/building-an-in-memory-index-with-javascript-7f712ff525d8
+   * Given an array of objects, create an indexed collection that allows fast access of the
+   * indexed field.  For example
+   *
+   * const contentTypeIndex = indexByField(contentTypes, "type");
+   * contentTypeIndex["code"];
+   *
+   * @param {array} array The array to index
+   * @param {string} field The field name to index by
+   * @returns An object that allows quick indexing by the field.
+   */
+  static indexByField(array, field) {
+    if (array === null || array === undefined) {
+      return null;
+    }
+    if (field === null || field === undefined) {
+      return array;
+    }
+
+    return array.reduce((acc, it) => {
+      const key = it[field];
+      if (Array.isArray(key)) {
+        const result = { ...acc };
+        // eslint-disable-next-line no-restricted-syntax
+        for (const k of key) {
+          const value = acc[k] ? [...acc[k], it] : [it];
+          result[k] = value;
+        }
+        return result;
+      }
+
+      const value = acc[key] ? [...acc[key], it] : [it];
+      return {
+        ...acc,
+        [key]: value
+      };
+    }, []);
+  }
 }

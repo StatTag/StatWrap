@@ -30,7 +30,7 @@ const _codeTypeFunc = function(x) {
   if (!x || !x.metadata) {
     return null;
   }
-  return x.contentType === Constants.AssetContentType.CODE && WorkflowUtil.getAssetType(x);
+  return x.contentTypes.includes(Constants.AssetContentType.CODE) && WorkflowUtil.getAssetType(x);
 };
 
 /* eslint-disable no-underscore-dangle */
@@ -48,9 +48,21 @@ export default class ProjectUtil {
 
     // Only add the filter value if we don't already have it.
     const key = getter(asset);
-    if (key && filter.values.findIndex(x => x.key === key) === -1) {
-      filter.values.push({ key, label: key, value: true });
+    if (key) {
+      // key can be an array or a single string.  If it's an array we will process
+      // each element to check for duplicates.  If it's a single string we can do
+      // a simple check and add.
+      if (Array.isArray(key)) {
+        key.forEach(k => {
+          if (filter.values.findIndex(x => x.key === k) === -1) {
+            filter.values.push({ key: k, label: k, value: true });
+          }
+        });
+      } else if (filter.values.findIndex(x => x.key === key) === -1) {
+        filter.values.push({ key, label: key, value: true });
+      }
     }
+
     if (asset.children) {
       asset.children.forEach(child => {
         ProjectUtil._processAssetAndDescendantsForFilter(child, filter, getter);
@@ -82,7 +94,7 @@ export default class ProjectUtil {
 
     const contentTypeFilter = { category: Constants.FilterCategory.CONTENT_TYPE, values: [] };
     // Content types should only apply to files
-    const contentTypeFunc = x => x.type === Constants.AssetType.FILE && x.contentType;
+    const contentTypeFunc = x => x.type === Constants.AssetType.FILE && x.contentTypes;
     ProjectUtil._processAssetAndDescendantsForFilter(assets, contentTypeFilter, contentTypeFunc);
     if (contentTypeFilter.values.length > 0) {
       filters.push(contentTypeFilter);
@@ -139,7 +151,9 @@ export default class ProjectUtil {
       // asset types in the future.
       if (asset.type === Constants.AssetType.FILE) {
         if (f.category === Constants.FilterCategory.CONTENT_TYPE) {
-          const catFilter = f.values.some(v => !v.value && v.key === asset.contentType) ? 2 : 0;
+          const catFilter = f.values.some(v => !v.value && asset.contentTypes.includes(v.key))
+            ? 2
+            : 0;
           filterOut = Math.max(catFilter, filterOut);
         } else if (
           // File Type should only apply to files
