@@ -8,13 +8,13 @@ The only things assets need to have are a `uri` and a `type`.
 
 The structure of an asset is as follows:
 
-| Item          | Type   | Description                                                                                                                                                                    |
-| ------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `uri`         | String | The location of the asset. This must be unique within the project.                                                                                                             |
-| `name`        | String | Optional display name. If no name is provided, this will default to the `uri`                                                                                                  |
-| `type`        | String | The type of the asset. This is a more basic list that captures how the asset is interacted with, not necessarily what it contains. Examples include directory, file, URL, etc. |
-| `contentType` | String | Describe the type of content within the asset. This is more about what the asset does, not where it's stored.                                                                  |
-| `attributes`  | Array  | A collection of objects containing additional attributes about the asset. The contents and composition of attributes is driven by the asset type                               |
+| Item           | Type   | Description                                                                                                                                                                                                                                         |
+| -------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `uri`          | String | The location of the asset. This must be unique within the project.                                                                                                                                                                                  |
+| `name`         | String | Optional display name. If no name is provided, this will default to the `uri`                                                                                                                                                                       |
+| `type`         | String | The type of the asset. This is a more basic list that captures how the asset is interacted with, not necessarily what it contains. Examples include directory, file, URL, etc.                                                                      |
+| `contentTypes` | Array  | Describe the type of content within the asset. This is more about what the asset does, not where it's stored. Is an array as the type of content can be considered different for the same file extension (e.g. HTML is both documentation and code) |
+| `attributes`   | Array  | A collection of objects containing additional attributes about the asset. The contents and composition of attributes is driven by the asset type                                                                                                    |
 
 This structure applies to the asset when it's in memory, and when it is saved in configuration/metadata files. An important consideration is that for assets to be resolvable across multiple users, we cannot store the `uri` as the absolute path, and when it is in memory it is inefficient to have it only be relative (requiring us to make it absolute). To work around this, we will adopt the following convention:
 

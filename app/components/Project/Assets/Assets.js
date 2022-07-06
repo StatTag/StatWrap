@@ -254,8 +254,8 @@ const assetsComponent = props => {
     let asset = selAsset;
     // When we are showing an asset group, the actual asset objects aren't the complete picture.
     // The extra logic we use here is to enrich the selected asset, if it's missing some key
-    // information.  The key thing we have right now is if it's missing the 'contentType' attribute.
-    if (asset && (asset.contentType === null || asset.contentType === undefined)) {
+    // information.  The key thing we have right now is if it's missing the 'contentTypes' attribute.
+    if (asset && (asset.contentTypes === null || asset.contentTypes === undefined)) {
       if (project && project.assets) {
         asset = AssetUtil.findDescendantAssetByUri(project.assets, asset.uri);
       }

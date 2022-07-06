@@ -1318,5 +1318,38 @@ describe('services', () => {
         ).toStrictEqual(absolutePathAssets);
       });
     });
+
+    describe('getExtensionFromUri', () => {
+      it('should return an empty string for null/undefined/empty input', () => {
+        expect(AssetUtil.getExtensionFromUri(null)).toBe('');
+        expect(AssetUtil.getExtensionFromUri(undefined)).toBe('');
+        expect(AssetUtil.getExtensionFromUri('')).toBe('');
+      });
+      it('returns simple file extensions cross-platform', () => {
+        expect(AssetUtil.getExtensionFromUri('C:\\test.txt')).toBe('txt');
+        expect(AssetUtil.getExtensionFromUri('/dev/test.txt')).toBe('txt');
+        expect(AssetUtil.getExtensionFromUri('https://www.test.com/test.txt')).toBe('txt');
+      });
+      it('returns an empty string for hidden files without extensions', () => {
+        expect(AssetUtil.getExtensionFromUri('C:\\test\\.htaccess')).toBe('');
+        expect(AssetUtil.getExtensionFromUri('/dev/test/.htaccess')).toBe('');
+        expect(AssetUtil.getExtensionFromUri('https://www.test.com/.htaccess')).toBe('');
+      });
+      it('returns the last of multi-extension files', () => {
+        expect(AssetUtil.getExtensionFromUri('C:\\test.txt.pdf')).toBe('pdf');
+        expect(AssetUtil.getExtensionFromUri('/dev/test.txt.pdf')).toBe('pdf');
+        expect(AssetUtil.getExtensionFromUri('https://www.test.com/test.txt.pdf')).toBe('pdf');
+      });
+      it('returns extensions for hidden files with extensions', () => {
+        expect(AssetUtil.getExtensionFromUri('C:\\test\\.htaccess.tmp')).toBe('tmp');
+        expect(AssetUtil.getExtensionFromUri('/dev/test/.htaccess.tmp')).toBe('tmp');
+        expect(AssetUtil.getExtensionFromUri('https://www.test.com/.htaccess.tmp')).toBe('tmp');
+      });
+      it('returns extensions for objects with uri parameter', () => {
+        expect(AssetUtil.getExtensionFromUri({ uri: 'C:\\test.txt' })).toBe('txt');
+        expect(AssetUtil.getExtensionFromUri({ uri: '/dev/test.txt' })).toBe('txt');
+        expect(AssetUtil.getExtensionFromUri({ uri: 'https://www.test.com/test.txt' })).toBe('txt');
+      });
+    });
   });
 });

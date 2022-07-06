@@ -38,10 +38,13 @@ describe('utils', () => {
               {
                 type: Constants.AssetType.DIRECTORY,
                 children: [
-                  { type: Constants.AssetType.FILE, contentType: Constants.AssetContentType.OTHER },
                   {
                     type: Constants.AssetType.FILE,
-                    contentType: Constants.AssetContentType.CODE,
+                    contentTypes: [Constants.AssetContentType.OTHER]
+                  },
+                  {
+                    type: Constants.AssetType.FILE,
+                    contentTypes: [Constants.AssetContentType.CODE],
                     metadata: [
                       {
                         id: 'StatWrap.PythonHandler'
@@ -92,11 +95,11 @@ describe('utils', () => {
         expect(
           ProjectUtil.getAssetFilters({
             type: Constants.AssetType.DIRECTORY,
-            contentType: Constants.AssetContentType.OTHER,
+            contentTypes: [Constants.AssetContentType.OTHER],
             children: [
               {
                 type: Constants.AssetType.DIRECTORY,
-                contentType: Constants.AssetContentType.data
+                contentTypes: [Constants.AssetContentType.DATA]
               }
             ]
           })
@@ -121,12 +124,15 @@ describe('utils', () => {
               {
                 type: Constants.AssetType.DIRECTORY,
                 children: [
-                  { type: Constants.AssetType.FILE, contentType: Constants.AssetContentType.OTHER },
+                  {
+                    type: Constants.AssetType.FILE,
+                    contentTypes: [Constants.AssetContentType.OTHER]
+                  },
                   // In reality this would be a code file, but we're fabricating it so that
                   // we can confirm it's not returning a filter
                   {
                     type: Constants.AssetType.FILE,
-                    contentType: Constants.AssetContentType.OTHER,
+                    contentTypes: [Constants.AssetContentType.OTHER],
                     metadata: [
                       {
                         id: 'StatWrap.PythonHandler'
@@ -182,7 +188,7 @@ describe('utils', () => {
         jest.spyOn(WorkflowUtil, 'getAllDependencies').mockReturnValue([]);
         const assets = {
           type: Constants.AssetType.FILE,
-          contentType: Constants.AssetContentType.CODE,
+          contentTypes: [Constants.AssetContentType.CODE],
           metadata: [
             {
               id: 'StatWrap.PythonHandler'
@@ -213,7 +219,7 @@ describe('utils', () => {
         ]);
         const assets = {
           type: Constants.AssetType.FILE,
-          contentType: Constants.AssetContentType.OTHER,
+          contentTypes: [Constants.AssetContentType.OTHER],
           metadata: [
             {
               id: 'StatWrap.PythonHandler'
@@ -236,7 +242,7 @@ describe('utils', () => {
         ]);
         const assets = {
           type: Constants.AssetType.FILE,
-          contentType: Constants.AssetContentType.CODE,
+          contentTypes: [Constants.AssetContentType.CODE],
           metadata: [
             {
               id: 'StatWrap.PythonHandler'
@@ -310,7 +316,7 @@ describe('utils', () => {
               children: [
                 {
                   type: Constants.AssetType.FILE,
-                  contentType: Constants.AssetContentType.CODE,
+                  contentTypes: [Constants.AssetContentType.CODE],
                   metadata: [
                     {
                       id: 'StatWrap.RHandler'
@@ -319,7 +325,7 @@ describe('utils', () => {
                 },
                 {
                   type: Constants.AssetType.FILE,
-                  contentType: Constants.AssetContentType.CODE,
+                  contentTypes: [Constants.AssetContentType.CODE],
                   metadata: [
                     {
                       id: 'StatWrap.PythonHandler'
@@ -328,7 +334,7 @@ describe('utils', () => {
                 },
                 {
                   type: Constants.AssetType.FILE,
-                  contentType: Constants.AssetContentType.CODE,
+                  contentTypes: [Constants.AssetContentType.CODE],
                   metadata: [
                     {
                       id: 'StatWrap.RHandler'
@@ -438,12 +444,12 @@ describe('utils', () => {
                 {
                   uri: 'test1/test2/a',
                   type: Constants.AssetType.FILE,
-                  contentType: Constants.AssetContentType.OTHER
+                  contentTypes: [Constants.AssetContentType.OTHER]
                 },
                 {
                   uri: 'test1/test2/b',
                   type: Constants.AssetType.FILE,
-                  contentType: Constants.AssetContentType.CODE
+                  contentTypes: [Constants.AssetContentType.CODE]
                 }
               ]
             },
@@ -454,7 +460,7 @@ describe('utils', () => {
                 {
                   uri: 'test1/test3/c',
                   type: Constants.AssetType.FILE,
-                  contentType: Constants.AssetContentType.CODE
+                  contentTypes: [Constants.AssetContentType.CODE]
                 }
               ]
             }
@@ -467,12 +473,12 @@ describe('utils', () => {
                 {
                   uri: 'test1/test2/a',
                   type: Constants.AssetType.FILE,
-                  contentType: Constants.AssetContentType.OTHER
+                  contentTypes: [Constants.AssetContentType.OTHER]
                 },
                 {
                   uri: 'test1/test2/b',
                   type: Constants.AssetType.FILE,
-                  contentType: Constants.AssetContentType.CODE
+                  contentTypes: [Constants.AssetContentType.CODE]
                 }
               ]
             },
@@ -481,7 +487,7 @@ describe('utils', () => {
                 {
                   uri: 'test1/test3/c',
                   type: Constants.AssetType.FILE,
-                  contentType: Constants.AssetContentType.CODE
+                  contentTypes: [Constants.AssetContentType.CODE]
                 }
               ]
             }
@@ -527,12 +533,12 @@ describe('utils', () => {
                 {
                   uri: 'test1/test2/a',
                   type: Constants.AssetType.FILE,
-                  contentType: Constants.AssetContentType.OTHER
+                  contentTypes: [Constants.AssetContentType.OTHER]
                 },
                 {
                   uri: 'test1/test2/b',
                   type: Constants.AssetType.FILE,
-                  contentType: Constants.AssetContentType.CODE
+                  contentTypes: [Constants.AssetContentType.CODE]
                 }
               ]
             },
@@ -543,7 +549,7 @@ describe('utils', () => {
                 {
                   uri: 'test1/test3/c',
                   type: Constants.AssetType.FILE,
-                  contentType: Constants.AssetContentType.CODE
+                  contentTypes: [Constants.AssetContentType.CODE]
                 }
               ]
             }
@@ -560,7 +566,7 @@ describe('utils', () => {
                 {
                   uri: 'test1/test2/a',
                   type: Constants.AssetType.FILE,
-                  contentType: Constants.AssetContentType.OTHER
+                  contentTypes: [Constants.AssetContentType.OTHER]
                 }
               ]
             },
@@ -611,12 +617,12 @@ describe('utils', () => {
                 {
                   uri: 'test1/test2/a',
                   type: Constants.AssetType.FILE,
-                  contentType: Constants.AssetContentType.OTHER
+                  contentTypes: [Constants.AssetContentType.OTHER]
                 },
                 {
                   uri: 'test1/test2/b',
                   type: Constants.AssetType.FILE,
-                  contentType: Constants.AssetContentType.CODE
+                  contentTypes: [Constants.AssetContentType.CODE]
                 }
               ]
             },
@@ -670,29 +676,29 @@ describe('utils', () => {
       const assets = {
         uri: 'test1',
         type: Constants.AssetType.DIRECTORY,
-        contentType: Constants.AssetContentType.OTHER,
+        contentTypes: [Constants.AssetContentType.OTHER],
         children: [
           {
             uri: 'test1/test2',
             type: Constants.AssetType.DIRECTORY,
-            contentType: Constants.AssetContentType.OTHER,
+            contentTypes: [Constants.AssetContentType.OTHER],
             children: [
               {
                 uri: 'test1/test2/a',
                 type: Constants.AssetType.FILE,
-                contentType: Constants.AssetContentType.OTHER
+                contentTypes: [Constants.AssetContentType.OTHER]
               }
             ]
           },
           {
             uri: 'test1/test3',
             type: Constants.AssetType.DIRECTORY,
-            contentType: Constants.AssetContentType.OTHER,
+            contentTypes: [Constants.AssetContentType.OTHER],
             children: [
               {
                 uri: 'test1/test3/c',
                 type: Constants.AssetType.FILE,
-                contentType: Constants.AssetContentType.CODE,
+                contentTypes: [Constants.AssetContentType.CODE],
                 metadata: [
                   {
                     id: 'StatWrap.RHandler'
@@ -706,23 +712,23 @@ describe('utils', () => {
       expect(ProjectUtil.getFilteredAssets(assets, filters)).toStrictEqual({
         uri: 'test1',
         type: Constants.AssetType.DIRECTORY,
-        contentType: Constants.AssetContentType.OTHER,
+        contentTypes: [Constants.AssetContentType.OTHER],
         children: [
           {
             uri: 'test1/test2',
             type: Constants.AssetType.DIRECTORY,
-            contentType: Constants.AssetContentType.OTHER,
+            contentTypes: [Constants.AssetContentType.OTHER],
             children: []
           },
           {
             uri: 'test1/test3',
             type: Constants.AssetType.DIRECTORY,
-            contentType: Constants.AssetContentType.OTHER,
+            contentTypes: [Constants.AssetContentType.OTHER],
             children: [
               {
                 uri: 'test1/test3/c',
                 type: Constants.AssetType.FILE,
-                contentType: Constants.AssetContentType.CODE,
+                contentTypes: [Constants.AssetContentType.CODE],
                 metadata: [
                   {
                     id: 'StatWrap.RHandler'
@@ -788,12 +794,12 @@ describe('utils', () => {
               {
                 uri: 'test1/test2/a',
                 type: Constants.AssetType.FILE,
-                contentType: Constants.AssetContentType.OTHER
+                contentTypes: [Constants.AssetContentType.OTHER]
               },
               {
                 uri: 'test1/test2/b',
                 type: Constants.AssetType.FILE,
-                contentType: Constants.AssetContentType.CODE,
+                contentTypes: [Constants.AssetContentType.CODE],
                 metadata: [
                   {
                     id: 'StatWrap.PythonHandler'
@@ -809,7 +815,7 @@ describe('utils', () => {
               {
                 uri: 'test1/test3/c',
                 type: Constants.AssetType.FILE,
-                contentType: Constants.AssetContentType.CODE,
+                contentTypes: [Constants.AssetContentType.CODE],
                 metadata: [
                   {
                     id: 'StatWrap.PythonHandler'
@@ -819,7 +825,7 @@ describe('utils', () => {
               {
                 uri: 'test1/test3/d',
                 type: Constants.AssetType.FILE,
-                contentType: Constants.AssetContentType.CODE,
+                contentTypes: [Constants.AssetContentType.CODE],
                 metadata: [
                   {
                     id: 'StatWrap.RHandler'
@@ -837,7 +843,7 @@ describe('utils', () => {
               {
                 uri: 'test1/test3/d',
                 type: Constants.AssetType.FILE,
-                contentType: Constants.AssetContentType.CODE,
+                contentTypes: [Constants.AssetContentType.CODE],
                 metadata: [
                   {
                     id: 'StatWrap.RHandler'
@@ -946,12 +952,12 @@ describe('utils', () => {
           {
             uri: 'test1/a',
             type: Constants.AssetType.FILE,
-            contentType: Constants.AssetContentType.OTHER
+            contentTypes: [Constants.AssetContentType.OTHER]
           },
           {
             uri: 'test1/b',
             type: Constants.AssetType.FILE,
-            contentType: Constants.AssetContentType.CODE
+            contentTypes: [Constants.AssetContentType.CODE]
           }
         ]
       };
@@ -961,12 +967,12 @@ describe('utils', () => {
           {
             uri: 'test1/a',
             type: Constants.AssetType.FILE,
-            contentType: Constants.AssetContentType.OTHER
+            contentTypes: [Constants.AssetContentType.OTHER]
           },
           {
             uri: 'test1/b',
             type: Constants.AssetType.FILE,
-            contentType: Constants.AssetContentType.CODE
+            contentTypes: [Constants.AssetContentType.CODE]
           }
         ]
       });
@@ -979,12 +985,12 @@ describe('utils', () => {
               {
                 uri: 'test1/test2/a',
                 type: Constants.AssetType.FILE,
-                contentType: Constants.AssetContentType.OTHER
+                contentTypes: [Constants.AssetContentType.OTHER]
               },
               {
                 uri: 'test1/test2/b',
                 type: Constants.AssetType.FILE,
-                contentType: Constants.AssetContentType.CODE
+                contentTypes: [Constants.AssetContentType.CODE]
               }
             ]
           },
@@ -993,12 +999,12 @@ describe('utils', () => {
               {
                 uri: 'test1/test3/c',
                 type: Constants.AssetType.FILE,
-                contentType: Constants.AssetContentType.CODE
+                contentTypes: [Constants.AssetContentType.CODE]
               },
               {
                 uri: 'test1/test3/d',
                 type: Constants.AssetType.FILE,
-                contentType: Constants.AssetContentType.CODE
+                contentTypes: [Constants.AssetContentType.CODE]
               }
             ]
           }
@@ -1010,22 +1016,22 @@ describe('utils', () => {
           {
             uri: 'test1/test2/a',
             type: Constants.AssetType.FILE,
-            contentType: Constants.AssetContentType.OTHER
+            contentTypes: [Constants.AssetContentType.OTHER]
           },
           {
             uri: 'test1/test2/b',
             type: Constants.AssetType.FILE,
-            contentType: Constants.AssetContentType.CODE
+            contentTypes: [Constants.AssetContentType.CODE]
           },
           {
             uri: 'test1/test3/c',
             type: Constants.AssetType.FILE,
-            contentType: Constants.AssetContentType.CODE
+            contentTypes: [Constants.AssetContentType.CODE]
           },
           {
             uri: 'test1/test3/d',
             type: Constants.AssetType.FILE,
-            contentType: Constants.AssetContentType.CODE
+            contentTypes: [Constants.AssetContentType.CODE]
           }
         ]
       });

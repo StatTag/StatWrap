@@ -153,5 +153,48 @@ describe('services', () => {
         expect(GeneralUtil.toggleStringInArray(['test'], 'test2', false)).toStrictEqual(['test']);
       });
     });
+
+    describe('indexByField', () => {
+      it('handles a null or undefined input array', () => {
+        expect(GeneralUtil.indexByField(null, 'test')).toBe(null);
+        expect(GeneralUtil.indexByField(undefined, 'test')).toBe(null);
+      });
+      it('handles a null or undefined field name', () => {
+        expect(GeneralUtil.indexByField([], null)).toStrictEqual([]);
+        expect(GeneralUtil.indexByField([], undefined)).toStrictEqual([]);
+      });
+      it('returns an empty array when given an empty array', () => {
+        expect(GeneralUtil.indexByField([], 'test')).toStrictEqual([]);
+      });
+      it('processes an array where the index field is a single value', () => {
+        const inputArray = [
+          { category: '1', value: 'a' },
+          { category: '1', value: 'b' }
+        ];
+        expect(GeneralUtil.indexByField(inputArray, 'category')).toStrictEqual({ '1': inputArray });
+      });
+      it('processes an array where the index field does not exist', () => {
+        const inputArray = [
+          { category: '1', value: 'a' },
+          { category: '1', value: 'b' }
+        ];
+        expect(GeneralUtil.indexByField(inputArray, 'category2')).toStrictEqual({
+          undefined: inputArray
+        });
+      });
+      it('processes an array where the index field can contain multiple values (array)', () => {
+        const inputArray = [
+          { category: ['1'], value: 'a' },
+          { category: ['1', '2'], value: 'b' }
+        ];
+        expect(GeneralUtil.indexByField(inputArray, 'category')).toStrictEqual({
+          '1': [
+            { category: ['1'], value: 'a' },
+            { category: ['1', '2'], value: 'b' }
+          ],
+          '2': [{ category: ['1', '2'], value: 'b' }]
+        });
+      });
+    });
   });
 });

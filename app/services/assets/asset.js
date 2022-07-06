@@ -1,18 +1,34 @@
+import GeneralUtil from '../../utils/general';
+import AssetUtil from '../../utils/asset';
+
 const fs = require('fs');
 const path = require('path');
 const Constants = require('../../constants/constants');
 const AssetsConfig = require('../../constants/assets-config');
 
 export default class AssetService {
+  assetContentTypesByExtension = null;
+
+  assetContentTypesByCategory = null;
+
   // The list of handlers that are used for each asset.
   handlers = null;
 
-  constructor(handlers) {
+  constructor(handlers, contentTypes) {
     if (handlers) {
       this.handlers = [...handlers];
     } else {
       this.handlers = [];
     }
+
+    this.assetContentTypesByExtension = GeneralUtil.indexByField(
+      contentTypes || AssetsConfig.contentTypes,
+      'extensions'
+    );
+    this.assetContentTypesByCategory = GeneralUtil.indexByField(
+      contentTypes || AssetsConfig.contentTypes,
+      'categories'
+    );
   }
 
   // Return the type of asset that is represented.  This is a general
@@ -40,19 +56,26 @@ export default class AssetService {
 
   // Use a set of heuristics to guess the asset content type.  This will only be run
   // if the contentType isn't already explicitly set.
-  assetContentType(uri, details) {
+  assetContentTypes(uri, details) {
     if (!uri || !details || !details.isFile()) {
-      return Constants.AssetContentType.OTHER;
+      return [Constants.AssetContentType.OTHER];
     }
 
-    for (let typeIndex = 0; typeIndex < AssetsConfig.contentTypes.length; typeIndex++) {
-      const { patterns, type } = AssetsConfig.contentTypes[typeIndex];
-      if (patterns && type && patterns.length > 0 && patterns.some(regex => regex.test(uri))) {
-        return type;
-      }
+    const extension = AssetUtil.getExtensionFromUri(uri).toLowerCase();
+    const entry = this.assetContentTypesByExtension[extension];
+    if (!entry || entry === undefined) {
+      return [Constants.AssetContentType.OTHER];
     }
 
-    return Constants.AssetContentType.OTHER;
+    return entry[0].categories;
+    // for (let typeIndex = 0; typeIndex < AssetsConfig.contentTypes.length; typeIndex++) {
+    //   const { patterns, type } = AssetsConfig.contentTypes[typeIndex];
+    //   if (patterns && type && patterns.length > 0 && patterns.some(regex => regex.test(uri))) {
+    //     return type;
+    //   }
+    // }
+    //
+    // return Constants.AssetContentType.OTHER;
   }
 
   /**
@@ -78,7 +101,7 @@ export default class AssetService {
     const result = {
       uri,
       type: this.assetType(details),
-      contentType: this.assetContentType(uri, details),
+      contentTypes: this.assetContentTypes(uri, details),
       metadata: []
     };
 
