@@ -81,6 +81,29 @@ export default class ProjectListService {
     }
   }
 
+  // Set the date and time that a project (given its ID) was last accessed.
+  setProjectLastAccessed(projectId, filePath = DefaultProjectListFile) {
+    let projectList = [];
+    try {
+      fs.accessSync(filePath);
+    } catch {
+      return false;
+    }
+
+    const data = fs.readFileSync(filePath);
+    projectList = JSON.parse(data.toString());
+
+    const project = projectList.find(x => x.id === projectId);
+    if (!project) {
+      return false;
+    }
+
+    project.lastAccessed = new Date(Date.now()).toJSON();
+
+    this.writeProjectList(filePath, projectList);
+    return true;
+  }
+
   validateProjectListEntry(project) {
     if (!project) {
       throw new Error('The project is empty or undefined');

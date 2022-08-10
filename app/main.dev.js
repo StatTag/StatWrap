@@ -265,6 +265,9 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
   event.sender.send(Messages.LOAD_PROJECT_LIST_RESPONSE, response);
 });
 
+/**
+ * Load the StatWrap-wide configuration files in memory
+ */
 ipcMain.on(Messages.LOAD_CONFIGURATION_REQUEST, async event => {
   const response = {
     projectTemplates: null,
@@ -520,6 +523,8 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
         response.error = saveResponse.error;
         response.errorMessage = saveResponse.errorMessage;
       }
+
+      projectService.setProjectLastAccessed(response.project.id);
     } catch (e) {
       response.error = true;
       response.errorMessage =
@@ -641,6 +646,7 @@ ipcMain.on(Messages.LOAD_USER_INFO_REQUEST, async event => {
     try {
       response.user = await service.getUser();
       const userDataPath = app.getPath('userData');
+      console.log(path.join(userDataPath, DefaultSettingsFile));
       response.settings = service.loadUserSettingsFromFile(
         path.join(userDataPath, DefaultSettingsFile)
       );
