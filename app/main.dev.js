@@ -57,6 +57,7 @@ const LOG_ROW_LIMIT = 10000000000;
 
 const projectTemplateService = new ProjectTemplateService();
 const projectService = new ProjectService();
+const projectListService = new ProjectListService();
 const sourceControlService = new SourceControlService();
 
 if (process.env.NODE_ENV === 'production') {
@@ -218,9 +219,8 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
 
   try {
     const userDataPath = app.getPath('userData');
-    const listService = new ProjectListService();
     console.log(path.join(userDataPath, DefaultProjectListFile));
-    let projectsFromFile = listService.loadProjectListFromFile(
+    let projectsFromFile = projectListService.loadProjectListFromFile(
       path.join(userDataPath, DefaultProjectListFile)
     );
 
@@ -305,9 +305,11 @@ ipcMain.on(Messages.TOGGLE_PROJECT_FAVORITE_REQUEST, async (event, projectId) =>
   };
 
   try {
-    const service = new ProjectListService();
     const userDataPath = app.getPath('userData');
-    service.toggleProjectFavorite(projectId, path.join(userDataPath, DefaultProjectListFile));
+    projectListService.toggleProjectFavorite(
+      projectId,
+      path.join(userDataPath, DefaultProjectListFile)
+    );
     response.error = false;
     response.errorMessage = '';
   } catch (e) {
@@ -328,9 +330,11 @@ ipcMain.on(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, async (event, projectId) 
   };
 
   try {
-    const service = new ProjectListService();
     const userDataPath = app.getPath('userData');
-    service.removeProjectEntry(projectId, path.join(userDataPath, DefaultProjectListFile));
+    projectListService.removeProjectEntry(
+      projectId,
+      path.join(userDataPath, DefaultProjectListFile)
+    );
     response.error = false;
     response.errorMessage = '';
   } catch (e) {
@@ -420,9 +424,8 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
       }
 
       if (!response.error) {
-        const listService = new ProjectListService();
         const userDataPath = app.getPath('userData');
-        listService.appendAndSaveProjectToList(
+        projectListService.appendAndSaveProjectToList(
           validationReport.project,
           path.join(userDataPath, DefaultProjectListFile)
         );
@@ -524,7 +527,11 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
         response.errorMessage = saveResponse.errorMessage;
       }
 
-      projectService.setProjectLastAccessed(response.project.id);
+      const userDataPath = app.getPath('userData');
+      projectListService.setProjectLastAccessed(
+        response.project.id,
+        path.join(userDataPath, DefaultProjectListFile)
+      );
     } catch (e) {
       response.error = true;
       response.errorMessage =
