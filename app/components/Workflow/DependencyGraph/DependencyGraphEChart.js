@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
 import WorkflowUtil from '../../../utils/workflow';
 import ProjectUtil from '../../../utils/project';
+import AssetUtil from '../../../utils/asset';
 import DependencyFilter from '../../Filter/Filter';
 import styles from './DependencyGraph.css';
 import Constants from '../../../constants/constants';
@@ -52,8 +53,9 @@ const dependencyGraphEChart = props => {
 
   useEffect(() => {
     if (assets) {
-      setFilter(ProjectUtil.getWorkflowFilters(assets));
-      setGraphData(WorkflowUtil.getAllDependenciesAsEChartGraph(assets));
+      const filteredAssets = AssetUtil.filterIncludedFileAssets(assets);
+      setFilter(ProjectUtil.getWorkflowFilters(filteredAssets));
+      setGraphData(WorkflowUtil.getAllDependenciesAsEChartGraph(filteredAssets));
     } else {
       setGraphData(null);
     }

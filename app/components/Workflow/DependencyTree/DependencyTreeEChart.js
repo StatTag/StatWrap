@@ -1,15 +1,15 @@
 import React from 'react';
 import ReactECharts from 'echarts-for-react';
 import WorkflowUtil from '../../../utils/workflow';
+import AssetUtil from '../../../utils/asset';
 import styles from './DependencyTree.css';
 
 const dependencyGraphEChart = props => {
   const { assets } = props;
 
-  const data = WorkflowUtil.getAllDependenciesAsTree(assets);
+  const data = WorkflowUtil.getAllDependenciesAsTree(AssetUtil.filterIncludedFileAssets(assets));
   let tree = null;
   if (data) {
-    console.log(data);
     const option = {
       tooltip: {
         trigger: 'item',
