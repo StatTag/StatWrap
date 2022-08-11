@@ -2,9 +2,19 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable func-names */
 import { v4 as uuid } from 'uuid';
+import winston from 'winston';
+import path from 'path';
 import WorkflowUtil from './workflow';
 import AssetUtil from './asset';
 import Constants from '../constants/constants';
+
+// For Winston, we need to tell it how far back we want to see logs from some anchor point
+// (by default, the time we're looking at logs), as well as the number of logs to look at.
+// These constants will take us back 100 years and give us a "really big number" of rows.
+// Kind of a hacky way to say "give me all logs", but the current query API doesn't appear
+// to have another way to specify that.
+const LOG_TIME_LOOKBACK = 100 * 365 * 24 * 60 * 60 * 1000;
+const LOG_ROW_LIMIT = 10000000000;
 
 // Used to verify that we have at least one non-whitespace character in a string
 const oneNonWhitespaceRegex = new RegExp('\\S');
@@ -484,5 +494,54 @@ export default class ProjectUtil {
       );
     }
     return modifiedAssetGroups;
+  }
+
+  /**
+   * Retrieve log entries located in a given project path
+   * @param {*} projectPath The path of the project
+   * @param {*} activitySince A Date (UTC time) to start searching from. null to return all entries.
+   * @param {*} callback A callback method of the format (error, logs)
+   * @returns None, use the callback
+   *
+   * At this point this function is not getting unit tests.  Although there is a bit
+   * of app-specific formatting for results, it's mostly wrapping the Winston logger
+   * which has its own unit tests.  We don't need to re-test that.  This may need to
+   * get some tests in the future, however, if we add more app-specific logic.
+   */
+  static getLogActivity(projectPath, activitySince, callback) {
+    const logger = winston.createLogger({
+      level: 'verbose',
+      transports: [
+        new winston.transports.File({
+          filename: path.join(
+            projectPath,
+            Constants.StatWrapFiles.BASE_FOLDER,
+            Constants.StatWrapFiles.LOG
+          )
+        })
+      ]
+    });
+
+    // By default we are going to try for 'all' the logs
+    const options = {
+      from: new Date() - LOG_TIME_LOOKBACK,
+      until: new Date(),
+      limit: LOG_ROW_LIMIT,
+      start: 0
+    };
+
+    if (activitySince) {
+      options.from = activitySince;
+    }
+
+    const result = { error: false, errorMessage: null, logs: null };
+    logger.query(options, (error, logs) => {
+      if (error || !logs || !logs.file) {
+        callback('There was an error reading the project log', null);
+      } else {
+        callback(null, logs.file);
+      }
+    });
+    return result;
   }
 }

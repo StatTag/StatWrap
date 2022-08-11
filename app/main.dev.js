@@ -47,14 +47,6 @@ export default class AppUpdater {
 
 let mainWindow = null;
 
-// For Winston, we need to tell it how far back we want to see logs from some anchor point
-// (by default, the time we're looking at logs), as well as the number of logs to look at.
-// These constants will take us back 100 years and give us a "really big number" of rows.
-// Kind of a hacky way to say "give me all logs", but the current query API doesn't appear
-// to have another way to specify that.
-const LOG_TIME_LOOKBACK = 100 * 365 * 24 * 60 * 60 * 1000;
-const LOG_ROW_LIMIT = 10000000000;
-
 const projectTemplateService = new ProjectTemplateService();
 const projectService = new ProjectService();
 const projectListService = new ProjectListService();
@@ -580,6 +572,49 @@ ipcMain.on(
 );
 
 /**
+ * Determine what is new for a particular project since the user last
+ * accessed it
+ */
+
+ipcMain.on(Messages.LOAD_PROJECT_CHANGES_REQUEST, async (event, project) => {
+  const response = {
+    changes: null,
+    error: false,
+    errorMessage: ''
+  };
+  if (!project) {
+    response.error = true;
+    response.errorMessage = 'No project was selected';
+    event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
+    return;
+  }
+
+  const projectConfig = projectService.loadProjectFile(project.path);
+  if (!projectConfig) {
+    response.error = true;
+    response.errorMessage = 'There was an error loading the project details.';
+    event.sender.send(Messages.LOAD_PROJECT_CHANGES_RESPONSE, response);
+    return;
+  }
+
+  const userDataPath = app.getPath('userData');
+  const projectList = projectListService.loadProjectListFromFile(
+    path.join(userDataPath, DefaultProjectListFile)
+  );
+  if (!projectList) {
+    response.error = true;
+    response.errorMessage = 'There was an error loading your list of projects.';
+    event.sender.send(Messages.LOAD_PROJECT_CHANGES_RESPONSE, response);
+    return;
+  }
+
+  ProjectUtil.getProjectChanges();
+
+  response.changes = [];
+  event.sender.send(Messages.LOAD_PROJECT_CHANGES_RESPONSE, response);
+});
+
+/**
  * Read from disk the project log file.  Return all of the log entries.
  */
 ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
@@ -595,33 +630,13 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
     return;
   }
 
-  const logger = winston.createLogger({
-    level: 'verbose',
-    transports: [
-      new winston.transports.File({
-        filename: path.join(
-          project.path,
-          Constants.StatWrapFiles.BASE_FOLDER,
-          Constants.StatWrapFiles.LOG
-        )
-      })
-    ]
-  });
-
-  const options = {
-    from: new Date() - LOG_TIME_LOOKBACK,
-    until: new Date(),
-    limit: LOG_ROW_LIMIT,
-    start: 0
-  };
-
-  logger.query(options, (error, logs) => {
-    if (error || !logs || !logs.file) {
+  ProjectUtil.getLogActivity(project.path, null, (error, logs) => {
+    if (error) {
       response.error = true;
-      response.errorMessage = 'There was an error reading the project log';
-      event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
+      response.errorMessage = error;
+    } else {
+      response.logs = logs;
     }
-    response.logs = logs.file;
     event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
   });
 });

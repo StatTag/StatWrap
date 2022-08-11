@@ -4,7 +4,7 @@ StatWrap will keep a running log of actions performed within your project. This 
 
 ## Logging Internals
 
-Logging is currently handled using the [`winston`](https://github.com/winstonjs/winston) package. Because the Electron bootstrap app came with [`electron-log`](https://github.com/megahertz/electron-log), we are looking if we can migrate to that to just have on logger. A benefit of `winston` was its clear instructions on how to set the path where the log file is written. This is necessary for us (as opposed to the default application logging directory) because logs should be at the project leve.
+Logging is currently handled using the [`winston`](https://github.com/winstonjs/winston) package. Because the Electron bootstrap app came with [`electron-log`](https://github.com/megahertz/electron-log), we are looking if we can migrate to that to just have one logger. A benefit of `winston` was its clear instructions on how to set the path where the log file is written. This is necessary for us (as opposed to the default application logging directory) because logs should be at the project level.
 
 > An important note is that our first implementation does not handle multiple writes very well. This needs to be improved for robustness, especially if we think about multiple users accessing the same project concurrently.
 
