@@ -2,6 +2,7 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable class-methods-use-this */
 import { v4 as uuid } from 'uuid';
+import lockfile from 'proper-lockfile';
 import Constants from '../constants/constants';
 import AssetUtil from '../utils/asset';
 
@@ -81,6 +82,26 @@ export default class ProjectService {
 
     this.saveProjectFile(project.path, projectConfig);
     return projectConfig;
+  }
+
+  lockProjectFile(projectPath) {
+    const filePath = path.join(
+      projectPath.replace('~', os.homedir),
+      Constants.StatWrapFiles.BASE_FOLDER,
+      DefaultProjectFile
+    );
+
+    lockfile.lockSync(filePath);
+  }
+
+  unlockProjectFile(projectPath) {
+    const filePath = path.join(
+      projectPath.replace('~', os.homedir),
+      Constants.StatWrapFiles.BASE_FOLDER,
+      DefaultProjectFile
+    );
+
+    lockfile.unlockSync(filePath);
   }
 
   // Load the project configuration file from a given project's directory.

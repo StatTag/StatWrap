@@ -162,6 +162,8 @@ const saveProject = project => {
 
   try {
     if (project && project.id && project.path) {
+      projectService.lockProjectFile(project.path);
+
       let projectConfig = projectService.loadProjectFile(project.path);
       if (!projectConfig) {
         projectConfig = projectService.createProjectConfig(project.id, project.name);
@@ -194,6 +196,10 @@ const saveProject = project => {
     response.error = true;
     response.errorMessage = 'There was an unexpected error when trying to save the project';
     console.log(e);
+  } finally {
+    if (project && project.id && project.path) {
+      projectService.unlockProjectFile(project.path);
+    }
   }
 
   return response;
