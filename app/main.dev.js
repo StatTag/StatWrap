@@ -10,9 +10,9 @@
  *
  */
 import { app, BrowserWindow, ipcMain } from 'electron';
-import { autoUpdater } from 'electron-updater';
+// import { autoUpdater } from 'electron-updater';
 import path from 'path';
-import log from 'electron-log';
+// import log from 'electron-log';
 import { cloneDeep } from 'lodash';
 import { initialize, enable as enableRemote } from '@electron/remote/main';
 import MenuBuilder from './menu';
@@ -38,11 +38,11 @@ import LogService from './services/log';
 initialize();
 
 export default class AppUpdater {
-  constructor() {
-    log.transports.file.level = 'info';
-    autoUpdater.logger = log;
-    // autoUpdater.checkForUpdatesAndNotify();
-  }
+  // constructor() {
+  //   log.transports.file.level = 'info';
+  //   autoUpdater.logger = log;
+  //   autoUpdater.checkForUpdatesAndNotify();
+  // }
 }
 
 let mainWindow = null;
