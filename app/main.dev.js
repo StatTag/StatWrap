@@ -13,7 +13,6 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import log from 'electron-log';
-import winston from 'winston';
 import { cloneDeep } from 'lodash';
 import { initialize, enable as enableRemote } from '@electron/remote/main';
 import MenuBuilder from './menu';
@@ -33,6 +32,7 @@ import Constants from './constants/constants';
 import AssetsConfig from './constants/assets-config';
 import AssetUtil from './utils/asset';
 import ProjectUtil from './utils/project';
+import LogService from './services/log';
 
 // Initialize @electron/remote
 initialize();
@@ -47,17 +47,10 @@ export default class AppUpdater {
 
 let mainWindow = null;
 
-// For Winston, we need to tell it how far back we want to see logs from some anchor point
-// (by default, the time we're looking at logs), as well as the number of logs to look at.
-// These constants will take us back 100 years and give us a "really big number" of rows.
-// Kind of a hacky way to say "give me all logs", but the current query API doesn't appear
-// to have another way to specify that.
-const LOG_TIME_LOOKBACK = 100 * 365 * 24 * 60 * 60 * 1000;
-const LOG_ROW_LIMIT = 10000000000;
-
 const projectTemplateService = new ProjectTemplateService();
 const projectService = new ProjectService();
 const sourceControlService = new SourceControlService();
+const logService = new LogService();
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -545,30 +538,7 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
 ipcMain.on(
   Messages.WRITE_PROJECT_LOG_REQUEST,
   async (event, projectPath, type, title, description, details, level, user) => {
-    const logger = winston.createLogger({
-      level: 'verbose',
-      defaultMeta: { user },
-      format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
-      transports: [
-        new winston.transports.File({
-          filename: path.join(
-            projectPath,
-            Constants.StatWrapFiles.BASE_FOLDER,
-            Constants.StatWrapFiles.LOG
-          )
-        })
-      ]
-    });
-
-    logger.log({
-      level: level || 'info',
-      type: type || Constants.UndefinedDefaults.ACTION_TYPE,
-      title: title || Constants.UndefinedDefaults.ACTION_TYPE,
-      description,
-      details
-    });
-    logger.close();
-
+    logService.writeLog(projectPath, type, title, description, details, level, user);
     event.sender.send(Messages.WRITE_PROJECT_LOG_RESPONSE);
   }
 );
@@ -589,27 +559,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
     return;
   }
 
-  const logger = winston.createLogger({
-    level: 'verbose',
-    transports: [
-      new winston.transports.File({
-        filename: path.join(
-          project.path,
-          Constants.StatWrapFiles.BASE_FOLDER,
-          Constants.StatWrapFiles.LOG
-        )
-      })
-    ]
-  });
-
-  const options = {
-    from: new Date() - LOG_TIME_LOOKBACK,
-    until: new Date(),
-    limit: LOG_ROW_LIMIT,
-    start: 0
-  };
-
-  logger.query(options, (error, logs) => {
+  logService.loadLog(project, (error, logs) => {
     if (error || !logs || !logs.file) {
       response.error = true;
       response.errorMessage = 'There was an error reading the project log';
