@@ -12,6 +12,7 @@ const TEST_USER_HOME_PATH = process.platform === 'win32' ? 'C:\\Users\\test\\' :
 os.homedir.mockReturnValue(TEST_USER_HOME_PATH);
 const DESCRIPTION_FILE_PATH =
   process.platform === 'win32' ? 'C:\\Project\\test.md' : '/Projects/test.md';
+const TEST_PROJECT_PATH = process.platform === 'win32' ? 'C:\\test\\' : '/test/';
 
 const projectString = `{
   "formatVersion": "1",
@@ -723,25 +724,26 @@ describe('services', () => {
       it('will return null if the project fails to load', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue(null);
-        expect(service.loadAndMergeProjectUpdates('test', 'Test', 'Test', 'Test', {})).toBeNull();
+        expect(service.loadAndMergeProjectUpdates(TEST_PROJECT_PATH, 'Test', 'Test', 'Test', {})).toBeNull();
       });
 
       it('will set the project path once loaded', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({});
-        expect(service.loadAndMergeProjectUpdates('test-path', Constants.ActionType.NOTE_ADDED, Constants.EntityType.PROJECT, 'Test', {}).path).toBe('test-path');
+        expect(service.loadAndMergeProjectUpdates(TEST_PROJECT_PATH, Constants.ActionType.NOTE_ADDED, Constants.EntityType.PROJECT, 'Test', {}).path).toBe(TEST_PROJECT_PATH);
       });
 
       it('will return null if the update type is unknown', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({});
-        expect(service.loadAndMergeProjectUpdates('test', 'invalid', Constants.EntityType.PROJECT, 'Test', {})).toBeNull();
+        expect(service.loadAndMergeProjectUpdates(TEST_PROJECT_PATH, 'invalid', Constants.EntityType.PROJECT, 'Test', {})).toBeNull();
       });
 
       it('adds a note to a project when the notes collectiong is empty', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({});
-        const updatedProject = service.loadAndMergeProjectUpdates('test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.NOTE_ADDED, Constants.EntityType.PROJECT,
           '1',
           { id: '1', author: 'test', content: 'test' });
@@ -753,7 +755,8 @@ describe('services', () => {
       it('adds a note to a project', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ notes: [] });
-        const updatedProject = service.loadAndMergeProjectUpdates('test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.NOTE_ADDED, Constants.EntityType.PROJECT,
           '1',
           { id: '1', author: 'test', content: 'test' });
@@ -765,9 +768,10 @@ describe('services', () => {
       it('adds a note to an asset when the notes collectiong is empty', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ assets: { uri: '1', type: 'file' }});
-        const updatedProject = service.loadAndMergeProjectUpdates('/test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.NOTE_ADDED, Constants.EntityType.ASSET,
-          '/test/1',
+          `${TEST_PROJECT_PATH}1`,
           { id: '1', author: 'test', content: 'test' });
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.assets.notes).not.toBeNull();
@@ -777,9 +781,10 @@ describe('services', () => {
       it('adds a note to an asset', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ assets: { uri: '1', type: 'file', notes: [] }});
-        const updatedProject = service.loadAndMergeProjectUpdates('/test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.NOTE_ADDED, Constants.EntityType.ASSET,
-          '/test/1',
+          `${TEST_PROJECT_PATH}1`,
           { id: '1', author: 'test', content: 'test' });
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.assets.notes).not.toBeNull();
@@ -789,7 +794,8 @@ describe('services', () => {
       it('adds a note to a person when the notes collectiong is empty', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ people: [{ id: '1' }]});
-        const updatedProject = service.loadAndMergeProjectUpdates('test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.NOTE_ADDED, Constants.EntityType.PERSON,
           '1',
           { id: '1', author: 'test', content: 'test' });
@@ -801,7 +807,8 @@ describe('services', () => {
       it('adds a note to a person', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ people: [{ id: '1', notes: [] }]});
-        const updatedProject = service.loadAndMergeProjectUpdates('test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.NOTE_ADDED, Constants.EntityType.PERSON,
           '1',
           { id: '1', author: 'test', content: 'test' });
@@ -813,7 +820,8 @@ describe('services', () => {
       it('updates a project note', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ notes: [{ id: 'a', author: 'test', content: 'test' }] });
-        const updatedProject = service.loadAndMergeProjectUpdates('test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.NOTE_UPDATED, Constants.EntityType.PROJECT,
           '1',
           {new: { id: 'a', author: 'test', content: 'test2' }});
@@ -826,9 +834,10 @@ describe('services', () => {
       it('updates an asset note', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ assets: { uri: '1', type: 'file', notes: [{ id: 'a', author: 'test', content: 'test' }] }});
-        const updatedProject = service.loadAndMergeProjectUpdates('/test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.NOTE_UPDATED, Constants.EntityType.ASSET,
-          '/test/1',
+          `${TEST_PROJECT_PATH}1`,
           {new: { id: 'a', author: 'test', content: 'test2' }});
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.assets.notes).not.toBeNull();
@@ -839,7 +848,8 @@ describe('services', () => {
       it('updates a person note', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ people: [{ id: '1', notes: [{ id: 'a', author: 'test', content: 'test' }] }]});
-        const updatedProject = service.loadAndMergeProjectUpdates('test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.NOTE_UPDATED, Constants.EntityType.PERSON,
           '1',
           {new: { id: 'a', author: 'test', content: 'test2' }});
@@ -852,7 +862,8 @@ describe('services', () => {
       it('deletes a project note', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ notes: [{ id: 'a', author: 'test', content: 'test' }] });
-        const updatedProject = service.loadAndMergeProjectUpdates('test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.NOTE_DELETED, Constants.EntityType.PROJECT,
           '1',
           { id: 'a', author: 'test', content: 'test' });
@@ -863,9 +874,10 @@ describe('services', () => {
       it('deletes an asset note', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ assets: { uri: '1', type: 'file', notes: [{ id: 'a', author: 'test', content: 'test' }] }});
-        const updatedProject = service.loadAndMergeProjectUpdates('/test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.NOTE_DELETED, Constants.EntityType.ASSET,
-          '/test/1',
+          `${TEST_PROJECT_PATH}1`,
           { id: 'a', author: 'test', content: 'test' });
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.assets.notes).not.toBeNull();
@@ -875,7 +887,8 @@ describe('services', () => {
       it('deletes a person note', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ people: [{ id: '1', notes: [{ id: 'a', author: 'test', content: 'test' }] }]});
-        const updatedProject = service.loadAndMergeProjectUpdates('test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.NOTE_DELETED, Constants.EntityType.PERSON,
           '1',
           { id: 'a', author: 'test', content: 'test' });
@@ -887,9 +900,10 @@ describe('services', () => {
       it('updates an asset attribute even if the attributes object does not exist', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ assets: { uri: '1', type: 'file' }});
-        const updatedProject = service.loadAndMergeProjectUpdates('/test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.ATTRIBUTE_UPDATED, Constants.EntityType.ASSET,
-          '/test/1',
+          `${TEST_PROJECT_PATH}1`,
           { name: 'test', value: '1000'});
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.assets.attributes).not.toBeNull();
@@ -899,9 +913,10 @@ describe('services', () => {
       it('updates an asset attribute value', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ assets: { uri: '1', type: 'file', attributes: { test: '1000' } }});
-        const updatedProject = service.loadAndMergeProjectUpdates('/test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.ATTRIBUTE_UPDATED, Constants.EntityType.ASSET,
-          '/test/1',
+          `${TEST_PROJECT_PATH}1`,
           { name: 'test', value: 'a'});
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.assets.attributes).not.toBeNull();
@@ -911,7 +926,8 @@ describe('services', () => {
       it('updates the project about details', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({});
-        const updatedProject = service.loadAndMergeProjectUpdates('/test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.ABOUT_DETAILS_UPDATED, Constants.EntityType.PROJECT,
           '1',
           { description: 'test', categories: ['a']});
@@ -923,7 +939,8 @@ describe('services', () => {
       it('adds a person to a project even if there is no people collection', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({});
-        const updatedProject = service.loadAndMergeProjectUpdates('/test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.PERSON_ADDED, Constants.EntityType.PROJECT,
           '1',
           { id: '1234' });
@@ -935,7 +952,8 @@ describe('services', () => {
       it('adds a person to a project', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ people: [] });
-        const updatedProject = service.loadAndMergeProjectUpdates('/test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.PERSON_ADDED, Constants.EntityType.PROJECT,
           '1',
           { id: '1234' });
@@ -947,7 +965,8 @@ describe('services', () => {
       it('updates a person in a project', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ people: [{id: '1234', name: 'old value', affiliation: 'old value'}] });
-        const updatedProject = service.loadAndMergeProjectUpdates('/test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.PERSON_UPDATED, Constants.EntityType.PROJECT,
           '1',
           { id: '1234', name: 'test person', affiliation: 'location' });
@@ -961,7 +980,8 @@ describe('services', () => {
       it('deletes a person from a project', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ people: [{id: '1234'}] });
-        const updatedProject = service.loadAndMergeProjectUpdates('/test',
+        const updatedProject = service.loadAndMergeProjectUpdates(
+		  TEST_PROJECT_PATH,
           Constants.ActionType.PERSON_DELETED, Constants.EntityType.PROJECT,
           '1',
           { id: '1234' });
