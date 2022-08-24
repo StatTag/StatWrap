@@ -57,6 +57,12 @@ module.exports = {
     ASSET_GROUP_DELETED: 'Asset Group Deleted'
   },
 
+  EntityType: {
+    PROJECT: 'project',
+    PERSON: 'person',
+    ASSET: 'asset'
+  },
+
   DescriptionContentType: {
     URI: 'URI',
     MARKDOWN: 'Markdown'

@@ -1,5 +1,5 @@
-/* eslint-disable object-shorthand */
 /* eslint-disable prettier/prettier */
+/* eslint-disable object-shorthand */
 /* eslint-disable class-methods-use-this */
 import React, { Component } from 'react';
 import { ipcRenderer } from 'electron';
@@ -101,17 +101,17 @@ class ProjectPage extends Component {
   }
 
   handleScanAssetDynamicDetailsResponse(sender, response) {
-    this.setState({assetDynamicDetails: response.details});
+    this.setState({ assetDynamicDetails: response.details });
   }
 
   handleAssetSelected(asset) {
     // When an asset is selected, clear the existing dynamic details so they reload.
-    this.setState({assetDynamicDetails: null});
+    this.setState({ assetDynamicDetails: null });
     ipcRenderer.send(Messages.SCAN_ASSET_DYNAMIC_DETAILS_REQUEST, this.state.selectedProject, asset);
   }
 
   handleLoadProjectListResponse(sender, response) {
-    this.setState({...response, loaded: true});
+    this.setState({ ...response, loaded: true });
   }
 
   handleLoadConfigurationResponse(sender, response) {
@@ -126,11 +126,11 @@ class ProjectPage extends Component {
   }
 
   handleLoadProjectLogResponse(sender, response) {
-    this.setState({selectedProjectLogs: response});
+    this.setState({ selectedProjectLogs: response });
   }
 
   refreshProjectsHandler() {
-    this.setState({loaded: false});
+    this.setState({ loaded: false });
     ipcRenderer.send(Messages.LOAD_PROJECT_LIST_REQUEST);
   }
 
@@ -139,7 +139,7 @@ class ProjectPage extends Component {
       return;
     }
 
-    this.setState((previousState) => {
+    this.setState(previousState => {
       const { selectedProject } = previousState;
       // If the currently selected project doesn't match the scan request, it may be related to
       // a previously selected project.  In this case, we will just ignore the response and not
@@ -162,7 +162,7 @@ class ProjectPage extends Component {
   }
 
   handleAddProject() {
-    this.setState({addingProject: true});
+    this.setState({ addingProject: true });
   }
 
   handleCloseAddProject(refresh) {
@@ -206,7 +206,7 @@ class ProjectPage extends Component {
     ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, project);
   }
 
-  handleProjectUpdate(project, type, title, description, details) {
+  handleProjectUpdate(project, actionType, entityType, entityKey, title, description, details) {
     // Update our cached list of projects from which we get the selected projects.  We want to ensure
     // these are kept in sync with any updates.
     this.setState(prevState => {
@@ -216,19 +216,27 @@ class ProjectPage extends Component {
       return { projects };
     });
 
-    ipcRenderer.send(Messages.UPDATE_PROJECT_REQUEST, project);
-
-    if (type && type !== '') {
-      const user = this.context;
-      ipcRenderer.send(Messages.WRITE_PROJECT_LOG_REQUEST, project.path, type, title, description, details, 'info', user);
-    }
+    // The update project request will handle logging if it succeeds.  No additional logging call is
+    // needed here.
+    const user = this.context;
+    ipcRenderer.send(
+      Messages.UPDATE_PROJECT_REQUEST,
+      project.path,
+      actionType,
+      entityType,
+      entityKey,
+      title,
+      description,
+      details,
+      'info',
+      user
+    );
   }
 
   handleUpdateProjectResponse(sender, response) {
     if (response.error) {
       console.log(response.errorMessage);
-    }
-    else {
+    } else {
       // Update our cached list of projects from which we get the selected projects.  We want to ensure
       // these are kept in sync with any updates.
       this.setState(prevState => {
@@ -270,7 +278,7 @@ class ProjectPage extends Component {
             logs={this.state.selectedProjectLogs}
             onUpdated={this.handleProjectUpdate}
             onAssetSelected={this.handleAssetSelected}
-            configuration={{assetAttributes: this.state.assetAttributes}}
+            configuration={{ assetAttributes: this.state.assetAttributes }}
             assetDynamicDetails={this.state.assetDynamicDetails}
           />
         </ResizablePanels>

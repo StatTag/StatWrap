@@ -155,8 +155,6 @@ const saveProject = project => {
 
   try {
     if (project && project.id && project.path) {
-      projectService.lockProjectFile(project.path);
-
       let projectConfig = projectService.loadProjectFile(project.path);
       if (!projectConfig) {
         projectConfig = projectService.createProjectConfig(project.id, project.name);
@@ -189,10 +187,6 @@ const saveProject = project => {
     response.error = true;
     response.errorMessage = 'There was an unexpected error when trying to save the project';
     console.log(e);
-  } finally {
-    if (project && project.id && project.path) {
-      projectService.unlockProjectFile(project.path);
-    }
   }
 
   return response;
@@ -559,7 +553,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
     return;
   }
 
-  logService.loadLog(project, (error, logs) => {
+  logService.loadLog(project.path, (error, logs) => {
     if (error || !logs || !logs.file) {
       response.error = true;
       response.errorMessage = 'There was an error reading the project log';
@@ -574,12 +568,47 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
  * Given a project, update its information and save that information to the project
  * configuration file.
  */
-ipcMain.on(Messages.UPDATE_PROJECT_REQUEST, async (event, project) => {
-  const response = saveProject(project);
-  // console.log(response);
-  // await sleep(5000);  // Use to test delays.  Leave disabled in production.
-  event.sender.send(Messages.UPDATE_PROJECT_RESPONSE, response);
-});
+ipcMain.on(
+  Messages.UPDATE_PROJECT_REQUEST,
+  // eslint-disable-next-line prettier/prettier
+  async (event, projectPath, actionType, entityType, entityKey, title, description, details, level, user) => {
+    let response = {
+      project: null,
+      error: false,
+      errorMessage: ''
+    };
+
+    try {
+      projectService.lockProjectFile(projectPath);
+      const updatedProject = projectService.loadAndMergeProjectUpdates(
+        projectPath,
+        actionType,
+        entityType,
+        entityKey,
+        details
+      );
+      if (!updatedProject) {
+        response.error = true;
+        response.error = 'There was an error updating the project';
+      } else {
+        response = saveProject(updatedProject);
+        if (response && !response.error) {
+          logService.writeLog(projectPath, actionType, title, description, details, level, user);
+        }
+      }
+    } catch {
+      response.error = true;
+      response.error = 'There was an error updating the project';
+    } finally {
+      projectService.unlockProjectFile(projectPath);
+    }
+
+    // const response = saveProject(project);
+    // console.log(response);
+    // await sleep(5000);  // Use to test delays.  Leave disabled in production.
+    event.sender.send(Messages.UPDATE_PROJECT_RESPONSE, response);
+  }
+);
 
 /**
  * Perform all system information gathering

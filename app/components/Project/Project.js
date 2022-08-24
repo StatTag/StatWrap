@@ -17,7 +17,7 @@ import Workflow from '../Workflow/Workflow';
 import People from '../People/People';
 import ProjectLog from '../ProjectLog/ProjectLog';
 import ProjectNotes from '../ProjectNotes/ProjectNotes';
-import { ActionType, DescriptionContentType } from '../../constants/constants';
+import { ActionType, EntityType, DescriptionContentType } from '../../constants/constants';
 import AssetUtil from '../../utils/asset';
 import NoteUtil from '../../utils/note';
 import ProjectUtil from '../../utils/project';
@@ -110,9 +110,11 @@ class Project extends Component<Props> {
       this.props.onUpdated(
         project,
         ActionType.ABOUT_DETAILS_UPDATED,
+        EntityType.PROJECT,
+        project.id,
         ActionType.ABOUT_DETAILS_UPDATED,
         `${user} updated the project details in the 'About' page`,
-        { descriptionText, descriptionUri, categories }
+        { description: project.description, categories }
       );
     }
   };
@@ -203,12 +205,21 @@ class Project extends Component<Props> {
     }
 
     const action = { type: '', title: '', description: '', details: null };
-    this.upsertNoteHandler(currentProject, 'project', currentProject.name, action, text, note);
+    this.upsertNoteHandler(
+      currentProject,
+      EntityType.PROJECT,
+      currentProject.name,
+      action,
+      text,
+      note
+    );
 
     if (this.props.onUpdated) {
       this.props.onUpdated(
         currentProject,
         action.type,
+        EntityType.PROJECT,
+        project.id,
         action.title,
         action.description,
         action.details
@@ -226,7 +237,7 @@ class Project extends Component<Props> {
     const action = { type: '', title: '', description: '', details: null };
     this.upsertNoteHandler(
       person,
-      'person',
+      EntityType.PERSON,
       GeneralUtil.formatName(person.name),
       action,
       text,
@@ -237,6 +248,8 @@ class Project extends Component<Props> {
       this.props.onUpdated(
         currentProject,
         action.type,
+        EntityType.PERSON,
+        person.id,
         action.title,
         action.description,
         action.details
@@ -282,7 +295,15 @@ class Project extends Component<Props> {
     }
     project.assets = assetsCopy;
     if (this.props.onUpdated) {
-      this.props.onUpdated(project, action.type, action.title, action.description, action.details);
+      this.props.onUpdated(
+        project,
+        action.type,
+        EntityType.ASSET,
+        asset.uri,
+        action.title,
+        action.description,
+        action.details
+      );
     }
   };
 
@@ -337,6 +358,8 @@ class Project extends Component<Props> {
       this.props.onUpdated(
         project,
         ActionType.ATTRIBUTE_UPDATED,
+        EntityType.ASSET,
+        asset.uri,
         `Asset ${ActionType.ATTRIBUTE_UPDATED}`,
         actionDescription,
         { name, value }
@@ -362,6 +385,8 @@ class Project extends Component<Props> {
       this.props.onUpdated(
         project,
         ActionType.NOTE_DELETED,
+        EntityType.ASSET,
+        asset.uri,
         `Asset ${ActionType.NOTE_DELETED}`,
         actionDescription,
         note
@@ -384,11 +409,18 @@ class Project extends Component<Props> {
       return;
     }
 
-    const actionDescription = this.deleteNoteHandler(project, 'project', project.name, note);
+    const actionDescription = this.deleteNoteHandler(
+      project,
+      EntityType.PROJECT,
+      project.name,
+      note
+    );
     if (this.props.onUpdated) {
       this.props.onUpdated(
         project,
         ActionType.NOTE_DELETED,
+        EntityType.PROJECT,
+        project.id,
         `Project ${ActionType.NOTE_DELETED}`,
         actionDescription,
         note
@@ -400,7 +432,7 @@ class Project extends Component<Props> {
     const currentProject = { ...this.props.project };
     const actionDescription = this.deleteNoteHandler(
       person,
-      'person',
+      EntityType.PERSON,
       GeneralUtil.formatName(person.name),
       note
     );
@@ -408,6 +440,8 @@ class Project extends Component<Props> {
       this.props.onUpdated(
         currentProject,
         ActionType.NOTE_DELETED,
+        EntityType.PERSON,
+        person.id,
         `Person ${ActionType.NOTE_DELETED}`,
         actionDescription,
         note
@@ -439,6 +473,8 @@ class Project extends Component<Props> {
       this.props.onUpdated(
         currentProject,
         ActionType.PERSON_DELETED,
+        EntityType.PROJECT,
+        currentProject.id,
         `Project ${ActionType.PERSON_DELETED}`,
         actionDescription,
         person
@@ -476,7 +512,15 @@ class Project extends Component<Props> {
     }
 
     if (this.props.onUpdated) {
-      this.props.onUpdated(currentProject, action, `Project ${action}`, actionDescription, person);
+      this.props.onUpdated(
+        currentProject,
+        action,
+        EntityType.PROJECT,
+        currentProject.id,
+        `Project ${action}`,
+        actionDescription,
+        person
+      );
     }
   };
 
@@ -495,6 +539,8 @@ class Project extends Component<Props> {
       this.props.onUpdated(
         currentProject,
         action.type,
+        EntityType.PROJECT,
+        currentProject.id,
         action.title,
         action.description,
         action.details
@@ -518,6 +564,8 @@ class Project extends Component<Props> {
       this.props.onUpdated(
         currentProject,
         action.type,
+        EntityType.PROJECT,
+        currentProject.id,
         action.title,
         action.description,
         action.details
@@ -542,6 +590,8 @@ class Project extends Component<Props> {
       this.props.onUpdated(
         currentProject,
         action.type,
+        EntityType.PROJECT,
+        currentProject.id,
         action.title,
         action.description,
         action.details

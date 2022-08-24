@@ -11,6 +11,8 @@ const path = require('path');
 const LOG_TIME_LOOKBACK = 100 * 365 * 24 * 60 * 60 * 1000;
 const LOG_ROW_LIMIT = 10000000000;
 
+// Note that there are no tests for this class (at this time).  The vast majority of the functionality
+// is using winston, and it's not clear what non-winston things we need to test.
 export default class LogService {
   writeLog(projectPath, type, title, description, details, level, user) {
     const logger = winston.createLogger({
@@ -38,8 +40,8 @@ export default class LogService {
     logger.close();
   }
 
-  loadLog(project, callback) {
-    if (!project || !project.path) {
+  loadLog(projectPath, callback) {
+    if (!projectPath) {
       callback('The project path must be specified', null);
       return;
     }
@@ -49,7 +51,7 @@ export default class LogService {
       transports: [
         new winston.transports.File({
           filename: path.join(
-            project.path,
+            projectPath,
             Constants.StatWrapFiles.BASE_FOLDER,
             Constants.StatWrapFiles.LOG
           )
