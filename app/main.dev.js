@@ -13,7 +13,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 // import { autoUpdater } from 'electron-updater';
 import path from 'path';
 // import log from 'electron-log';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, orderBy } from 'lodash';
 import { initialize, enable as enableRemote } from '@electron/remote/main';
 import MenuBuilder from './menu';
 import ProjectService from './services/project';
@@ -538,7 +538,8 @@ ipcMain.on(
 );
 
 /**
- * Read from disk the project log file.  Return all of the log entries.
+ * Read from disk the project log file.  Return all of the log entries.  If the project
+ * has source control enabled, include those entries in the log list.
  */
 ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
   const response = {
@@ -558,9 +559,48 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
       response.error = true;
       response.errorMessage = 'There was an error reading the project log';
       event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
+      return;
     }
-    response.logs = logs.file;
-    event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
+
+    (async () => {
+      const sourceControlEnabled = await sourceControlService.hasSourceControlEnabled(project.path);
+      if (sourceControlEnabled) {
+        sourceControlService
+          .getHistory(project.path)
+          .then(commits => {
+            if (commits) {
+              response.logs = logs.file.concat(
+                commits.map(c => {
+                  return {
+                    level: 'info',
+                    type: Constants.ActionType.VERSION_CONTROL_COMMIT,
+                    title: 'Git Commit',
+                    description: c.message,
+                    // Timestamp is a Date object, and the log entries are all string, so we need to convert
+                    // these to strings so that the ordering will work.
+                    timestamp: c.timestamp.toISOString(),
+                    user: c.committer,
+                    details: c
+                  };
+                })
+              );
+              response.logs = orderBy(response.logs, 'timestamp', 'desc');
+            } else {
+              response.logs = logs.file;
+            }
+            event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
+            return true;
+          })
+          .catch(() => {
+            response.error = true;
+            response.errorMessage = 'There was an error reading the source control commit log';
+            event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
+          });
+      } else {
+        response.logs = logs.file;
+        event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
+      }
+    })();
   });
 });
 

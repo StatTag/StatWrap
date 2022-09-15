@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import fs from 'fs';
 import git from 'isomorphic-git';
 import SourceControlService from '../../app/services/sourceControl';
@@ -65,6 +66,28 @@ describe('services', () => {
       });
     });
 
+    describe('convertTimestamp', () => {
+      it('should return null for undefined committer', () => {
+        const service = new SourceControlService();
+        expect(service.convertTimestamp(null)).toBeNull();
+        expect(service.convertTimestamp(undefined)).toBeNull();
+      });
+
+      it('should convert a timestamp if an offset is provided', () => {
+        const service = new SourceControlService();
+        expect(
+          service.convertTimestamp({ timestamp: 1234567890, timezoneOffset: 360 })
+        ).toStrictEqual(new Date((1234567890 - 360 * 60) * 1000));
+      });
+
+      it('should keep the timestamp if the offset is 0', () => {
+        const service = new SourceControlService();
+        expect(
+          service.convertTimestamp({ timestamp: 1234567890, timezoneOffset: 0 })
+        ).toStrictEqual(new Date(1234567890000));
+      });
+    });
+
     describe('getFileHistory', () => {
       it('should return null for empty project paths', () => {
         const service = new SourceControlService();
@@ -83,7 +106,36 @@ describe('services', () => {
         // eslint-disable-next-line prettier/prettier
         return expect(service.getFileHistory('/Invalid/Path', 'DoesNotExist.txt')).resolves.toStrictEqual([]);
       });
+    });
 
+    describe('getHistory', () => {
+      it('should return null for empty project paths', () => {
+        const service = new SourceControlService();
+        expect(service.getHistory(null)).resolves.toBeNull();
+        return expect(service.getHistory(undefined)).resolves.toBeNull();
+      });
+      it('should return the history', () => {
+        git.log.mockImplementationOnce(() => {
+          return [
+            {
+              commit: {
+                message: 'Test 2',
+                committer: {
+                  name: 'Test Person2',
+                  email: 'test2@test.com',
+                  timestamp: 1234567890,
+                  timezoneOffset: 360
+                }
+              }
+            }
+          ];
+        });
+        const service = new SourceControlService();
+        return expect(service.getHistory('/test/path')).resolves.not.toBeNull();
+      });
+    });
+
+    describe('_getHistory', () => {
       it('should format history objects', async () => {
         git.log.mockImplementationOnce(() => {
           return [
@@ -113,7 +165,7 @@ describe('services', () => {
         });
         const service = new SourceControlService();
         // eslint-disable-next-line prettier/prettier
-        return expect(service.getFileHistory('/Root/Path', 'File.txt')).resolves.toStrictEqual([
+        return expect(service._getHistory('/Root/Path', 'File.txt')).resolves.toStrictEqual([
           {
             message: 'Test 2',
             committer: 'Test Person2 (test2@test.com)',
