@@ -34,8 +34,8 @@ module.exports = {
   LOAD_PROJECT_LOG_REQUEST: 'statwrap-load-project-log-request',
   LOAD_PROJECT_LOG_RESPONSE: 'statwrap-load-project-log-response',
 
-  LOAD_PROJECT_CHANGES_REQUEST: 'statwrap-load-project-changes-request',
-  LOAD_PROJECT_CHANGES_RESPONSE: 'statwrap-load-project-changes-response',
+  // LOAD_PROJECT_CHANGES_REQUEST: 'statwrap-load-project-changes-request',
+  // LOAD_PROJECT_CHANGES_RESPONSE: 'statwrap-load-project-changes-response',
 
   CREATE_UPDATE_PERSON_REQUEST: 'statwrap-create-update-person-request',
   CREATE_UPDATE_PERSON_RESPONSE: 'statwrap-create-update-person-response',

@@ -1,9 +1,13 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-param-reassign */
 /* eslint-disable class-methods-use-this */
 import { v4 as uuid } from 'uuid';
-import Constants from '../constants/constants';
+import lockfile from 'proper-lockfile';
+import { cloneDeep } from 'lodash';
+import Constants, { EntityType } from '../constants/constants';
 import AssetUtil from '../utils/asset';
+import ProjectUtil from '../utils/project';
 
 const fs = require('fs');
 const os = require('os');
@@ -81,6 +85,26 @@ export default class ProjectService {
 
     this.saveProjectFile(project.path, projectConfig);
     return projectConfig;
+  }
+
+  lockProjectFile(projectPath) {
+    const filePath = path.join(
+      projectPath.replace('~', os.homedir),
+      Constants.StatWrapFiles.BASE_FOLDER,
+      DefaultProjectFile
+    );
+
+    lockfile.lockSync(filePath);
+  }
+
+  unlockProjectFile(projectPath) {
+    const filePath = path.join(
+      projectPath.replace('~', os.homedir),
+      Constants.StatWrapFiles.BASE_FOLDER,
+      DefaultProjectFile
+    );
+
+    lockfile.unlockSync(filePath);
   }
 
   // Load the project configuration file from a given project's directory.
@@ -243,7 +267,7 @@ export default class ProjectService {
    *   children at the same level.  If false, it will search all descendants for the URI.  Because it is performing a URI
    *   search, this should not change the results, just improve speed.
    */
-   addNotesAndAttributesToAssets(assets, assetsWithData, followStructure = true) {
+  addNotesAndAttributesToAssets(assets, assetsWithData, followStructure = true) {
     if (!assets) {
       throw new Error('The assets object must be specified');
     } else if (!assetsWithData) {
@@ -273,5 +297,207 @@ export default class ProjectService {
     }
 
     return assets;
+  }
+
+  /**
+   * Utility function to update a note within a notes collection.
+   * @param {object} entity The entity that contains a 'notes' collection that we are updating
+   * @param {object} note The note object we are updating in the entity
+   */
+  _updateNote(entity, note) {
+    const existingNote = entity.notes.find(x => x.id === note.new.id);
+    existingNote.content = note.new.content;
+    existingNote.updated = note.new.updated;
+  }
+
+  /**
+   * Utility function to delete a note within a notes collection.
+   * @param {object} entity The entity that contains a 'notes' collection that we are deleting from
+   * @param {object} note The note object we are deleting from the entity
+   */
+  _deleteNote(entity, note) {
+    const index = entity.notes.findIndex(x => x.id === note.id);
+    if (index !== -1) {
+      entity.notes.splice(index, 1);
+    }
+  }
+
+  /**
+   * Given a project path, load the project information, merge in a specific change (specified by
+   * type and details), and return the updated object.
+   *
+   * @param {object} projectPath The path of the project to merge the update into
+   * @param {string} actionType The specific type of update (from Constants.ActionType)
+   * @param {string} entityType The type of entity that the update applies to (from Constants.EntityType)
+   * @param {string} entityKey The identifier for the specific entity that requires the update to be applied.
+   * @param {object} details The actual update/change that needs to be applied.  Content varies depending on
+   *    the specific ActionType.
+   * @returns The project with the update applied, or null if it could not be updated.
+   *
+   * **NOTE** - This implementation is a little bit wonky.  Partway through we refactored code to call this
+   * merge method.  There is some existing code in the React components that is helping do some of the
+   * checks prior to the actual merge.  So instead of everything being located here (as it really should be),
+   * for now we're going to have some code in React, some code here.  That means we have some assumptions
+   * we're going to make in our code here that we will implement.  TODO - further refactor to get all code
+   * to service/util classes, and out of the React components.
+   */
+  loadAndMergeProjectUpdates(projectPath, actionType, entityType, entityKey, details) {
+    if (!projectPath || !actionType || !entityType || !entityKey || !details) {
+      return null;
+    }
+
+    const project = this.loadProjectFile(projectPath);
+    if (!project) {
+      return null;
+    }
+
+    // We need to add the project path to the project object once it's loaded.
+    project.path = projectPath;
+
+    // Because of the way our downstream code works, it expects the paths to be absolute.  Because we
+    // have just loaded from the config file, we need to do that conversion before proceeding.
+    project.assets = AssetUtil.recursiveRelativeToAbsolutePath(
+      projectPath,
+      project.assets
+    );
+    project.assetGroups = ProjectUtil.absoluteToRelativePathForAssetGroups(
+      project.path,
+      project.assetGroups
+    );
+
+    // This code (per NOTE above) makes some assumptions that we already know for sure the
+    // action is valid and can be completed, so we won't check - for example - if we're
+    // updating a note if it exists.  The other code will have confirmed that.  We will need
+    // to fold in those checks when we do the larger refactoring.
+    switch (actionType) {
+      case Constants.ActionType.NOTE_ADDED:
+        if (entityType === EntityType.PROJECT) {
+          if (!project.notes) {
+            project.notes = [];
+          }
+          project.notes.push(details);
+        } else if (entityType === EntityType.ASSET) {
+          const asset = AssetUtil.findDescendantAssetByUri(project.assets, entityKey);
+          if (!asset.notes) {
+            asset.notes = [];
+          }
+          asset.notes.push(details);
+        } else if (entityType === EntityType.PERSON) {
+          const person = project.people.find(p => p.id === entityKey)
+          if (!person.notes) {
+            person.notes = [];
+          }
+          person.notes.push(details);
+        } else {
+          return null;
+        }
+        break;
+      case Constants.ActionType.NOTE_UPDATED:
+        // Assuming (for now) the UI code has confirmed these exist.  Need to move that code to here
+        // in the future.
+        if (entityType === EntityType.PROJECT) {
+          this._updateNote(project, details);
+        } else if (entityType === EntityType.ASSET) {
+          const asset = AssetUtil.findDescendantAssetByUri(project.assets, entityKey);
+          this._updateNote(asset, details);
+        } else if (entityType === EntityType.PERSON) {
+          const person = project.people.find(p => p.id === entityKey)
+          this._updateNote(person, details);
+        } else {
+          return null;
+        }
+        break;
+      case Constants.ActionType.NOTE_DELETED:
+        // Assuming (for now) the UI code has confirmed these exist.  Need to move that code to here
+        // in the future.
+        if (entityType === EntityType.PROJECT) {
+          this._deleteNote(project, details);
+        } else if (entityType === EntityType.ASSET) {
+          const asset = AssetUtil.findDescendantAssetByUri(project.assets, entityKey);
+          this._deleteNote(asset, details);
+        } else if (entityType === EntityType.PERSON) {
+          const person = project.people.find(p => p.id === entityKey)
+          this._deleteNote(person, details);
+        } else {
+          return null;
+        }
+        break;
+      case Constants.ActionType.ATTRIBUTE_UPDATED:
+        if (entityType === EntityType.ASSET) {
+          const asset = AssetUtil.findDescendantAssetByUri(project.assets, entityKey);
+          if (!asset.attributes) {
+            asset.attributes = {};
+          }
+          asset.attributes[details.name] = details.value;
+        } else {
+          return null;
+        }
+        break;
+      case Constants.ActionType.ABOUT_DETAILS_UPDATED:
+        if (entityType === EntityType.PROJECT) {
+          project.description = details.description;
+          project.categories = details.categories;
+        } else {
+          return null;
+        }
+        break;
+      case Constants.ActionType.PERSON_ADDED:
+        if (entityType === EntityType.PROJECT) {
+          if (!project.people) {
+            project.people = [];
+          }
+          project.people.push(details);
+        } else {
+          return null;
+        }
+        break;
+      case Constants.ActionType.PERSON_UPDATED:
+        if (entityType === EntityType.PROJECT) {
+          const foundIndex = project.people.findIndex(p => p.id === details.id);
+          project.people[foundIndex] = {
+            ...project.people[foundIndex],
+            name: details.name,
+            affiliation: details.affiliation,
+            roles: details.roles
+          };
+        } else {
+          return null;
+        }
+        break;
+      case Constants.ActionType.PERSON_DELETED:
+        if (entityType === EntityType.PROJECT) {
+          const foundIndex = project.people.findIndex(p => p.id === details.id);
+          project.people.splice(foundIndex, 1);
+        } else {
+          return null;
+        }
+        break;
+      case Constants.ActionType.ASSET_GROUP_ADDED:
+        if (entityType === EntityType.PROJECT) {
+          ProjectUtil.upsertAssetGroup(project, details);
+        } else {
+          return null;
+        }
+        break;
+      case Constants.ActionType.ASSET_GROUP_UPDATED:
+        if (entityType === EntityType.PROJECT) {
+          const oldAssetGroup = cloneDeep(this.props.project.assetGroups.find(x => x.id === details.id));
+          ProjectUtil.upsertAssetGroup(project, oldAssetGroup);
+        } else {
+          return null;
+        }
+        break;
+      case Constants.ActionType.ASSET_GROUP_DELETED:
+        if (entityType === EntityType.PROJECT) {
+          ProjectUtil.removeAssetGroup(project, details);
+        } else {
+          return null;
+        }
+        break;
+      default:
+        return null;
+    }
+
+    return project;
   }
 }

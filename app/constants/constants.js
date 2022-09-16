@@ -54,7 +54,15 @@ module.exports = {
 
     ASSET_GROUP_ADDED: 'Asset Group Added',
     ASSET_GROUP_UPDATED: 'Asset Group Updated',
-    ASSET_GROUP_DELETED: 'Asset Group Deleted'
+    ASSET_GROUP_DELETED: 'Asset Group Deleted',
+
+    VERSION_CONTROL_COMMIT: 'Version Control Commit'
+  },
+
+  EntityType: {
+    PROJECT: 'project',
+    PERSON: 'person',
+    ASSET: 'asset'
   },
 
   DescriptionContentType: {

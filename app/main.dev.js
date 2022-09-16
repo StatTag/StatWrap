@@ -10,11 +10,10 @@
  *
  */
 import { app, BrowserWindow, ipcMain } from 'electron';
-import { autoUpdater } from 'electron-updater';
+// import { autoUpdater } from 'electron-updater';
 import path from 'path';
-import log from 'electron-log';
-import winston from 'winston';
-import { cloneDeep } from 'lodash';
+// import log from 'electron-log';
+import { cloneDeep, orderBy } from 'lodash';
 import { initialize, enable as enableRemote } from '@electron/remote/main';
 import MenuBuilder from './menu';
 import ProjectService from './services/project';
@@ -33,16 +32,17 @@ import Constants from './constants/constants';
 import AssetsConfig from './constants/assets-config';
 import AssetUtil from './utils/asset';
 import ProjectUtil from './utils/project';
+import LogService from './services/log';
 
 // Initialize @electron/remote
 initialize();
 
 export default class AppUpdater {
-  constructor() {
-    log.transports.file.level = 'info';
-    autoUpdater.logger = log;
-    // autoUpdater.checkForUpdatesAndNotify();
-  }
+  // constructor() {
+  //   log.transports.file.level = 'info';
+  //   autoUpdater.logger = log;
+  //   autoUpdater.checkForUpdatesAndNotify();
+  // }
 }
 
 let mainWindow = null;
@@ -51,6 +51,7 @@ const projectTemplateService = new ProjectTemplateService();
 const projectService = new ProjectService();
 const projectListService = new ProjectListService();
 const sourceControlService = new SourceControlService();
+const logService = new LogService();
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -543,79 +544,58 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
 ipcMain.on(
   Messages.WRITE_PROJECT_LOG_REQUEST,
   async (event, projectPath, type, title, description, details, level, user) => {
-    const logger = winston.createLogger({
-      level: 'verbose',
-      defaultMeta: { user },
-      format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
-      transports: [
-        new winston.transports.File({
-          filename: path.join(
-            projectPath,
-            Constants.StatWrapFiles.BASE_FOLDER,
-            Constants.StatWrapFiles.LOG
-          )
-        })
-      ]
-    });
-
-    logger.log({
-      level: level || 'info',
-      type: type || Constants.UndefinedDefaults.ACTION_TYPE,
-      title: title || Constants.UndefinedDefaults.ACTION_TYPE,
-      description,
-      details
-    });
-    logger.close();
-
+    logService.writeLog(projectPath, type, title, description, details, level, user);
     event.sender.send(Messages.WRITE_PROJECT_LOG_RESPONSE);
   }
 );
 
 /**
+<<<<<<< HEAD
  * Determine what is new for a particular project since the user last
  * accessed it
  */
 
-ipcMain.on(Messages.LOAD_PROJECT_CHANGES_REQUEST, async (event, project) => {
-  const response = {
-    changes: null,
-    error: false,
-    errorMessage: ''
-  };
-  if (!project) {
-    response.error = true;
-    response.errorMessage = 'No project was selected';
-    event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
-    return;
-  }
+// ipcMain.on(Messages.LOAD_PROJECT_CHANGES_REQUEST, async (event, project) => {
+//   const response = {
+//     changes: null,
+//     error: false,
+//     errorMessage: ''
+//   };
+//   if (!project) {
+//     response.error = true;
+//     response.errorMessage = 'No project was selected';
+//     event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
+//     return;
+//   }
 
-  const projectConfig = projectService.loadProjectFile(project.path);
-  if (!projectConfig) {
-    response.error = true;
-    response.errorMessage = 'There was an error loading the project details.';
-    event.sender.send(Messages.LOAD_PROJECT_CHANGES_RESPONSE, response);
-    return;
-  }
+//   const projectConfig = projectService.loadProjectFile(project.path);
+//   if (!projectConfig) {
+//     response.error = true;
+//     response.errorMessage = 'There was an error loading the project details.';
+//     event.sender.send(Messages.LOAD_PROJECT_CHANGES_RESPONSE, response);
+//     return;
+//   }
 
-  const userDataPath = app.getPath('userData');
-  const projectList = projectListService.loadProjectListFromFile(
-    path.join(userDataPath, DefaultProjectListFile)
-  );
-  if (!projectList) {
-    response.error = true;
-    response.errorMessage = 'There was an error loading your list of projects.';
-    event.sender.send(Messages.LOAD_PROJECT_CHANGES_RESPONSE, response);
-    return;
-  }
+//   const userDataPath = app.getPath('userData');
+//   const projectList = projectListService.loadProjectListFromFile(
+//     path.join(userDataPath, DefaultProjectListFile)
+//   );
+//   if (!projectList) {
+//     response.error = true;
+//     response.errorMessage = 'There was an error loading your list of projects.';
+//     event.sender.send(Messages.LOAD_PROJECT_CHANGES_RESPONSE, response);
+//     return;
+//   }
 
-  ProjectUtil.getProjectChanges();
+//   ProjectUtil.getProjectChanges();
 
-  response.changes = [];
-  event.sender.send(Messages.LOAD_PROJECT_CHANGES_RESPONSE, response);
-});
+//   response.changes = [];
+//   event.sender.send(Messages.LOAD_PROJECT_CHANGES_RESPONSE, response);
+// });
 
 /**
- * Read from disk the project log file.  Return all of the log entries.
+ * Read from disk the project log file.  Return all of the log entries.  If the project
+ * has source control enabled, include those entries in the log list.
  */
 ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
   const response = {
@@ -630,14 +610,63 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
     return;
   }
 
-  ProjectUtil.getLogActivity(project.path, null, (error, logs) => {
-    if (error) {
+  // <<<<<<< HEAD
+  //   ProjectUtil.getLogActivity(project.path, null, (error, logs) => {
+  //     if (error) {
+  //       response.error = true;
+  //       response.errorMessage = error;
+  //     } else {
+  //       response.logs = logs;
+  //     }
+  //     event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
+  // =======
+  logService.loadLog(project.path, (error, logs) => {
+    if (error || !logs || !logs.file) {
       response.error = true;
-      response.errorMessage = error;
-    } else {
-      response.logs = logs;
+      response.errorMessage = 'There was an error reading the project log';
+      event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
+      return;
     }
-    event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
+
+    (async () => {
+      const sourceControlEnabled = await sourceControlService.hasSourceControlEnabled(project.path);
+      if (sourceControlEnabled) {
+        sourceControlService
+          .getHistory(project.path)
+          .then(commits => {
+            if (commits) {
+              response.logs = logs.file.concat(
+                commits.map(c => {
+                  return {
+                    level: 'info',
+                    type: Constants.ActionType.VERSION_CONTROL_COMMIT,
+                    title: 'Git Commit',
+                    description: c.message,
+                    // Timestamp is a Date object, and the log entries are all string, so we need to convert
+                    // these to strings so that the ordering will work.
+                    timestamp: c.timestamp.toISOString(),
+                    user: c.committer,
+                    details: c
+                  };
+                })
+              );
+              response.logs = orderBy(response.logs, 'timestamp', 'desc');
+            } else {
+              response.logs = logs.file;
+            }
+            event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
+            return true;
+          })
+          .catch(() => {
+            response.error = true;
+            response.errorMessage = 'There was an error reading the source control commit log';
+            event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
+          });
+      } else {
+        response.logs = logs.file;
+        event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
+      }
+    })();
   });
 });
 
@@ -645,12 +674,47 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
  * Given a project, update its information and save that information to the project
  * configuration file.
  */
-ipcMain.on(Messages.UPDATE_PROJECT_REQUEST, async (event, project) => {
-  const response = saveProject(project);
-  // console.log(response);
-  // await sleep(5000);  // Use to test delays.  Leave disabled in production.
-  event.sender.send(Messages.UPDATE_PROJECT_RESPONSE, response);
-});
+ipcMain.on(
+  Messages.UPDATE_PROJECT_REQUEST,
+  // eslint-disable-next-line prettier/prettier
+  async (event, projectPath, actionType, entityType, entityKey, title, description, details, level, user) => {
+    let response = {
+      project: null,
+      error: false,
+      errorMessage: ''
+    };
+
+    try {
+      projectService.lockProjectFile(projectPath);
+      const updatedProject = projectService.loadAndMergeProjectUpdates(
+        projectPath,
+        actionType,
+        entityType,
+        entityKey,
+        details
+      );
+      if (!updatedProject) {
+        response.error = true;
+        response.error = 'There was an error updating the project';
+      } else {
+        response = saveProject(updatedProject);
+        if (response && !response.error) {
+          logService.writeLog(projectPath, actionType, title, description, details, level, user);
+        }
+      }
+    } catch {
+      response.error = true;
+      response.error = 'There was an error updating the project';
+    } finally {
+      projectService.unlockProjectFile(projectPath);
+    }
+
+    // const response = saveProject(project);
+    // console.log(response);
+    // await sleep(5000);  // Use to test delays.  Leave disabled in production.
+    event.sender.send(Messages.UPDATE_PROJECT_RESPONSE, response);
+  }
+);
 
 /**
  * Perform all system information gathering
