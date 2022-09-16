@@ -610,6 +610,12 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
     return;
   }
 
+  const userDataPath = app.getPath('userData');
+  const projectLastAccessed = projectListService.getProjectLastAccessed(
+    project.id,
+    path.join(userDataPath, DefaultProjectListFile)
+  );
+
   // <<<<<<< HEAD
   //   ProjectUtil.getLogActivity(project.path, null, (error, logs) => {
   //     if (error) {
@@ -629,6 +635,8 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
     }
 
     (async () => {
+      const settings = {};
+      loadUserSettings(settings);
       const sourceControlEnabled = await sourceControlService.hasSourceControlEnabled(project.path);
       if (sourceControlEnabled) {
         sourceControlService
@@ -654,6 +662,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
             } else {
               response.logs = logs.file;
             }
+            response.updates = ProjectUtil.getProjectUpdates(projectLastAccessed, response.logs);
             event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
             return true;
           })
@@ -664,6 +673,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
           });
       } else {
         response.logs = logs.file;
+        response.updates = ProjectUtil.getProjectUpdates(projectLastAccessed, response.logs);
         event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
       }
     })();
@@ -716,6 +726,23 @@ ipcMain.on(
   }
 );
 
+const loadUserSettings = settings => {
+  (async () => {
+    const service = new UserService();
+    try {
+      settings.user = await service.getUser();
+      const userDataPath = app.getPath('userData');
+      settings.settings = service.loadUserSettingsFromFile(
+        path.join(userDataPath, DefaultSettingsFile)
+      );
+    } catch (e) {
+      settings.error = true;
+      settings.errorMessage = 'There was an unexpected error when gathering user information';
+      console.log(e);
+    }
+  })();
+};
+
 /**
  * Perform all system information gathering
  */
@@ -727,22 +754,23 @@ ipcMain.on(Messages.LOAD_USER_INFO_REQUEST, async event => {
     errorMessage: ''
   };
 
-  (async () => {
-    const service = new UserService();
-    try {
-      response.user = await service.getUser();
-      const userDataPath = app.getPath('userData');
-      console.log(path.join(userDataPath, DefaultSettingsFile));
-      response.settings = service.loadUserSettingsFromFile(
-        path.join(userDataPath, DefaultSettingsFile)
-      );
-    } catch (e) {
-      response.error = true;
-      response.errorMessage = 'There was an unexpected error when gathering user information';
-      console.log(e);
-    }
-    event.sender.send(Messages.LOAD_USER_INFO_RESPONSE, response);
-  })();
+  // (async () => {
+  //   const service = new UserService();
+  //   try {
+  //     response.user = await service.getUser();
+  //     const userDataPath = app.getPath('userData');
+  //     response.settings = service.loadUserSettingsFromFile(
+  //       path.join(userDataPath, DefaultSettingsFile)
+  //     );
+  //   } catch (e) {
+  //     response.error = true;
+  //     response.errorMessage = 'There was an unexpected error when gathering user information';
+  //     console.log(e);
+  //   }
+  //   event.sender.send(Messages.LOAD_USER_INFO_RESPONSE, response);
+  // })();
+  loadUserSettings(response);
+  event.sender.send(Messages.LOAD_USER_INFO_RESPONSE, response);
 });
 
 ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, mode, project, person) => {

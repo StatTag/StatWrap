@@ -497,6 +497,7 @@ export default class ProjectUtil {
   }
 
   /**
+<<<<<<< Updated upstream
    * Retrieve log entries located in a given project path
    * @param {*} projectPath The path of the project
    * @param {*} activitySince A Date (UTC time) to start searching from. null to return all entries.
@@ -543,5 +544,62 @@ export default class ProjectUtil {
       }
     });
     return result;
+  }
+
+  /* Return all of the log entries that have been updated
+   * @param {string} updatedSince A string[1] (in toISOString format) of the date we want to
+   *  look for updates since.
+   * @param {array} log The array of StatWrap log entries
+   *
+   * Returns an object containing the array of log entries that have been added since the last update
+   * time.  If the method would return the entire log history, it will return a special object with
+   * firstView set to true.  If it is up to date (there are no entries after the last update check),
+   * it will return an object with upToDate set to true.
+   *
+   * [1] - This probably seems odd (or just wrong).  We are using a string value instead of Date because
+   * our logging framework loads dates as strings.  To avoid having to do a lot of conversions, we will
+   * use strings instead.
+   */
+  static getProjectUpdates(lastViewed, log) {
+    // If there is no updatedSince value, we return a special object indicating this is the first
+    // time the user has seen the project.
+    if (!lastViewed || lastViewed === '') {
+      return { firstView: true };
+    }
+    // If there are no log entries, we're implicitly up to date
+    if (!log || log.length === 0) {
+      return { upToDate: true };
+    }
+
+    // Loop through the log (which is sorted in descending order) until we found the last log entry
+    // that we would have seen.  Along the way, start calculating our summary stats.
+    const distinctUsers = [];
+    const updates = { distinctUsers: 0, log: [] };
+    for (let index = 0; index < log.length; index++) {
+      if (lastViewed >= log[index].timestamp) {
+        break;
+      }
+
+      // If the user is missing/null/undefined, we want to count that as a single
+      // user (more or less a single 'unknown' user).
+      if (!log[index].user) {
+        if (!distinctUsers.includes('')) {
+          distinctUsers.push('');
+        }
+      } else if (!distinctUsers.includes(log[index].user)) {
+        distinctUsers.push(log[index].user);
+      }
+      updates.log.push(log[index]);
+    }
+
+    // Perform a special check that if we somehow have no log entries added, we return the special
+    // flag indicating we're up to date.
+    if (updates.log.length === 0) {
+      return { upToDate: true };
+    }
+
+    updates.distinctUsers = distinctUsers.length;
+
+    return updates;
   }
 }

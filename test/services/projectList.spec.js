@@ -334,6 +334,39 @@ describe('services', () => {
       });
     });
 
+    describe('getProjectLastAccessed', () => {
+      it('should return null if the project list does not exist', () => {
+        fs.accessSync.mockImplementation(() => {
+          throw new Error();
+        });
+        const service = new ProjectListService();
+        expect(service.getProjectLastAccessed('d01d2925-f6ff-4f8e-988f-fca2ee193427')).toBe(null);
+        expect(fs.readFileSync).not.toHaveBeenCalled();
+      });
+
+      it('should return null if the project ID is invalid', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListString);
+
+        const service = new ProjectListService();
+        // Undefined as in 'not properly specified'
+        expect(service.getProjectLastAccessed(null)).toBe(null);
+        expect(service.getProjectLastAccessed(undefined)).toBe(null);
+
+        // Also undefined as in 'can't find the ID'
+        expect(service.getProjectLastAccessed('1-2-3-4')).toBe(null);
+      });
+
+      it('should find an existing project entry', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListString);
+        const service = new ProjectListService();
+        expect(service.getProjectLastAccessed('d01d2925-f6ff-4f8e-988f-fca2ee193427')).toBe(
+          '2020-04-21T21:21:27.041Z'
+        );
+      });
+    });
+
     describe('removeProjectEntry', () => {
       it('should not try to save if the project list does not exist', () => {
         fs.accessSync.mockImplementation(() => {

@@ -1250,4 +1250,82 @@ describe('utils', () => {
       expect(project.assetGroups.length).toEqual(1);
     });
   });
+
+  describe('getProjectUpdates', () => {
+    it('should return firstView when the last viewed timestamp is not provided', () => {
+      expect(ProjectUtil.getProjectUpdates(null, []).firstView).toEqual(true);
+      expect(ProjectUtil.getProjectUpdates(undefined, []).firstView).toEqual(true);
+      expect(ProjectUtil.getProjectUpdates('', []).firstView).toEqual(true);
+    });
+
+    it('should return upToDate when the log is empty', () => {
+      expect(ProjectUtil.getProjectUpdates('2020-12-22T23:55:40.164Z', null).upToDate).toEqual(
+        true
+      );
+      expect(ProjectUtil.getProjectUpdates('2020-12-22T23:55:40.164Z', undefined).upToDate).toEqual(
+        true
+      );
+      expect(ProjectUtil.getProjectUpdates('2020-12-22T23:55:40.164Z', []).upToDate).toEqual(true);
+    });
+
+    it('should return upToDate when the last viewed timestamp is after all log entries', () => {
+      expect(
+        ProjectUtil.getProjectUpdates('2022-12-22T23:55:40.164Z', [
+          {
+            timestamp: '2021-12-22T23:55:40.164Z',
+            user: 'test'
+          },
+          {
+            timestamp: '2020-12-22T23:55:40.164Z',
+            user: 'test'
+          }
+        ]).upToDate
+      ).toEqual(true);
+    });
+
+    it('should track the recent log entries and multiple distinct users', () => {
+      const updates = ProjectUtil.getProjectUpdates('2022-12-21T13:55:40.164Z', [
+        {
+          timestamp: '2022-12-23T23:55:40.164Z',
+          user: 'test'
+        },
+        {
+          timestamp: '2022-12-22T23:55:40.164Z',
+          user: 'test2'
+        },
+        {
+          timestamp: '2022-12-21T23:55:40.164Z',
+          user: 'test'
+        },
+        {
+          timestamp: '2022-12-20T23:55:40.164Z',
+          user: 'test2'
+        }
+      ]);
+      expect(updates.distinctUsers).toEqual(2);
+      expect(updates.log.length).toEqual(3);
+    });
+
+    it('should count missing/null users as one distinct', () => {
+      const updates = ProjectUtil.getProjectUpdates('2020-12-21T13:55:40.164Z', [
+        {
+          timestamp: '2022-12-23T23:55:40.164Z'
+        },
+        {
+          timestamp: '2022-12-21T23:55:40.164Z',
+          user: null
+        },
+        {
+          timestamp: '2022-12-20T23:55:40.164Z',
+          user: undefined
+        },
+        {
+          timestamp: '2022-12-20T23:55:40.164Z',
+          user: ''
+        }
+      ]);
+      expect(updates.distinctUsers).toEqual(1);
+      expect(updates.log.length).toEqual(4);
+    });
+  });
 });
