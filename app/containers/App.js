@@ -18,7 +18,9 @@ import {
   faHome,
   faUser,
   faTh,
-  faThList
+  faThList,
+  faBell,
+  faTimes
 } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { ipcRenderer } from 'electron';
@@ -32,7 +34,19 @@ import GeneralUtil from '../utils/general';
 
 // This is where we register all of our font-awesome icons that are used throughout the app.
 // See https://github.com/FortAwesome/react-fontawesome#build-a-library-to-reference-icons-throughout-your-app-more-conveniently
-library.add(faFolder, faTag, faThumbtack, faEllipsisH, faTrashAlt, faHome, faUser, faTh, faThList);
+library.add(
+  faFolder,
+  faTag,
+  faThumbtack,
+  faEllipsisH,
+  faTrashAlt,
+  faHome,
+  faUser,
+  faTh,
+  faThList,
+  faBell,
+  faTimes
+);
 
 export default class App extends React.Component {
   constructor(props) {

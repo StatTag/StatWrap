@@ -15,4 +15,9 @@
 
 .headerButton {
   margin-right: auto;
+  margin-left: -10px;
+}
+
+.headerButton button {
+  margin-right: 10px;
 }

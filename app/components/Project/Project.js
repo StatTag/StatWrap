@@ -75,7 +75,7 @@ class Project extends Component<Props> {
 
   constructor(props) {
     super(props);
-    this.state = { selectedTab: 'about' };
+    this.state = { selectedTab: 'about', showLogUpdatesOnly: false };
   }
 
   changeHandler = (event, id) => {
@@ -599,6 +599,10 @@ class Project extends Component<Props> {
     }
   };
 
+  clickUpdatesLinkHandler = () => {
+    this.setState({ selectedTab: 'projectLog', showLogUpdatesOnly: true });
+  };
+
   render() {
     const tabStyle = { root: this.props.classes.tabRoot, selected: this.props.classes.tabSelected };
     const tabPanelStyle = { root: this.props.classes.tabPanel };
@@ -612,6 +616,8 @@ class Project extends Component<Props> {
           onUpdatedNote={this.projectUpsertNoteHandler}
           onDeletedNote={this.projectDeleteNoteHandler}
           project={this.props.project}
+          updates={this.props.logs ? this.props.logs.updates : null}
+          onClickUpdatesLink={this.clickUpdatesLinkHandler}
         />
       ) : null;
       const assets = this.props.project ? (
@@ -668,6 +674,8 @@ class Project extends Component<Props> {
             project={this.props.project}
             error={this.props.logs.errorMessage}
             feed={this.props.logs.logs}
+            updates={this.props.logs.updates}
+            showUpdates={this.state.showLogUpdatesOnly}
           />
         ) : null;
 
@@ -738,7 +746,10 @@ Project.propTypes = {
   // This object has the following structure:
   // {
   //   logs: array<string>   - the actual log data
-  //   errorMessage: string? - if set, the logs collection should be assumed invalid due to a load failure
+  //   updates: object       - information about updates to the project since the
+  //                           user last viewed it
+  //   errorMessage: string? - if set, the logs collection should be assumed invalid
+  //                           due to a load failure
   // }
   logs: PropTypes.object,
   // This object has the following structure:

@@ -13,6 +13,7 @@ import TagEditor from '../../TagEditor/TagEditor';
 import TagViewer from '../../TagViewer/TagViewer';
 import TextEditor from '../../TextEditor/TextEditor';
 import LinkedDescription from '../LinkedDescription/LinkedDescription';
+import ProjectUpdateSummary from '../ProjectUpdateSummary/ProjectUpdateSummary';
 import { DescriptionContentType } from '../../../constants/constants';
 
 const about = props => {
@@ -166,6 +167,9 @@ const about = props => {
     if (categories && categories.length > 0) {
       tagViewerControl = <TagViewer className={styles.tagViewer} tags={categories} />;
     }
+    const updatesControl = (
+      <ProjectUpdateSummary updates={props.updates} onClickLink={props.onClickUpdatesLink} />
+    );
     let descriptionControl = null;
     if (descriptionText && descriptionText.trim().length > 0) {
       descriptionControl = (
@@ -177,6 +181,7 @@ const about = props => {
     view = (
       <Box>
         {tagViewerControl}
+        {updatesControl}
         {descriptionControl}
         <h2>Project Notes</h2>
         <NoteEditor
@@ -190,7 +195,13 @@ const about = props => {
 
   return (
     <div className={styles.container}>
-      <Button className={styles.button} color="primary" onClick={handleButtonToggled}>
+      <Button
+        className={styles.button}
+        variant="outlined"
+        color="primary"
+        size="small"
+        onClick={handleButtonToggled}
+      >
         {buttonLabel}
       </Button>
       {view}
@@ -200,10 +211,12 @@ const about = props => {
 
 about.propTypes = {
   project: PropTypes.object.isRequired,
+  updates: PropTypes.object,
   onUpdateDetails: PropTypes.func.isRequired,
   onUpdatedNote: PropTypes.func,
   onAddedNote: PropTypes.func,
-  onDeletedNote: PropTypes.func
+  onDeletedNote: PropTypes.func,
+  onClickUpdatesLink: PropTypes.func
 };
 
 export default about;

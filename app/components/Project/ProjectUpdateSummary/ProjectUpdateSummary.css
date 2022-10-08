@@ -1,0 +1,23 @@
+.empty {
+  display: none;
+}
+
+.normal {
+  display: inline-block;
+  margin-bottom: 15px;
+  padding: 5px;
+  background-color: #e2ffff;
+  color: #059;
+  border: solid 1px #059;
+  border-radius: 4px;
+}
+
+.normal span {
+  padding-left: 10px;
+}
+
+.link {
+  text-decoration: underline;
+  cursor: pointer;
+  color: #0008;
+}

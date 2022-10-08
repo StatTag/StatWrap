@@ -1328,4 +1328,30 @@ describe('utils', () => {
       expect(updates.log.length).toEqual(4);
     });
   });
+
+  describe('getProjectUpdatesSummary', () => {
+    it('should return a fixed string if there are no updates', () => {
+      expect(ProjectUtil.getProjectUpdatesSummary(null)).toEqual('There are no updates');
+      expect(ProjectUtil.getProjectUpdatesSummary(undefined)).toEqual('There are no updates');
+      expect(ProjectUtil.getProjectUpdatesSummary({})).toEqual('There are no updates');
+    });
+
+    it('should handle singulars', () => {
+      expect(ProjectUtil.getProjectUpdatesSummary({ log: [{}], distinctUsers: 1 })).toEqual(
+        '1 update by 1 user'
+      );
+    });
+
+    it('should handle plurals', () => {
+      expect(ProjectUtil.getProjectUpdatesSummary({ log: [{}, {}, {}], distinctUsers: 2 })).toEqual(
+        '3 updates by 2 users'
+      );
+    });
+
+    it('should handle mixed', () => {
+      expect(ProjectUtil.getProjectUpdatesSummary({ log: [{}, {}], distinctUsers: 1 })).toEqual(
+        '2 updates by 1 user'
+      );
+    });
+  });
 });

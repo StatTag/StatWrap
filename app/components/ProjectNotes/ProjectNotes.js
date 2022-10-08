@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import DataTable from 'react-data-table-component';
 import Error from '../Error/Error';
 import GeneralUtil from '../../utils/general';
@@ -80,7 +81,7 @@ const FilterComponent = ({ filterText, onFilter, onClear }) => (
       onChange={onFilter}
     />
     <ClearButton type="button" onClick={onClear}>
-      X
+      <FontAwesomeIcon icon="times" size="sm" />
     </ClearButton>
   </>
 );

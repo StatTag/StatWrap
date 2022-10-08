@@ -1,7 +1,8 @@
 /* eslint-disable react/forbid-prop-types */
 import React, { useEffect, useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@mui/material';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Button, ToggleButton } from '@mui/material';
 import styled from 'styled-components';
 import DataTable from 'react-data-table-component';
 import Error from '../Error/Error';
@@ -70,7 +71,7 @@ const FilterComponent = ({ filterText, onFilter, onClear }) => (
       onChange={onFilter}
     />
     <ClearButton type="button" onClick={onClear}>
-      X
+      <FontAwesomeIcon icon="times" size="sm" />
     </ClearButton>
   </>
 );
@@ -78,7 +79,9 @@ const FilterComponent = ({ filterText, onFilter, onClear }) => (
 const projectLog = props => {
   const [filterText, setFilterText] = useState('');
   const [expandAll, setExpandAll] = useState(false);
-  const { feed, error } = props;
+  const { feed, error, updates } = props;
+  const hasWhatsNewUpdates = updates !== null && !updates.upToDate;
+  const [filterWhatsNew, setFilterWhatsNew] = useState(hasWhatsNewUpdates);
   const [pending, setPending] = useState(true);
 
   const subHeaderComponentMemo = useMemo(() => {
@@ -88,11 +91,32 @@ const projectLog = props => {
       }
     };
 
+    let showUpdatesControl = null;
+    if (hasWhatsNewUpdates) {
+      showUpdatesControl = (
+        <ToggleButton
+          value="check"
+          size="small"
+          selected={filterWhatsNew}
+          onChange={() => {
+            setFilterWhatsNew(!filterWhatsNew);
+          }}
+        >
+          <FontAwesomeIcon icon="bell" size="sm" />
+          &nbsp; What&apos;s New
+        </ToggleButton>
+      );
+    }
     return (
       <>
         <div className={styles.headerButton}>
-          <Button onClick={() => setExpandAll(true)}>Expand All</Button>
-          <Button onClick={() => setExpandAll(false)}>Collapse All</Button>
+          <Button variant="outlined" onClick={() => setExpandAll(true)}>
+            Expand All
+          </Button>
+          <Button variant="outlined" onClick={() => setExpandAll(false)}>
+            Collapse All
+          </Button>
+          {showUpdatesControl}
         </div>
         <FilterComponent
           onFilter={e => setFilterText(e.target.value)}
@@ -101,7 +125,7 @@ const projectLog = props => {
         />
       </>
     );
-  }, [filterText]);
+  }, [filterText, filterWhatsNew]);
 
   useEffect(() => {
     setPending(!props.feed && !props.error);
@@ -109,7 +133,9 @@ const projectLog = props => {
 
   let contents = <div className={styles.empty}>There are no actions or notifications to show</div>;
   if (feed) {
-    const data = feed
+    // eslint-disable-next-line prettier/prettier
+    const dataSource = (updates && updates.log && filterWhatsNew) ? updates.log : feed;
+    const data = dataSource
       .map(f => {
         return { ...f, datetime: GeneralUtil.formatDateTime(f.timestamp) };
       })
@@ -143,11 +169,13 @@ const projectLog = props => {
 projectLog.propTypes = {
   project: PropTypes.object.isRequired,
   feed: PropTypes.arrayOf(PropTypes.object),
+  updates: PropTypes.object,
   error: PropTypes.string
 };
 
 projectLog.defaultProps = {
   feed: null,
+  updates: null,
   error: null
 };
 
