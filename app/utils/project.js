@@ -1,3 +1,4 @@
+/* eslint-disable no-continue */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable func-names */
@@ -549,6 +550,8 @@ export default class ProjectUtil {
   /* Return all of the log entries that have been updated
    * @param {string} updatedSince A string[1] (in toISOString format) of the date we want to
    *  look for updates since.
+   * @param {string} currentUser The login/ID of the current user (as detected by StatWrap)
+   *  to allow filtering out of updates from this user.
    * @param {array} log The array of StatWrap log entries
    *
    * Returns an object containing the array of log entries that have been added since the last update
@@ -560,7 +563,7 @@ export default class ProjectUtil {
    * our logging framework loads dates as strings.  To avoid having to do a lot of conversions, we will
    * use strings instead.
    */
-  static getProjectUpdates(lastViewed, log) {
+  static getProjectUpdates(lastViewed, currentUser, log) {
     // If there is no updatedSince value, we return a special object indicating this is the first
     // time the user has seen the project.
     if (!lastViewed || lastViewed === '') {
@@ -586,8 +589,16 @@ export default class ProjectUtil {
         if (!distinctUsers.includes('')) {
           distinctUsers.push('');
         }
-      } else if (!distinctUsers.includes(log[index].user)) {
-        distinctUsers.push(log[index].user);
+      } else {
+        // If the log entry is for the current user, skip it entirely by continuing to the
+        // next entry.
+        if (log[index].user === currentUser) {
+          continue;
+        }
+
+        if (!distinctUsers.includes(log[index].user)) {
+          distinctUsers.push(log[index].user);
+        }
       }
       updates.log.push(log[index]);
     }

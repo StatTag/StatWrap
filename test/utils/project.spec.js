@@ -1259,18 +1259,20 @@ describe('utils', () => {
     });
 
     it('should return upToDate when the log is empty', () => {
-      expect(ProjectUtil.getProjectUpdates('2020-12-22T23:55:40.164Z', null).upToDate).toEqual(
-        true
-      );
-      expect(ProjectUtil.getProjectUpdates('2020-12-22T23:55:40.164Z', undefined).upToDate).toEqual(
-        true
-      );
-      expect(ProjectUtil.getProjectUpdates('2020-12-22T23:55:40.164Z', []).upToDate).toEqual(true);
+      expect(
+        ProjectUtil.getProjectUpdates('2020-12-22T23:55:40.164Z', 'test', null).upToDate
+      ).toEqual(true);
+      expect(
+        ProjectUtil.getProjectUpdates('2020-12-22T23:55:40.164Z', 'test', undefined).upToDate
+      ).toEqual(true);
+      expect(
+        ProjectUtil.getProjectUpdates('2020-12-22T23:55:40.164Z', 'test', []).upToDate
+      ).toEqual(true);
     });
 
     it('should return upToDate when the last viewed timestamp is after all log entries', () => {
       expect(
-        ProjectUtil.getProjectUpdates('2022-12-22T23:55:40.164Z', [
+        ProjectUtil.getProjectUpdates('2022-12-22T23:55:40.164Z', 'test3', [
           {
             timestamp: '2021-12-22T23:55:40.164Z',
             user: 'test'
@@ -1282,17 +1284,38 @@ describe('utils', () => {
         ]).upToDate
       ).toEqual(true);
     });
-
+    it('should return upToDate when the log entries are for the current user', () => {
+      expect(
+        ProjectUtil.getProjectUpdates('2019-12-22T23:55:40.164Z', 'test', [
+          {
+            timestamp: '2021-12-22T23:55:40.164Z',
+            user: 'test'
+          },
+          {
+            timestamp: '2020-12-22T23:55:40.164Z',
+            user: 'test'
+          }
+        ]).upToDate
+      ).toEqual(true);
+    });
     it('should track the recent log entries and multiple distinct users', () => {
-      const updates = ProjectUtil.getProjectUpdates('2022-12-21T13:55:40.164Z', [
+      const updates = ProjectUtil.getProjectUpdates('2022-12-21T13:55:40.164Z', 'test3', [
+        // It should skip this entry because it is for the current user
+        {
+          timestamp: '2022-12-23T23:56:40.164Z',
+          user: 'test3'
+        },
+        // It should count the next 2 entries
         {
           timestamp: '2022-12-23T23:55:40.164Z',
           user: 'test'
         },
         {
-          timestamp: '2022-12-22T23:55:40.164Z',
+          timestamp: '2022-12-22T23:54:40.164Z',
           user: 'test2'
         },
+        // It should ignore the next two entries because they are past the last viewed
+        // date and time.
         {
           timestamp: '2022-12-21T23:55:40.164Z',
           user: 'test'
@@ -1305,9 +1328,8 @@ describe('utils', () => {
       expect(updates.distinctUsers).toEqual(2);
       expect(updates.log.length).toEqual(3);
     });
-
     it('should count missing/null users as one distinct', () => {
-      const updates = ProjectUtil.getProjectUpdates('2020-12-21T13:55:40.164Z', [
+      const updates = ProjectUtil.getProjectUpdates('2020-12-21T13:55:40.164Z', 'test3', [
         {
           timestamp: '2022-12-23T23:55:40.164Z'
         },

@@ -53,6 +53,8 @@ const projectListService = new ProjectListService();
 const sourceControlService = new SourceControlService();
 const logService = new LogService();
 
+let applicationUser = Constants.UndefinedDefaults.USER;
+
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
@@ -660,7 +662,11 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
             } else {
               response.logs = logs.file;
             }
-            response.updates = ProjectUtil.getProjectUpdates(projectLastAccessed, response.logs);
+            response.updates = ProjectUtil.getProjectUpdates(
+              projectLastAccessed,
+              applicationUser,
+              response.logs
+            );
             event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
             return true;
           })
@@ -671,7 +677,11 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
           });
       } else {
         response.logs = logs.file;
-        response.updates = ProjectUtil.getProjectUpdates(projectLastAccessed, response.logs);
+        response.updates = ProjectUtil.getProjectUpdates(
+          projectLastAccessed,
+          applicationUser,
+          response.logs
+        );
         event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
       }
     })();
@@ -738,7 +748,8 @@ ipcMain.on(Messages.LOAD_USER_INFO_REQUEST, async event => {
   (async () => {
     const service = new UserService();
     try {
-      response.user = await service.getUser();
+      applicationUser = await service.getUser();
+      response.user = applicationUser;
       const userDataPath = app.getPath('userData');
       response.settings = service.loadUserSettingsFromFile(
         path.join(userDataPath, DefaultSettingsFile)
