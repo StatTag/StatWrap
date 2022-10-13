@@ -67,5 +67,6 @@ export default class LogService {
     };
 
     logger.query(options, callback);
+    logger.close(); // Explicitly close to avoid open file handles on Windows
   }
 }
