@@ -78,7 +78,8 @@ module.exports = {
   DependencyType: {
     DEPENDENCY: 'dependency',
     FIGURE: 'figure',
-    DATA: 'data'
+    DATA: 'data',
+    FILE: 'file'
   },
 
   FilterCategory: {

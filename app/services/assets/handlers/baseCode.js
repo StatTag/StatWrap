@@ -18,15 +18,7 @@ export default class BaseCodeHandler {
     this.fileExtensionList = fileExtensionList;
   }
 
-  /**
-   * Determine if a file represented by a URI is one that we want to typically include.
-   * @param {string} uri - A string containing the URI of the asset we want to consider for inclusion
-   */
-  includeFile(uri) {
-    if (!uri || uri === undefined) {
-      return false;
-    }
-
+  getBaseFileName(uri) {
     let fileName = null;
     // Detect if URL or path-based URI.  For now we only consider HTTP(S) as valid
     // URL protocols.
@@ -36,7 +28,29 @@ export default class BaseCodeHandler {
     } else {
       fileName = path.basename(uri.trim());
     }
+    return fileName;
+  }
 
+  /**
+   * Determine if a file represented by a URI is one that we want to typically include.
+   * @param {string} uri - A string containing the URI of the asset we want to consider for inclusion
+   */
+  includeFile(uri) {
+    if (!uri || uri === undefined) {
+      return false;
+    }
+
+    // let fileName = null;
+    // // Detect if URL or path-based URI.  For now we only consider HTTP(S) as valid
+    // // URL protocols.
+    // const urlPath = url.parse(uri);
+    // if (urlPath && urlPath.protocol && URL_PROTOCOL_LIST.includes(urlPath.protocol.toLowerCase())) {
+    //   fileName = urlPath.pathname;
+    // } else {
+    //   fileName = path.basename(uri.trim());
+    // }
+
+    const fileName = this.getBaseFileName(uri);
     if (fileName === '') {
       return false;
     }
@@ -86,9 +100,9 @@ export default class BaseCodeHandler {
 
       try {
         const contents = fs.readFileSync(asset.uri, 'utf8');
-        metadata.libraries = this.getLibraries(contents);
-        metadata.outputs = this.getOutputs(contents);
-        metadata.inputs = this.getInputs(contents);
+        metadata.libraries = this.getLibraries(asset.uri, contents);
+        metadata.outputs = this.getOutputs(asset.uri, contents);
+        metadata.inputs = this.getInputs(asset.uri, contents);
       } catch {
         metadata.error = 'Unable to read code file';
         asset.metadata.push(metadata);

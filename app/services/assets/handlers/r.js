@@ -1,3 +1,4 @@
+import p from 'path';
 import BaseCodeHandler from './baseCode';
 import Constants from '../../../constants/constants';
 
@@ -26,7 +27,7 @@ export default class RHandler extends BaseCodeHandler {
     return packageName || '(unknown)';
   }
 
-  getInputs(text) {
+  getInputs(uri, text) {
     const inputs = [];
     if (!text || text.trim() === '') {
       return inputs;
@@ -97,7 +98,41 @@ export default class RHandler extends BaseCodeHandler {
     return inputs;
   }
 
-  getOutputs(text) {
+  /**
+   * Utility method to get the expected output file extension for an RMarkdown output type
+   * @param {string} type The RMarkdown output type
+   * @returns A string containing the file extension for the RMarkdown output type
+   */
+  getRMarkdownOutputExtension(type) {
+    // If you add any new entries here, make sure to add a corresponding entry in the regex for Rmd
+    // outputs in getOutputs
+    switch (type) {
+      case 'html_notebook':
+        return 'nb.html';
+      case 'html_document':
+      case 'ioslides_presentation':
+      case 'slidly_presentation':
+      case 'beamer_presentation':
+        // case 'revealjs::revealjs_presentation': -- currently not supported, need to find fix
+        return 'html';
+      case 'pdf_document':
+        return 'pdf';
+      case 'word_document':
+        return 'docx';
+      case 'odt_document':
+        return 'odt';
+      case 'rtf_document':
+        return 'rtf';
+      case 'md_document':
+        return 'md';
+      case 'powerpoint_presentation':
+        return 'pptx';
+      default:
+        return '';
+    }
+  }
+
+  getOutputs(uri, text) {
     const outputs = [];
     if (!text || text.trim() === '') {
       return outputs;
@@ -158,10 +193,40 @@ export default class RHandler extends BaseCodeHandler {
       }
     }
 
+    // We also want to consider conventions beyond what is in the code.  If the code file is an Rmd,
+    // it will generate output as well based on the type of export it's set up to do.
+    // This is a two-part match.  Part one gets the first header in the Rmd file.  If one doesn't exist,
+    // we're done processing.
+    const rmdHeaderMatches = text.match(/---(.|\s)+?---/m);
+    if (!rmdHeaderMatches || rmdHeaderMatches.length < 1) {
+      return outputs;
+    }
+
+    const headerText = rmdHeaderMatches[0];
+    // const outputMatches = [...text.matchAll(/^output\s*:\s*([\w]+)\s*[:]?/gm)];
+    // /((?:html_document|html_notebook|ioslides_presentation|slidly_presentation|beamer_presentation|pdf_document|word_document|odt_document|rtf_document|md_document|powerpoint_presentation)+(?:.|\s)+?)+(?:.|\s)+?/gm
+    const outputMatches = [
+      ...headerText.matchAll(
+        // If you add any new entries here, please also add corresponding entry in getRMarkdownOutputExtension
+        /(html_document|html_notebook|ioslides_presentation|slidly_presentation|beamer_presentation|pdf_document|word_document|odt_document|rtf_document|md_document|powerpoint_presentation)+/gm
+      )
+    ];
+    for (let index = 0; index < outputMatches.length; index++) {
+      const match = outputMatches[index];
+      const type = match[1].trim();
+      const baseFileName = p.parse(this.getBaseFileName(uri)).name;
+      const extension = this.getRMarkdownOutputExtension(type);
+      outputs.push({
+        id: `${type} - ${baseFileName}.${extension}`,
+        type: Constants.DependencyType.FILE,
+        path: `${baseFileName}.${extension}`
+      });
+    }
+
     return outputs;
   }
 
-  getLibraries(text) {
+  getLibraries(uri, text) {
     const libraries = [];
     if (!text || text.trim() === '') {
       return libraries;

@@ -200,41 +200,41 @@ describe('services', () => {
 
     describe('getLibraries', () => {
       it('should handle empty/blank inputs', () => {
-        expect(new SASHandler().getLibraries('').length).toEqual(0);
-        expect(new SASHandler().getLibraries(null).length).toEqual(0);
-        expect(new SASHandler().getLibraries(undefined).length).toEqual(0);
-        expect(new SASHandler().getLibraries('print("hello world")').length).toEqual(0);
+        expect(new SASHandler().getLibraries('test.uri', '').length).toEqual(0);
+        expect(new SASHandler().getLibraries('test.uri', null).length).toEqual(0);
+        expect(new SASHandler().getLibraries('test.uri', undefined).length).toEqual(0);
+        expect(new SASHandler().getLibraries('test.uri', 'print("hello world")').length).toEqual(0);
       });
       it('should identify %include statements with paths', () => {
-        let libraries = new SASHandler().getLibraries("%include 'test.sas';");
+        let libraries = new SASHandler().getLibraries('test.uri', "%include 'test.sas';");
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test.sas',
           package: 'test.sas'
         });
 
-        libraries = new SASHandler().getLibraries("%INCLUDE 'test.sas';");
+        libraries = new SASHandler().getLibraries('test.uri', "%INCLUDE 'test.sas';");
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test.sas',
           package: 'test.sas'
         });
 
-        libraries = new SASHandler().getLibraries("%inc 'test.sas';");
+        libraries = new SASHandler().getLibraries('test.uri', "%inc 'test.sas';");
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test.sas',
           package: 'test.sas'
         });
 
-        libraries = new SASHandler().getLibraries("%INC 'test.sas';");
+        libraries = new SASHandler().getLibraries('test.uri', "%INC 'test.sas';");
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test.sas',
           package: 'test.sas'
         });
 
-        libraries = new SASHandler().getLibraries(" %INC\n'test.sas' ; ");
+        libraries = new SASHandler().getLibraries('test.uri', " %INC\n'test.sas' ; ");
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test.sas',
@@ -242,41 +242,41 @@ describe('services', () => {
         });
       });
       it('should ignore invalid %include statements with paths', () => {
-        expect(new SASHandler().getLibraries("%include test.sas';").length).toEqual(0);
-        expect(new SASHandler().getLibraries("%INCLUDE 'test.sas;").length).toEqual(0);
-        expect(new SASHandler().getLibraries("%inc 'test.sas'").length).toEqual(0);
-        expect(new SASHandler().getLibraries("% INC 'test.sas';").length).toEqual(0);
+        expect(new SASHandler().getLibraries('test.uri', "%include test.sas';").length).toEqual(0);
+        expect(new SASHandler().getLibraries('test.uri', "%INCLUDE 'test.sas;").length).toEqual(0);
+        expect(new SASHandler().getLibraries('test.uri', "%inc 'test.sas'").length).toEqual(0);
+        expect(new SASHandler().getLibraries('test.uri', "% INC 'test.sas';").length).toEqual(0);
       });
       it('should identify %include statements with refs', () => {
-        let libraries = new SASHandler().getLibraries('%include test;');
+        let libraries = new SASHandler().getLibraries('test.uri', '%include test;');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test',
           package: 'test'
         });
 
-        libraries = new SASHandler().getLibraries('%INCLUDE test;');
+        libraries = new SASHandler().getLibraries('test.uri', '%INCLUDE test;');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test',
           package: 'test'
         });
 
-        libraries = new SASHandler().getLibraries('%inc test;');
+        libraries = new SASHandler().getLibraries('test.uri', '%inc test;');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test',
           package: 'test'
         });
 
-        libraries = new SASHandler().getLibraries('%INC test;');
+        libraries = new SASHandler().getLibraries('test.uri', '%INC test;');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test',
           package: 'test'
         });
 
-        libraries = new SASHandler().getLibraries(' %INC\ntest ; ');
+        libraries = new SASHandler().getLibraries('test.uri', ' %INC\ntest ; ');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test',
@@ -284,12 +284,13 @@ describe('services', () => {
         });
       });
       it('should ignore invalid %include statements with refs', () => {
-        expect(new SASHandler().getLibraries('%include ;').length).toEqual(0);
-        expect(new SASHandler().getLibraries('%INCLUDE ref1').length).toEqual(0);
-        expect(new SASHandler().getLibraries('% INC ref;').length).toEqual(0);
+        expect(new SASHandler().getLibraries('test.uri', '%include ;').length).toEqual(0);
+        expect(new SASHandler().getLibraries('test.uri', '%INCLUDE ref1').length).toEqual(0);
+        expect(new SASHandler().getLibraries('test.uri', '% INC ref;').length).toEqual(0);
       });
       it('should identify multiple %include statements', () => {
         const libraries = new SASHandler().getLibraries(
+          'test.uri',
           "%include 'test.sas';\r\n%INCLUDE ref0;\r\n%include 'test2.sas';\r\n%inc ref1;\r\n"
         );
         expect(libraries.length).toEqual(4);
@@ -313,7 +314,7 @@ describe('services', () => {
         });
       });
       it('should identify filename references', () => {
-        const libraries = new SASHandler().getLibraries("filename test 'test.sas';");
+        const libraries = new SASHandler().getLibraries('test.uri', "filename test 'test.sas';");
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test',
@@ -322,6 +323,7 @@ describe('services', () => {
       });
       it('should identify filename references with encodings', () => {
         const libraries = new SASHandler().getLibraries(
+          'test.uri',
           'filename test \'test.sas\' encoding="utf-8";'
         );
         expect(libraries.length).toEqual(1);
@@ -331,12 +333,14 @@ describe('services', () => {
         });
       });
       it('should ignore invalid filename statements', () => {
-        expect(new SASHandler().getLibraries('filename ;').length).toEqual(0);
-        expect(new SASHandler().getLibraries('filename ref1').length).toEqual(0);
-        expect(new SASHandler().getLibraries("file name ref 'test';").length).toEqual(0);
+        expect(new SASHandler().getLibraries('test.uri', 'filename ;').length).toEqual(0);
+        expect(new SASHandler().getLibraries('test.uri', 'filename ref1').length).toEqual(0);
+        expect(new SASHandler().getLibraries('test.uri', "file name ref 'test';").length).toEqual(
+          0
+        );
       });
       it('should identify libname references', () => {
-        const libraries = new SASHandler().getLibraries("libname test 'test-lib';");
+        const libraries = new SASHandler().getLibraries('test.uri', "libname test 'test-lib';");
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test',
@@ -344,9 +348,9 @@ describe('services', () => {
         });
       });
       it('should ignore invalid libname statements', () => {
-        expect(new SASHandler().getLibraries('libname ;').length).toEqual(0);
-        expect(new SASHandler().getLibraries('libname ref1').length).toEqual(0);
-        expect(new SASHandler().getLibraries("lib name ref 'test';").length).toEqual(0);
+        expect(new SASHandler().getLibraries('test.uri', 'libname ;').length).toEqual(0);
+        expect(new SASHandler().getLibraries('test.uri', 'libname ref1').length).toEqual(0);
+        expect(new SASHandler().getLibraries('test.uri', "lib name ref 'test';").length).toEqual(0);
       });
     });
     describe('getLibraryId', () => {
@@ -361,41 +365,41 @@ describe('services', () => {
     });
     describe('getOutputs', () => {
       it('should handle empty/blank inputs', () => {
-        expect(new SASHandler().getOutputs('').length).toEqual(0);
-        expect(new SASHandler().getOutputs(null).length).toEqual(0);
-        expect(new SASHandler().getOutputs(undefined).length).toEqual(0);
-        expect(new SASHandler().getOutputs('%put "test"').length).toEqual(0);
+        expect(new SASHandler().getOutputs('test.uri', '').length).toEqual(0);
+        expect(new SASHandler().getOutputs('test.uri', null).length).toEqual(0);
+        expect(new SASHandler().getOutputs('test.uri', undefined).length).toEqual(0);
+        expect(new SASHandler().getOutputs('test.uri', '%put "test"').length).toEqual(0);
       });
       it('should retrieve save locations for figures', () => {
-        let libraries = new SASHandler().getOutputs('ods pdf file="";');
+        let libraries = new SASHandler().getOutputs('test.uri', 'ods pdf file="";');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'ods pdf - ""',
           type: 'figure',
           path: '""'
         });
-        libraries = new SASHandler().getOutputs('ods pdf file="test.pdf";');
+        libraries = new SASHandler().getOutputs('test.uri', 'ods pdf file="test.pdf";');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'ods pdf - "test.pdf"',
           type: 'figure',
           path: '"test.pdf"'
         });
-        libraries = new SASHandler().getOutputs("ods epub file='test.epub';");
+        libraries = new SASHandler().getOutputs('test.uri', "ods epub file='test.epub';");
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: "ods epub - 'test.epub'",
           type: 'figure',
           path: "'test.epub'"
         });
-        libraries = new SASHandler().getOutputs('ODS Pdf File="test.pdf";');
+        libraries = new SASHandler().getOutputs('test.uri', 'ODS Pdf File="test.pdf";');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'ODS Pdf - "test.pdf"',
           type: 'figure',
           path: '"test.pdf"'
         });
-        libraries = new SASHandler().getOutputs('ODS PDF\r\n  FILE="test.pdf";');
+        libraries = new SASHandler().getOutputs('test.uri', 'ODS PDF\r\n  FILE="test.pdf";');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'ODS PDF - "test.pdf"',
@@ -403,6 +407,7 @@ describe('services', () => {
           path: '"test.pdf"'
         });
         libraries = new SASHandler().getOutputs(
+          'test.uri',
           "ods pdf (id=SapphireStyle) style=Sapphire file='grain-2.pdf' pdftoc=3;"
         );
         expect(libraries.length).toEqual(1);
@@ -414,53 +419,64 @@ describe('services', () => {
       });
       it('should ignore save locations for figures in invalid statements', () => {
         // Missing semicolon
-        expect(new SASHandler().getOutputs('ods pdf file="test.pdf"').length).toEqual(0);
+        expect(new SASHandler().getOutputs('test.uri', 'ods pdf file="test.pdf"').length).toEqual(
+          0
+        );
         // Missing quotes
-        expect(new SASHandler().getOutputs('ods pdf file=test.pdf').length).toEqual(0);
+        expect(new SASHandler().getOutputs('test.uri', 'ods pdf file=test.pdf').length).toEqual(0);
         // Invalid command
-        expect(new SASHandler().getOutputs('ods pdfd file="test.pdf"').length).toEqual(0);
+        expect(new SASHandler().getOutputs('test.uri', 'ods pdfd file="test.pdf"').length).toEqual(
+          0
+        );
       });
       it('should ignore commented figure save locations', () => {
-        expect(new SASHandler().getOutputs('* ods pdf file="test.pdf";').length).toEqual(0);
-        expect(new SASHandler().getOutputs(' *ods pdf file="test.pdf";').length).toEqual(0);
-        expect(new SASHandler().getOutputs('  *   ods pdf file="test.pdf";  ').length).toEqual(0);
+        expect(
+          new SASHandler().getOutputs('test.uri', '* ods pdf file="test.pdf";').length
+        ).toEqual(0);
+        expect(
+          new SASHandler().getOutputs('test.uri', ' *ods pdf file="test.pdf";').length
+        ).toEqual(0);
+        expect(
+          new SASHandler().getOutputs('test.uri', '  *   ods pdf file="test.pdf";  ').length
+        ).toEqual(0);
       });
       it('should handle multiple figure outputs in a single string', () => {
         const libraries = new SASHandler().getOutputs(
+          'test.uri',
           'ods pdf file="";\r\n%put \'hello\'\r\n  ods pdf file="test.pdf" ;   \r\n\r\n\t  ODS Pdf File=\'test.pdf\';'
         );
         expect(libraries.length).toEqual(3);
       });
       it('should retrieve save locations for data', () => {
-        let libraries = new SASHandler().getOutputs('ods excel file="";');
+        let libraries = new SASHandler().getOutputs('test.uri', 'ods excel file="";');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'ods excel - ""',
           type: 'data',
           path: '""'
         });
-        libraries = new SASHandler().getOutputs('ods csvall file="test.csv";');
+        libraries = new SASHandler().getOutputs('test.uri', 'ods csvall file="test.csv";');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'ods csvall - "test.csv"',
           type: 'data',
           path: '"test.csv"'
         });
-        libraries = new SASHandler().getOutputs("ods html5 body='test.html';");
+        libraries = new SASHandler().getOutputs('test.uri', "ods html5 body='test.html';");
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: "ods html5 - 'test.html'",
           type: 'data',
           path: "'test.html'"
         });
-        libraries = new SASHandler().getOutputs('ODS Html File="test.html";');
+        libraries = new SASHandler().getOutputs('test.uri', 'ODS Html File="test.html";');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'ODS Html - "test.html"',
           type: 'data',
           path: '"test.html"'
         });
-        libraries = new SASHandler().getOutputs('ODS CSVALL\r\n  FILE="test.csv";');
+        libraries = new SASHandler().getOutputs('test.uri', 'ODS CSVALL\r\n  FILE="test.csv";');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'ODS CSVALL - "test.csv"',
@@ -470,33 +486,44 @@ describe('services', () => {
       });
       it('should ignore save locations for data in invalid statements', () => {
         // Missing semicolon
-        expect(new SASHandler().getOutputs('ods csvall file="test.csv"').length).toEqual(0);
+        expect(
+          new SASHandler().getOutputs('test.uri', 'ods csvall file="test.csv"').length
+        ).toEqual(0);
         // Missing quotes
-        expect(new SASHandler().getOutputs('ods csvall file=test.csv').length).toEqual(0);
+        expect(new SASHandler().getOutputs('test.uri', 'ods csvall file=test.csv').length).toEqual(
+          0
+        );
         // Invalid command
-        expect(new SASHandler().getOutputs('ods csval file="test.csv"').length).toEqual(0);
+        expect(new SASHandler().getOutputs('test.uri', 'ods csval file="test.csv"').length).toEqual(
+          0
+        );
       });
       it('should ignore commented data save locations', () => {
-        expect(new SASHandler().getOutputs('* ods csvall file="test.pdf";').length).toEqual(0);
-        expect(new SASHandler().getOutputs(' *ods excel file="test.xlsx";').length).toEqual(0);
+        expect(
+          new SASHandler().getOutputs('test.uri', '* ods csvall file="test.pdf";').length
+        ).toEqual(0);
+        expect(
+          new SASHandler().getOutputs('test.uri', ' *ods excel file="test.xlsx";').length
+        ).toEqual(0);
         // eslint-disable-next-line prettier/prettier
-        expect(new SASHandler().getOutputs('  *   ods excel file="test.xlsx";  ').length).toEqual(0);
+        expect(new SASHandler().getOutputs('test.uri', '  *   ods excel file="test.xlsx";  ').length).toEqual(0);
       });
       it('should handle multiple data outputs in a single string', () => {
         const libraries = new SASHandler().getOutputs(
+          'test.uri',
           'ods excel file="";\r\n%put \'hello\'\r\n  ods csvall file="test.csv" ;   \r\n\r\n\t  ODS Html Body=\'test.html\';'
         );
         expect(libraries.length).toEqual(3);
       });
       it('should retrieve save locations for exports', () => {
-        let libraries = new SASHandler().getOutputs('proc export outfile="";');
+        let libraries = new SASHandler().getOutputs('test.uri', 'proc export outfile="";');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'proc export - ""',
           type: 'data',
           path: '""'
         });
-        libraries = new SASHandler().getOutputs('proc export outfile="test.xlsx";');
+        libraries = new SASHandler().getOutputs('test.uri', 'proc export outfile="test.xlsx";');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'proc export - "test.xlsx"',
@@ -504,6 +531,7 @@ describe('services', () => {
           path: '"test.xlsx"'
         });
         libraries = new SASHandler().getOutputs(
+          'test.uri',
           "PROC EXPORT \r\n  data=Subset\r\n  dbms=xlsx\r\n  outfile='test.xlsx'\r\n  replace;\r\nrun;"
         );
         expect(libraries.length).toEqual(1);
@@ -515,21 +543,32 @@ describe('services', () => {
       });
       it('should ignore save locations for exports in invalid statements', () => {
         // Missing semicolon
-        expect(new SASHandler().getOutputs('proc export outfile="test.xlsx"').length).toEqual(0);
+        expect(
+          new SASHandler().getOutputs('test.uri', 'proc export outfile="test.xlsx"').length
+        ).toEqual(0);
         // Missing quotes
-        expect(new SASHandler().getOutputs('proc export outfile=test.csv').length).toEqual(0);
+        expect(
+          new SASHandler().getOutputs('test.uri', 'proc export outfile=test.csv').length
+        ).toEqual(0);
         // Invalid command
-        expect(new SASHandler().getOutputs('procexport outfile="test.csv"').length).toEqual(0);
+        expect(
+          new SASHandler().getOutputs('test.uri', 'procexport outfile="test.csv"').length
+        ).toEqual(0);
       });
       it('should ignore commented export save locations', () => {
-        expect(new SASHandler().getOutputs('* proc export outfile="test.xlsx";').length).toEqual(0);
-        expect(new SASHandler().getOutputs(' *proc export outfile="test.xlsx";').length).toEqual(0);
         expect(
-          new SASHandler().getOutputs('  *   proc export outfile="test.xlsx";  ').length
+          new SASHandler().getOutputs('test.uri', '* proc export outfile="test.xlsx";').length
+        ).toEqual(0);
+        expect(
+          new SASHandler().getOutputs('test.uri', ' *proc export outfile="test.xlsx";').length
+        ).toEqual(0);
+        expect(
+          new SASHandler().getOutputs('test.uri', '  *   proc export outfile="test.xlsx";  ').length
         ).toEqual(0);
       });
       it('should handle multiple exports in a single string', () => {
         const libraries = new SASHandler().getOutputs(
+          'test.uri',
           'proc export outfile="";\r\n%put \'hello\'\r\n proc export outfile="test.xlsx";   \r\n\r\n\t  PROC EXPORT \r\n  data=Subset\r\n  dbms=xlsx\r\n  outfile=\'test.xlsx\'\r\n  replace;\r\nrun;'
         );
         expect(libraries.length).toEqual(3);
@@ -537,14 +576,14 @@ describe('services', () => {
     });
     describe('getInputs', () => {
       it('should retrieve save locations for imports', () => {
-        let libraries = new SASHandler().getInputs('proc import datafile="";');
+        let libraries = new SASHandler().getInputs('test.uri', 'proc import datafile="";');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'proc import - ""',
           type: 'data',
           path: '""'
         });
-        libraries = new SASHandler().getInputs('proc import datafile="test.xlsx";');
+        libraries = new SASHandler().getInputs('test.uri', 'proc import datafile="test.xlsx";');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'proc import - "test.xlsx"',
@@ -552,6 +591,7 @@ describe('services', () => {
           path: '"test.xlsx"'
         });
         libraries = new SASHandler().getInputs(
+          'test.uri',
           "PROC IMPORT \r\n  OUT=Subset\r\n  dbms=xlsx\r\n  DATAFILE='test.xlsx'\r\n  replace;\r\nrun;"
         );
         expect(libraries.length).toEqual(1);
@@ -563,41 +603,55 @@ describe('services', () => {
       });
       it('should ignore save locations for imports in invalid statements', () => {
         // Missing semicolon
-        expect(new SASHandler().getInputs('proc import datafile="test.xlsx"').length).toEqual(0);
+        expect(
+          new SASHandler().getInputs('test.uri', 'proc import datafile="test.xlsx"').length
+        ).toEqual(0);
         // Missing quotes
-        expect(new SASHandler().getInputs('proc import datafile=test.csv').length).toEqual(0);
+        expect(
+          new SASHandler().getInputs('test.uri', 'proc import datafile=test.csv').length
+        ).toEqual(0);
         // Invalid command
-        expect(new SASHandler().getInputs('procimport datafile="test.csv"').length).toEqual(0);
+        expect(
+          new SASHandler().getInputs('test.uri', 'procimport datafile="test.csv"').length
+        ).toEqual(0);
       });
       it('should ignore commented import save locations', () => {
-        expect(new SASHandler().getInputs('* proc import datafile="test.xlsx";').length).toEqual(0);
-        expect(new SASHandler().getInputs(' *proc import datafile="test.xlsx";').length).toEqual(0);
         expect(
-          new SASHandler().getInputs('  *   proc import datafile="test.xlsx";  ').length
+          new SASHandler().getInputs('test.uri', '* proc import datafile="test.xlsx";').length
+        ).toEqual(0);
+        expect(
+          new SASHandler().getInputs('test.uri', ' *proc import datafile="test.xlsx";').length
+        ).toEqual(0);
+        expect(
+          new SASHandler().getInputs('test.uri', '  *   proc import datafile="test.xlsx";  ').length
         ).toEqual(0);
       });
       it('should handle multiple imports in a single string', () => {
         const libraries = new SASHandler().getInputs(
+          'test.uri',
           'proc import datafile="";\r\n%put \'hello\'\r\n proc import datafile="test.xlsx";   \r\n\r\n\t  PROC IMPORT \r\n  OUT=Subset\r\n  DBMS=xlsx\r\n  DATAFILE=\'test.xlsx\'\r\n  REPLACE;\r\nRUN;'
         );
         expect(libraries.length).toEqual(3);
       });
       it('should retrieve save locations for infile commands', () => {
-        let libraries = new SASHandler().getInputs('infile "";');
+        let libraries = new SASHandler().getInputs('test.uri', 'infile "";');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'infile - ""',
           type: 'data',
           path: '""'
         });
-        libraries = new SASHandler().getInputs('Infile "test.txt"; ');
+        libraries = new SASHandler().getInputs('test.uri', 'Infile "test.txt"; ');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'Infile - "test.txt"',
           type: 'data',
           path: '"test.txt"'
         });
-        libraries = new SASHandler().getInputs("INFILE \r\n  'test.txt'\r\n  FIRSTOBS = 2 ;\r\n ");
+        libraries = new SASHandler().getInputs(
+          'test.uri',
+          "INFILE \r\n  'test.txt'\r\n  FIRSTOBS = 2 ;\r\n "
+        );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: "INFILE - 'test.txt'",
@@ -607,19 +661,22 @@ describe('services', () => {
       });
       it('should ignore save locations for infile commands in invalid statements', () => {
         // Missing semicolon
-        expect(new SASHandler().getInputs('infile "test.txt"').length).toEqual(0);
+        expect(new SASHandler().getInputs('test.uri', 'infile "test.txt"').length).toEqual(0);
         // Missing quotes
-        expect(new SASHandler().getInputs('infile test.txt;').length).toEqual(0);
+        expect(new SASHandler().getInputs('test.uri', 'infile test.txt;').length).toEqual(0);
         // Invalid command
-        expect(new SASHandler().getInputs('infiles "test.txt";').length).toEqual(0);
+        expect(new SASHandler().getInputs('test.uri', 'infiles "test.txt";').length).toEqual(0);
       });
       it('should ignore commented infile command locations', () => {
-        expect(new SASHandler().getInputs('* infile "test.txt";').length).toEqual(0);
-        expect(new SASHandler().getInputs(' *infile "test.txt";').length).toEqual(0);
-        expect(new SASHandler().getInputs('  *   infile "test.txt"; ').length).toEqual(0);
+        expect(new SASHandler().getInputs('test.uri', '* infile "test.txt";').length).toEqual(0);
+        expect(new SASHandler().getInputs('test.uri', ' *infile "test.txt";').length).toEqual(0);
+        expect(new SASHandler().getInputs('test.uri', '  *   infile "test.txt"; ').length).toEqual(
+          0
+        );
       });
       it('should handle multiple infile commands in a single string', () => {
         const libraries = new SASHandler().getInputs(
+          'test.uri',
           'infile "";\r\n%put \'hello\'\r\n Infile "test.txt";   \r\n\r\n\t  INFILE \r\n  \'test.txt\'\r\n  FIRSTOBS = 2 ;\r\n '
         );
         expect(libraries.length).toEqual(3);

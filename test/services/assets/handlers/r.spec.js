@@ -206,13 +206,13 @@ describe('services', () => {
 
     describe('getLibraries', () => {
       it('should handle empty/blank inputs', () => {
-        expect(new RHandler().getLibraries('').length).toEqual(0);
-        expect(new RHandler().getLibraries(null).length).toEqual(0);
-        expect(new RHandler().getLibraries(undefined).length).toEqual(0);
-        expect(new RHandler().getLibraries('print("hello world")').length).toEqual(0);
+        expect(new RHandler().getLibraries('test.uri', '').length).toEqual(0);
+        expect(new RHandler().getLibraries('test.uri', null).length).toEqual(0);
+        expect(new RHandler().getLibraries('test.uri', undefined).length).toEqual(0);
+        expect(new RHandler().getLibraries('test.uri', 'print("hello world")').length).toEqual(0);
       });
       it('should retrieve unoquoted package', () => {
-        const libraries = new RHandler().getLibraries('library(test)');
+        const libraries = new RHandler().getLibraries('test.uri', 'library(test)');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test',
@@ -220,7 +220,7 @@ describe('services', () => {
         });
       });
       it('should retrieve single quoted package', () => {
-        const libraries = new RHandler().getLibraries("library('test')");
+        const libraries = new RHandler().getLibraries('test.uri', "library('test')");
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test',
@@ -228,7 +228,7 @@ describe('services', () => {
         });
       });
       it('should retrieve double quoted package', () => {
-        const libraries = new RHandler().getLibraries('library("test")');
+        const libraries = new RHandler().getLibraries('test.uri', 'library("test")');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test',
@@ -236,21 +236,26 @@ describe('services', () => {
         });
       });
       it('should retrieve package name without extra whitespace', () => {
-        expect(new RHandler().getLibraries(" library ( 'test' ) ")[0]).toMatchObject({
+        expect(new RHandler().getLibraries('test.uri', " library ( 'test' ) ")[0]).toMatchObject({
           id: 'test',
           package: 'test'
         });
-        expect(new RHandler().getLibraries("\t\tlibrary\t(\t'test'\t)\t\n")[0]).toMatchObject({
+        expect(
+          new RHandler().getLibraries('test.uri', "\t\tlibrary\t(\t'test'\t)\t\n")[0]
+        ).toMatchObject({
           id: 'test',
           package: 'test'
         });
       });
       it('should ignore empty library() calls', () => {
-        expect(new RHandler().getLibraries('library()').length).toEqual(0);
-        expect(new RHandler().getLibraries(' library ( ) ').length).toEqual(0);
+        expect(new RHandler().getLibraries('test.uri', 'library()').length).toEqual(0);
+        expect(new RHandler().getLibraries('test.uri', ' library ( ) ').length).toEqual(0);
       });
       it('should retrieve multiple libraries', () => {
-        const libraries = new RHandler().getLibraries('library(one)\nrequire(two)\nlibrary(three)');
+        const libraries = new RHandler().getLibraries(
+          'test.uri',
+          'library(one)\nrequire(two)\nlibrary(three)'
+        );
         expect(libraries.length).toEqual(3);
         expect(libraries[0]).toMatchObject({
           id: 'one',
@@ -266,26 +271,26 @@ describe('services', () => {
         });
       });
       it('should ignore commented out library() calls', () => {
-        expect(new RHandler().getLibraries("#library('test')").length).toEqual(0);
-        expect(new RHandler().getLibraries(" # library ( 'test' ) ").length).toEqual(0);
+        expect(new RHandler().getLibraries('test.uri', "#library('test')").length).toEqual(0);
+        expect(new RHandler().getLibraries('test.uri', " # library ( 'test' ) ").length).toEqual(0);
       });
     });
     describe('getOutputs', () => {
       it('should handle empty/blank inputs', () => {
-        expect(new RHandler().getOutputs('').length).toEqual(0);
-        expect(new RHandler().getOutputs(null).length).toEqual(0);
-        expect(new RHandler().getOutputs(undefined).length).toEqual(0);
-        expect(new RHandler().getOutputs('print("hello world")').length).toEqual(0);
+        expect(new RHandler().getOutputs('test.uri', '').length).toEqual(0);
+        expect(new RHandler().getOutputs('test.uri', null).length).toEqual(0);
+        expect(new RHandler().getOutputs('test.uri', undefined).length).toEqual(0);
+        expect(new RHandler().getOutputs('test.uri', 'print("hello world")').length).toEqual(0);
       });
       it('should retrieve save locations for figures', () => {
-        let libraries = new RHandler().getOutputs("pdf('C:\\dev\\test.pdf')");
+        let libraries = new RHandler().getOutputs('test.uri', "pdf('C:\\dev\\test.pdf')");
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: "pdf - 'C:\\dev\\test.pdf'",
           type: 'figure',
           path: "'C:\\dev\\test.pdf'"
         });
-        libraries = new RHandler().getOutputs("win.metafile(\r\n  'test.wmf'\r\n  ) ");
+        libraries = new RHandler().getOutputs('test.uri', "win.metafile(\r\n  'test.wmf'\r\n  ) ");
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: "win.metafile - 'test.wmf'",
@@ -293,6 +298,7 @@ describe('services', () => {
           path: "'test.wmf'"
         });
         libraries = new RHandler().getOutputs(
+          'test.uri',
           "  jpeg('image_new.jpg', width = 350, height = '350' )"
         );
         expect(libraries.length).toEqual(1);
@@ -302,6 +308,7 @@ describe('services', () => {
           path: "'image_new.jpg'"
         });
         libraries = new RHandler().getOutputs(
+          'test.uri',
           " ggsave(\r\n  'test.png'\r\n  plot = last_plot()\r\n  )  "
         );
         expect(libraries.length).toEqual(1);
@@ -312,43 +319,56 @@ describe('services', () => {
         });
       });
       it('should ignore save locations for figures when command case mismatches', () => {
-        const libraries = new RHandler().getOutputs("Pdf('C:\\dev\\test.pdf')");
+        const libraries = new RHandler().getOutputs('test.uri', "Pdf('C:\\dev\\test.pdf')");
         expect(libraries.length).toEqual(0);
       });
       it('should ignore commented figure save locations', () => {
-        expect(new RHandler().getOutputs("# pdf('C:\\dev\\test.pdf')").length).toEqual(0);
-        expect(new RHandler().getOutputs(" #pdf('C:\\dev\\test.pdf')").length).toEqual(0);
-        expect(new RHandler().getOutputs("  #   pdf('C:\\dev\\test.pdf')").length).toEqual(0);
+        expect(new RHandler().getOutputs('test.uri', "# pdf('C:\\dev\\test.pdf')").length).toEqual(
+          0
+        );
+        expect(new RHandler().getOutputs('test.uri', " #pdf('C:\\dev\\test.pdf')").length).toEqual(
+          0
+        );
+        expect(
+          new RHandler().getOutputs('test.uri', "  #   pdf('C:\\dev\\test.pdf')").length
+        ).toEqual(0);
       });
       it('should handle multiple figure outputs in a single string', () => {
         const libraries = new RHandler().getOutputs(
+          'test.uri',
           "pdf('C:\\dev\\test.pdf')\r\nprint('x)\r\nwin.metafile(\r\n  'test.wmf'\r\n  )\r\n\r\n    jpeg('image_new.jpg', width = 350, height = '350' )\r\n jpeg(x, width = 350, height = '350' )"
         );
         expect(libraries.length).toEqual(3);
       });
       it('should retrieve save locations for R base output files', () => {
-        let libraries = new RHandler().getOutputs("write(df, 'C:\\dev\\test.txt')");
+        let libraries = new RHandler().getOutputs('test.uri', "write(df, 'C:\\dev\\test.txt')");
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: "write - 'C:\\dev\\test.txt'",
           type: 'data',
           path: "'C:\\dev\\test.txt'"
         });
-        libraries = new RHandler().getOutputs("write.csv(\r\n  df,\r\n  'test.csv'\r\n  )\r");
+        libraries = new RHandler().getOutputs(
+          'test.uri',
+          "write.csv(\r\n  df,\r\n  'test.csv'\r\n  )\r"
+        );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: "write.csv - 'test.csv'",
           type: 'data',
           path: "'test.csv'"
         });
-        libraries = new RHandler().getOutputs("write.table( df , 'test.tab', append = FALSE ) ");
+        libraries = new RHandler().getOutputs(
+          'test.uri',
+          "write.table( df , 'test.tab', append = FALSE ) "
+        );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: "write.table - 'test.tab'",
           type: 'data',
           path: "'test.tab'"
         });
-        libraries = new RHandler().getOutputs('write_csv(storms, "storms.csv")');
+        libraries = new RHandler().getOutputs('test.uri', 'write_csv(storms, "storms.csv")');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'write_csv - "storms.csv"',
@@ -358,46 +378,74 @@ describe('services', () => {
       });
       it('should handle multiple R base data outputs in a single string', () => {
         const libraries = new RHandler().getOutputs(
+          'test.uri',
           "write(df, 'C:\\dev\\test.txt')\r\nprint(x)\r\nwrite.csv(\r\n  df,\r\n  'test.csv'\r\n  ) \r\n\r\n   write.table( df , 'test.tab', append = FALSE ) \r\nwrite.table( df , x, append = FALSE ) "
         );
         expect(libraries.length).toEqual(3);
       });
       it('should ignore save locations for R base output when command case mismatches', () => {
-        const libraries = new RHandler().getOutputs("cf.To_Markdown('C:\\dev\\test.png')");
+        const libraries = new RHandler().getOutputs(
+          'test.uri',
+          "cf.To_Markdown('C:\\dev\\test.png')"
+        );
         expect(libraries.length).toEqual(0);
       });
       it('should ignore commented R base save locations', () => {
-        expect(new RHandler().getOutputs("# write('C:\\dev\\test.txt')").length).toEqual(0);
-        expect(new RHandler().getOutputs(" #write.csv('./test.csv')").length).toEqual(0);
-        expect(new RHandler().getOutputs("  #   write.table ( 'test.tsv' )").length).toEqual(0);
+        expect(
+          new RHandler().getOutputs('test.uri', "# write('C:\\dev\\test.txt')").length
+        ).toEqual(0);
+        expect(new RHandler().getOutputs('test.uri', " #write.csv('./test.csv')").length).toEqual(
+          0
+        );
+        expect(
+          new RHandler().getOutputs('test.uri', "  #   write.table ( 'test.tsv' )").length
+        ).toEqual(0);
       });
     });
     it('should ignore locations for output connections that are read-only', () => {
-      let libraries = new RHandler().getOutputs('f = file("myfile.jpg", "rb", blocking=FALSE)');
+      let libraries = new RHandler().getOutputs(
+        'test.uri',
+        'f = file("myfile.jpg", "rb", blocking=FALSE)'
+      );
       expect(libraries.length).toEqual(0);
-      libraries = new RHandler().getOutputs('f <- gzfile("myfile.gz", "tr", encoding="UTF-8")');
+      libraries = new RHandler().getOutputs(
+        'test.uri',
+        'f <- gzfile("myfile.gz", "tr", encoding="UTF-8")'
+      );
       expect(libraries.length).toEqual(0);
-      libraries = new RHandler().getOutputs('f = file("test.dat")');
+      libraries = new RHandler().getOutputs('test.uri', 'f = file("test.dat")');
       expect(libraries.length).toEqual(0);
-      libraries = new RHandler().getOutputs('f <- fifo ( "test.dat", encoding="UTF-8" ) ');
+      libraries = new RHandler().getOutputs(
+        'test.uri',
+        'f <- fifo ( "test.dat", encoding="UTF-8" ) '
+      );
       expect(libraries.length).toEqual(0);
     });
     it('should retrieve output locations for connections', () => {
-      let libraries = new RHandler().getOutputs('f = file("test.txt", "wb", blocking=FALSE)');
+      let libraries = new RHandler().getOutputs(
+        'test.uri',
+        'f = file("test.txt", "wb", blocking=FALSE)'
+      );
       expect(libraries.length).toEqual(1);
       expect(libraries[0]).toMatchObject({
         id: 'file - "test.txt"',
         type: 'data',
         path: '"test.txt"'
       });
-      libraries = new RHandler().getOutputs('f = gzfile(\r\n  "test.gz" ,\r\n  "bw"\r\n) ');
+      libraries = new RHandler().getOutputs(
+        'test.uri',
+        'f = gzfile(\r\n  "test.gz" ,\r\n  "bw"\r\n) '
+      );
       expect(libraries.length).toEqual(1);
       expect(libraries[0]).toMatchObject({
         id: 'gzfile - "test.gz"',
         type: 'data',
         path: '"test.gz"'
       });
-      libraries = new RHandler().getOutputs("f <- file('test.tmp', 'w', encoding='utf-8')");
+      libraries = new RHandler().getOutputs(
+        'test.uri',
+        "f <- file('test.tmp', 'w', encoding='utf-8')"
+      );
       expect(libraries.length).toEqual(1);
       expect(libraries[0]).toMatchObject({
         id: "file - 'test.tmp'",
@@ -405,6 +453,7 @@ describe('services', () => {
         path: "'test.tmp'"
       });
       libraries = new RHandler().getOutputs(
+        'test.uri',
         "f = bzfile ( 'test.bzip', 'r+'  ,   encoding='utf-8' ) "
       );
       expect(libraries.length).toEqual(1);
@@ -414,51 +463,218 @@ describe('services', () => {
         path: "'test.bzip'"
       });
     });
+    it('should infer Rmd output', () => {
+      let libraries = new RHandler().getOutputs('test.uri', '---\r\noutput: html_document\r\n---');
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: 'html_document - test.html',
+        type: 'file',
+        path: 'test.html'
+      });
+      libraries = new RHandler().getOutputs('test.uri', '---\r\noutput: html_notebook\r\n---');
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: 'html_notebook - test.nb.html',
+        type: 'file',
+        path: 'test.nb.html'
+      });
+      libraries = new RHandler().getOutputs('test.uri', '---\r\noutput: pdf_document\r\n---');
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: 'pdf_document - test.pdf',
+        type: 'file',
+        path: 'test.pdf'
+      });
+      libraries = new RHandler().getOutputs('test.uri', '---\r\noutput: word_document\r\n---');
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: 'word_document - test.docx',
+        type: 'file',
+        path: 'test.docx'
+      });
+      // Make sure we don't pick up extra things that can be specified for Word output.  This will implicitly
+      // test other things that have this type of option, so we're only going to test it for the Word
+      // case explicitly.
+      libraries = new RHandler().getOutputs(
+        'test.uri',
+        '---\r\noutput:\r\n  word_document:\r\n    reference_docx: my-styles.docx\r\n---'
+      );
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: 'word_document - test.docx',
+        type: 'file',
+        path: 'test.docx'
+      });
+      libraries = new RHandler().getOutputs('test.uri', '---\r\noutput: odt_document\r\n---');
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: 'odt_document - test.odt',
+        type: 'file',
+        path: 'test.odt'
+      });
+      libraries = new RHandler().getOutputs('test.uri', '---\r\noutput: rtf_document\r\n---');
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: 'rtf_document - test.rtf',
+        type: 'file',
+        path: 'test.rtf'
+      });
+      libraries = new RHandler().getOutputs('test.uri', '---\r\noutput: md_document\r\n---');
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: 'md_document - test.md',
+        type: 'file',
+        path: 'test.md'
+      });
+      libraries = new RHandler().getOutputs(
+        'test.uri',
+        '---\r\noutput: ioslides_presentation\r\n---'
+      );
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: 'ioslides_presentation - test.html',
+        type: 'file',
+        path: 'test.html'
+      });
+      // Currently not supported - need to figure out a fix
+      // libraries = new RHandler().getOutputs(
+      //   'test.uri',
+      //   '---\r\noutput: revealjs::revealjs_presentation\r\n---'
+      // );
+      // expect(libraries.length).toEqual(1);
+      // expect(libraries[0]).toMatchObject({
+      //   id: 'revealjs::revealjs_presentation - test.html',
+      //   type: 'file',
+      //   path: 'test.html'
+      // });
+      libraries = new RHandler().getOutputs(
+        'test.uri',
+        '---\r\noutput: slidly_presentation\r\n---'
+      );
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: 'slidly_presentation - test.html',
+        type: 'file',
+        path: 'test.html'
+      });
+      libraries = new RHandler().getOutputs(
+        'test.uri',
+        '---\r\noutput: beamer_presentation\r\n---'
+      );
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: 'beamer_presentation - test.html',
+        type: 'file',
+        path: 'test.html'
+      });
+      libraries = new RHandler().getOutputs(
+        'test.uri',
+        '---\r\noutput: powerpoint_presentation\r\n---'
+      );
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: 'powerpoint_presentation - test.pptx',
+        type: 'file',
+        path: 'test.pptx'
+      });
+    });
+    it.onMac('should discern the right output file name for Rmd output', () => {
+      const libraries = new RHandler().getOutputs(
+        '/home/test/test.uri',
+        '---\r\noutput: html_document\r\n---'
+      );
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: 'html_document - test.html',
+        type: 'file',
+        path: 'test.html'
+      });
+    });
+    it.onWindows('should discern the right output file name for Rmd output', () => {
+      const libraries = new RHandler().getOutputs(
+        'C:\\test\\test.uri',
+        '---\r\noutput: html_document\r\n---'
+      );
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: 'html_document - test.html',
+        type: 'file',
+        path: 'test.html'
+      });
+    });
+    it('should infer multiple Rmd outputs', () => {
+      const libraries = new RHandler().getOutputs(
+        'test.uri',
+        '---\ntitle: Render a table in a tiny environment\noutput:\n  pdf_document: default\n  html_document: default\n---'
+      );
+      expect(libraries.length).toEqual(2);
+      expect(libraries[0]).toMatchObject({
+        id: 'pdf_document - test.pdf',
+        type: 'file',
+        path: 'test.pdf'
+      });
+      expect(libraries[1]).toMatchObject({
+        id: 'html_document - test.html',
+        type: 'file',
+        path: 'test.html'
+      });
+    });
     it('should handle multiple connection statements in a single string', () => {
       const libraries = new RHandler().getOutputs(
+        'test.uri',
         "f = file(\"test.txt\", \"wb\", blocking=FALSE)\r\n\r\nprint(\"Hello world\")\r\n\r\n\t  f = gzfile(\r\n  \"test.gz\" ,\r\n  \"w\"\r\n) \r\n\r\n f = bzfile ( 'test.bzip', 'r+'  ,   encoding='utf-8' ) \r\nr <- file('test.tmp', 'r', encoding='utf-8') "
       );
       expect(libraries.length).toEqual(3);
     });
     it('should ignore save locations for connections when command case mismatches', () => {
-      const libraries = new RHandler().getOutputs("FILE('C:\\dev\\test.png', 'w')");
+      const libraries = new RHandler().getOutputs('test.uri', "FILE('C:\\dev\\test.png', 'w')");
       expect(libraries.length).toEqual(0);
     });
     it('should ignore commented out connection lines', () => {
-      expect(new RHandler().getOutputs('# f = file("test.dat", "w")').length).toEqual(0);
-      expect(new RHandler().getOutputs("   #fifo('test.csv')").length).toEqual(0);
-      expect(new RHandler().getOutputs('   #    f <- file("test.dat", "w")').length).toEqual(0);
+      expect(new RHandler().getOutputs('test.uri', '# f = file("test.dat", "w")').length).toEqual(
+        0
+      );
+      expect(new RHandler().getOutputs('test.uri', "   #fifo('test.csv')").length).toEqual(0);
+      expect(
+        new RHandler().getOutputs('test.uri', '   #    f <- file("test.dat", "w")').length
+      ).toEqual(0);
     });
     describe('getInputs', () => {
       it('should handle empty/blank inputs', () => {
-        expect(new RHandler().getInputs('').length).toEqual(0);
-        expect(new RHandler().getInputs(null).length).toEqual(0);
-        expect(new RHandler().getInputs(undefined).length).toEqual(0);
-        expect(new RHandler().getInputs('print("hello world")').length).toEqual(0);
+        expect(new RHandler().getInputs('test.uri', '').length).toEqual(0);
+        expect(new RHandler().getInputs('test.uri', null).length).toEqual(0);
+        expect(new RHandler().getInputs('test.uri', undefined).length).toEqual(0);
+        expect(new RHandler().getInputs('test.uri', 'print("hello world")').length).toEqual(0);
       });
       it('should retrieve load locations for R base output files', () => {
-        let libraries = new RHandler().getInputs("scan('C:\\dev\\test.txt')");
+        let libraries = new RHandler().getInputs('test.uri', "scan('C:\\dev\\test.txt')");
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: "scan - 'C:\\dev\\test.txt'",
           type: 'data',
           path: "'C:\\dev\\test.txt'"
         });
-        libraries = new RHandler().getInputs("df <- read.csv(\r\n  'test.csv'\r\n  )\r");
+        libraries = new RHandler().getInputs(
+          'test.uri',
+          "df <- read.csv(\r\n  'test.csv'\r\n  )\r"
+        );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: "read.csv - 'test.csv'",
           type: 'data',
           path: "'test.csv'"
         });
-        libraries = new RHandler().getInputs("df = read.table( 'test.tab', append = FALSE ) ");
+        libraries = new RHandler().getInputs(
+          'test.uri',
+          "df = read.table( 'test.tab', append = FALSE ) "
+        );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: "read.table - 'test.tab'",
           type: 'data',
           path: "'test.tab'"
         });
-        libraries = new RHandler().getInputs('read_csv("storms.csv")');
+        libraries = new RHandler().getInputs('test.uri', 'read_csv("storms.csv")');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'read_csv - "storms.csv"',
@@ -468,43 +684,61 @@ describe('services', () => {
       });
       it('should handle multiple R base data inputs in a single string', () => {
         const libraries = new RHandler().getInputs(
+          'test.uri',
           "scan('C:\\dev\\test.txt')\r\nprint(x)\r\rread.csv(\r\n \r\n  'test.csv'\r\n  ) \r\n\r\n   read.table( 'test.tab', append = FALSE ) \r\read.table( x, append = FALSE ) "
         );
         expect(libraries.length).toEqual(3);
       });
       it('should ignore save locations for R base input when command case mismatches', () => {
-        const libraries = new RHandler().getInputs("read_Delim('C:\\dev\\test.txt')");
+        const libraries = new RHandler().getInputs('test.uri', "read_Delim('C:\\dev\\test.txt')");
         expect(libraries.length).toEqual(0);
       });
       it('should ignore commented R base load locations', () => {
-        expect(new RHandler().getInputs("# scan('C:\\dev\\test.txt')").length).toEqual(0);
-        expect(new RHandler().getInputs(" #read.csv('./test.csv')").length).toEqual(0);
-        expect(new RHandler().getInputs("  #   read.table ( 'test.tsv' )").length).toEqual(0);
+        expect(new RHandler().getInputs('test.uri', "# scan('C:\\dev\\test.txt')").length).toEqual(
+          0
+        );
+        expect(new RHandler().getInputs('test.uri', " #read.csv('./test.csv')").length).toEqual(0);
+        expect(
+          new RHandler().getInputs('test.uri', "  #   read.table ( 'test.tsv' )").length
+        ).toEqual(0);
       });
       it('should ignore locations for connections that are write-only', () => {
-        let libraries = new RHandler().getInputs('f = file("myfile.jpg", "wb", blocking=FALSE)');
+        let libraries = new RHandler().getInputs(
+          'test.uri',
+          'f = file("myfile.jpg", "wb", blocking=FALSE)'
+        );
         expect(libraries.length).toEqual(0);
         libraries = new RHandler().getInputs(
+          'test.uri',
           ' f <- gzfile ( "myfile.gz", "tw", encoding="UTF-8" ) '
         );
         expect(libraries.length).toEqual(0);
       });
       it('should retrieve input locations for connections', () => {
-        let libraries = new RHandler().getInputs('f = file("test.txt", "rb", blocking=FALSE)');
+        let libraries = new RHandler().getInputs(
+          'test.uri',
+          'f = file("test.txt", "rb", blocking=FALSE)'
+        );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'file - "test.txt"',
           type: 'data',
           path: '"test.txt"'
         });
-        libraries = new RHandler().getInputs('f = gzfile(\r\n  "test.gz" ,\r\n  "br"\r\n) ');
+        libraries = new RHandler().getInputs(
+          'test.uri',
+          'f = gzfile(\r\n  "test.gz" ,\r\n  "br"\r\n) '
+        );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'gzfile - "test.gz"',
           type: 'data',
           path: '"test.gz"'
         });
-        libraries = new RHandler().getInputs("f <- file('test.tmp', 'r', encoding='utf-8')");
+        libraries = new RHandler().getInputs(
+          'test.uri',
+          "f <- file('test.tmp', 'r', encoding='utf-8')"
+        );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: "file - 'test.tmp'",
@@ -512,6 +746,7 @@ describe('services', () => {
           path: "'test.tmp'"
         });
         libraries = new RHandler().getInputs(
+          'test.uri',
           "f = bzfile ( 'test.bzip', 'w+'  ,   encoding='utf-8' ) "
         );
         expect(libraries.length).toEqual(1);
@@ -520,7 +755,7 @@ describe('services', () => {
           type: 'data',
           path: "'test.bzip'"
         });
-        libraries = new RHandler().getInputs('f <- fifo ( "test.dat" ) ');
+        libraries = new RHandler().getInputs('test.uri', 'f <- fifo ( "test.dat" ) ');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'fifo - "test.dat"',
@@ -530,42 +765,47 @@ describe('services', () => {
       });
       it('should handle multiple input connection statements in a single string', () => {
         const libraries = new RHandler().getInputs(
+          'test.uri',
           "f = file(\"test.txt\", \"rb\", blocking=FALSE)\r\n\r\nprint(\"Hello world\")\r\n\r\n\t  f = gzfile(\r\n  \"test.gz\" ,\r\n  \"r\"\r\n) \r\n\r\n f = bzfile ( 'test.bzip', 'w+'  ,   encoding='utf-8' ) \r\nr <- file('test.tmp', 'w', encoding='utf-8') "
         );
         expect(libraries.length).toEqual(3);
       });
       it('should ignore load locations for connections when command case mismatches', () => {
-        const libraries = new RHandler().getInputs("FILE('C:\\dev\\test.png', 'r')");
+        const libraries = new RHandler().getInputs('test.uri', "FILE('C:\\dev\\test.png', 'r')");
         expect(libraries.length).toEqual(0);
       });
       it('should ignore commented out input connection lines', () => {
-        expect(new RHandler().getInputs('# f = file("test.dat", "r")').length).toEqual(0);
-        expect(new RHandler().getInputs("   #fifo('test.csv')").length).toEqual(0);
-        expect(new RHandler().getInputs('   #    f <- file("test.dat", "r")').length).toEqual(0);
+        expect(new RHandler().getInputs('test.uri', '# f = file("test.dat", "r")').length).toEqual(
+          0
+        );
+        expect(new RHandler().getInputs('test.uri', "   #fifo('test.csv')").length).toEqual(0);
+        expect(
+          new RHandler().getInputs('test.uri', '   #    f <- file("test.dat", "r")').length
+        ).toEqual(0);
       });
       it('should retrieve load locations for sourced files', () => {
-        let libraries = new RHandler().getInputs("source('C:\\dev\\test.R')");
+        let libraries = new RHandler().getInputs('test.uri', "source('C:\\dev\\test.R')");
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: "source - 'C:\\dev\\test.R'",
           type: 'code',
           path: "'C:\\dev\\test.R'"
         });
-        libraries = new RHandler().getInputs(" sys.source ( \r\n  'test.r'\r\n  )\r ");
+        libraries = new RHandler().getInputs('test.uri', " sys.source ( \r\n  'test.r'\r\n  )\r ");
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: "sys.source - 'test.r'",
           type: 'code',
           path: "'test.r'"
         });
-        libraries = new RHandler().getInputs("source( 'test.R', local = FALSE ) ");
+        libraries = new RHandler().getInputs('test.uri', "source( 'test.R', local = FALSE ) ");
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: "source - 'test.R'",
           type: 'code',
           path: "'test.R'"
         });
-        libraries = new RHandler().getInputs('source("storms.r")');
+        libraries = new RHandler().getInputs('test.uri', 'source("storms.r")');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'source - "storms.r"',
@@ -575,18 +815,21 @@ describe('services', () => {
       });
       it('should handle multiple sourced files in a single string', () => {
         const libraries = new RHandler().getInputs(
+          'test.uri',
           "source('C:\\dev\\test.R')\r\nprint(x)\r\r sys.source ( \r\n  'test.r'\r\n  )\r \r\n\r\n   source( 'test.R', local = FALSE ) \r\nsource(x) "
         );
         expect(libraries.length).toEqual(3);
       });
       it('should ignore sourced locations when command case mismatches', () => {
-        const libraries = new RHandler().getInputs("Source('C:\\dev\\test.r')");
+        const libraries = new RHandler().getInputs('test.uri', "Source('C:\\dev\\test.r')");
         expect(libraries.length).toEqual(0);
       });
       it('should ignore commented source locations', () => {
-        expect(new RHandler().getInputs("# source('C:\\dev\\test.r')").length).toEqual(0);
-        expect(new RHandler().getInputs(" #source('./test.R')").length).toEqual(0);
-        expect(new RHandler().getInputs("  #   source ( 'test.r' )").length).toEqual(0);
+        expect(new RHandler().getInputs('test.uri', "# source('C:\\dev\\test.r')").length).toEqual(
+          0
+        );
+        expect(new RHandler().getInputs('test.uri', " #source('./test.R')").length).toEqual(0);
+        expect(new RHandler().getInputs('test.uri', "  #   source ( 'test.r' )").length).toEqual(0);
       });
     });
     describe('getLibraryId', () => {

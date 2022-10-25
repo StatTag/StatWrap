@@ -37,7 +37,7 @@ export default class PythonHandler extends BaseCodeHandler {
     return id;
   }
 
-  getInputs(text) {
+  getInputs(uri, text) {
     const inputs = [];
     if (!text || text.trim() === '') {
       return inputs;
@@ -93,7 +93,7 @@ export default class PythonHandler extends BaseCodeHandler {
     return inputs;
   }
 
-  getOutputs(text) {
+  getOutputs(uri, text) {
     const outputs = [];
     if (!text || text.trim() === '') {
       return outputs;
@@ -151,7 +151,7 @@ export default class PythonHandler extends BaseCodeHandler {
     return outputs;
   }
 
-  getLibraries(text) {
+  getLibraries(uri, text) {
     const libraries = [];
     if (!text || text.trim() === '') {
       return libraries;
