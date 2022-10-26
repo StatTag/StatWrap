@@ -88,5 +88,7 @@ module.exports = {
     ASSET_TYPE: 'Asset Type',
     INPUTS_OUTPUTS: 'Inputs and Outputs',
     DEPENDENCIES: 'Dependencies/Libraries'
-  }
+  },
+
+  MAX_GRAPH_LABEL_LENGTH: 50
 };

@@ -75,7 +75,22 @@ const dependencyGraphEChart = props => {
   let graph = null;
   if (graphData && graphData.nodes && graphData.nodes.length > 0) {
     const option = {
-      tooltip: {},
+      tooltip: {
+        formatter(params) {
+          if (params.data.direction) {
+            return `<b>Direction</b>: ${params.data.direction}<br/><b>Name</b>: ${params.data.fullName}`;
+          }
+          if (params.data.source && params.data.target) {
+            return `<b>Source</b>: ${params.data.source}<br/><b>Target</b>: ${params.data.target}`;
+          }
+          return `${params.data.fullName}`;
+        },
+        confine: 'true',
+        textStyle: {
+          overflow: 'breakAll',
+          width: 200
+        }
+      },
       series: [
         {
           type: 'graph',

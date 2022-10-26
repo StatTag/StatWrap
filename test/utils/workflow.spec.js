@@ -155,9 +155,9 @@ describe('services', () => {
         expect(graph).toEqual({
           nodes: [
             { id: '1/1', assetType: 'r' },
-            { id: 'dplyr', assetType: 'dependency' },
+            { id: 'dplyr', assetType: 'dependency', direction: 'in' },
             { id: '2', assetType: 'python' },
-            { id: 'sys', assetType: 'dependency' }
+            { id: 'sys', assetType: 'dependency', direction: 'in' }
           ],
           links: [
             { source: 'dplyr', target: '1/1' },
@@ -219,7 +219,7 @@ describe('services', () => {
         expect(graph).toEqual({
           nodes: [
             { id: '1/1', assetType: 'python' },
-            { id: 'sys', assetType: 'dependency' },
+            { id: 'sys', assetType: 'dependency', direction: 'in' },
             { id: '2', assetType: 'python' }
           ],
           links: [
@@ -340,7 +340,7 @@ describe('services', () => {
         expect(graph).toEqual({
           nodes: [
             { id: '1/1', assetType: 'r' },
-            { id: 'r.csv', assetType: 'data' }
+            { id: 'r.csv', assetType: 'data', direction: 'in' }
           ],
           links: [{ source: 'r.csv', target: '1/1' }]
         });
@@ -458,7 +458,7 @@ describe('services', () => {
       expect(graph).toEqual({
         nodes: [
           { id: '2', assetType: 'python' },
-          { id: 'sys', assetType: 'dependency' }
+          { id: 'sys', assetType: 'dependency', direction: 'in' }
         ],
         links: [{ source: 'sys', target: '2' }]
       });
@@ -515,23 +515,30 @@ describe('services', () => {
           nodes: [
             {
               id: '2',
+              fullName: '2',
               name: '2',
               value: 'python'
             },
             {
               id: 'sys',
+              fullName: 'sys',
               name: 'sys',
-              value: 'dependency'
+              value: 'dependency',
+              direction: 'in'
             },
             {
               id: 'pandas',
+              fullName: 'pandas',
               name: 'pandas',
-              value: 'dependency'
+              value: 'dependency',
+              direction: 'in'
             },
             {
               id: 'tmp',
+              fullName: 'tmp',
               name: 'tmp',
-              value: 'data'
+              value: 'data',
+              direction: 'in'
             }
           ],
           links: [
@@ -784,6 +791,31 @@ describe('services', () => {
             assetType: 'generic'
           }
         });
+      });
+    });
+
+    describe('getShortDependencyName', () => {
+      it('should handle empty/invalid input', () => {
+        expect(WorkflowUtil.getShortDependencyName(null)).toEqual(null);
+        expect(WorkflowUtil.getShortDependencyName(undefined)).toEqual(undefined);
+        expect(WorkflowUtil.getShortDependencyName('')).toEqual('');
+      });
+      it('should handle short names without modification', () => {
+        expect(WorkflowUtil.getShortDependencyName('test')).toEqual('test');
+        const maxLengthLabel = 'a'.repeat(Constants.MAX_GRAPH_LABEL_LENGTH);
+        expect(WorkflowUtil.getShortDependencyName(maxLengthLabel)).toEqual(maxLengthLabel);
+      });
+      it('should truncate long names just over the max limit', () => {
+        const maxLengthLabel = 'a'.repeat(Constants.MAX_GRAPH_LABEL_LENGTH);
+        const longLabel = 'a'.repeat(Constants.MAX_GRAPH_LABEL_LENGTH + 1);
+        expect(WorkflowUtil.getShortDependencyName(longLabel)).toEqual(`...${maxLengthLabel}`);
+      });
+      it('should truncate a long string appropriately', () => {
+        expect(
+          WorkflowUtil.getShortDependencyName(
+            'Z:\\Test\\Directory for data\\More directory\\Other directory\\file.txt'
+          )
+        ).toEqual(`...y for data\\More directory\\Other directory\\file.txt`);
       });
     });
   });

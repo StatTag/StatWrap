@@ -28,6 +28,23 @@ export default class WorkflowUtil {
   }
 
   /**
+   * Ensure a dependency name (label) is within the maximum length that we want
+   * to allow for it based on our configuration.
+   * @param {string} name The dependency name to shorten
+   * @returns A string that is within the configured length limit
+   */
+  static getShortDependencyName(name) {
+    // If the name isn't set or is below the maximum length, we return whatever
+    // the name parameter is.
+    if (name === null || name === undefined || name.length <= Constants.MAX_GRAPH_LABEL_LENGTH) {
+      return name;
+    }
+
+    // Truncate, and prefix with ellipses
+    return `...${name.substring(name.length - Constants.MAX_GRAPH_LABEL_LENGTH)}`;
+  }
+
+  /**
    * Build a graph (collection of nodes and links) for an asset and all of
    * its descendants.  The graph will be specific for Apache ECharts data format.
    *
@@ -37,7 +54,13 @@ export default class WorkflowUtil {
    */
   static getAllDependenciesAsEChartGraph(asset, filters) {
     const graph = WorkflowUtil.getAllDependenciesAsGraph(asset, filters);
-    graph.nodes = graph.nodes.map(x => ({ id: x.id, name: x.id, value: x.assetType }));
+    graph.nodes = graph.nodes.map(x => ({
+      id: x.id,
+      name: WorkflowUtil.getShortDependencyName(x.id),
+      fullName: x.id,
+      direction: x.direction,
+      value: x.assetType
+    }));
     return graph;
   }
 
@@ -121,7 +144,8 @@ export default class WorkflowUtil {
           if (!graph.nodes.some(n => n.id === dependencyId)) {
             graph.nodes.push({
               id: dependencyId,
-              assetType: dependency.type ? dependency.type : Constants.DependencyType.DEPENDENCY
+              assetType: dependency.type ? dependency.type : Constants.DependencyType.DEPENDENCY,
+              direction: dependency.direction
             });
           }
           // Likewise, we have to make sure that any edge is unique before we add it
