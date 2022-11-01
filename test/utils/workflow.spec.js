@@ -815,7 +815,7 @@ describe('services', () => {
           WorkflowUtil.getShortDependencyName(
             'Z:\\Test\\Directory for data\\More directory\\Other directory\\file.txt'
           )
-        ).toEqual(`...y for data\\More directory\\Other directory\\file.txt`);
+        ).toEqual(`...ectory\\Other directory\\file.txt`);
       });
     });
   });

@@ -90,5 +90,5 @@ module.exports = {
     DEPENDENCIES: 'Dependencies/Libraries'
   },
 
-  MAX_GRAPH_LABEL_LENGTH: 50
+  MAX_GRAPH_LABEL_LENGTH: 31
 };
