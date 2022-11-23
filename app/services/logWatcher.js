@@ -15,6 +15,10 @@ export default class LogWatcherService {
     this.win = win;
   }
 
+  /**
+   * Stop watching all project logs and clear the list
+   * of projects we were previously watching.
+   */
   stop() {
     if (this.watcher !== null) {
       this.watcher
@@ -31,6 +35,11 @@ export default class LogWatcherService {
     }
   }
 
+  /**
+   * Add a new project to the list of watched log files and begin watching for log file changes
+   * @param {uri} path The path of the project log file to watch
+   * @param {*} projectId The ID of the project associated with the watched log file
+   */
   add(path, projectId) {
     // If the project is already registered with our watcher,
     // we will exit early.
@@ -58,6 +67,10 @@ export default class LogWatcherService {
     }
   }
 
+  /**
+   * Stop watching a specific project log file, given its path
+   * @param {uri} path The path of the project log file to stop watching
+   */
   remove(path) {
     if (this.watcher === null || this.watchedProjects[path] === undefined) {
       return;
@@ -65,5 +78,24 @@ export default class LogWatcherService {
 
     this.watcher.unwatch(path);
     delete this.watchedProjects[path];
+  }
+
+  /**
+   * Stop watching a specific project log file, given the project ID
+   * @param {string} id The UUID from StatWrap associated with the project
+   */
+  removeById(id) {
+    if (this.watcher === null || this.watchedProjects === null) {
+      return;
+    }
+
+    // Solution from: https://stackoverflow.com/a/28191966
+    const projectPath = Object.keys(this.watchedProjects).find(
+      key => this.watchedProjects[key] === id
+    );
+    if (!projectPath) {
+      return;
+    }
+    this.remove(projectPath);
   }
 }

@@ -349,6 +349,7 @@ ipcMain.on(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, async (event, projectId) 
       projectId,
       path.join(userDataPath, DefaultProjectListFile)
     );
+    logWatcherService.removeById(projectId);
     response.error = false;
     response.errorMessage = '';
   } catch (e) {
@@ -442,6 +443,14 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
         projectListService.appendAndSaveProjectToList(
           validationReport.project,
           path.join(userDataPath, DefaultProjectListFile)
+        );
+        logWatcherService.add(
+          path.join(
+            validationReport.project.path,
+            Constants.StatWrapFiles.BASE_FOLDER,
+            Constants.StatWrapFiles.LOG
+          ),
+          validationReport.project.id
         );
       }
     } else {

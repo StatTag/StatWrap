@@ -139,9 +139,7 @@ class ProjectPage extends Component {
   }
 
   handleProjectExternallyChangedResponse(sender, response) {
-    console.log(`Project updated: ${response.projectId}`);
     if (this.state.selectedProject && response && response.projectId === this.state.selectedProject.id) {
-      console.log('Active project updated');
       ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, this.state.selectedProject);
     }
   }
