@@ -16,6 +16,7 @@ import path from 'path';
 import { cloneDeep, orderBy } from 'lodash';
 import { initialize, enable as enableRemote } from '@electron/remote/main';
 import MenuBuilder from './menu';
+import LogWatcherService from './services/logWatcher';
 import ProjectService from './services/project';
 import ProjectListService, { DefaultProjectListFile } from './services/projectList';
 import SourceControlService from './services/sourceControl';
@@ -52,6 +53,10 @@ const projectService = new ProjectService();
 const projectListService = new ProjectListService();
 const sourceControlService = new SourceControlService();
 const logService = new LogService();
+
+// The LogWatcherService requires a window from which we can send messages, so we can't
+// construct it until the BrowserWindow is created.
+let logWatcherService = null;
 
 let applicationUser = Constants.UndefinedDefaults.USER;
 
@@ -113,6 +118,8 @@ const createWindow = async () => {
     mainWindow = null;
   });
 
+  logWatcherService = new LogWatcherService(mainWindow);
+
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
 
@@ -139,6 +146,12 @@ app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) createWindow();
+});
+
+app.on('before-quit', () => {
+  if (logWatcherService !== null) {
+    logWatcherService.stop();
+  }
 });
 
 /**
@@ -222,6 +235,12 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
     // For all of the projects we have in our list, load the additional information that exists
     // within the project's local metadata file itself.
     projectsFromFile = projectsFromFile.map(project => {
+      // Start the log file watcher for each project
+      logWatcherService.add(
+        path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, Constants.StatWrapFiles.LOG),
+        project.id
+      );
+
       const metadata = projectService.loadProjectFile(project.path);
       // TODO What if the IDs don't match?  Handle that.  Also handle if file not found, file invalid, etc.
       // Remember that if the file can't be loaded, it may be because we're offline and the project is in

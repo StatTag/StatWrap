@@ -68,6 +68,7 @@ class ProjectPage extends Component {
     this.handleRefreshProjectLog = this.handleRefreshProjectLog.bind(this);
     this.handleScanAssetDynamicDetailsResponse = this.handleScanAssetDynamicDetailsResponse.bind(this);
     this.handleAssetSelected = this.handleAssetSelected.bind(this);
+    this.handleProjectExternallyChangedResponse = this.handleProjectExternallyChangedResponse.bind(this);
   }
 
   componentDidMount() {
@@ -86,6 +87,8 @@ class ProjectPage extends Component {
     ipcRenderer.on(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
 
     ipcRenderer.on(Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE, this.handleScanAssetDynamicDetailsResponse);
+
+    ipcRenderer.on(Messages.PROJECT_EXTERNALLY_CHANGED_RESPONSE, this.handleProjectExternallyChangedResponse);
   }
 
   componentWillUnmount() {
@@ -98,6 +101,7 @@ class ProjectPage extends Component {
     ipcRenderer.removeListener(Messages.LOAD_PROJECT_LOG_RESPONSE, this.handleLoadProjectLogResponse);
     ipcRenderer.removeListener(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
     ipcRenderer.removeListener(Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE, this.handleScanAssetDynamicDetailsResponse);
+    ipcRenderer.removeListener(Messages.PROJECT_EXTERNALLY_CHANGED_RESPONSE, this.handleProjectExternallyChangedResponse);
   }
 
   handleScanAssetDynamicDetailsResponse(sender, response) {
@@ -132,6 +136,14 @@ class ProjectPage extends Component {
   refreshProjectsHandler() {
     this.setState({ loaded: false });
     ipcRenderer.send(Messages.LOAD_PROJECT_LIST_REQUEST);
+  }
+
+  handleProjectExternallyChangedResponse(sender, response) {
+    console.log(`Project updated: ${response.projectId}`);
+    if (this.state.selectedProject && response && response.projectId === this.state.selectedProject.id) {
+      console.log('Active project updated');
+      ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, this.state.selectedProject);
+    }
   }
 
   handleScanProjectResponse(sender, response) {

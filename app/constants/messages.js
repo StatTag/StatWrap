@@ -42,5 +42,7 @@ module.exports = {
   REMOVE_DIRECTORY_PERSON_REQUEST: 'statwrap-remove-directory-person-request',
   REMOVE_DIRECTORY_PERSON_RESPONSE: 'statwrap-remove-directory-person-response',
   REMOVE_PROJECT_PERSON_REQUEST: 'statwrap-remove-project-person-request',
-  REMOVE_PROJECT_PERSON_RESPONSE: 'statwrap-remove-project-person-response'
+  REMOVE_PROJECT_PERSON_RESPONSE: 'statwrap-remove-project-person-response',
+
+  PROJECT_EXTERNALLY_CHANGED_RESPONSE: 'statwrap-project-externally-changed'
 };

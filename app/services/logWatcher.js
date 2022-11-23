@@ -1,0 +1,69 @@
+/* eslint-disable lines-between-class-members */
+import chokidar from 'chokidar';
+import Messages from '../constants/messages';
+
+export default class LogWatcherService {
+  watcher = null;
+  // For each watch project, we want the key to be
+  // the project log file path that is being watched,
+  // and the value is the project ID.  That will allow
+  // us to broadcast the project ID of a project whose
+  // log file changes.
+  watchedProjects = {};
+
+  constructor(win) {
+    this.win = win;
+  }
+
+  stop() {
+    if (this.watcher !== null) {
+      this.watcher
+        .close()
+        .then(() => {
+          this.watcher = null;
+          return null;
+        })
+        .catch(() => {
+          this.watcher = null;
+          return null;
+        });
+      this.watchedProjects = {};
+    }
+  }
+
+  add(path, projectId) {
+    // If the project is already registered with our watcher,
+    // we will exit early.
+    if (this.watchedProjects[path] !== undefined) {
+      return;
+    }
+
+    this.watchedProjects[path] = projectId;
+
+    if (this.watcher === null) {
+      this.watcher = chokidar.watch(path, {
+        persistent: true,
+        usePolling: true, // Documentation notes we need this for detecting changes over network
+        awaitWriteFinish: true // Ensure log file (which can grow large) is done being written to
+      });
+      this.watcher.on('change', changedPath => {
+        if (this.win) {
+          this.win.webContents.send(Messages.PROJECT_EXTERNALLY_CHANGED_RESPONSE, {
+            projectId: this.watchedProjects[changedPath]
+          });
+        }
+      });
+    } else {
+      this.watcher.add(path);
+    }
+  }
+
+  remove(path) {
+    if (this.watcher === null || this.watchedProjects[path] === undefined) {
+      return;
+    }
+
+    this.watcher.unwatch(path);
+    delete this.watchedProjects[path];
+  }
+}
