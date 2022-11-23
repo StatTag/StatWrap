@@ -571,50 +571,6 @@ ipcMain.on(
 );
 
 /**
-<<<<<<< HEAD
- * Determine what is new for a particular project since the user last
- * accessed it
- */
-
-// ipcMain.on(Messages.LOAD_PROJECT_CHANGES_REQUEST, async (event, project) => {
-//   const response = {
-//     changes: null,
-//     error: false,
-//     errorMessage: ''
-//   };
-//   if (!project) {
-//     response.error = true;
-//     response.errorMessage = 'No project was selected';
-//     event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
-//     return;
-//   }
-
-//   const projectConfig = projectService.loadProjectFile(project.path);
-//   if (!projectConfig) {
-//     response.error = true;
-//     response.errorMessage = 'There was an error loading the project details.';
-//     event.sender.send(Messages.LOAD_PROJECT_CHANGES_RESPONSE, response);
-//     return;
-//   }
-
-//   const userDataPath = app.getPath('userData');
-//   const projectList = projectListService.loadProjectListFromFile(
-//     path.join(userDataPath, DefaultProjectListFile)
-//   );
-//   if (!projectList) {
-//     response.error = true;
-//     response.errorMessage = 'There was an error loading your list of projects.';
-//     event.sender.send(Messages.LOAD_PROJECT_CHANGES_RESPONSE, response);
-//     return;
-//   }
-
-//   ProjectUtil.getProjectChanges();
-
-//   response.changes = [];
-//   event.sender.send(Messages.LOAD_PROJECT_CHANGES_RESPONSE, response);
-// });
-
-/**
  * Read from disk the project log file.  Return all of the log entries.  If the project
  * has source control enabled, include those entries in the log list.
  */
@@ -637,16 +593,6 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
     path.join(userDataPath, DefaultProjectListFile)
   );
 
-  // <<<<<<< HEAD
-  //   ProjectUtil.getLogActivity(project.path, null, (error, logs) => {
-  //     if (error) {
-  //       response.error = true;
-  //       response.errorMessage = error;
-  //     } else {
-  //       response.logs = logs;
-  //     }
-  //     event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
-  // =======
   logService.loadLog(project.path, (error, logs) => {
     if (error || !logs || !logs.file) {
       response.error = true;
