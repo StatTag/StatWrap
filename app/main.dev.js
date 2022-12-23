@@ -585,6 +585,7 @@ ipcMain.on(
  */
 ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
   const response = {
+    projectId: project ? project.id : null,
     logs: null,
     error: false,
     errorMessage: ''

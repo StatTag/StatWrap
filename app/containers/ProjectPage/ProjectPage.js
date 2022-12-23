@@ -129,8 +129,32 @@ class ProjectPage extends Component {
     ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, this.state.selectedProject);
   }
 
+  /**
+   * Called when a project log is loaded.
+   *
+   * @param {object} sender The sender of the message
+   * @param {object} response Response containing a project ID and the log (if loaded)
+   */
   handleLoadProjectLogResponse(sender, response) {
-    this.setState({ selectedProjectLogs: response });
+    if (!response || !response.projectId) {
+      return;
+    }
+
+    // This is a lot of code, but the main thing is the line to set hasUpdate.  The rest of the
+    // copying, etc. is just to ensure we're managing our state update appropriately for React.
+    this.setState(prevState => {
+      const updatedProjects = [...prevState.projects];
+      const index = updatedProjects.findIndex(project => project.id === response.projectId);
+      const updatedProject = {...updatedProjects[index]};
+      updatedProject.hasUpdate = (response.updates && !response.updates.upToDate && !response.updates.firstView);
+      updatedProjects[index] = updatedProject;
+      return {projects: updatedProjects};
+    });
+
+    // Only if this log is for the selected project do we need to refresh the selected project logs.
+    if (this.state.selectedProject && response.projectId === this.state.selectedProject.id) {
+      this.setState({ selectedProjectLogs: response });
+    }
   }
 
   refreshProjectsHandler() {
@@ -139,8 +163,13 @@ class ProjectPage extends Component {
   }
 
   handleProjectExternallyChangedResponse(sender, response) {
-    if (this.state.selectedProject && response && response.projectId === this.state.selectedProject.id) {
-      ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, this.state.selectedProject);
+    // If any project externally changes - even if it's not the one we currently have selected - we want
+    // to reload the project log so we can detect changes and notify (if needed);
+    if (response && response.projectId && this.state.projects) {
+      const foundProject = this.state.projects.find(project => project.id === response.projectId);
+      if (foundProject) {
+        ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, foundProject);
+      }
     }
   }
 

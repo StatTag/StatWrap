@@ -25,34 +25,6 @@
   border-right: 8px solid #67518f;
 }
 
-.selected > .path {
-  color: #fff;
-}
-
-.container:hover > .path {
-  color: #333;
-}
-
-.path,
-.tooltipPath {
-  font-size: 0.6rem;
-  color: #333;
-  vertical-align: top;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.path,
-.tooltipPath {
-  font-size: 0.6rem;
-  color: #333;
-  vertical-align: top;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .path {
   grid-column-start: 1;
   grid-column-end: 1;
@@ -60,9 +32,27 @@
   grid-row-end: 2;
 }
 
+.path,
+.tooltipPath {
+  font-size: 0.6rem;
+  color: #333;
+  vertical-align: top;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .tooltipPath {
   padding-left: 0;
   overflow: visible;
+}
+
+.selected > .path {
+  color: #fff;
+}
+
+.container:hover > .path {
+  color: #333;
 }
 
 .favoriteIcon {
@@ -77,6 +67,11 @@
 .container:hover .placeholder {
   visibility: visible;
   color: #333;
+}
+
+.updateIcon {
+  display: inline;
+  padding-left: 10px;
 }
 
 .name {

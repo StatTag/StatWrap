@@ -37,6 +37,11 @@ const projectEntry = props => {
     divClasses.push(styles.selected);
   }
 
+  let updateIcon = null;
+  if (props.hasUpdate) {
+    updateIcon = <FontAwesomeIcon className={styles.updateIcon} icon="bell" />;
+  }
+
   return (
     <HtmlTooltip
       arrow
@@ -54,6 +59,7 @@ const projectEntry = props => {
           <span>
             {props.project.name}
             {offlineIndicator}
+            {updateIcon}
           </span>
         </div>
         <div className={styles.path}>{props.project.path}</div>
@@ -75,11 +81,13 @@ const projectEntry = props => {
 };
 
 projectEntry.propTypes = {
-  selected: PropTypes.bool
+  selected: PropTypes.bool,
+  hasUpdate: PropTypes.bool
 };
 
 projectEntry.defaultProps = {
-  selected: false
+  selected: false,
+  hasUpdate: false
 };
 
 export default projectEntry;

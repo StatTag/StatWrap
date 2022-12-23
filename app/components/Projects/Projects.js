@@ -31,6 +31,7 @@ class Projects extends Component {
           .map(item => (
             <ProjectEntry
               key={item.id}
+              hasUpdate={item.hasUpdate}
               project={item}
               selected={this.props.selectedProject && this.props.selectedProject.id === item.id}
               onSelect={() => this.props.onSelect(item)}
@@ -49,6 +50,7 @@ class Projects extends Component {
           .map(item => (
             <ProjectEntry
               key={item.id}
+              hasUpdate={item.hasUpdate}
               project={item}
               selected={this.props.selectedProject && this.props.selectedProject.id === item.id}
               onSelect={() => this.props.onSelect(item)}
