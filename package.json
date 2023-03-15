@@ -239,7 +239,7 @@
     "testcafe-browser-provider-electron": "^0.0.13",
     "testcafe-react-selectors": "^3.3.0",
     "url-loader": "^3.0.0",
-    "webpack": "^5.72.0",
+    "webpack": "^5.76.0",
     "webpack-bundle-analyzer": "^4.5.0",
     "webpack-cli": "^4.9.0",
     "webpack-dev-server": "^4.8.0",
