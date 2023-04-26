@@ -18,6 +18,12 @@
       "version": "1",
       "name": "Biostats Collaboration Core",
       "description": "The Northwestern BCC Template"
+    },
+    {
+      "id": "TIER-PROTOCOL",
+      "version": "4.0",
+      "name": "TIER Protocol 4.0",
+      "description": "The TIER Protocol specifies the contents and organization of reproduction documentation for a project involving computations with statistical data. https://www.projecttier.org/tier-protocol/protocol-4-0/"
     }
   ]
 }
