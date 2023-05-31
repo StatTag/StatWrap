@@ -273,6 +273,7 @@
     "electron-debug": "^3.0.1",
     "electron-log": "^4.3.0",
     "electron-updater": "^4.2.0",
+    "flexsearch": "^0.7.31",
     "github-markdown-css": "^4.0.0",
     "history": "^4.10.1",
     "isomorphic-git": "^1.10.4",

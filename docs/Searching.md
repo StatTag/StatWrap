@@ -8,6 +8,14 @@ Index files will be stored at the user setting level within StatWrap. Each user 
 
 Indexes will be stored under the `.statwrap-index` directory under the path returned by `userData` (see [https://www.electronjs.org/docs/latest/api/app#appgetpathname](https://www.electronjs.org/docs/latest/api/app#appgetpathname)). Each index will be named `<project_id>.json` (with the UUID being the project ID).
 
+### Launching Indexing
+
+When StatWrap starts, and the main processing thread receives the `LOAD_PROJECT_LIST_REQUEST` message, we will initiate a `FlexSearch.Index` for each configured project. The indexer will start up if the root folder of the project is accessible. In addition, we will add a `FlexSearch.Index` if the user creates/adds a project and we receive a `CREATE_PROJECT_REQUEST` message which succeeds.
+
+If we receive a `REMOVE_PROJECT_LIST_ENTRY_REQUEST` message, we will check for the `FlexSearch.Index` associated with that removed project. At that point we will stop the worker, and also remove the index file in the user's settings.
+
+All of the interactions with the FlexSearch library are wrapped by the `SearchService`. This has an interface to manage all interactions with the FlexSearch library directly.
+
 ## Assets to Index
 
 We want to be as efficient as possible when implementing our indexing process. In addition, we want to ensure that we are indexing files that are good candidates for indexing, and void indexing potentially sensitive information where we can.
