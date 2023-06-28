@@ -34,6 +34,7 @@ import AssetsConfig from './constants/assets-config';
 import AssetUtil from './utils/asset';
 import ProjectUtil from './utils/project';
 import LogService from './services/log';
+import SearchService from './services/search';
 
 // Initialize @electron/remote
 initialize();
@@ -53,6 +54,7 @@ const projectService = new ProjectService();
 const projectListService = new ProjectListService();
 const sourceControlService = new SourceControlService();
 const logService = new LogService();
+const searchService = new SearchService();
 
 // The LogWatcherService requires a window from which we can send messages, so we can't
 // construct it until the BrowserWindow is created.
@@ -277,6 +279,37 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
   }
 
   event.sender.send(Messages.LOAD_PROJECT_LIST_RESPONSE, response);
+});
+
+ipcMain.on(Messages.INDEX_PROJECT_CONTENT_REQUEST, async (event, project) => {
+  const response = {
+    error: false,
+    errorMessage: ''
+  };
+
+  try {
+    // Start the indexer for the project
+    let indexer = searchService.addIndexer(project.id, { assets: project.assets });
+    if (indexer !== null) {
+      indexer = searchService.startIndexer(project.id);
+      if (indexer !== null) {
+        searchService.testSearch(project.id, 'file');
+        response.error = false;
+        response.errorMessage = '';
+        event.sender.send(Messages.INDEX_PROJECT_CONTENT_RESPONSE, response);
+        return;
+      }
+    }
+
+    response.error = true;
+    response.errorMessage = `There was an error starting the search indexer for this project.`;
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = `There was an error starting the search indexer for this project.`;
+    console.log(e);
+  }
+
+  event.sender.send(Messages.INDEX_PROJECT_CONTENT_RESPONSE, response);
 });
 
 /**

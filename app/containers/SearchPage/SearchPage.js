@@ -6,7 +6,7 @@ export default class SearchPage extends Component {
   render() {
     return (
       <div className={styles.container} data-tid="container">
-        <Search />
+        <Search title="Search across projects:" />
       </div>
     );
   }

@@ -69,6 +69,7 @@ class ProjectPage extends Component {
     this.handleScanAssetDynamicDetailsResponse = this.handleScanAssetDynamicDetailsResponse.bind(this);
     this.handleAssetSelected = this.handleAssetSelected.bind(this);
     this.handleProjectExternallyChangedResponse = this.handleProjectExternallyChangedResponse.bind(this);
+    this.handleIndexProjectContentResponse = this.handleIndexProjectContentResponse.bind(this);
   }
 
   componentDidMount() {
@@ -82,6 +83,7 @@ class ProjectPage extends Component {
     ipcRenderer.on(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.on(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
     ipcRenderer.on(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
+    ipcRenderer.on(Messages.INDEX_PROJECT_CONTENT_RESPONSE, this.handleIndexProjectContentResponse);
 
     ipcRenderer.on(Messages.LOAD_PROJECT_LOG_RESPONSE, this.handleLoadProjectLogResponse);
     ipcRenderer.on(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
@@ -99,6 +101,7 @@ class ProjectPage extends Component {
     ipcRenderer.removeListener(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
     ipcRenderer.removeListener(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
     ipcRenderer.removeListener(Messages.LOAD_PROJECT_LOG_RESPONSE, this.handleLoadProjectLogResponse);
+    ipcRenderer.removeListener(Messages.INDEX_PROJECT_CONTENT_RESPONSE, this.handleIndexProjectContentResponse);
     ipcRenderer.removeListener(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
     ipcRenderer.removeListener(Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE, this.handleScanAssetDynamicDetailsResponse);
     ipcRenderer.removeListener(Messages.PROJECT_EXTERNALLY_CHANGED_RESPONSE, this.handleProjectExternallyChangedResponse);
@@ -173,6 +176,10 @@ class ProjectPage extends Component {
     }
   }
 
+  handleIndexProjectContentResponse(sender, response) {
+    console.log(response);
+  }
+
   handleScanProjectResponse(sender, response) {
     if (!response || !response.project) {
       return;
@@ -192,6 +199,11 @@ class ProjectPage extends Component {
         sourceControlEnabled: response.project.sourceControlEnabled,
         assets: response.error ? {error: response.error, errorMessage: response.errorMessage} : response.assets
       };
+
+      // Having completed the scan, which makes available the list of assets, we will now invoke the
+      // indexer for the project.
+      ipcRenderer.send(Messages.INDEX_PROJECT_CONTENT_REQUEST, selectedProject);
+
       return { selectedProject: projectWithAssets };
     });
   }

@@ -29,8 +29,10 @@ export default class AssetUtil {
    * (including the base asset itself) and descendants that should be included
    * in a typical view.
    * @param {object} asset
+   * @param {function} additionalFilter - An optional function that can provide
+   *   additional filtering logic.
    */
-  static filterIncludedFileAssets(asset) {
+  static filterIncludedFileAssets(asset, additionalFilter) {
     if (!asset) {
       return null;
     }
@@ -40,6 +42,11 @@ export default class AssetUtil {
     // include assets tagged that way.
     const assetMetadata = AssetUtil.getHandlerMetadata(FileHandler.id, asset.metadata);
     if (assetMetadata && !assetMetadata.include) {
+      return null;
+    }
+    // If we have an optional filtering function, and that function indicates we
+    // should not include this item, we can return null and be done.
+    if (additionalFilter && !additionalFilter(asset)) {
       return null;
     }
 
@@ -52,7 +59,8 @@ export default class AssetUtil {
     const filteredAsset = { ...asset, children: [...asset.children] };
     for (let index = 0; index < filteredAsset.children.length; index++) {
       filteredAsset.children[index] = AssetUtil.filterIncludedFileAssets(
-        filteredAsset.children[index]
+        filteredAsset.children[index],
+        additionalFilter
       );
     }
     filteredAsset.children = filteredAsset.children.filter(c => c);

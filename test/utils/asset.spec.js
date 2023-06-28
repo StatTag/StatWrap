@@ -256,6 +256,53 @@ describe('services', () => {
           asset.children[2].children[1].uri
         );
       });
+
+      it('should apply an optional filtering function', () => {
+        const testFilter = asset => {
+          return asset.uri !== '/Test/Asset/Child3';
+        };
+        const asset = {
+          uri: '/Test/Asset',
+          metadata: [
+            {
+              id: 'StatWrap.FileHandler',
+              include: true
+            }
+          ],
+          children: [
+            {
+              uri: '/Test/Asset/Child1',
+              metadata: [
+                {
+                  id: 'StatWrap.FileHandler',
+                  include: true
+                }
+              ]
+            },
+            {
+              uri: '/Test/Asset/Child2',
+              metadata: [
+                {
+                  id: 'StatWrap.FileHandler',
+                  include: false
+                }
+              ]
+            },
+            {
+              uri: '/Test/Asset/Child3',
+              metadata: [
+                {
+                  id: 'StatWrap.FileHandler',
+                  include: true
+                }
+              ]
+            }
+          ]
+        };
+        const filteredAsset = AssetUtil.filterIncludedFileAssets(asset, testFilter);
+        expect(filteredAsset.children.length).toEqual(1);
+        expect(filteredAsset.children[0].uri).toEqual(asset.children[0].uri);
+      });
     });
 
     describe('findChildAssetByUri', () => {

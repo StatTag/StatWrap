@@ -10,7 +10,7 @@ Indexes will be stored under the `.statwrap-index` directory under the path retu
 
 ### Launching Indexing
 
-When StatWrap starts, and the main processing thread receives the `LOAD_PROJECT_LIST_REQUEST` message, we will initiate a `FlexSearch.Index` for each configured project. The indexer will start up if the root folder of the project is accessible. In addition, we will add a `FlexSearch.Index` if the user creates/adds a project and we receive a `CREATE_PROJECT_REQUEST` message which succeeds.
+When the user clicks on a project from their project list, it triggers the `SCAN_PROJECT_REQUEST` message. This ensures all processing/scanning of assets within the project are completed. Because we want to leverage the metadata done by the scanning process, we will wait for the `SCAN_PROJECT_RESPONSE` to be received in `ProjectPage.js`, at which point we will then call the `INDEX_PROJECT_CONTENT_REQUEST` message to begin content indexing.
 
 If we receive a `REMOVE_PROJECT_LIST_ENTRY_REQUEST` message, we will check for the `FlexSearch.Index` associated with that removed project. At that point we will stop the worker, and also remove the index file in the user's settings.
 
