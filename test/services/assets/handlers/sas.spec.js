@@ -240,6 +240,26 @@ describe('services', () => {
           id: 'test.sas',
           package: 'test.sas'
         });
+
+        libraries = new SASHandler().getLibraries('test.uri', '%INC "test.sas";');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'test.sas',
+          package: 'test.sas'
+        });
+      });
+      // This test was specifically developed to ensure we are not greedy-matching.  We should only
+      // get the %include information, not anything else on another line.
+      it('should identify %include statements across multiple lines', () => {
+        const libraries = new SASHandler().getLibraries(
+          'test.uri',
+          "%include 'test.sas';\n%global outpath today;%let outpath = 'test\\output';"
+        );
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'test.sas',
+          package: 'test.sas'
+        });
       });
       it('should ignore invalid %include statements with paths', () => {
         expect(new SASHandler().getLibraries('test.uri', "%include test.sas';").length).toEqual(0);
@@ -277,6 +297,19 @@ describe('services', () => {
         });
 
         libraries = new SASHandler().getLibraries('test.uri', ' %INC\ntest ; ');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'test',
+          package: 'test'
+        });
+      });
+      // This test was specifically developed to ensure we are not greedy-matching.  We should only
+      // get the %include information, not anything else on another line.
+      it('should identify %include statement with refs across multiple lines', () => {
+        const libraries = new SASHandler().getLibraries(
+          'test.uri',
+          "%include test;\n%global outpath today;%let outpath = 'test\\output';"
+        );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test',

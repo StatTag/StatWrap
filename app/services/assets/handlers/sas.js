@@ -134,7 +134,7 @@ export default class SASHandler extends BaseCodeHandler {
     // For this regex, the match groups:
     // 0 - full match (not used)
     // 1 - included file name
-    const includePathMatches = [...text.matchAll(/%inc(?:lude)?\s+'(.+)'\s?;/gim)];
+    const includePathMatches = [...text.matchAll(/%inc(?:lude)?\s+['"](.+)['"]\s?;/gim)];
     for (let index = 0; index < includePathMatches.length; index++) {
       const match = includePathMatches[index];
       libraries.push({
@@ -147,7 +147,7 @@ export default class SASHandler extends BaseCodeHandler {
     // For this regex, the match groups:
     // 0 - full match (not used)
     // 1 - included reference
-    const includeRefMatches = [...text.matchAll(/%inc(?:lude)?\s+([^']+)\s?;/gim)];
+    const includeRefMatches = [...text.matchAll(/%inc(?:lude)?\s+([^'"]+?)\s?;/gim)];
     for (let index = 0; index < includeRefMatches.length; index++) {
       const match = includeRefMatches[index];
       const matchName = match[1].trim();
