@@ -40,8 +40,17 @@ export default class WorkflowUtil {
       return name;
     }
 
-    // Truncate, and prefix with ellipses
-    return `...${name.substring(name.length - Constants.MAX_GRAPH_LABEL_LENGTH)}`;
+    // Format for the short dependency name is "(beginning part)...(end part)".
+    // Note that we don't care about exact adherence to the "max length" - we are fine with
+    // approximating it.  So we roughly cut the max length in half, but it may not be exact, and
+    // we don't count the 3 periods towards the max length (meaning, our resulting label will
+    // technically go over the max length we detect).
+    // eslint-disable-next-line prettier/prettier
+    const beginningPart = name.substring(0, (Constants.MAX_GRAPH_LABEL_LENGTH / 2));
+    // eslint-disable-next-line prettier/prettier
+    const endPart = name.substring(name.length - (Constants.MAX_GRAPH_LABEL_LENGTH / 2) + 1);
+
+    return `${beginningPart}...${endPart}`;
   }
 
   /**

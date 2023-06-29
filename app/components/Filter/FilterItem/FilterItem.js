@@ -2,6 +2,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styles from './FilterItem.css';
+import WorkflowUtil from '../../../utils/workflow';
 
 const filterItem = props => {
   const { disabled, checked, onChecked, category, filter, label } = props;
@@ -12,8 +13,10 @@ const filterItem = props => {
     }
   };
 
+  const displayLabel = WorkflowUtil.getShortDependencyName(label);
+
   return (
-    <label className={styles.container}>
+    <label className={styles.container} title={label}>
       <input
         className={styles.filterCheck}
         type="checkbox"
@@ -21,7 +24,7 @@ const filterItem = props => {
         onChange={handleChange}
         disabled={disabled}
       />{' '}
-      {label}
+      {displayLabel}
     </label>
   );
 };

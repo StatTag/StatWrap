@@ -805,17 +805,18 @@ describe('services', () => {
         const maxLengthLabel = 'a'.repeat(Constants.MAX_GRAPH_LABEL_LENGTH);
         expect(WorkflowUtil.getShortDependencyName(maxLengthLabel)).toEqual(maxLengthLabel);
       });
-      it('should truncate long names just over the max limit', () => {
-        const maxLengthLabel = 'a'.repeat(Constants.MAX_GRAPH_LABEL_LENGTH);
+      it('should shorten long names just over the max limit', () => {
+        // eslint-disable-next-line prettier/prettier
+        const maxLengthLabel = `${'a'.repeat(Constants.MAX_GRAPH_LABEL_LENGTH / 2)}...${'a'.repeat(Constants.MAX_GRAPH_LABEL_LENGTH / 2)}`;
         const longLabel = 'a'.repeat(Constants.MAX_GRAPH_LABEL_LENGTH + 1);
-        expect(WorkflowUtil.getShortDependencyName(longLabel)).toEqual(`...${maxLengthLabel}`);
+        expect(WorkflowUtil.getShortDependencyName(longLabel)).toEqual(`${maxLengthLabel}`);
       });
-      it('should truncate a long string appropriately', () => {
+      it('should shorten a long string appropriately', () => {
         expect(
           WorkflowUtil.getShortDependencyName(
-            'Z:\\Test\\Directory for data\\More directory\\Other directory\\file.txt'
+            'Z:\\Test\\Directory for data\\More folder\\Other location\\file.txt'
           )
-        ).toEqual(`...ectory\\Other directory\\file.txt`);
+        ).toEqual(`Z:\\Test\\Directo...cation\\file.txt`);
       });
     });
   });
