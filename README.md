@@ -86,3 +86,28 @@ You will need to increase the memory size allocated to Node, using this command:
 ```
 export NODE_OPTIONS=--max-old-space-size=8192
 ```
+
+If when building/packaging you get an error (this first appeared on Apple M2 device, but may not be specific to arm64 architecture):
+
+```
+• building block map  blockMapFile=release/StatWrap-0.0.13-arm64-mac.zip.blockmap
+  ⨯ Exit code: ENOENT. spawn /usr/bin/python ENOENT  failedTask=build stackTrace=Error: Exit code: ENOENT. spawn /usr/bin/python ENOENT
+    at /Users/Development/StatWrap/node_modules/builder-util/src/util.ts:133:18
+    at exithandler (node:child_process:427:5)
+    at ChildProcess.errorhandler (node:child_process:439:5)
+    at ChildProcess.emit (node:events:511:28)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:291:12)
+    at onErrorNT (node:internal/child_process:483:16)
+    at processTicksAndRejections (node:internal/process/task_queues:82:21)
+error Command failed with exit code 1.
+```
+
+You will need to ensure Python 2.7 is available. This is required (for now) by the packages used for building and packaging.
+
+```
+pyenv install 2.7.18
+export PYTHON_PATH=$HOME/.pyenv/versions/2.7.18/bin/python
+yarn run build
+```
+
+_(Solution courtesy of: https://github.com/marktext/marktext/issues/3175#issuecomment-1208840633)_
