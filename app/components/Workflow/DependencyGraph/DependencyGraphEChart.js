@@ -51,7 +51,7 @@ const dependencyGraphEChart = props => {
   // The actual contents of the filter (no filter by default)
   const [filter, setFilter] = useState([]);
 
-  useEffect(() => {
+  const resetFilter = () => {
     if (assets) {
       const filteredAssets = AssetUtil.filterIncludedFileAssets(assets);
       setFilter(ProjectUtil.getWorkflowFilters(filteredAssets));
@@ -59,6 +59,10 @@ const dependencyGraphEChart = props => {
     } else {
       setGraphData(null);
     }
+  };
+
+  useEffect(() => {
+    resetFilter();
   }, [assets]);
 
   // Whenever the filter changes, update the list of assets to include only
@@ -70,6 +74,10 @@ const dependencyGraphEChart = props => {
     } else {
       setGraphData(null);
     }
+  };
+
+  const handleFilterReset = () => {
+    resetFilter();
   };
 
   let graph = null;
@@ -115,7 +123,12 @@ const dependencyGraphEChart = props => {
   return (
     <div className={styles.container}>
       <div className={styles.filter}>
-        <DependencyFilter filter={filter} mode="dependency" onFilterChanged={handleFilterChanged} />
+        <DependencyFilter
+          filter={filter}
+          mode="dependency"
+          onFilterChanged={handleFilterChanged}
+          onFilterReset={handleFilterReset}
+        />
       </div>
       <div className={styles.graph}>{graph}</div>
     </div>

@@ -47,6 +47,16 @@ const filterComponent = props => {
     );
   });
 
+  if (filterElements != null && filterElements.length > 0) {
+    filterElements.push(
+      <div className={styles.reset} key="filter-reset-button">
+        <button type="button" onClick={props.onFilterReset}>
+          Reset Filter
+        </button>
+      </div>
+    );
+  }
+
   return <div className={styles.container}>{filterElements}</div>;
 };
 

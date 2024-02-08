@@ -135,6 +135,11 @@ const assetsComponent = props => {
     setAssets(filterProjectAssets(project, updatedFilter));
   };
 
+  const handleFilterReset = () => {
+    setFilter(resetFilter(project));
+    setAssets(filterProjectAssets(project, null));
+  };
+
   // When the user triggers saving an Asset Group, update the UI so the dialog
   // appears to enter the asset group details.
   const handleStartSaveAssetGroup = () => {
@@ -328,6 +333,7 @@ const assetsComponent = props => {
             mode="asset"
             disabled={!filterEnabled}
             onFilterChanged={handleFilterChanged}
+            onFilterReset={handleFilterReset}
           />
           <div className={styles.tree}>
             <div className={styles.toolbar}>
