@@ -56,7 +56,7 @@ You may need an appropriate loader to handle this file type, currently no loader
  @ dll renderer renderer[0]
 ```
 
-You will need to manually remove the file `./node_modules/node-gyp/lib/Find-VisualStudio.cs`, then re-run `node install`. We'll work on finding a long-term fix for this.
+You will need to manually remove the file `./node_modules/node-gyp/lib/Find-VisualStudio.cs`, then re-run `yarn install`. We'll work on finding a long-term fix for this.
 
 If when building/packaging you get the following error:
 
