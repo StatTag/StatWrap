@@ -11,3 +11,7 @@
 .categoryHeader {
   font-weight: bold;
 }
+
+.reset button {
+  font-size: 0.85em;
+}

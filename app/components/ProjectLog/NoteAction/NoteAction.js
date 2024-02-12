@@ -13,22 +13,22 @@ const noteAction = props => {
         <table>
           <tbody>
             <tr>
-              <td>
+              <td className={styles.label}>
                 <b>Action:</b>
               </td>
               <td>{data.title}</td>
             </tr>
             <tr>
-              <td>
+              <td className={styles.label}>
                 <b>User:</b>
               </td>
               <td>{data.details.author}</td>
             </tr>
             <tr>
-              <td>
+              <td className={styles.label}>
                 <b>Note text:</b>
               </td>
-              <td>{data.details.content}</td>
+              <td className={styles.logDetails}>{data.details.content}</td>
             </tr>
           </tbody>
         </table>
@@ -40,28 +40,28 @@ const noteAction = props => {
         <table>
           <tbody>
             <tr>
-              <td>
+              <td className={styles.label}>
                 <b>Action:</b>
               </td>
               <td>{data.title}</td>
             </tr>
             <tr>
-              <td>
+              <td className={styles.label}>
                 <b>User:</b>
               </td>
               <td>{data.details.new.author}</td>
             </tr>
             <tr>
-              <td>
+              <td className={styles.label}>
                 <b>Old Note text:</b>
               </td>
-              <td>{data.details.old.content}</td>
+              <td className={styles.logDetails}>{data.details.old.content}</td>
             </tr>
             <tr>
-              <td>
+              <td className={styles.label}>
                 <b>New Note text:</b>
               </td>
-              <td>{data.details.new.content}</td>
+              <td className={styles.logDetails}>{data.details.new.content}</td>
             </tr>
           </tbody>
         </table>

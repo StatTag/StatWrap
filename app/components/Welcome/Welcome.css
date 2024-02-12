@@ -7,11 +7,16 @@
 
 h1 {
   font-size: 1.5rem;
+  padding-top: 20px;
 }
 
 .instructions {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   width: 75%;
   min-width: 200px;
   margin: 0 auto;
+}
+
+.icon {
+  margin-bottom: -5px;
 }
