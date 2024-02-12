@@ -37,7 +37,13 @@ const columns = [
     selector: 'content',
     sortable: true,
     grow: 3,
-    wrap: true
+    wrap: true,
+    // Only way I could figure out to get it to prioritize my white-space CSS setting.
+    cell: row => (
+      <span style={{ whiteSpace: 'pre-wrap', paddingBottom: '5px', paddingTop: '5px' }}>
+        {row.content}
+      </span>
+    )
   }
 ];
 
