@@ -137,8 +137,33 @@ const projectNotes = props => {
           };
         });
       }
-      if (mappedAssetNotes.length > 0 || mappedProjectNotes.length > 0) {
-        setFeed([...mappedProjectNotes, ...mappedAssetNotes]);
+
+      const mappedPersonNotes = [];
+      if (props.project.people) {
+        props.project.people.forEach(p => {
+          if (p && p.notes) {
+            p.notes.forEach(n =>
+              mappedPersonNotes.push({
+                type: 'Person',
+                uri: GeneralUtil.formatName(p.name),
+                updated: n.updated,
+                author: n.author,
+                content: n.content
+              })
+            );
+          }
+        });
+      }
+
+      // If any of our notes collections are set, build up a combined collection
+      // of the notes.  Otherwise set the feed explicitly to null so we know to
+      // render it as empty.
+      if (
+        mappedAssetNotes.length > 0 ||
+        mappedProjectNotes.length > 0 ||
+        mappedPersonNotes.length > 0
+      ) {
+        setFeed([...mappedProjectNotes, ...mappedAssetNotes, ...mappedPersonNotes]);
       } else {
         setFeed(null);
       }
