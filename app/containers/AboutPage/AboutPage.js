@@ -5,9 +5,9 @@ export default class AboutPage extends Component {
   render() {
     return (
       <div className={styles.container} data-tid="container">
-        <h1>StatWrap v0.13</h1>
+        <h1>StatWrap v0.14</h1>
         <div className={styles.copyright}>
-          (c) 2021-2022 Northwestern University Feinberg School of Medicine
+          (c) 2021-2024 Northwestern University Feinberg School of Medicine
         </div>
         <div className={styles.acknowledgement}>
           <h2>Acknowledgements</h2>
