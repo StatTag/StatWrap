@@ -91,3 +91,11 @@ yarn package
 ```
 
 _(Solution courtesy of: https://github.com/marktext/marktext/issues/3175#issuecomment-1208840633)_
+
+## Packaging and Notarization (macOS)
+
+**NOTE** These steps are only needed for official release builds of StatWrap. Local development and packaging should not require these steps.
+
+To verify the integrity of applications, Apple requires a notarization step of all applications that are being deployed and released. This will require a separate notarization step then during the packaging (via `yarn package`) for macOS releases. To simplify this process, we make use of the [`electron-builder-notarize`](https://github.com/karaggeorge/electron-builder-notarize) package.
+
+This requires you to set up environment variables for the "secrets" needed to confirm your Apple developer ID. More instructions are available from [https://github.com/karaggeorge/electron-builder-notarize?tab=readme-ov-file#using-notarytool](https://github.com/karaggeorge/electron-builder-notarize?tab=readme-ov-file#using-notarytool). Depending on the method you wish to use, set up your environment file to export the appropriate secrets (e.g., `export APPLE_ID=test@test.com`)
