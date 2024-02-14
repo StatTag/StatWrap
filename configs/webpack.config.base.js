@@ -7,7 +7,8 @@ import webpack from 'webpack';
 import { dependencies as externals } from '../app/package.json';
 
 export default {
-  externals: [...Object.keys(externals || {})],
+  // Explicitly exclude node-gyp.  This causes some issues on macOS otherwise when yarn install is run.
+  externals: ['node-gyp', ...Object.keys(externals || {})],
 
   module: {
     rules: [
