@@ -36,27 +36,7 @@ yarn package
 
 ## Build Issues
 
-There are some potential build issues that we need to fix long-term, but have temporary workarounds. If after running `yarn install` you get an error:
-
-```
-ERROR in ./node_modules/node-gyp/lib/Find-VisualStudio.cs 9:6
-Module parse failed: Unexpected token (9:6)
-You may need an appropriate loader to handle this file type, currently no loaders are configured to process this file. See https://webpack.js.org/concepts#loaders
-| // This script needs to be compatible with PowerShell v2 to run on Windows 2008R2 and Windows 7.
-|
-> using System;
-| using System.Text;
-| using System.Runtime.InteropServices;
- @ ./node_modules/node-gyp/lib/ sync ^\.\/.*$ ./Find-VisualStudio.cs
- @ ./node_modules/node-gyp/lib/node-gyp.js 41:13-36 195:36-53
- @ ./node_modules/@electron/rebuild/lib/src/module-type/node-gyp.js 9:35-54
- @ ./node_modules/@electron/rebuild/lib/src/module-rebuilder.js 34:19-52
- @ ./node_modules/@electron/rebuild/lib/src/rebuild.js 38:27-56
- @ ./node_modules/@electron/rebuild/lib/src/main.js 4:18-38
- @ dll renderer renderer[0]
-```
-
-You will need to manually remove the file `./node_modules/node-gyp/lib/Find-VisualStudio.cs`, then re-run `yarn install`. We'll work on finding a long-term fix for this.
+There are some potential build/packaging issues that we need to fix long-term, but have temporary workarounds.
 
 If when building/packaging you get the following error:
 
@@ -107,7 +87,7 @@ You will need to ensure Python 2.7 is available. This is required (for now) by t
 ```
 pyenv install 2.7.18
 export PYTHON_PATH=$HOME/.pyenv/versions/2.7.18/bin/python
-yarn run build
+yarn package
 ```
 
 _(Solution courtesy of: https://github.com/marktext/marktext/issues/3175#issuecomment-1208840633)_
