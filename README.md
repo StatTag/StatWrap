@@ -2,13 +2,29 @@
 
 ![CI Status](https://github.com/StatTag/StatWrap/workflows/Continuous%20Integration/badge.svg)
 
-This project was quickly brought up to speed thanks to the [electron-react-boilerplate](https://github.com/electron-react-boilerplate/electron-react-boilerplate) project.
+## About
+
+[StatWrap](https://sites.northwestern.edu/statwrap/) is designed as a free and open-source assistive, non-invasive discovery and inventory tool to document research projects. It inventories project assets and organizes information without additional input from the user, while also allowing users to add searchable and filterable notes connected to files to help communicate metadata about intent and analysis steps.
+
+At its core, StatWrap helps you identify, track, and reflect on variation in your research project that could impact the ability to reproduce your work. Variation can happen in many places: (1) people on the project can change over time, so processes may not be consistently executed due to transitions in employment; (2) data changes over time, due to accruing additional cases, adding new variables, or correcting mistakes in existing data; (3) software (e.g. used for data preparation and statistical analysis) evolves as it is edited, improved, and optimized; and (4) software can break or produce different results due to changes ‘under the hood’ such as updates to statistical packages, compilers, or interpreters.
+
+## Design
+
+Some of the guiding principles of StatWrap's design and implementation are:
+
+- Operate as a standalone application: StatWrap should not require the user to install or connect to an external server (API, database, etc.) for its operation
+- Passively observe project assets, but never modify them
+- Guide users toward actions that are considered recommended practices for reproducible research, understanding that there is no single definition of "best practice", and that teams work differently
+
+More details about the technical design and rationale for StatWrap are recorded in the [`docs`](docs/) folder.
 
 ## Development Environment
 
-StatWrap is built using Electron, which allows cross-platform compiling and deployment. Electron [provides instructions on setup](https://www.electronjs.org/docs/latest/tutorial/tutorial-prerequisites) which are not duplicated here, but briefly requires you to have Node.js and NPM available.
+This project was quickly brought up to speed thanks to the [electron-react-boilerplate](https://github.com/electron-react-boilerplate/electron-react-boilerplate) project.
 
-You will also need to have Yarn installed for package management. [Yarn provides several installer options](https://www.electronjs.org/docs/latest/tutorial/tutorial-prerequisites) across operating systems.
+StatWrap is built using Electron (currently 18.3.7), which allows cross-platform compiling and deployment, and React (currently 17.0.2) for the user interface.
+
+Electron [provides instructions on setup](https://www.electronjs.org/docs/latest/tutorial/tutorial-prerequisites) which are not duplicated here, but briefly requires you to have Node.js installed. You will also need to have Yarn installed for package management. [Yarn provides several installer options](https://www.electronjs.org/docs/latest/tutorial/tutorial-prerequisites) across operating systems.
 
 Once all of the core system dependencies are installed, go to the StatWrap root directory and use yarn to install all of the packages:
 
@@ -34,7 +50,17 @@ When you are ready to build a version of the app for deployment, you can run:
 yarn package
 ```
 
-## Build Issues
+## Contributing
+
+StatWrap is primarily driven by a small, core team of developers, but we welcome contributions in any form from anyone who is interested. All interactions must follow the community guidelines set out in the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+We do not use templates for reporting issues - anyone who has a question about how StatWrap works (end users), suggestions for improvement, technical questions, etc. should feel free to [open a new issue](https://github.com/StatTag/StatWrap/issues/new/choose).
+
+For changes to the codebase (including documentation), suggested changes should be submitted as a [Pull Request](https://github.com/StatTag/StatWrap/pulls). A member of the core team will review the PR and follow up with additional questions or suggestions.
+
+We appreciate contributions from the community, but as with any project a change suggested may not be something we choose to incorporate into the code base. If you have any questions about creation or implementation of a feature, please feel free to [open a new issue](https://github.com/StatTag/StatWrap/issues/new/choose) to solicit feedback.
+
+## Solutions to Build Issues
 
 There are some potential build/packaging issues that we need to fix long-term, but have temporary workarounds.
 
