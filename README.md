@@ -1,6 +1,6 @@
 # StatWrap
 
-![CI Status](https://github.com/StatTag/StatWrap/workflows/Continuous%20Integration/badge.svg)
+[![CI Status](https://github.com/StatTag/StatWrap/actions/workflows/ci.yml/badge.svg)](https://github.com/StatTag/StatWrap/actions/workflows/ci.yml)
 
 ## About
 
