@@ -1,3 +1,4 @@
+// import { style } from 'd3-selection';
 import React, { useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
 import WorkflowUtil from '../../../utils/workflow';
@@ -19,6 +20,11 @@ const ICON_TYPES = {
   DATA: `${ICON_PATH}data.svg`,
   FIGURE: `${ICON_PATH}figure.svg`
 };
+
+/**
+ * Component that renders a code file
+ * @param {Object} props component props to render.
+ */
 
 function getIcon(node) {
   let iconUrl = ICON_TYPES.GENERIC;
@@ -45,7 +51,7 @@ const DependencyGraphEChart = props => {
   const [graphData, setGraphData] = useState(null);
   const [filter, setFilter] = useState([]);
 
-  const resetGraph = () => {
+  const resetFilter = () => {
     if (assets) {
       const filteredAssets = AssetUtil.filterIncludedFileAssets(assets);
       setFilter(ProjectUtil.getWorkflowFilters(filteredAssets));
@@ -56,20 +62,22 @@ const DependencyGraphEChart = props => {
   };
 
   useEffect(() => {
-    resetGraph();
+    resetFilter();
   }, [assets]);
 
+  // Whenever the filter changes, update the list of assets to include only
+  // those that should be displayed.
   const handleFilterChanged = updatedFilter => {
     if (assets) {
       setFilter(updatedFilter);
-      setGraphData(WorkflowUtil.getAllDependenciesAsEChartGraph(assets, updatedFilter));
+      setGraphData(WorkflowUtil.getAllDependenciesAsEChartGraph(assets, filter));
     } else {
       setGraphData(null);
     }
   };
 
   const handleFilterReset = () => {
-    resetGraph();
+    resetFilter();
   };
 
   let graph = null;
