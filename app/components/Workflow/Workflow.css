@@ -3,12 +3,10 @@
   height: 100%;
 }
 
-
 .header {
   display: flex;
   align-items: center;
 }
-
 
 .buttonsWrapper {
   margin-left: auto;
@@ -16,16 +14,14 @@
   align-items: center;
 }
 
-
 button {
-  background-color: #ffffff;
+  background-color: #fff;
   border: 1px solid #ccc;
   border-radius: 5px;
   padding: 5px 10px;
   cursor: pointer;
   margin-right: 5px;
 }
-
 
 .projectPath {
   font-size: 0.9rem;
