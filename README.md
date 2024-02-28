@@ -57,11 +57,11 @@ StatWrap is primarily driven by a small, core team of developers, but we welcome
 If you are interested in making a contribution, please review the [list of open issues](https://github.com/StatTag/StatWrap/issues). Some guidance on expressing interest on an issue:
 
 1. Make sure the issue is ready for someone to work on it
-1. Issues tagged as `placeholder` are not fully specified and are not ready for someone to start development. Feel free to comment on your interest (even support for having the feature implemented as an end user), but be aware it may not be ready to be assigned.
-1. Issues that have someone assigned are already being worked on. Check the comments as well, if multiple people express interest before it is assigned, we will give the first opportunity to the person who commented first about their interest.
-1. Issues tagged as `need-feedback` may be waiting on user/stakeholder feedback before development can continue
-1. When you find an issue you'd like to work on, post a comment expressing interest. You can feel free to start working on it at that point. One of the maintainers will assign it to you.
-1. Feel free to post clarifying questions in the issue to get feedback as you develop
+   1. Issues tagged as `placeholder` are not fully specified and are not ready for someone to start development. Feel free to comment on your interest (even support for having the feature implemented as an end user), but be aware it may not be ready to be assigned.
+   2. Issues that have someone assigned are already being worked on. Check the comments as well, if multiple people express interest before it is assigned, we will give the first opportunity to the person who commented first about their interest.
+   3. Issues tagged as `need-feedback` may be waiting on user/stakeholder feedback before development can continue
+2. When you find an issue you'd like to work on, post a comment expressing interest. You can feel free to start working on it at that point. One of the maintainers will assign it to you.
+3. Feel free to post clarifying questions in the issue to get feedback as you develop
 
 As you are working on an issue, **there is no obligation to see it to completion**. Sometimes the issue is more involved or complex than we originally thought, and there is a lot to learn from having someone investigate the problem. If you find yourself in this position, please post an update in the issue thread, and inform the maintainers of your progress. If you were able to complete some of the work but not all, we may have you proceed with a pull request of what you have done, so you can get credit for your work. If nothing else, we will have a history of your progress and can unassign you, leaving it available for someone else to take on.
 
