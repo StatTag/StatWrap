@@ -48,8 +48,12 @@ const Workflow = props => {
           {project.path}
         </span>
         <span className={styles.buttonsWrapper}>
-          <button onClick={handleZoomIn}>Zoom In</button>
-          <button onClick={handleZoomOut}>Zoom Out</button>
+          {diagram !== 'tree' && (
+            <>
+              <button onClick={handleZoomIn}>Zoom In</button>
+              <button onClick={handleZoomOut}>Zoom Out</button>
+            </>
+          )}
         </span>
       </div>
       {graph}
