@@ -25,6 +25,7 @@ const ICON_TYPES = {
  * Component that renders a code file
  * @param {Object} props component props to render.
  */
+
 function getIcon(node) {
   let iconUrl = ICON_TYPES.GENERIC;
   if (node.value === 'python') {
@@ -45,10 +46,9 @@ function getIcon(node) {
   return iconUrl;
 }
 
-const dependencyGraphEChart = props => {
-  const { assets } = props;
+const DependencyGraphEChart = props => {
+  const { assets, zoomLevel } = props;
   const [graphData, setGraphData] = useState(null);
-  // The actual contents of the filter (no filter by default)
   const [filter, setFilter] = useState([]);
 
   const resetFilter = () => {
@@ -93,7 +93,7 @@ const dependencyGraphEChart = props => {
           }
           return `${params.data.fullName}`;
         },
-        confine: 'true',
+        confine: true,
         textStyle: {
           overflow: 'breakAll',
           width: 200
@@ -104,6 +104,7 @@ const dependencyGraphEChart = props => {
           type: 'graph',
           layout: 'force',
           roam: true,
+          zoom: zoomLevel, // Apply zoom level
           label: {
             show: true,
             position: 'right',
@@ -120,6 +121,7 @@ const dependencyGraphEChart = props => {
     };
     graph = <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />;
   }
+
   return (
     <div className={styles.container}>
       <div className={styles.filter}>
@@ -135,4 +137,4 @@ const dependencyGraphEChart = props => {
   );
 };
 
-export default dependencyGraphEChart;
+export default DependencyGraphEChart;

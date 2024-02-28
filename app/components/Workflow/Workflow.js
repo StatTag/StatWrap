@@ -1,20 +1,31 @@
 import { ToggleButtonGroup, ToggleButton } from '@mui/material';
-import React from 'react';
+import React, { useState } from 'react';
 import DependencyGraph from './DependencyGraph/DependencyGraphEChart';
 import DependencyTree from './DependencyTree/DependencyTreeEChart';
 import styles from './Workflow.css';
 
-const workflow = props => {
-  const [diagram, setDiagram] = React.useState('graph');
+const Workflow = props => {
+  const [diagram, setDiagram] = useState('graph');
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   const handleDiagram = (event, newDiagram) => {
     setDiagram(newDiagram);
   };
+
+  const handleZoomIn = () => {
+    setZoomLevel(prevZoom => prevZoom * 1.2);
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prevZoom => prevZoom / 1.2);
+  };
+
   const { project } = props;
-  let graph = <DependencyGraph assets={project.assets} />;
+  let graph = <DependencyGraph assets={project.assets} zoomLevel={zoomLevel} />;
   if (diagram === 'tree') {
     graph = <DependencyTree assets={project.assets} />;
   }
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -36,10 +47,18 @@ const workflow = props => {
           <br />
           {project.path}
         </span>
+        <span className={styles.buttonsWrapper}>
+          {diagram !== 'tree' && (
+            <>
+              <button onClick={handleZoomIn}>Zoom In</button>
+              <button onClick={handleZoomOut}>Zoom Out</button>
+            </>
+          )}
+        </span>
       </div>
       {graph}
     </div>
   );
 };
 
-export default workflow;
+export default Workflow;
