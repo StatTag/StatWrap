@@ -134,10 +134,22 @@ const projectLog = props => {
   let contents = <div className={styles.empty}>There are no actions or notifications to show</div>;
   if (feed) {
     // eslint-disable-next-line prettier/prettier
-    const dataSource = (updates && updates.log && filterWhatsNew) ? updates.log : feed;
+    const dataSource = updates && updates.log && filterWhatsNew ? updates.log : feed;
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     const data = dataSource
       .map(f => {
-        return { ...f, datetime: GeneralUtil.formatDateTime(f.timestamp) };
+        const localDateTime = new Date(f.timestamp).toLocaleString(undefined, {
+          timeZone: userTimeZone,
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+          second: 'numeric'
+        });
+        return { ...f, datetime: localDateTime };
       })
       .filter(
         f =>
