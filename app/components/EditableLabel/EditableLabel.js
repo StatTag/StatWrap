@@ -146,10 +146,9 @@ export default class EditableLabel extends React.Component {
       ? this.state.text
       : this.props.labelPlaceHolder || DEFAULT_LABEL_PLACEHOLDER;
     return (
-      <div className={this.props.containerClassName}>
+      <div className={this.props.containerClassName} onClick={this.handleFocus}>
         <label
           className={this.props.labelClassName}
-          onClick={this.handleFocus}
           style={{
             fontSize: this.props.labelFontSize,
             fontWeight: this.props.labelFontWeight
