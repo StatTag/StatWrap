@@ -50,7 +50,7 @@ module.exports = api => {
 
       // Disable warnings
       ["@babel/plugin-proposal-private-methods", { "loose": true }],
-      ["@babel/plugin-proposal-private-property-in-object", { "loose": true }],
+      ["@babel/plugin-transform-private-property-in-object", { "loose": true }],
 
       require('@babel/plugin-proposal-do-expressions'),
 
