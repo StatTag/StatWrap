@@ -315,7 +315,7 @@
     "set-value": "^4.0.1",
     "source-map-support": "^0.5.16",
     "styled-components": "^5.2.1",
-    "stylelint-config-standard-scss": "^3.0.0",
+    "stylelint-config-standard-scss": "^13.0.0",
     "url-parse": "^1.5.9",
     "username": "^5.1.0",
     "uuid": "^9.0.1",
