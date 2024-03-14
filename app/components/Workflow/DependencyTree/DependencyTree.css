@@ -1,10 +1,15 @@
-.container {
-  width: 100%;
-  height: 75vh;
+.node__root > circle {
+  stroke-width: 9px;
+  stroke:maroon;
+  fill:pink;
 }
 
-.container svg {
-  width: inherit !important;
-  height: inherit !important;
-  position: fixed;
+.node__branch > circle {
+  fill:dodgerblue;
+}
+
+.node__leaf > circle {
+  stroke-width: 8px;
+  stroke:darkslategrey;
+  fill:rgb(174, 209, 174);
 }
