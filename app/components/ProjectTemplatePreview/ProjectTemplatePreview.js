@@ -2,16 +2,29 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import CheckboxTree from 'react-checkbox-tree';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faFolder,
+  faFile,
+  faChevronRight,
+  faChevronDown,
+  faFolderOpen,
+} from '@fortawesome/free-solid-svg-icons';
 import styles from './ProjectTemplatePreview.css';
 
 function contentsToNodes(assets) {
   if (assets) {
-    return assets.map(x => ({
+    return assets.map((x) => ({
       value: x.path,
       label: x.name,
       showCheckbox: false,
-      icon: x.type === 'folder' ? <i className="fa fa-folder" /> : <i className="fa fa-file" />,
-      children: x.contents ? contentsToNodes(x.contents) : null
+      icon:
+        x.type === 'folder' ? (
+          <FontAwesomeIcon icon={faFolder} />
+        ) : (
+          <FontAwesomeIcon icon={faFile} />
+        ),
+      children: x.contents ? contentsToNodes(x.contents) : null,
     }));
   }
 
@@ -23,7 +36,7 @@ class ProjectTemplatePreview extends Component {
     super(props);
     this.state = {
       checked: [],
-      expanded: ['Project Root']
+      expanded: ['Project Root'],
     };
   }
 
@@ -41,19 +54,33 @@ class ProjectTemplatePreview extends Component {
           value: 'Project Root',
           label: 'Project Root',
           showCheckbox: false,
-          children: templateContents
-        }
+          children: templateContents,
+        },
       ];
       preview = (
         <>
           <strong>Preview:</strong>
           <CheckboxTree
-            iconsClass="fa5"
+            icons={{
+              expandClose: (
+                <FontAwesomeIcon className="rct-icon rct-icon-expand-close" icon={faChevronRight} />
+              ),
+              expandOpen: (
+                <FontAwesomeIcon className="rct-icon rct-icon-expand-open" icon={faChevronDown} />
+              ),
+              parentClose: (
+                <FontAwesomeIcon className="rct-icon rct-icon-collapse-all" icon={faFolder} />
+              ),
+              parentOpen: (
+                <FontAwesomeIcon className="rct-icon rct-icon-parent-open" icon={faFolderOpen} />
+              ),
+              leaf: <FontAwesomeIcon className="rct-icon rct-icon-leaf-close" icon={faFile} />,
+            }}
             nodes={templateNodes}
             checked={this.state.checked}
             expanded={this.state.expanded}
-            onCheck={checked => this.setState({ checked })}
-            onExpand={expanded => this.setState({ expanded })}
+            onCheck={(checked) => this.setState({ checked })}
+            onExpand={(expanded) => this.setState({ expanded })}
           />
         </>
       );
@@ -68,11 +95,11 @@ class ProjectTemplatePreview extends Component {
 }
 
 ProjectTemplatePreview.propTypes = {
-  template: PropTypes.object
+  template: PropTypes.object,
 };
 
 ProjectTemplatePreview.defaultProps = {
-  template: null
+  template: null,
 };
 
 export default ProjectTemplatePreview;
