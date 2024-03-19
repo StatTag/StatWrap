@@ -1,40 +1,45 @@
 import React from 'react';
-import Tree from 'react-d3-tree';
+import ReactECharts from 'echarts-for-react';
 import WorkflowUtil from '../../../utils/workflow';
 import AssetUtil from '../../../utils/asset';
 import styles from './DependencyTree.css';
 
-const dependencyGraphEChart = props => {
+const dependencyGraphEChart = (props) => {
   const { assets } = props;
 
   const data = WorkflowUtil.getAllDependenciesAsTree(AssetUtil.filterIncludedFileAssets(assets));
   let tree = null;
   if (data) {
-    tree = (
-      <Tree
-        data={data}
-        initialDepth={2}
-        depthFactor={750}
-        separation={{
-          siblings: 0.4,
-          nonSiblings: 0.8,
-        }}
-        dimensions={{ height: window.innerHeight / 2, width: (2 * window.innerWidth) / 3 }}
-        pathFunc={'step'}
-        zoom={0.4}
-        scaleExtent={{ max: 2, min: 0.1 }}
-        translate={{ x: 10, y: window.innerHeight / 3 }}
-        rootNodeClassName={styles.node__root}
-        branchNodeClassName={styles.node__branch}
-        leafNodeClassName={styles.node__leaf}
-      />
-    );
+    const option = {
+      tooltip: {
+        trigger: 'item',
+        triggerOn: 'mousemove',
+      },
+      series: [
+        {
+          type: 'tree',
+          id: 0,
+          name: 'tree1',
+          data: [data],
+          edgeShape: 'polyline',
+          edgeForkPosition: '63%',
+          initialTreeDepth: 2,
+          label: {
+            position: 'left',
+            align: 'right',
+          },
+          leaves: {
+            label: {
+              position: 'right',
+              align: 'left',
+            },
+          },
+        },
+      ],
+    };
+    tree = <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />;
   }
-  return (
-    <div style={{ width: '100%', height: '75vh', fontSize: '2.1em', fontFamily: 'monospace' }}>
-      {tree}
-    </div>
-  );
+  return <div className={styles.container}>{tree}</div>;
 };
 
 export default dependencyGraphEChart;

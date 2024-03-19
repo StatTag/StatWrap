@@ -1,3 +1,14 @@
+.container {
+  width: 100%;
+  height: 75vh;
+}
+
+.container svg {
+  width: inherit !important;
+  height: inherit !important;
+  position: fixed;
+}
+
 .node__root > circle {
   stroke-width: 9px;
   stroke:maroon;
