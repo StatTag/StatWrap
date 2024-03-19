@@ -1,34 +1,35 @@
-/* ProjectEntryPoint.css */
-
 .container {
-  padding: 15px;
-  margin: 10px;
+  padding: 20px;
+  margin-top: 10px;
   background-color: #eee;
   border: solid 1px gray;
   border-radius: 10px;
-  width: 40%;
+  width:max-content;
 }
 
 .entryPointList {
-  padding: 0;
+  padding-left: 10px;
 }
 
 .entryPointItem {
-  margin-bottom: 15px;
+  margin-bottom: 5px;
 }
 
 .entryPointItem button {
-  margin-left: 10px;
+  font-size: 0.8rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 5px;
+  background-color:whitesmoke;
+  border: solid 1px gainsboro;
+  transition: background-color 0.4s;
+}
+
+.entryPointItem button:hover {
+  background-color: gainsboro;
 }
 
 .entryPointUri {
   font-weight: bold;
   word-wrap: break-word;
   overflow-wrap: break-word;
-}
-
-.entryPointDetails {
-  margin-left: 20px;
-  font-size: 0.9rem;
-  color: #444;
 }

@@ -348,7 +348,7 @@ const assetsComponent = props => {
       // Note that for the AssetFilter component, we always want that to be the original
       // full list of assets.  That's why we use project.assets for that component's
       // propery, and the assets state variable for the AssetTree.
-      assetDisplay = project.assets.error ? (
+      assetDisplay = project.assets?.error ? (
         <Error>{assets.errorMessage}</Error>
       ) : (
         <>
@@ -406,11 +406,13 @@ const assetsComponent = props => {
             />
           </div>
           <div className={styles.details}>{assetDetails}</div>
-          <ProjectEntryPoint
-            assets={assets}
-            rooturi={project.path}
-            onSelect={handleEntryPointSelect}
-          />
+          <div className={styles.entry}>
+            <ProjectEntryPoint
+              assets={assets}
+              rooturi={project.path}
+              onSelect={handleEntryPointSelect}
+            />
+          </div>
           <AssetGroupDialog
             key={dialogKey}
             open={editingGroup}

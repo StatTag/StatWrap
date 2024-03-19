@@ -2,10 +2,6 @@
   margin: 5px;
 }
 
-.filter {
-  width: 15%;
-}
-
 .tree {
   width: 50%;
   margin: 0;
@@ -20,6 +16,12 @@
   padding: 0;
   display: inline-block;
   vertical-align: top;
+}
+
+.entry {
+  width: 30%;
+  margin-left: 10px;
+  display: inline-block;
 }
 
 .toolbarButton {
