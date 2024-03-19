@@ -6,6 +6,7 @@ import AssetGroupDialog from '../../../containers/AssetGroupDialog/AssetGroupDia
 import Error from '../../Error/Error';
 import AssetTree from '../../AssetTree/AssetTree';
 import AssetDetails from '../../AssetDetails/AssetDetails';
+import ProjectEntryPoint from '../../ProjectEntryPoint/ProjectEntryPoint';
 import AssetFilter from '../../Filter/Filter';
 import EditableSelect from '../../EditableSelect/EditableSelect';
 import Loading from '../../Loading/Loading';
@@ -180,6 +181,29 @@ const assetsComponent = props => {
       }
       return newAssetGroup;
     });
+  };
+
+  const handleEntryPointSelect = (asset, expandedNodes) => {
+    let selAsset = asset;
+    if (selAsset && (selAsset.contentTypes === null || selAsset.contentTypes === undefined)) {
+      if (project && project.assets) {
+        selAsset = AssetUtil.findDescendantAssetByUri(project.assets, selAsset.uri);
+      }
+    }
+
+    setSelectedAsset(selAsset);
+    if (onSelectedAsset) {
+      onSelectedAsset(selAsset);
+    }
+
+    const expanded = treeRef.current.state.expandedNodes;
+    expandedNodes.map((a) => {
+      if (!expanded.includes(a)) {
+        expanded.push(a);
+      }
+      return null;
+    });
+    treeRef.current.setState({ expandedNodes: expanded });
   };
 
   /**
@@ -382,6 +406,11 @@ const assetsComponent = props => {
             />
           </div>
           <div className={styles.details}>{assetDetails}</div>
+          <ProjectEntryPoint
+            assets={assets}
+            rooturi={project.path}
+            onSelect={handleEntryPointSelect}
+          />
           <AssetGroupDialog
             key={dialogKey}
             open={editingGroup}

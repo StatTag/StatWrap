@@ -1,0 +1,34 @@
+/* ProjectEntryPoint.css */
+
+.container {
+  padding: 15px;
+  margin: 10px;
+  background-color: #eee;
+  border: solid 1px gray;
+  border-radius: 10px;
+  width: 40%;
+}
+
+.entryPointList {
+  padding: 0;
+}
+
+.entryPointItem {
+  margin-bottom: 15px;
+}
+
+.entryPointItem button {
+  margin-left: 10px;
+}
+
+.entryPointUri {
+  font-weight: bold;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.entryPointDetails {
+  margin-left: 20px;
+  font-size: 0.9rem;
+  color: #444;
+}
