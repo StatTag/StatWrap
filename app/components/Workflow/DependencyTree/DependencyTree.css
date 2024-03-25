@@ -8,3 +8,19 @@
   height: inherit !important;
   position: fixed;
 }
+
+.node__root > circle {
+  stroke-width: 9px;
+  stroke:maroon;
+  fill:pink;
+}
+
+.node__branch > circle {
+  fill:dodgerblue;
+}
+
+.node__leaf > circle {
+  stroke-width: 8px;
+  stroke:darkslategrey;
+  fill:rgb(174, 209, 174);
+}

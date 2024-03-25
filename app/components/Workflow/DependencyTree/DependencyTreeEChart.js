@@ -4,7 +4,7 @@ import WorkflowUtil from '../../../utils/workflow';
 import AssetUtil from '../../../utils/asset';
 import styles from './DependencyTree.css';
 
-const dependencyGraphEChart = props => {
+const dependencyGraphEChart = (props) => {
   const { assets } = props;
 
   const data = WorkflowUtil.getAllDependenciesAsTree(AssetUtil.filterIncludedFileAssets(assets));
@@ -13,7 +13,7 @@ const dependencyGraphEChart = props => {
     const option = {
       tooltip: {
         trigger: 'item',
-        triggerOn: 'mousemove'
+        triggerOn: 'mousemove',
       },
       series: [
         {
@@ -26,16 +26,16 @@ const dependencyGraphEChart = props => {
           initialTreeDepth: 2,
           label: {
             position: 'left',
-            align: 'right'
+            align: 'right',
           },
           leaves: {
             label: {
               position: 'right',
-              align: 'left'
-            }
-          }
-        }
-      ]
+              align: 'left',
+            },
+          },
+        },
+      ],
     };
     tree = <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />;
   }
