@@ -26,13 +26,13 @@ const StyledTreeNode = styled.div`
   flex-direction: row;
   align-items: center;
   padding: 5px 8px;
-  padding-left: ${props => getPaddingLeft(props.level)}px;
+  padding-left: ${props => getPaddingLeft(props.$level)}px;
   ${props => (props.selected ? 'background-color: #eee;' : null)}
 `;
 
 const NodeIcon = styled.div`
   font-size: 12px;
-  margin-right: ${props => (props.marginRight ? props.marginRight : 5)}px;
+  margin-right: ${props => (props.$marginright ? props.$marginright : 5)}px;
 `;
 
 const StyledInput = styled.input`
@@ -79,7 +79,7 @@ const AssetNode = props => {
   return (
     <>
       <StyledTreeNode
-        level={level}
+        $level={level}
         type={node.type}
         selected={node && selectedAsset && node.uri === selectedAsset.uri}
         onContextMenu={e => {
@@ -99,7 +99,7 @@ const AssetNode = props => {
             (isOpen ? <FaChevronDown /> : <FaChevronRight />)}
         </NodeIcon>
         {checkbox}
-        <NodeIcon marginRight={10}>
+        <NodeIcon $marginright={10}>
           {node.type === Constants.AssetType.FILE && <FaFile />}
           {node.type === Constants.AssetType.DIRECTORY && isOpen === true && <FaFolderOpen />}
           {node.type === Constants.AssetType.DIRECTORY && !isOpen && <FaFolder />}
