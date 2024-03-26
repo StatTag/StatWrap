@@ -7,8 +7,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Draggable from 'react-draggable';
-import { Dialog, DialogActions, DialogTitle, Button, Paper, TextField } from '@mui/material';
-import Autocomplete from '@mui/lab/Autocomplete';
+import { Autocomplete, Dialog, DialogActions, DialogTitle, Button, Paper, TextField } from '@mui/material';
 import { ipcRenderer } from 'electron';
 import Messages from '../../constants/messages';
 import GeneralUtil from '../../utils/general';
