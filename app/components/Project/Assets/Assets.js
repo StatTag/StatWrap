@@ -61,7 +61,7 @@ function resetFilter(project) {
   return project && project.assets ? ProjectUtil.getAssetFilters(project.assets) : [];
 }
 
-const assetsComponent = props => {
+const assetsComponent = (props) => {
   const {
     project,
     onAddedAssetNote,
@@ -152,7 +152,7 @@ const assetsComponent = props => {
     setEditingGroup(false);
   };
 
-  const handleSavedAssetGroup = group => {
+  const handleSavedAssetGroup = (group) => {
     if (group.id === null || group.id === undefined) {
       if (onAddedAssetGroup) {
         onAddedAssetGroup(group);
@@ -166,9 +166,9 @@ const assetsComponent = props => {
   // When the user selects a checkbox next to an asset - initially used just for building
   // asset groups, but consider if it could be more broadly repurposed.
   const handleCheckAsset = (asset, value) => {
-    setGroupedAssets(prevState => {
+    setGroupedAssets((prevState) => {
       const newAssetGroup = prevState ? [...prevState] : [];
-      const index = newAssetGroup.findIndex(x => x.uri === asset.uri);
+      const index = newAssetGroup.findIndex((x) => x.uri === asset.uri);
       // We only need to consider adding and removing - there are other branches of logic
       // that are essentialy noops.
       if (index === -1 && value) {
@@ -212,7 +212,7 @@ const assetsComponent = props => {
    * filtering available, but are keeping it simple for now.
    * @param {object} group The selected asset group (null if nothing is selected)
    */
-  const handleSelectAssetGroup = group => {
+  const handleSelectAssetGroup = (group) => {
     if (group === null) {
       setCurrentAssetGroup(null);
       setGroupedAssets(null);
@@ -227,7 +227,7 @@ const assetsComponent = props => {
       const groupAssets = {
         uri: clonedGroup.name,
         type: constants.AssetType.ASSET_GROUP,
-        children: clonedGroup.assets
+        children: clonedGroup.assets,
       };
 
       // Make sure we merge in the notes and attributes.  We don't store those for the
@@ -250,7 +250,7 @@ const assetsComponent = props => {
    *  4. The mode needs to be set to 'paperclip'
    * @param {object} group The group that is being edited
    */
-  const handleEditAssetGroup = group => {
+  const handleEditAssetGroup = (group) => {
     const clonedGroup = cloneDeep(group);
     setAssets(filterProjectAssets(project, filter));
     setCurrentAssetGroup(clonedGroup);
@@ -268,7 +268,7 @@ const assetsComponent = props => {
     handleSelectAssetGroup(currentAssetGroup);
   };
 
-  const handleDeleteAssetGroup = group => {
+  const handleDeleteAssetGroup = (group) => {
     // If we just deleted the selected asset group, clear the selection
     if (currentAssetGroup && currentAssetGroup.id === group.id) {
       setCurrentAssetGroup(null);
@@ -279,7 +279,7 @@ const assetsComponent = props => {
     }
   };
 
-  const handlSelectAsset = selAsset => {
+  const handlSelectAsset = (selAsset) => {
     let asset = selAsset;
     // When we are showing an asset group, the actual asset objects aren't the complete picture.
     // The extra logic we use here is to enrich the selected asset, if it's missing some key
@@ -405,8 +405,8 @@ const assetsComponent = props => {
               selectedAsset={selectedAsset}
             />
           </div>
-          <div className={styles.details}>{assetDetails}</div>
-          <div className={styles.entry}>
+          <div className={styles.details}>
+            {assetDetails}
             <ProjectEntryPoint
               assets={assets}
               rooturi={project.path}

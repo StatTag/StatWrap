@@ -18,12 +18,6 @@
   vertical-align: top;
 }
 
-.entry {
-  width: 30%;
-  margin-left: 10px;
-  display: inline-block;
-}
-
 .toolbarButton {
   font-size: 0.8rem !important;
 }
