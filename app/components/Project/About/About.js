@@ -37,6 +37,7 @@ const about = props => {
     props.project.categories ? props.project.categories : []
   );
   const [notes, setNotes] = useState(props.project.notes ? props.project.notes : []);
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
 
   // Derive updated state from props
   React.useEffect(() => {
@@ -86,6 +87,7 @@ const about = props => {
   const handleButtonToggled = () => {
     const currentStatus = editing;
     setEditing(!currentStatus);
+    setUnsavedChanges(false);
 
     // If we're back to view mode, trigger a save of the data
     if (currentStatus) {
@@ -106,7 +108,37 @@ const about = props => {
       props.onAddedNote(props.project, text);
     }
   };
+  const handleCancel = () => {
+    if (unsavedChanges) {
+      const confirmCancel = dialog.showMessageBoxSync({
+        type: 'question',
+        buttons: ['Yes', 'No'],
+        title: 'Confirm Cancel',
+        message: 'You have unsaved changes. Do you wish to discard those changes?'
+      });
 
+      if (confirmCancel === 1) {
+        return;
+      }
+    }
+
+    setDescriptionText(
+      props.project.description && props.project.description.uri
+        ? props.project.description.uriContent
+        : props.project.description && props.project.description.content
+        ? props.project.description.content
+        : ''
+    );
+    setDescriptionUri(
+      props.project.description && props.project.description.uri
+        ? props.project.description.uri
+        : ''
+    );
+    setCategories(props.project.categories ? props.project.categories : []);
+    setNotes(props.project.notes ? props.project.notes : []);
+    setEditing(false);
+    setUnsavedChanges(false);
+  };
   const deleteNoteHandler = note => {
     if (props.onDeletedNote) {
       props.onDeletedNote(props.project, note);
@@ -204,6 +236,17 @@ const about = props => {
       >
         {buttonLabel}
       </Button>
+      {editing && (
+        <Button
+          className={styles.button}
+          variant="outlined"
+          color="secondary"
+          size="small"
+          onClick={handleCancel}
+        >
+          Cancel
+        </Button>
+      )}
       {view}
     </div>
   );
