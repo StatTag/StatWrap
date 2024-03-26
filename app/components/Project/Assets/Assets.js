@@ -407,6 +407,7 @@ const assetsComponent = (props) => {
           </div>
           <div className={styles.details}>
             {assetDetails}
+            <div className={styles.title}>{project.path}</div>
             <ProjectEntryPoint
               assets={assets}
               rooturi={project.path}
