@@ -20,13 +20,13 @@ describe('services', () => {
         const metadata = [
           {
             id: 'Test.Id',
-            value: true
+            value: true,
           },
           null,
           {
             id: 'Other.Id',
-            value: false
-          }
+            value: false,
+          },
         ];
         expect(AssetUtil.getHandlerMetadata('Test.Id', metadata)).not.toBeNull();
         expect(AssetUtil.getHandlerMetadata('INVALID', metadata)).toBeNull();
@@ -69,9 +69,9 @@ describe('services', () => {
           metadata: [
             {
               id: 'StatWrap.FileHandler',
-              include: false
-            }
-          ]
+              include: false,
+            },
+          ],
         };
         expect(AssetUtil.filterIncludedFileAssets(asset)).toBeNull();
       });
@@ -82,9 +82,9 @@ describe('services', () => {
           metadata: [
             {
               id: 'StatWrap.FileHandler',
-              include: true
-            }
-          ]
+              include: true,
+            },
+          ],
         };
         expect(AssetUtil.filterIncludedFileAssets(asset)).not.toBeNull();
 
@@ -104,8 +104,8 @@ describe('services', () => {
           metadata: [
             {
               id: 'StatWrap.FileHandler',
-              include: true
-            }
+              include: true,
+            },
           ],
           children: [
             {
@@ -113,20 +113,20 @@ describe('services', () => {
               metadata: [
                 {
                   id: 'StatWrap.FileHandler',
-                  include: false
-                }
-              ]
+                  include: false,
+                },
+              ],
             },
             {
               uri: '/Test/Asset/Child2',
               metadata: [
                 {
                   id: 'StatWrap.FileHandler',
-                  include: false
-                }
-              ]
-            }
-          ]
+                  include: false,
+                },
+              ],
+            },
+          ],
         };
         expect(AssetUtil.filterIncludedFileAssets(asset).children.length).toEqual(0);
       });
@@ -137,8 +137,8 @@ describe('services', () => {
           metadata: [
             {
               id: 'StatWrap.FileHandler',
-              include: true
-            }
+              include: true,
+            },
           ],
           children: [
             {
@@ -146,29 +146,29 @@ describe('services', () => {
               metadata: [
                 {
                   id: 'StatWrap.FileHandler',
-                  include: true
-                }
-              ]
+                  include: true,
+                },
+              ],
             },
             {
               uri: '/Test/Asset/Child2',
               metadata: [
                 {
                   id: 'StatWrap.FileHandler',
-                  include: false
-                }
-              ]
+                  include: false,
+                },
+              ],
             },
             {
               uri: '/Test/Asset/Child3',
               metadata: [
                 {
                   id: 'StatWrap.FileHandler',
-                  include: true
-                }
-              ]
-            }
-          ]
+                  include: true,
+                },
+              ],
+            },
+          ],
         };
         const filteredAsset = AssetUtil.filterIncludedFileAssets(asset);
         expect(filteredAsset.children.length).toEqual(2);
@@ -182,8 +182,8 @@ describe('services', () => {
           metadata: [
             {
               id: 'StatWrap.FileHandler',
-              include: true
-            }
+              include: true,
+            },
           ],
           children: [
             {
@@ -191,17 +191,17 @@ describe('services', () => {
               metadata: [
                 {
                   id: 'StatWrap.FileHandler',
-                  include: false
-                }
-              ]
+                  include: false,
+                },
+              ],
             },
             {
               uri: '/Test/Asset/Child2',
               metadata: [
                 {
                   id: 'StatWrap.FileHandler',
-                  include: false
-                }
+                  include: false,
+                },
               ],
               children: [
                 {
@@ -209,19 +209,19 @@ describe('services', () => {
                   metadata: [
                     {
                       id: 'StatWrap.FileHandler',
-                      include: true // Even though this is include, the parent is hidden
-                    }
-                  ]
-                }
-              ]
+                      include: true, // Even though this is include, the parent is hidden
+                    },
+                  ],
+                },
+              ],
             },
             {
               uri: '/Test/Asset/Child3',
               metadata: [
                 {
                   id: 'StatWrap.FileHandler',
-                  include: true
-                }
+                  include: true,
+                },
               ],
               children: [
                 {
@@ -229,22 +229,22 @@ describe('services', () => {
                   metadata: [
                     {
                       id: 'StatWrap.FileHandler',
-                      include: false
-                    }
-                  ]
+                      include: false,
+                    },
+                  ],
                 },
                 {
                   uri: '/Test/Asset/Child3/Child2',
                   metadata: [
                     {
                       id: 'StatWrap.FileHandler',
-                      include: true
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                      include: true,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         };
         const filteredAsset = AssetUtil.filterIncludedFileAssets(asset);
         expect(filteredAsset.children.length).toEqual(1);
@@ -253,7 +253,7 @@ describe('services', () => {
         // This is what's testing that we didn't modify the original object.  If
         // we had modified it, this access of the descendant would fail.
         expect(filteredAsset.children[0].children[0].uri).toEqual(
-          asset.children[2].children[1].uri
+          asset.children[2].children[1].uri,
         );
       });
     });
@@ -278,7 +278,7 @@ describe('services', () => {
       it('should should return null if there is no matching child', () => {
         expect(AssetUtil.findChildAssetByUri({ children: [] }, '/Test')).toBeNull();
         expect(
-          AssetUtil.findChildAssetByUri({ children: [{ uri: '/Test2' }] }, '/Test')
+          AssetUtil.findChildAssetByUri({ children: [{ uri: '/Test2' }] }, '/Test'),
         ).toBeNull();
         // We expect case to match exactly for URI
         expect(AssetUtil.findChildAssetByUri({ children: [{ uri: '/TeST' }] }, '/Test')).toBeNull();
@@ -289,8 +289,8 @@ describe('services', () => {
           children: [
             { uri: '/Test1', test: 1 },
             { uri: '/Test2', test: 2 },
-            { uri: '/Test3', test: 3 }
-          ]
+            { uri: '/Test3', test: 3 },
+          ],
         };
         expect(AssetUtil.findChildAssetByUri(asset, '/Test1').test).toBe(1);
         expect(AssetUtil.findChildAssetByUri(asset, '/Test2').test).toBe(2);
@@ -322,11 +322,11 @@ describe('services', () => {
       it('should should return null if there is no matching descendant', () => {
         expect(AssetUtil.findDescendantAssetByUri({ children: [] }, '/Test')).toBeNull();
         expect(
-          AssetUtil.findDescendantAssetByUri({ children: [{ uri: '/Test2' }] }, '/Test')
+          AssetUtil.findDescendantAssetByUri({ children: [{ uri: '/Test2' }] }, '/Test'),
         ).toBeNull();
         // We expect case to match exactly for URI
         expect(
-          AssetUtil.findDescendantAssetByUri({ children: [{ uri: '/TeST' }] }, '/Test')
+          AssetUtil.findDescendantAssetByUri({ children: [{ uri: '/TeST' }] }, '/Test'),
         ).toBeNull();
       });
 
@@ -338,8 +338,8 @@ describe('services', () => {
               test: 1,
               children: [
                 { uri: '/Test1/a', test: 4 },
-                { uri: '/Test1/b', test: 5 }
-              ]
+                { uri: '/Test1/b', test: 5 },
+              ],
             },
             { uri: '/Test2', test: 2 },
             {
@@ -347,10 +347,10 @@ describe('services', () => {
               test: 3,
               children: [
                 { uri: '/Test3/a', test: 6 },
-                { uri: '/Test3/b', test: 7 }
-              ]
-            }
-          ]
+                { uri: '/Test3/b', test: 7 },
+              ],
+            },
+          ],
         };
         expect(AssetUtil.findDescendantAssetByUri(asset, '/Test1').test).toBe(1);
         expect(AssetUtil.findDescendantAssetByUri(asset, '/Test2').test).toBe(2);
@@ -362,6 +362,37 @@ describe('services', () => {
       });
     });
 
+    describe('findAllDescendantAssetsByUri', () => {
+      it('should return an empty array if the asset URI is not specified', () => {
+        expect(AssetUtil.findAllDescendantAssetsByUri(null, '/Test')).toBeArrayOfSize(0);
+        expect(AssetUtil.findAllDescendantAssetsByUri(undefined, '/Test')).toBeArrayOfSize(0);
+      });
+      it('should return an empty array if the root URI is not specified', () => {
+        expect(AssetUtil.findAllDescendantAssetsByUri('/Test', null)).toBeArrayOfSize(0);
+        expect(AssetUtil.findAllDescendantAssetsByUri('/Test', undefined)).toBeArrayOfSize(0);
+      });
+      it('should return an empty array if the asset URI and root URI are the same', () => {
+        expect(
+          AssetUtil.findAllDescendantAssetsByUri('/Test/Child', '/Test/Child'),
+        ).toBeArrayOfSize(0);
+      });
+      it('should return an empty array if the asset URI is not a descendant of the root URI', () => {
+        expect(AssetUtil.findAllDescendantAssetsByUri('/Test', '/Other')).toBeArrayOfSize(0);
+      });
+      it('should return an array containing all descendant URIs up to the root URI', () => {
+        expect(AssetUtil.findAllDescendantAssetsByUri('/Test/Child1/Child2', '/Test')).toEqual([
+          '/Test/Child1',
+          '/Test',
+        ]);
+      });
+      it('should return an empty array if the asset URI is a filename', () => {
+        expect(AssetUtil.findAllDescendantAssetsByUri('/Test', '/')).toBeArrayOfSize(0);
+      });
+      it('should return an empty array if the asset URI contains root URI but not as a prefix', () => {
+        expect(AssetUtil.findAllDescendantAssetsByUri('/Test/Rt/Child', '/Rt')).toBeArrayOfSize(0);
+      });
+    });
+
     describe('getAllNotes', () => {
       it('should return an empty array if the asset is not specified', () => {
         expect(AssetUtil.getAllNotes(null)).toBeArrayOfSize(0);
@@ -370,7 +401,7 @@ describe('services', () => {
 
       it('should should return an empty array when there are no notes', () => {
         const asset = {
-          children: []
+          children: [],
         };
         expect(AssetUtil.getAllNotes(asset)).toBeArrayOfSize(0);
       });
@@ -384,9 +415,9 @@ describe('services', () => {
               author: 'test',
               updated: '2021-01-01',
               content: 'Test note',
-              uri: '/testt/1'
-            }
-          ]
+              uri: '/testt/1',
+            },
+          ],
         };
         expect(AssetUtil.getAllNotes(asset)).toBeArrayOfSize(1);
       });
@@ -399,8 +430,8 @@ describe('services', () => {
               id: '1',
               author: 'test',
               updated: '2021-01-01',
-              content: 'Test note 1'
-            }
+              content: 'Test note 1',
+            },
           ],
           children: [
             {
@@ -410,8 +441,8 @@ describe('services', () => {
                   id: '2',
                   author: 'test',
                   updated: '2021-01-01',
-                  content: 'Test note 2'
-                }
+                  content: 'Test note 2',
+                },
               ],
               children: [
                 {
@@ -421,11 +452,11 @@ describe('services', () => {
                       id: '3',
                       author: 'test',
                       updated: '2021-01-01',
-                      content: 'Test note 3'
-                    }
-                  ]
-                }
-              ]
+                      content: 'Test note 3',
+                    },
+                  ],
+                },
+              ],
             },
             {
               uri: '/test/1/2',
@@ -434,18 +465,18 @@ describe('services', () => {
                   id: '4',
                   author: 'test',
                   updated: '2021-01-01',
-                  content: 'Test note 4'
+                  content: 'Test note 4',
                 },
                 {
                   id: '5',
                   author: 'test',
                   updated: '2021-01-01',
-                  content: 'Test note 5'
-                }
+                  content: 'Test note 5',
+                },
               ],
-              children: []
-            }
-          ]
+              children: [],
+            },
+          ],
         };
         expect(AssetUtil.getAllNotes(asset)).toBeArrayOfSize(5);
       });
@@ -471,20 +502,20 @@ describe('services', () => {
         'should return the name and extension for an object containing a uri attribute',
         () => {
           expect(AssetUtil.getAssetNameFromUri({ uri: 'C:\\Test\\Path\\file.test' })).toEqual(
-            'file.test'
+            'file.test',
           );
           expect(AssetUtil.getAssetNameFromUri({ uri: 'file.test' })).toEqual('file.test');
-        }
+        },
       );
 
       it.onMac(
         'should return the name and extension for an object containing a uri attribute',
         () => {
           expect(AssetUtil.getAssetNameFromUri({ uri: '/Test/Path/file.test' })).toEqual(
-            'file.test'
+            'file.test',
           );
           expect(AssetUtil.getAssetNameFromUri({ uri: 'file.test' })).toEqual('file.test');
-        }
+        },
       );
 
       it('should return an empty string for an object without a uri attribute', () => {
@@ -510,11 +541,11 @@ describe('services', () => {
       });
       it.onWindows('should return the root path if the uri is empty', () => {
         expect(AssetUtil.relativeToAbsolutePath('C:\\root\\path', { uri: '' })).toBe(
-          'C:\\root\\path'
+          'C:\\root\\path',
         );
         // Trailing spaces are preserved on macOS
         expect(AssetUtil.relativeToAbsolutePath('C:\\root\\path', { uri: '  ' })).toBe(
-          'C:\\root\\path\\  '
+          'C:\\root\\path\\  ',
         );
       });
 
@@ -524,7 +555,7 @@ describe('services', () => {
         expect(AssetUtil.relativeToAbsolutePath('/root/path', { uri: 'a' })).toBe('/root/path/a');
         expect(AssetUtil.relativeToAbsolutePath('/root/path', { uri: './a' })).toBe('/root/path/a');
         expect(AssetUtil.relativeToAbsolutePath('/root/path', { uri: 'a/b/c/d' })).toBe(
-          '/root/path/a/b/c/d'
+          '/root/path/a/b/c/d',
         );
         // TODO: Need an assessment if this is a security risk and if we should restrict how we navigate
         // beyond the project root
@@ -533,21 +564,21 @@ describe('services', () => {
       });
       it.onWindows('should resolve the absolute path', () => {
         expect(AssetUtil.relativeToAbsolutePath('C:\\root\\path', { uri: 'a' })).toBe(
-          'C:\\root\\path\\a'
+          'C:\\root\\path\\a',
         );
         expect(AssetUtil.relativeToAbsolutePath('C:\\root\\path', { uri: './a' })).toBe(
-          'C:\\root\\path\\a'
+          'C:\\root\\path\\a',
         );
         expect(AssetUtil.relativeToAbsolutePath('C:\\root\\path', { uri: 'a/b/c/d' })).toBe(
-          'C:\\root\\path\\a\\b\\c\\d'
+          'C:\\root\\path\\a\\b\\c\\d',
         );
         // TODO: Need an assessment if this is a security risk and if we should restrict how we navigate
         // beyond the project root
         expect(AssetUtil.relativeToAbsolutePath('C:\\root\\path', { uri: '..\\a' })).toBe(
-          'C:\\root\\a'
+          'C:\\root\\a',
         );
         expect(AssetUtil.relativeToAbsolutePath('C:\\root\\path', { uri: 'a\\..' })).toBe(
-          'C:\\root\\path'
+          'C:\\root\\path',
         );
       });
     });
@@ -560,7 +591,7 @@ describe('services', () => {
 
       it('should return the asset object if the project path is not provided', () => {
         const assets = {
-          uri: '/tmp/root'
+          uri: '/tmp/root',
         };
         expect(AssetUtil.recursiveRelativeToAbsolutePath(null, assets)).toBe(assets);
         expect(AssetUtil.recursiveRelativeToAbsolutePath(undefined, assets)).toBe(assets);
@@ -577,15 +608,15 @@ describe('services', () => {
               children: [
                 {
                   uri: 'a/b',
-                  type: 'file'
-                }
-              ]
+                  type: 'file',
+                },
+              ],
             },
             {
               uri: 'b',
-              type: 'file'
-            }
-          ]
+              type: 'file',
+            },
+          ],
         };
         // This is the answer we expect
         const absolutePathAssets = {
@@ -598,18 +629,18 @@ describe('services', () => {
               children: [
                 {
                   uri: '/root/path/a/b',
-                  type: 'file'
-                }
-              ]
+                  type: 'file',
+                },
+              ],
             },
             {
               uri: '/root/path/b',
-              type: 'file'
-            }
-          ]
+              type: 'file',
+            },
+          ],
         };
         expect(AssetUtil.recursiveRelativeToAbsolutePath('/root/path', assets)).toStrictEqual(
-          absolutePathAssets
+          absolutePathAssets,
         );
       });
 
@@ -624,15 +655,15 @@ describe('services', () => {
               children: [
                 {
                   uri: 'a/b',
-                  type: 'file'
-                }
-              ]
+                  type: 'file',
+                },
+              ],
             },
             {
               uri: 'b',
-              type: 'file'
-            }
-          ]
+              type: 'file',
+            },
+          ],
         };
         // This is the answer we expect
         const absolutePathAssets = {
@@ -645,18 +676,18 @@ describe('services', () => {
               children: [
                 {
                   uri: 'C:\\root\\path\\a\\b',
-                  type: 'file'
-                }
-              ]
+                  type: 'file',
+                },
+              ],
             },
             {
               uri: 'C:\\root\\path\\b',
-              type: 'file'
-            }
-          ]
+              type: 'file',
+            },
+          ],
         };
         expect(AssetUtil.recursiveRelativeToAbsolutePath('C:\\root\\path', assets)).toStrictEqual(
-          absolutePathAssets
+          absolutePathAssets,
         );
       });
 
@@ -671,19 +702,19 @@ describe('services', () => {
               children: [
                 {
                   uri: 'https://api/a/b',
-                  type: 'api'
-                }
-              ]
+                  type: 'api',
+                },
+              ],
             },
             {
               uri: 'README.md',
-              type: 'file'
+              type: 'file',
             },
             {
               uri: 'b',
-              type: 'database'
-            }
-          ]
+              type: 'database',
+            },
+          ],
         };
         // This is the answer we expect
         const absolutePathAssets = {
@@ -696,22 +727,22 @@ describe('services', () => {
               children: [
                 {
                   uri: 'https://api/a/b',
-                  type: 'api'
-                }
-              ]
+                  type: 'api',
+                },
+              ],
             },
             {
               uri: '/root/path/README.md',
-              type: 'file'
+              type: 'file',
             },
             {
               uri: 'b',
-              type: 'database'
-            }
-          ]
+              type: 'database',
+            },
+          ],
         };
         expect(AssetUtil.recursiveRelativeToAbsolutePath('/root/path', assets)).toStrictEqual(
-          absolutePathAssets
+          absolutePathAssets,
         );
       });
 
@@ -726,19 +757,19 @@ describe('services', () => {
               children: [
                 {
                   uri: 'https://api/a/b',
-                  type: 'api'
-                }
-              ]
+                  type: 'api',
+                },
+              ],
             },
             {
               uri: 'README.md',
-              type: 'file'
+              type: 'file',
             },
             {
               uri: 'b',
-              type: 'database'
-            }
-          ]
+              type: 'database',
+            },
+          ],
         };
         // This is the answer we expect
         const absolutePathAssets = {
@@ -751,22 +782,22 @@ describe('services', () => {
               children: [
                 {
                   uri: 'https://api/a/b',
-                  type: 'api'
-                }
-              ]
+                  type: 'api',
+                },
+              ],
             },
             {
               uri: 'C:\\root\\path\\README.md',
-              type: 'file'
+              type: 'file',
             },
             {
               uri: 'b',
-              type: 'database'
-            }
-          ]
+              type: 'database',
+            },
+          ],
         };
         expect(AssetUtil.recursiveRelativeToAbsolutePath('C:\\root\\path', assets)).toStrictEqual(
-          absolutePathAssets
+          absolutePathAssets,
         );
       });
     });
@@ -793,7 +824,7 @@ describe('services', () => {
       it.onMac('should resolve the absolute path', () => {
         expect(AssetUtil.absoluteToRelativePath('/root/path', { uri: '/root/path/a' })).toBe('a');
         expect(AssetUtil.absoluteToRelativePath('/root/path', { uri: '/root/path/a/b/c/d' })).toBe(
-          'a/b/c/d'
+          'a/b/c/d',
         );
         // TODO: Need an assessment if this is a security risk and if we should restrict how we navigate
         // beyond the project root
@@ -801,15 +832,15 @@ describe('services', () => {
       });
       it.onWindows('should resolve the absolute path', () => {
         expect(
-          AssetUtil.absoluteToRelativePath('C:\\root\\path', { uri: 'C:\\root\\path\\a' })
+          AssetUtil.absoluteToRelativePath('C:\\root\\path', { uri: 'C:\\root\\path\\a' }),
         ).toBe('a');
         expect(
-          AssetUtil.absoluteToRelativePath('C:\\root\\path', { uri: 'C:\\root\\path\\a\\b\\c\\d' })
+          AssetUtil.absoluteToRelativePath('C:\\root\\path', { uri: 'C:\\root\\path\\a\\b\\c\\d' }),
         ).toBe('a/b/c/d');
         // TODO: Need an assessment if this is a security risk and if we should restrict how we navigate
         // beyond the project root
         expect(AssetUtil.absoluteToRelativePath('C:\\root\\path', { uri: 'C:\\root\\a' })).toBe(
-          '../a'
+          '../a',
         );
       });
     });
@@ -822,7 +853,7 @@ describe('services', () => {
 
       it('should return the asset object if the project path is not provided', () => {
         const assets = {
-          uri: '/tmp/root'
+          uri: '/tmp/root',
         };
         expect(AssetUtil.recursiveAbsoluteToRelativePath(null, assets)).toBe(assets);
         expect(AssetUtil.recursiveAbsoluteToRelativePath(undefined, assets)).toBe(assets);
@@ -839,15 +870,15 @@ describe('services', () => {
               children: [
                 {
                   uri: 'a/b',
-                  type: 'file'
-                }
-              ]
+                  type: 'file',
+                },
+              ],
             },
             {
               uri: 'b',
-              type: 'file'
-            }
-          ]
+              type: 'file',
+            },
+          ],
         };
         // This is the answer we expect
         const absolutePathAssets = {
@@ -860,18 +891,18 @@ describe('services', () => {
               children: [
                 {
                   uri: '/root/path/a/b',
-                  type: 'file'
-                }
-              ]
+                  type: 'file',
+                },
+              ],
             },
             {
               uri: '/root/path/b',
-              type: 'file'
-            }
-          ]
+              type: 'file',
+            },
+          ],
         };
         expect(
-          AssetUtil.recursiveAbsoluteToRelativePath('/root/path', absolutePathAssets)
+          AssetUtil.recursiveAbsoluteToRelativePath('/root/path', absolutePathAssets),
         ).toStrictEqual(relativePathAssets);
       });
       it.onWindows('should make all absolute paths into relative paths', () => {
@@ -885,15 +916,15 @@ describe('services', () => {
               children: [
                 {
                   uri: 'a/b',
-                  type: 'file'
-                }
-              ]
+                  type: 'file',
+                },
+              ],
             },
             {
               uri: 'b',
-              type: 'file'
-            }
-          ]
+              type: 'file',
+            },
+          ],
         };
         // This is the answer we expect
         const absolutePathAssets = {
@@ -906,18 +937,18 @@ describe('services', () => {
               children: [
                 {
                   uri: 'C:\\root\\path\\a\\b',
-                  type: 'file'
-                }
-              ]
+                  type: 'file',
+                },
+              ],
             },
             {
               uri: 'C:\\root\\path\\b',
-              type: 'file'
-            }
-          ]
+              type: 'file',
+            },
+          ],
         };
         expect(
-          AssetUtil.recursiveAbsoluteToRelativePath('C:\\root\\path', absolutePathAssets)
+          AssetUtil.recursiveAbsoluteToRelativePath('C:\\root\\path', absolutePathAssets),
         ).toStrictEqual(relativePathAssets);
       });
 
@@ -932,19 +963,19 @@ describe('services', () => {
               children: [
                 {
                   uri: 'https://api/a/b',
-                  type: 'api'
-                }
-              ]
+                  type: 'api',
+                },
+              ],
             },
             {
               uri: 'README.md',
-              type: 'file'
+              type: 'file',
             },
             {
               uri: 'b',
-              type: 'database'
-            }
-          ]
+              type: 'database',
+            },
+          ],
         };
         // This is the answer we expect
         const absolutePathAssets = {
@@ -957,22 +988,22 @@ describe('services', () => {
               children: [
                 {
                   uri: 'https://api/a/b',
-                  type: 'api'
-                }
-              ]
+                  type: 'api',
+                },
+              ],
             },
             {
               uri: '/root/path/README.md',
-              type: 'file'
+              type: 'file',
             },
             {
               uri: 'b',
-              type: 'database'
-            }
-          ]
+              type: 'database',
+            },
+          ],
         };
         expect(
-          AssetUtil.recursiveAbsoluteToRelativePath('/root/path', absolutePathAssets)
+          AssetUtil.recursiveAbsoluteToRelativePath('/root/path', absolutePathAssets),
         ).toStrictEqual(relativePathAssets);
       });
       it.onWindows('should not modify non-file and non-directory entries', () => {
@@ -986,19 +1017,19 @@ describe('services', () => {
               children: [
                 {
                   uri: 'https://api/a/b',
-                  type: 'api'
-                }
-              ]
+                  type: 'api',
+                },
+              ],
             },
             {
               uri: 'README.md',
-              type: 'file'
+              type: 'file',
             },
             {
               uri: 'b',
-              type: 'database'
-            }
-          ]
+              type: 'database',
+            },
+          ],
         };
         // This is the answer we expect
         const absolutePathAssets = {
@@ -1011,22 +1042,22 @@ describe('services', () => {
               children: [
                 {
                   uri: 'https://api/a/b',
-                  type: 'api'
-                }
-              ]
+                  type: 'api',
+                },
+              ],
             },
             {
               uri: 'C:\\root\\path\\README.md',
-              type: 'file'
+              type: 'file',
             },
             {
               uri: 'b',
-              type: 'database'
-            }
-          ]
+              type: 'database',
+            },
+          ],
         };
         expect(
-          AssetUtil.recursiveAbsoluteToRelativePath('C:\\root\\path', absolutePathAssets)
+          AssetUtil.recursiveAbsoluteToRelativePath('C:\\root\\path', absolutePathAssets),
         ).toStrictEqual(relativePathAssets);
       });
     });
@@ -1041,136 +1072,136 @@ describe('services', () => {
         const absolutePathAssets = [
           {
             uri: '/root/path',
-            type: 'directory'
+            type: 'directory',
           },
           {
             uri: 'https://api/a/b',
-            type: 'api'
+            type: 'api',
           },
           {
             uri: 'b',
-            type: 'database'
-          }
+            type: 'database',
+          },
         ];
         // This is the answer we expect
         const relativePathAssets = [
           {
             uri: '',
-            type: 'directory'
+            type: 'directory',
           },
           {
             uri: 'https://api/a/b',
-            type: 'api'
+            type: 'api',
           },
           {
             uri: 'b',
-            type: 'database'
-          }
+            type: 'database',
+          },
         ];
         expect(
-          AssetUtil.absoluteToRelativePathForArray('/root/path', absolutePathAssets)
+          AssetUtil.absoluteToRelativePathForArray('/root/path', absolutePathAssets),
         ).toStrictEqual(relativePathAssets);
       });
       it.onWindows('should not modify non-file and non-directory entries', () => {
         const absolutePathAssets = [
           {
             uri: 'C:\\root\\path',
-            type: 'directory'
+            type: 'directory',
           },
           {
             uri: 'https://api/a/b',
-            type: 'api'
+            type: 'api',
           },
           {
             uri: 'b',
-            type: 'database'
-          }
+            type: 'database',
+          },
         ];
         // This is the answer we expect
         const relativePathAssets = [
           {
             uri: '',
-            type: 'directory'
+            type: 'directory',
           },
           {
             uri: 'https://api/a/b',
-            type: 'api'
+            type: 'api',
           },
           {
             uri: 'b',
-            type: 'database'
-          }
+            type: 'database',
+          },
         ];
         expect(
-          AssetUtil.absoluteToRelativePathForArray('C:\\root\\path', absolutePathAssets)
+          AssetUtil.absoluteToRelativePathForArray('C:\\root\\path', absolutePathAssets),
         ).toStrictEqual(relativePathAssets);
       });
       it.onMac('should modify file and directory entries', () => {
         const absolutePathAssets = [
           {
             uri: '/root/path',
-            type: Constants.AssetType.DIRECTORY
+            type: Constants.AssetType.DIRECTORY,
           },
           {
             uri: '/root/path/folder',
-            type: Constants.AssetType.FOLDER // Testing the alias for directory
+            type: Constants.AssetType.FOLDER, // Testing the alias for directory
           },
           {
             uri: '/root/path/folder/file',
-            type: Constants.AssetType.FILE
-          }
+            type: Constants.AssetType.FILE,
+          },
         ];
         // This is the answer we expect
         const relativePathAssets = [
           {
             uri: '',
-            type: Constants.AssetType.DIRECTORY
+            type: Constants.AssetType.DIRECTORY,
           },
           {
             uri: 'folder',
-            type: Constants.AssetType.FOLDER
+            type: Constants.AssetType.FOLDER,
           },
           {
             uri: 'folder/file',
-            type: Constants.AssetType.FILE
-          }
+            type: Constants.AssetType.FILE,
+          },
         ];
         expect(
-          AssetUtil.absoluteToRelativePathForArray('/root/path', absolutePathAssets)
+          AssetUtil.absoluteToRelativePathForArray('/root/path', absolutePathAssets),
         ).toStrictEqual(relativePathAssets);
       });
       it.onWindows('should modify file and directory entries', () => {
         const absolutePathAssets = [
           {
             uri: 'C:\\root\\path',
-            type: Constants.AssetType.DIRECTORY
+            type: Constants.AssetType.DIRECTORY,
           },
           {
             uri: 'C:\\root\\path\\folder',
-            type: Constants.AssetType.FOLDER // Testing the alias for directory
+            type: Constants.AssetType.FOLDER, // Testing the alias for directory
           },
           {
             uri: 'C:\\root\\path\\folder\\file',
-            type: Constants.AssetType.FILE
-          }
+            type: Constants.AssetType.FILE,
+          },
         ];
         // This is the answer we expect
         const relativePathAssets = [
           {
             uri: '',
-            type: Constants.AssetType.DIRECTORY
+            type: Constants.AssetType.DIRECTORY,
           },
           {
             uri: 'folder',
-            type: Constants.AssetType.FOLDER
+            type: Constants.AssetType.FOLDER,
           },
           {
             uri: 'folder/file', // Note that we are normalizing to POSIX paths, so this is correct for Windows
-            type: Constants.AssetType.FILE
-          }
+            type: Constants.AssetType.FILE,
+          },
         ];
         expect(
-          AssetUtil.absoluteToRelativePathForArray('C:\\root\\path', absolutePathAssets)
+          AssetUtil.absoluteToRelativePathForArray('C:\\root\\path', absolutePathAssets),
         ).toStrictEqual(relativePathAssets);
       });
     });
@@ -1185,136 +1216,136 @@ describe('services', () => {
         const absolutePathAssets = [
           {
             uri: '/root/path',
-            type: 'directory'
+            type: 'directory',
           },
           {
             uri: 'https://api/a/b',
-            type: 'api'
+            type: 'api',
           },
           {
             uri: 'b',
-            type: 'database'
-          }
+            type: 'database',
+          },
         ];
         // This is the answer we expect
         const relativePathAssets = [
           {
             uri: '',
-            type: 'directory'
+            type: 'directory',
           },
           {
             uri: 'https://api/a/b',
-            type: 'api'
+            type: 'api',
           },
           {
             uri: 'b',
-            type: 'database'
-          }
+            type: 'database',
+          },
         ];
         expect(
-          AssetUtil.relativeToAbsolutePathForArray('/root/path', relativePathAssets)
+          AssetUtil.relativeToAbsolutePathForArray('/root/path', relativePathAssets),
         ).toStrictEqual(absolutePathAssets);
       });
       it.onWindows('should not modify non-file and non-directory entries', () => {
         const absolutePathAssets = [
           {
             uri: 'C:\\root\\path',
-            type: 'directory'
+            type: 'directory',
           },
           {
             uri: 'https://api/a/b',
-            type: 'api'
+            type: 'api',
           },
           {
             uri: 'b',
-            type: 'database'
-          }
+            type: 'database',
+          },
         ];
         // This is the answer we expect
         const relativePathAssets = [
           {
             uri: '',
-            type: 'directory'
+            type: 'directory',
           },
           {
             uri: 'https://api/a/b',
-            type: 'api'
+            type: 'api',
           },
           {
             uri: 'b',
-            type: 'database'
-          }
+            type: 'database',
+          },
         ];
         expect(
-          AssetUtil.relativeToAbsolutePathForArray('C:\\root\\path', relativePathAssets)
+          AssetUtil.relativeToAbsolutePathForArray('C:\\root\\path', relativePathAssets),
         ).toStrictEqual(absolutePathAssets);
       });
       it.onMac('should modify file and directory entries', () => {
         const absolutePathAssets = [
           {
             uri: '/root/path',
-            type: Constants.AssetType.DIRECTORY
+            type: Constants.AssetType.DIRECTORY,
           },
           {
             uri: '/root/path/folder',
-            type: Constants.AssetType.FOLDER // Testing the alias for directory
+            type: Constants.AssetType.FOLDER, // Testing the alias for directory
           },
           {
             uri: '/root/path/folder/file',
-            type: Constants.AssetType.FILE
-          }
+            type: Constants.AssetType.FILE,
+          },
         ];
         // This is the answer we expect
         const relativePathAssets = [
           {
             uri: '',
-            type: Constants.AssetType.DIRECTORY
+            type: Constants.AssetType.DIRECTORY,
           },
           {
             uri: 'folder',
-            type: Constants.AssetType.FOLDER
+            type: Constants.AssetType.FOLDER,
           },
           {
             uri: 'folder/file',
-            type: Constants.AssetType.FILE
-          }
+            type: Constants.AssetType.FILE,
+          },
         ];
         expect(
-          AssetUtil.relativeToAbsolutePathForArray('/root/path', relativePathAssets)
+          AssetUtil.relativeToAbsolutePathForArray('/root/path', relativePathAssets),
         ).toStrictEqual(absolutePathAssets);
       });
       it.onWindows('should modify file and directory entries', () => {
         const absolutePathAssets = [
           {
             uri: 'C:\\root\\path',
-            type: Constants.AssetType.DIRECTORY
+            type: Constants.AssetType.DIRECTORY,
           },
           {
             uri: 'C:\\root\\path\\folder',
-            type: Constants.AssetType.FOLDER // Testing the alias for directory
+            type: Constants.AssetType.FOLDER, // Testing the alias for directory
           },
           {
             uri: 'C:\\root\\path\\folder\\file',
-            type: Constants.AssetType.FILE
-          }
+            type: Constants.AssetType.FILE,
+          },
         ];
         // This is the answer we expect
         const relativePathAssets = [
           {
             uri: '',
-            type: Constants.AssetType.DIRECTORY
+            type: Constants.AssetType.DIRECTORY,
           },
           {
             uri: 'folder',
-            type: Constants.AssetType.FOLDER
+            type: Constants.AssetType.FOLDER,
           },
           {
             uri: 'folder\\file',
-            type: Constants.AssetType.FILE
-          }
+            type: Constants.AssetType.FILE,
+          },
         ];
         expect(
-          AssetUtil.relativeToAbsolutePathForArray('C:\\root\\path', relativePathAssets)
+          AssetUtil.relativeToAbsolutePathForArray('C:\\root\\path', relativePathAssets),
         ).toStrictEqual(absolutePathAssets);
       });
     });

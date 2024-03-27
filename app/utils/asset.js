@@ -118,18 +118,23 @@ export default class AssetUtil {
 
   static findAllDescendantAssetsByUri(assetUri, rootUri) {
     const descendantsList = [];
-    // just loop through the asset uri and break it apart at each '/' and add to the list till we get to the root uri
-    while (assetUri !== rootUri) {
-      const lastSlash = assetUri.lastIndexOf('/');
-      // If we can't find a slash, we can't go any further
-      if (lastSlash === -1) {
-        break;
+    // check if the asset uri has a descendant root uri in it
+    if (assetUri && rootUri && assetUri.includes(rootUri) && assetUri.indexOf(rootUri) === 0) {
+      // just loop through the asset uri and break it apart at each '/' and add to the list till we get to the root uri
+      while (assetUri !== rootUri && assetUri !== '') {
+        const lastSlash = assetUri.lastIndexOf('/');
+        // If we can't find a slash, we can't go any further
+        if (lastSlash === -1) {
+          break;
+        }
+        // Update the variable instead of modifying the function parameter directly
+        // eslint-disable-next-line no-param-reassign
+        assetUri = assetUri.substring(0, lastSlash);
+        // Add the asset uri to the list
+        if (assetUri) {
+          descendantsList.push(assetUri);
+        }
       }
-      // Update the variable instead of modifying the function parameter directly
-      // eslint-disable-next-line no-param-reassign
-      assetUri = assetUri.substring(0, lastSlash);
-      // Add the asset uri to the list
-      descendantsList.push(assetUri);
     }
 
     return descendantsList;
