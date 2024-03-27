@@ -4,6 +4,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileImport, faShareFromSquare } from '@fortawesome/free-solid-svg-icons';
 import styles from './ProjectEntryPoint.css';
+import AssetUtil from '../../utils/asset';
 
 function findEntryPoints(asset, entryPointsList) {
   if (asset.attributes && asset.attributes.entrypoint === true) {
@@ -16,25 +17,14 @@ function findEntryPoints(asset, entryPointsList) {
   }
 }
 
-function findAllDescendantAssetsByUri(asseturi, uri) {
-  const descendantsList = [];
-  // just loop through the asset uri and break it apart at each '/' and add to the list till we get to the end
-  while (asseturi !== uri) {
-    const lastSlash = asseturi.lastIndexOf('/');
-    if (lastSlash === -1) {
-      break;
-    }
-    asseturi = asseturi.substring(0, lastSlash); // Update the variable instead of modifying the function parameter directly
-    descendantsList.push(asseturi);
-  }
-  return descendantsList;
-}
-
 const projectEntryPoint = (props) => {
-  const { assets, rooturi, onSelect } = props;
+  const { assets, rootUri, onSelect } = props;
 
   const setSelectedAsset = (asset) => {
-    const assetDescendantsUri = findAllDescendantAssetsByUri(asset.uri, rooturi).reverse();
+    const assetDescendantsUri = AssetUtil.findAllDescendantAssetsByUri(
+      asset.uri,
+      rootUri,
+    ).reverse();
     if (onSelect) {
       onSelect(asset, assetDescendantsUri);
     }
@@ -62,9 +52,9 @@ const projectEntryPoint = (props) => {
             <ul className={styles.entryPointList} type="disc">
               {entryPointsList.map((asset) => {
                 const fileName = asset.uri.split('/').pop();
-                let folder = asset.uri.replace(`${rooturi}/`, '').split('/')[0];
+                let folder = asset.uri.replace(`${rootUri}/`, '').split('/')[0];
                 if (folder === fileName) {
-                  folder = rooturi.split('/').pop();
+                  folder = rootUri.split('/').pop();
                 }
                 return (
                   <li key={asset.uri} className={styles.entryPointItem}>

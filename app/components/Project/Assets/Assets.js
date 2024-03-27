@@ -73,7 +73,7 @@ const assetsComponent = (props) => {
     onUpdatedAssetGroup,
     onDeletedAssetGroup,
     assetAttributes,
-    dynamicDetails
+    dynamicDetails,
   } = props;
   const [selectedAsset, setSelectedAsset] = useState();
   const treeRef = React.useRef(null);
@@ -127,11 +127,11 @@ const assetsComponent = (props) => {
     setCurrentAssetGroup(null);
     setGroupedAssets(null);
     setFilterEnabled(true);
-  }, [project.id]);
+  }, [project]);
 
   // Whenever the filter changes, update the list of assets to include only
   // those that should be displayed.
-  const handleFilterChanged = updatedFilter => {
+  const handleFilterChanged = (updatedFilter) => {
     setFilter(updatedFilter);
     setAssets(filterProjectAssets(project, updatedFilter));
   };
@@ -409,7 +409,7 @@ const assetsComponent = (props) => {
             <div className={styles.title}>{project.path}</div>
             <ProjectEntryPoint
               assets={assets}
-              rooturi={project.path}
+              rootUri={project.path}
               onSelect={handleEntryPointSelect}
             />
             {assetDetails}
