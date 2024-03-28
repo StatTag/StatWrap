@@ -63,12 +63,12 @@ export default class WorkflowUtil {
    */
   static getAllDependenciesAsEChartGraph(asset, filters) {
     const graph = WorkflowUtil.getAllDependenciesAsGraph(asset, filters);
-    graph.nodes = graph.nodes.map(x => ({
+    graph.nodes = graph.nodes.map((x) => ({
       id: x.id,
       name: WorkflowUtil.getShortDependencyName(x.id),
       fullName: x.id,
       direction: x.direction,
-      value: x.assetType
+      value: x.assetType,
     }));
     return graph;
   }
@@ -83,7 +83,7 @@ export default class WorkflowUtil {
   static getAllDependenciesAsGraph(asset, filters) {
     const graph = {
       nodes: [],
-      links: []
+      links: [],
     };
 
     if (!asset || !asset.uri) {
@@ -92,15 +92,15 @@ export default class WorkflowUtil {
 
     const applyFilter = filters !== null && filters !== undefined && filters.length > 0;
     const typeFilterIndex = applyFilter
-      ? filters.findIndex(x => x.category === Constants.FilterCategory.FILE_TYPE)
+      ? filters.findIndex((x) => x.category === Constants.FilterCategory.FILE_TYPE)
       : -1;
     const typeFilter = typeFilterIndex === -1 ? null : filters[typeFilterIndex];
     const ioFilterIndex = applyFilter
-      ? filters.findIndex(x => x.category === Constants.FilterCategory.INPUTS_OUTPUTS)
+      ? filters.findIndex((x) => x.category === Constants.FilterCategory.INPUTS_OUTPUTS)
       : -1;
     const ioFilter = ioFilterIndex === -1 ? null : filters[ioFilterIndex];
     const dependencyFilterIndex = applyFilter
-      ? filters.findIndex(x => x.category === Constants.FilterCategory.DEPENDENCIES)
+      ? filters.findIndex((x) => x.category === Constants.FilterCategory.DEPENDENCIES)
       : -1;
     const dependencyFilter = dependencyFilterIndex === -1 ? null : filters[dependencyFilterIndex];
     const allDeps = WorkflowUtil.getAllDependencies(asset, asset.uri);
@@ -109,7 +109,7 @@ export default class WorkflowUtil {
       if (entry.asset && entry.dependencies && entry.dependencies.length > 0) {
         // If we have a file type filter to apply, and we are supposed to filter this
         // asset out, skip further processing.
-        if (typeFilter && typeFilter.values.some(x => !x.value && x.key === entry.assetType)) {
+        if (typeFilter && typeFilter.values.some((x) => !x.value && x.key === entry.assetType)) {
           continue;
         }
 
@@ -123,14 +123,14 @@ export default class WorkflowUtil {
           if (
             ioFilter &&
             ioFilter.values.some(
-              x =>
+              (x) =>
                 // Only consider filters that are turned off
                 !x.value &&
                 // If the filter is for dependencies, it is a match if there is
                 // no dependency.type value (we leave that empty).  If there is
                 // a dependency.type and it matches the key, filter it out.
                 (x.key === dependency.type ||
-                  (x.key === Constants.DependencyType.DEPENDENCY && !dependency.type))
+                  (x.key === Constants.DependencyType.DEPENDENCY && !dependency.type)),
             )
           ) {
             continue;
@@ -141,7 +141,7 @@ export default class WorkflowUtil {
           if (
             dependencyFilter &&
             dependencyFilter.values.some(
-              x => !x.value && !dependency.type && x.key === dependency.id
+              (x) => !x.value && !dependency.type && x.key === dependency.id,
             )
           ) {
             continue;
@@ -150,11 +150,11 @@ export default class WorkflowUtil {
           const dependencyId = dependency.id;
           // We need to see if we already have an dependency before we add it as a node (to avoid
           // duplicate nodes with the same ID).
-          if (!graph.nodes.some(n => n.id === dependencyId)) {
+          if (!graph.nodes.some((n) => n.id === dependencyId)) {
             graph.nodes.push({
               id: dependencyId,
               assetType: dependency.type ? dependency.type : Constants.DependencyType.DEPENDENCY,
-              direction: dependency.direction
+              direction: dependency.direction,
             });
           }
           // Likewise, we have to make sure that any edge is unique before we add it
@@ -162,7 +162,7 @@ export default class WorkflowUtil {
             dependency.direction === Constants.DependencyDirection.IN ? dependencyId : entry.asset;
           const target =
             dependency.direction === Constants.DependencyDirection.IN ? entry.asset : dependencyId;
-          if (!graph.links.some(l => l.source === source && l.target === target)) {
+          if (!graph.links.some((l) => l.source === source && l.target === target)) {
             graph.links.push({ source, target });
           }
         }
@@ -186,8 +186,8 @@ export default class WorkflowUtil {
       name: AssetUtil.getAssetNameFromUri(asset),
       children: null,
       attributes: {
-        assetType: WorkflowUtil.getAssetType(asset)
-      }
+        assetType: WorkflowUtil.getAssetType(asset),
+      },
     };
 
     if (asset.children) {
@@ -206,7 +206,7 @@ export default class WorkflowUtil {
       const entry = allDeps[index];
       const depEntry = {
         name: entry.id,
-        attributes: { assetType: Constants.AssetType.DEPENDENCY }
+        attributes: { assetType: Constants.AssetType.DEPENDENCY },
       };
       // Only push dependencies once (to avoid unnecessary clutter)
       // eslint-disable-next-line prettier/prettier
@@ -263,16 +263,16 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, StataHandler.id, libraries, inputs, outputs);
 
     return libraries
-      .map(e => {
+      .map((e) => {
         return { ...e, direction: Constants.DependencyDirection.IN };
       })
       .concat(
-        inputs.map(e => {
+        inputs.map((e) => {
           return { ...e, direction: Constants.DependencyDirection.IN };
         }),
-        outputs.map(e => {
+        outputs.map((e) => {
           return { ...e, direction: Constants.DependencyDirection.OUT };
-        })
+        }),
       );
   }
 
@@ -295,8 +295,8 @@ export default class WorkflowUtil {
           {
             asset: rootUri ? asset.uri.replace(rootUri, '').replace(/^\\+|\/+/, '') : asset.uri,
             assetType: WorkflowUtil.getAssetType(asset),
-            dependencies: WorkflowUtil.getDependencies(asset)
-          }
+            dependencies: WorkflowUtil.getDependencies(asset),
+          },
         ]
       : [];
     if (!asset || !asset.children) {
