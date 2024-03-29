@@ -1,0 +1,44 @@
+.container {
+  margin-top: 10px;
+}
+
+.heading {
+  background-color: #eee !important;
+  padding: 0 5px !important;
+}
+
+.headingTitle {
+  font-size: 1rem !important;
+  padding: 0 5px !important;
+}
+
+.details {
+  padding: 5px;
+}
+
+.entryPointList {
+  padding-left: 30px;
+}
+
+.entryPointItem {
+  margin-bottom: 5px;
+}
+
+.entryPointItem button {
+  font-size: 0.8rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 5px;
+  background-color:whitesmoke;
+  border: solid 1px gainsboro;
+  transition: background-color 0.4s;
+}
+
+.entryPointItem button:hover {
+  background-color: gainsboro;
+}
+
+.entryPointUri {
+  font-weight: bold;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}

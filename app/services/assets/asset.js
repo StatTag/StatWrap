@@ -23,11 +23,11 @@ export default class AssetService {
 
     this.assetContentTypesByExtension = GeneralUtil.indexByField(
       contentTypes || AssetsConfig.contentTypes,
-      'extensions'
+      'extensions',
     );
     this.assetContentTypesByCategory = GeneralUtil.indexByField(
       contentTypes || AssetsConfig.contentTypes,
-      'categories'
+      'categories',
     );
   }
 
@@ -102,7 +102,7 @@ export default class AssetService {
       uri,
       type: this.assetType(details),
       contentTypes: this.assetContentTypes(uri, details),
-      metadata: []
+      metadata: [],
     };
 
     // If this is a directory, we are going to traverse and get details

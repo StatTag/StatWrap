@@ -17,7 +17,7 @@ export default class AssetUtil {
       return null;
     }
 
-    const entry = metadata.find(m => {
+    const entry = metadata.find((m) => {
       return m && m.id === handler;
     });
     return entry || null;
@@ -52,10 +52,10 @@ export default class AssetUtil {
     const filteredAsset = { ...asset, children: [...asset.children] };
     for (let index = 0; index < filteredAsset.children.length; index++) {
       filteredAsset.children[index] = AssetUtil.filterIncludedFileAssets(
-        filteredAsset.children[index]
+        filteredAsset.children[index],
       );
     }
-    filteredAsset.children = filteredAsset.children.filter(c => c);
+    filteredAsset.children = filteredAsset.children.filter((c) => c);
     return filteredAsset;
   }
 
@@ -70,7 +70,7 @@ export default class AssetUtil {
       return null;
     }
 
-    const child = asset.children.find(a => {
+    const child = asset.children.find((a) => {
       return a && a.uri === uri;
     });
 
@@ -110,13 +110,44 @@ export default class AssetUtil {
   }
 
   /**
+   * Find all the descendant assets for the asset parameter, based on the specified URI.  This involves
+   * looping through the asset uri to find all the descendant folder path and returning them in an array.
+   * @param {string} assetUri The asset URI to search for descendants
+   * @param {string} rootUri The root URI to stop searching for descendants
+   */
+
+  static findAllDescendantAssetsByUri(assetUri, rootUri) {
+    const descendantsList = [];
+    // check if the asset uri has a descendant root uri in it
+    if (assetUri && rootUri && assetUri.includes(rootUri) && assetUri.indexOf(rootUri) === 0) {
+      // just loop through the asset uri and break it apart at each '/' and add to the list till we get to the root uri
+      while (assetUri !== rootUri && assetUri !== '') {
+        const lastSlash = assetUri.lastIndexOf('/');
+        // If we can't find a slash, we can't go any further
+        if (lastSlash === -1) {
+          break;
+        }
+        // Update the variable instead of modifying the function parameter directly
+        // eslint-disable-next-line no-param-reassign
+        assetUri = assetUri.substring(0, lastSlash);
+        // Add the asset uri to the list
+        if (assetUri) {
+          descendantsList.push(assetUri);
+        }
+      }
+    }
+
+    return descendantsList;
+  }
+
+  /**
    * Recursively collect and flatten all asset notes into an array
    * @param {object} asset The asset to find all notes for
    */
   static getAllNotes(asset) {
     const notes =
       asset && asset.notes
-        ? asset.notes.map(n => {
+        ? asset.notes.map((n) => {
             return { ...n, uri: asset.uri };
           })
         : [];
@@ -210,7 +241,7 @@ export default class AssetUtil {
         asset.children[index] = AssetUtil._recursivePathConversion(
           projectPath,
           asset.children[index],
-          workerFn
+          workerFn,
         );
       }
     }

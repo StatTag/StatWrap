@@ -2,8 +2,13 @@
   margin: 5px;
 }
 
-.filter {
-  width: 15%;
+.title {
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.8em;
+  font-weight: bold;
 }
 
 .tree {

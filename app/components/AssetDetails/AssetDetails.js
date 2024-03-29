@@ -18,18 +18,18 @@ const AccordionSummary = withStyles({
     marginBottom: -1,
     minHeight: 32,
     '&$expanded': {
-      minHeight: 32
-    }
+      minHeight: 32,
+    },
   },
   content: {
     '&$expanded': {
-      margin: '6px 0'
-    }
+      margin: '6px 0',
+    },
   },
-  expanded: {}
+  expanded: {},
 })(MuiAccordionSummary);
 
-const assetDetails = props => {
+const assetDetails = (props) => {
   const {
     asset,
     onAddedNote,
@@ -38,7 +38,7 @@ const assetDetails = props => {
     onUpdatedAttribute,
     assetAttributes,
     sourceControlEnabled,
-    dynamicDetails
+    dynamicDetails,
   } = props;
 
   const [expandNotes, setExpandNotes] = useState(false);
@@ -55,7 +55,7 @@ const assetDetails = props => {
   }, [asset]);
 
   const clickNotesAccordionHandler = () => {
-    setExpandNotes(prevState => !prevState);
+    setExpandNotes((prevState) => !prevState);
   };
 
   const updatedNoteHandler = (note, text) => {
@@ -68,7 +68,7 @@ const assetDetails = props => {
     }
   };
 
-  const deleteNoteHandler = note => {
+  const deleteNoteHandler = (note) => {
     if (onDeletedNote) {
       onDeletedNote(asset, note);
     }
@@ -125,7 +125,7 @@ const assetDetails = props => {
       <Accordion defaultExpanded>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
-          aria-controls="notes-attributes"
+          aria-controls="attributes-content"
           id="attributes-header"
           className={styles.heading}
         >

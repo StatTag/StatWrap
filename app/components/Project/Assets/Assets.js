@@ -6,6 +6,7 @@ import AssetGroupDialog from '../../../containers/AssetGroupDialog/AssetGroupDia
 import Error from '../../Error/Error';
 import AssetTree from '../../AssetTree/AssetTree';
 import AssetDetails from '../../AssetDetails/AssetDetails';
+import ProjectEntryPoint from '../../ProjectEntryPoint/ProjectEntryPoint';
 import AssetFilter from '../../Filter/Filter';
 import EditableSelect from '../../EditableSelect/EditableSelect';
 import Loading from '../../Loading/Loading';
@@ -60,7 +61,7 @@ function resetFilter(project) {
   return project && project.assets ? ProjectUtil.getAssetFilters(project.assets) : [];
 }
 
-const assetsComponent = props => {
+const assetsComponent = (props) => {
   const {
     project,
     onAddedAssetNote,
@@ -72,7 +73,7 @@ const assetsComponent = props => {
     onUpdatedAssetGroup,
     onDeletedAssetGroup,
     assetAttributes,
-    dynamicDetails
+    dynamicDetails,
   } = props;
   const [selectedAsset, setSelectedAsset] = useState();
   const treeRef = React.useRef(null);
@@ -126,11 +127,11 @@ const assetsComponent = props => {
     setCurrentAssetGroup(null);
     setGroupedAssets(null);
     setFilterEnabled(true);
-  }, [project.id]);
+  }, [project]);
 
   // Whenever the filter changes, update the list of assets to include only
   // those that should be displayed.
-  const handleFilterChanged = updatedFilter => {
+  const handleFilterChanged = (updatedFilter) => {
     setFilter(updatedFilter);
     setAssets(filterProjectAssets(project, updatedFilter));
   };
@@ -151,7 +152,7 @@ const assetsComponent = props => {
     setEditingGroup(false);
   };
 
-  const handleSavedAssetGroup = group => {
+  const handleSavedAssetGroup = (group) => {
     if (group.id === null || group.id === undefined) {
       if (onAddedAssetGroup) {
         onAddedAssetGroup(group);
@@ -165,9 +166,9 @@ const assetsComponent = props => {
   // When the user selects a checkbox next to an asset - initially used just for building
   // asset groups, but consider if it could be more broadly repurposed.
   const handleCheckAsset = (asset, value) => {
-    setGroupedAssets(prevState => {
+    setGroupedAssets((prevState) => {
       const newAssetGroup = prevState ? [...prevState] : [];
-      const index = newAssetGroup.findIndex(x => x.uri === asset.uri);
+      const index = newAssetGroup.findIndex((x) => x.uri === asset.uri);
       // We only need to consider adding and removing - there are other branches of logic
       // that are essentialy noops.
       if (index === -1 && value) {
@@ -182,13 +183,36 @@ const assetsComponent = props => {
     });
   };
 
+  const handleEntryPointSelect = (asset, expandedNodes) => {
+    let selAsset = asset;
+    if (selAsset && (selAsset.contentTypes === null || selAsset.contentTypes === undefined)) {
+      if (project && project.assets) {
+        selAsset = AssetUtil.findDescendantAssetByUri(project.assets, selAsset.uri);
+      }
+    }
+
+    setSelectedAsset(selAsset);
+    if (onSelectedAsset) {
+      onSelectedAsset(selAsset);
+    }
+
+    const expanded = treeRef.current.state.expandedNodes;
+    expandedNodes.map((a) => {
+      if (!expanded.includes(a)) {
+        expanded.push(a);
+      }
+      return null;
+    });
+    treeRef.current.setState({ expandedNodes: expanded });
+  };
+
   /**
    * Update the UI/state to reflect the currently selected asset group.  If we are displaying
    * an asset group, we also want to disable the filters.  In the future we likely want to make
    * filtering available, but are keeping it simple for now.
    * @param {object} group The selected asset group (null if nothing is selected)
    */
-  const handleSelectAssetGroup = group => {
+  const handleSelectAssetGroup = (group) => {
     if (group === null) {
       setCurrentAssetGroup(null);
       setGroupedAssets(null);
@@ -203,7 +227,7 @@ const assetsComponent = props => {
       const groupAssets = {
         uri: clonedGroup.name,
         type: constants.AssetType.ASSET_GROUP,
-        children: clonedGroup.assets
+        children: clonedGroup.assets,
       };
 
       // Make sure we merge in the notes and attributes.  We don't store those for the
@@ -226,7 +250,7 @@ const assetsComponent = props => {
    *  4. The mode needs to be set to 'paperclip'
    * @param {object} group The group that is being edited
    */
-  const handleEditAssetGroup = group => {
+  const handleEditAssetGroup = (group) => {
     const clonedGroup = cloneDeep(group);
     setAssets(filterProjectAssets(project, filter));
     setCurrentAssetGroup(clonedGroup);
@@ -244,7 +268,7 @@ const assetsComponent = props => {
     handleSelectAssetGroup(currentAssetGroup);
   };
 
-  const handleDeleteAssetGroup = group => {
+  const handleDeleteAssetGroup = (group) => {
     // If we just deleted the selected asset group, clear the selection
     if (currentAssetGroup && currentAssetGroup.id === group.id) {
       setCurrentAssetGroup(null);
@@ -255,7 +279,7 @@ const assetsComponent = props => {
     }
   };
 
-  const handlSelectAsset = selAsset => {
+  const handlSelectAsset = (selAsset) => {
     let asset = selAsset;
     // When we are showing an asset group, the actual asset objects aren't the complete picture.
     // The extra logic we use here is to enrich the selected asset, if it's missing some key
@@ -324,7 +348,7 @@ const assetsComponent = props => {
       // Note that for the AssetFilter component, we always want that to be the original
       // full list of assets.  That's why we use project.assets for that component's
       // propery, and the assets state variable for the AssetTree.
-      assetDisplay = project.assets.error ? (
+      assetDisplay = project.assets?.error ? (
         <Error>{assets.errorMessage}</Error>
       ) : (
         <>
@@ -381,7 +405,15 @@ const assetsComponent = props => {
               selectedAsset={selectedAsset}
             />
           </div>
-          <div className={styles.details}>{assetDetails}</div>
+          <div className={styles.details}>
+            <div className={styles.title}>{project.path}</div>
+            <ProjectEntryPoint
+              assets={assets}
+              rootUri={project.path}
+              onSelect={handleEntryPointSelect}
+            />
+            {assetDetails}
+          </div>
           <AssetGroupDialog
             key={dialogKey}
             open={editingGroup}
