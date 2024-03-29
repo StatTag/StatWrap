@@ -324,9 +324,9 @@
     "y18n": "^5.0.8"
   },
   "devEngines": {
-    "node": ">=7.x",
-    "npm": ">=4.x",
-    "yarn": ">=0.21.3"
+    "node": ">=16.x",
+    "npm": ">=8.x",
+    "yarn": ">=1.20.x"
   },
   "browserslist": "electron 1.6",
   "husky": {
