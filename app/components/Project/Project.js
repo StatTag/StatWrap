@@ -1,5 +1,3 @@
-/* eslint-disable no-param-reassign */
-/* eslint-disable no-lonely-if */
 /* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
 import { Tab, Tabs } from '@mui/material';

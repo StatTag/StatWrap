@@ -4,13 +4,14 @@ module.exports = {
     'react/destructuring-assignment': 0,
     'class-methods-use-this': 'off',
     'no-plusplus': 'off',
-    'no-param-reassign': ['error', { props: false }]
+    'no-param-reassign': ['error', { props: false }],
+    'import/no-extraneous-dependencies': ['error', { packageDir: __dirname }],
   },
   settings: {
     'import/resolver': {
       webpack: {
-        config: require.resolve('./configs/webpack.config.eslint.js')
-      }
-    }
-  }
+        config: require.resolve('./configs/webpack.config.eslint.js'),
+      },
+    },
+  },
 };
