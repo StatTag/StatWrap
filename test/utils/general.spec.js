@@ -49,8 +49,8 @@ describe('services', () => {
         expect(
           GeneralUtil.formatName({
             first: 'Test',
-            last: 'Person'
-          })
+            last: 'Person',
+          }),
         ).toBe('Test Person');
       });
 
@@ -70,8 +70,8 @@ describe('services', () => {
       it('returns the username/id if no name element exists', () => {
         expect(
           GeneralUtil.formatDisplayName({
-            id: 'test'
-          })
+            id: 'test',
+          }),
         ).toBe('test');
       });
       it('formats the name from components if no display name exists', () => {
@@ -80,9 +80,9 @@ describe('services', () => {
             id: 'test',
             name: {
               first: 'Test',
-              last: 'Person'
-            }
-          })
+              last: 'Person',
+            },
+          }),
         ).toBe('Test Person');
       });
       it('formats the name from components if the display name is empty', () => {
@@ -92,9 +92,9 @@ describe('services', () => {
             name: {
               first: 'Test',
               last: 'Person',
-              display: ' '
-            }
-          })
+              display: ' ',
+            },
+          }),
         ).toBe('Test Person');
       });
       it('returns the username/id if all name components result in an empty string', () => {
@@ -104,9 +104,9 @@ describe('services', () => {
             name: {
               first: '',
               last: ' ',
-              display: ' '
-            }
-          })
+              display: ' ',
+            },
+          }),
         ).toBe('test');
       });
       it('returns the display name by default when all other items exist', () => {
@@ -116,9 +116,9 @@ describe('services', () => {
             name: {
               first: 'Test',
               last: 'User',
-              display: 'Display Name'
-            }
-          })
+              display: 'Display Name',
+            },
+          }),
         ).toBe('Display Name');
       });
     });
@@ -136,14 +136,14 @@ describe('services', () => {
         expect(GeneralUtil.toggleStringInArray([], 'test', true)).toStrictEqual(['test']);
         expect(GeneralUtil.toggleStringInArray(['test'], 'test2', true)).toStrictEqual([
           'test',
-          'test2'
+          'test2',
         ]);
       });
       it('does not add a duplicate item to the array when included', () => {
         expect(GeneralUtil.toggleStringInArray(['test'], 'test', true)).toStrictEqual(['test']);
         expect(GeneralUtil.toggleStringInArray(['test', 'test2'], 'test2', true)).toStrictEqual([
           'test',
-          'test2'
+          'test2',
         ]);
       });
       it('removes an item from the array when excluded', () => {
@@ -169,30 +169,30 @@ describe('services', () => {
       it('processes an array where the index field is a single value', () => {
         const inputArray = [
           { category: '1', value: 'a' },
-          { category: '1', value: 'b' }
+          { category: '1', value: 'b' },
         ];
-        expect(GeneralUtil.indexByField(inputArray, 'category')).toStrictEqual({ '1': inputArray });
+        expect(GeneralUtil.indexByField(inputArray, 'category')).toStrictEqual({ 1: inputArray });
       });
       it('processes an array where the index field does not exist', () => {
         const inputArray = [
           { category: '1', value: 'a' },
-          { category: '1', value: 'b' }
+          { category: '1', value: 'b' },
         ];
         expect(GeneralUtil.indexByField(inputArray, 'category2')).toStrictEqual({
-          undefined: inputArray
+          undefined: inputArray,
         });
       });
       it('processes an array where the index field can contain multiple values (array)', () => {
         const inputArray = [
           { category: ['1'], value: 'a' },
-          { category: ['1', '2'], value: 'b' }
+          { category: ['1', '2'], value: 'b' },
         ];
         expect(GeneralUtil.indexByField(inputArray, 'category')).toStrictEqual({
-          '1': [
+          1: [
             { category: ['1'], value: 'a' },
-            { category: ['1', '2'], value: 'b' }
+            { category: ['1', '2'], value: 'b' },
           ],
-          '2': [{ category: ['1', '2'], value: 'b' }]
+          2: [{ category: ['1', '2'], value: 'b' }],
         });
       });
     });

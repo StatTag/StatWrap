@@ -38,7 +38,7 @@ const oneNonWhitespaceRegex = new RegExp('\\S');
   ]
 */
 
-const _codeTypeFunc = function(x) {
+const _codeTypeFunc = function (x) {
   if (!x || !x.metadata) {
     return null;
   }
@@ -65,18 +65,18 @@ export default class ProjectUtil {
       // each element to check for duplicates.  If it's a single string we can do
       // a simple check and add.
       if (Array.isArray(key)) {
-        key.forEach(k => {
-          if (filter.values.findIndex(x => x.key === k) === -1) {
+        key.forEach((k) => {
+          if (filter.values.findIndex((x) => x.key === k) === -1) {
             filter.values.push({ key: k, label: k, value: true });
           }
         });
-      } else if (filter.values.findIndex(x => x.key === key) === -1) {
+      } else if (filter.values.findIndex((x) => x.key === key) === -1) {
         filter.values.push({ key, label: key, value: true });
       }
     }
 
     if (asset.children) {
-      asset.children.forEach(child => {
+      asset.children.forEach((child) => {
         ProjectUtil._processAssetAndDescendantsForFilter(child, filter, getter);
       });
     }
@@ -98,7 +98,7 @@ export default class ProjectUtil {
     }
 
     const assetTypeFilter = { category: Constants.FilterCategory.ASSET_TYPE, values: [] };
-    const assetTypeFunc = x => x.type;
+    const assetTypeFunc = (x) => x.type;
     ProjectUtil._processAssetAndDescendantsForFilter(assets, assetTypeFilter, assetTypeFunc);
     if (assetTypeFilter.values.length > 0) {
       filters.push(assetTypeFilter);
@@ -106,7 +106,7 @@ export default class ProjectUtil {
 
     const contentTypeFilter = { category: Constants.FilterCategory.CONTENT_TYPE, values: [] };
     // Content types should only apply to files
-    const contentTypeFunc = x => x.type === Constants.AssetType.FILE && x.contentTypes;
+    const contentTypeFunc = (x) => x.type === Constants.AssetType.FILE && x.contentTypes;
     ProjectUtil._processAssetAndDescendantsForFilter(assets, contentTypeFilter, contentTypeFunc);
     if (contentTypeFilter.values.length > 0) {
       filters.push(contentTypeFilter);
@@ -153,7 +153,7 @@ export default class ProjectUtil {
       if (f.category === Constants.FilterCategory.ASSET_TYPE) {
         // This is the only category (for now) which can trigger us to filter out but
         // retain child items
-        const catFilter = f.values.some(v => !v.value && v.key === asset.type) ? 1 : 0;
+        const catFilter = f.values.some((v) => !v.value && v.key === asset.type) ? 1 : 0;
         filterOut = Math.max(catFilter, filterOut);
       }
       // Directories may get assigned a content type or file type, just because
@@ -163,7 +163,7 @@ export default class ProjectUtil {
       // asset types in the future.
       if (asset.type === Constants.AssetType.FILE) {
         if (f.category === Constants.FilterCategory.CONTENT_TYPE) {
-          const catFilter = f.values.some(v => !v.value && asset.contentTypes.includes(v.key))
+          const catFilter = f.values.some((v) => !v.value && asset.contentTypes.includes(v.key))
             ? 2
             : 0;
           filterOut = Math.max(catFilter, filterOut);
@@ -172,7 +172,11 @@ export default class ProjectUtil {
           f.category === Constants.FilterCategory.FILE_TYPE
         ) {
           // eslint-disable-next-line prettier/prettier
-          const catFilter = f.values.some(v => !v.value && WorkflowUtil.getAssetType(asset) === v.key) ? 2 : 0;
+          const catFilter = f.values.some(
+            (v) => !v.value && WorkflowUtil.getAssetType(asset) === v.key,
+          )
+            ? 2
+            : 0;
           filterOut = Math.max(catFilter, filterOut);
         }
       }
@@ -197,7 +201,7 @@ export default class ProjectUtil {
       for (let index = 0; index < asset.children.length; index++) {
         const processedChild = ProjectUtil._processFiltersForAssetAndDescendants(
           asset.children[index],
-          filter
+          filter,
         );
         if (processedChild) {
           assetClone.children.push(processedChild);
@@ -232,11 +236,11 @@ export default class ProjectUtil {
     }
 
     const assetTypeIndex = filter.findIndex(
-      x => x.category === Constants.FilterCategory.ASSET_TYPE
+      (x) => x.category === Constants.FilterCategory.ASSET_TYPE,
     );
     if (assetTypeIndex !== -1) {
       const directoryIndex = filter[assetTypeIndex].values.findIndex(
-        y => y.key === Constants.AssetType.DIRECTORY
+        (y) => y.key === Constants.AssetType.DIRECTORY,
       );
       if (directoryIndex !== -1) {
         return !filter[assetTypeIndex].values[directoryIndex].value;
@@ -253,7 +257,7 @@ export default class ProjectUtil {
    */
   static _flattenFilteredAssets(asset, flattenedList) {
     if (asset.children) {
-      asset.children.forEach(x => ProjectUtil._flattenFilteredAssets(x, flattenedList));
+      asset.children.forEach((x) => ProjectUtil._flattenFilteredAssets(x, flattenedList));
     }
     if (asset.uri) {
       flattenedList.push(asset);
@@ -331,14 +335,14 @@ export default class ProjectUtil {
     if (!assetDepedencies) {
       return filters;
     }
-    assetDepedencies.forEach(x => {
+    assetDepedencies.forEach((x) => {
       if (x.assetType && x.assetType !== Constants.AssetType.GENERIC) {
-        x.dependencies.forEach(d => {
+        x.dependencies.forEach((d) => {
           const type = d.type ? d.type : Constants.DependencyType.DEPENDENCY;
-          if (ioFilter.values.findIndex(i => i.key === type) === -1) {
+          if (ioFilter.values.findIndex((i) => i.key === type) === -1) {
             ioFilter.values.push({ key: type, label: type, value: true });
           }
-          if (!d.type && dependencyFilter.values.findIndex(i => i.key === d.id) === -1) {
+          if (!d.type && dependencyFilter.values.findIndex((i) => i.key === d.id) === -1) {
             dependencyFilter.values.push({ key: d.id, label: d.id, value: true });
           }
         });
@@ -373,7 +377,7 @@ export default class ProjectUtil {
       throw new Error('The group object cannot be null or undefined');
     } else if (!ProjectUtil.validateAssetGroupName(group.name)) {
       throw new Error(
-        'The asset group name is required, and must be at least one non-whitespace character in length.'
+        'The asset group name is required, and must be at least one non-whitespace character in length.',
       );
     }
 
@@ -406,7 +410,7 @@ export default class ProjectUtil {
     // ID, we need to generate one and then can just add it.
     let addGroupToArray = false;
     if (group.id) {
-      const existingGroup = project.assetGroups.find(p => p.id === group.id);
+      const existingGroup = project.assetGroups.find((p) => p.id === group.id);
       if (existingGroup) {
         // Copy over only what attributes need to be saved in the directory.  Some
         // attributs may be specific to the project entry for the person.
@@ -442,7 +446,7 @@ export default class ProjectUtil {
     }
 
     // If we don't find the asset group, we're going to let it slide silently for now.
-    const existingGroupIndex = project.assetGroups.findIndex(p => p.id === group.id);
+    const existingGroupIndex = project.assetGroups.findIndex((p) => p.id === group.id);
     if (existingGroupIndex > -1) {
       project.assetGroups.splice(existingGroupIndex, 1);
     }
@@ -467,7 +471,7 @@ export default class ProjectUtil {
     for (let index = 0; index < modifiedAssetGroups.length; index++) {
       modifiedAssetGroups[index].assets = AssetUtil.absoluteToRelativePathForArray(
         projectPath,
-        modifiedAssetGroups[index].assets
+        modifiedAssetGroups[index].assets,
       );
     }
     return modifiedAssetGroups;
@@ -492,7 +496,7 @@ export default class ProjectUtil {
     for (let index = 0; index < modifiedAssetGroups.length; index++) {
       modifiedAssetGroups[index].assets = AssetUtil.relativeToAbsolutePathForArray(
         projectPath,
-        modifiedAssetGroups[index].assets
+        modifiedAssetGroups[index].assets,
       );
     }
     return modifiedAssetGroups;
@@ -621,7 +625,7 @@ export default class ProjectUtil {
     return `${Pluralize('update', updates.log.length, true)} by ${Pluralize(
       'user',
       updates.distinctUsers,
-      true
+      true,
     )}`;
   }
 }

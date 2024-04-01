@@ -24,20 +24,20 @@ export default class EditableLabel extends React.Component {
 
     this.state = {
       isEditing: this.props.isEditing || false,
-      text: this.props.text || ''
+      text: this.props.text || '',
     };
   }
 
   componentDidUpdate(prevProps) {
     if (prevProps.text !== this.props.text) {
       this.setState({
-        text: this.props.text || ''
+        text: this.props.text || '',
       });
     }
 
     if (prevProps.isEditing !== this.props.isEditing) {
       this.setState({
-        isEditing: this.state.isEditing || this.props.isEditing || false
+        isEditing: this.state.isEditing || this.props.isEditing || false,
       });
     }
   }
@@ -55,26 +55,26 @@ export default class EditableLabel extends React.Component {
 
     if (this.isTextValueValid()) {
       this.setState({
-        isEditing: !this.state.isEditing
+        isEditing: !this.state.isEditing,
       });
     } else if (this.state.isEditing) {
       this.setState({
-        isEditing: this.props.emptyEdit || false
+        isEditing: this.props.emptyEdit || false,
       });
     } else {
       this.setState({
-        isEditing: true
+        isEditing: true,
       });
     }
   };
 
   handleChange = () => {
     this.setState({
-      text: this.textInput.value
+      text: this.textInput.value,
     });
   };
 
-  handleKeyDown = e => {
+  handleKeyDown = (e) => {
     // We only allow enter-completion when this is a single line editor.
     if (e.keyCode === ENTER_KEY_CODE && !this.props.multiline) {
       this.handleEnterKey();
@@ -93,7 +93,7 @@ export default class EditableLabel extends React.Component {
             <textarea
               autoFocus
               className={this.props.inputClassName}
-              ref={input => {
+              ref={(input) => {
                 this.textInput = input;
               }}
               value={this.state.text}
@@ -104,7 +104,7 @@ export default class EditableLabel extends React.Component {
                 height: this.props.inputHeight,
                 fontSize: this.props.inputFontSize,
                 fontWeight: this.props.inputFontWeight,
-                borderWidth: this.props.inputBorderWidth
+                borderWidth: this.props.inputBorderWidth,
               }}
               maxLength={this.props.inputMaxLength}
               placeholder={this.props.inputPlaceHolder}
@@ -120,7 +120,7 @@ export default class EditableLabel extends React.Component {
             autoFocus
             type="text"
             className={this.props.inputClassName}
-            ref={input => {
+            ref={(input) => {
               this.textInput = input;
             }}
             value={this.state.text}
@@ -132,7 +132,7 @@ export default class EditableLabel extends React.Component {
               height: this.props.inputHeight,
               fontSize: this.props.inputFontSize,
               fontWeight: this.props.inputFontWeight,
-              borderWidth: this.props.inputBorderWidth
+              borderWidth: this.props.inputBorderWidth,
             }}
             maxLength={this.props.inputMaxLength}
             placeholder={this.props.inputPlaceHolder}
@@ -151,7 +151,7 @@ export default class EditableLabel extends React.Component {
           className={this.props.labelClassName}
           style={{
             fontSize: this.props.labelFontSize,
-            fontWeight: this.props.labelFontWeight
+            fontWeight: this.props.labelFontWeight,
           }}
         >
           {labelText}
@@ -185,7 +185,7 @@ EditableLabel.propTypes = {
   inputBorderWidth: PropTypes.string,
 
   onFocus: PropTypes.func,
-  onFocusOut: PropTypes.func
+  onFocusOut: PropTypes.func,
 };
 
 EditableLabel.defaultProps = {
@@ -211,7 +211,7 @@ EditableLabel.defaultProps = {
   inputBorderWidth: null,
 
   onFocus: null,
-  onFocusOut: null
+  onFocusOut: null,
 };
 
 /*

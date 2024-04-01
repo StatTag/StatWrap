@@ -16,25 +16,25 @@ import LinkedDescription from '../LinkedDescription/LinkedDescription';
 import ProjectUpdateSummary from '../ProjectUpdateSummary/ProjectUpdateSummary';
 import { DescriptionContentType } from '../../../constants/constants';
 
-const about = (props) => {
+function about(props) {
   const [editing, setEditing] = useState(false);
   const [descriptionEditor, setDescriptionEditor] = useState(
     props.project.description && props.project.description.contentType
       ? props.project.description.contentType
-      : DescriptionContentType.MARKDOWN
+      : DescriptionContentType.MARKDOWN,
   );
   const [descriptionText, setDescriptionText] = useState(
     props.project.description && props.project.description.uri
       ? props.project.description.uriContent
       : props.project.description && props.project.description.content
-      ? props.project.description.content
-      : ''
+        ? props.project.description.content
+        : '',
   );
   const [descriptionUri, setDescriptionUri] = useState(
-    props.project.description && props.project.description.uri ? props.project.description.uri : ''
+    props.project.description && props.project.description.uri ? props.project.description.uri : '',
   );
   const [categories, setCategories] = useState(
-    props.project.categories ? props.project.categories : []
+    props.project.categories ? props.project.categories : [],
   );
   const [notes, setNotes] = useState(props.project.notes ? props.project.notes : []);
 
@@ -44,15 +44,15 @@ const about = (props) => {
       props.project.description && props.project.description.uri
         ? props.project.description.uriContent
         : props.project.description && props.project.description.content
-        ? props.project.description.content
-        : ''
+          ? props.project.description.content
+          : '',
     );
   }, [props.project.description]);
   React.useEffect(() => {
     setDescriptionUri(
       props.project.description && props.project.description.uri
         ? props.project.description.uri
-        : ''
+        : '',
     );
   }, [props.project.description]);
   React.useEffect(() => {
@@ -62,15 +62,15 @@ const about = (props) => {
     setNotes(props.project.notes ? props.project.notes : []);
   }, [props.project.notes]);
 
-  const handleTextChanged = debounce(value => {
+  const handleTextChanged = debounce((value) => {
     setDescriptionText(value);
   }, 250);
 
-  const handleUriChanged = value => {
+  const handleUriChanged = (value) => {
     setDescriptionUri(value);
   };
 
-  const handleCategoriesChanged = changedCategories => {
+  const handleCategoriesChanged = (changedCategories) => {
     setCategories(changedCategories);
   };
 
@@ -79,7 +79,7 @@ const about = (props) => {
     setDescriptionEditor(
       currentStatus === DescriptionContentType.MARKDOWN
         ? DescriptionContentType.URI
-        : DescriptionContentType.MARKDOWN
+        : DescriptionContentType.MARKDOWN,
     );
   };
 
@@ -92,7 +92,7 @@ const about = (props) => {
       props.onUpdateDetails(
         descriptionText,
         descriptionEditor === DescriptionContentType.URI ? descriptionUri : null,
-        categories
+        categories,
       );
     }
   };
@@ -107,7 +107,7 @@ const about = (props) => {
     }
   };
 
-  const deleteNoteHandler = note => {
+  const deleteNoteHandler = (note) => {
     if (props.onDeletedNote) {
       props.onDeletedNote(props.project, note);
     }
@@ -207,7 +207,7 @@ const about = (props) => {
       {view}
     </div>
   );
-};
+}
 
 about.propTypes = {
   project: PropTypes.object.isRequired,

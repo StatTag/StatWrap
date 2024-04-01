@@ -78,23 +78,25 @@ const ClearButton = styled.button`
 `;
 
 // eslint-disable-next-line react/prop-types
-const FilterComponent = ({ filterText, onFilter, onClear }) => (
-  <>
-    <TextField
-      id="search"
-      type="text"
-      placeholder="Search notes"
-      aria-label="Search Input"
-      value={filterText}
-      onChange={onFilter}
-    />
-    <ClearButton type="button" onClick={onClear}>
-      <FontAwesomeIcon icon="times" size="sm" />
-    </ClearButton>
-  </>
-);
+function FilterComponent({ filterText, onFilter, onClear }) {
+  return (
+    <>
+      <TextField
+        id="search"
+        type="text"
+        placeholder="Search notes"
+        aria-label="Search Input"
+        value={filterText}
+        onChange={onFilter}
+      />
+      <ClearButton type="button" onClick={onClear}>
+        <FontAwesomeIcon icon="times" size="sm" />
+      </ClearButton>
+    </>
+  );
+}
 
-const projectNotes = (props) => {
+function projectNotes(props) {
   const [filterText, setFilterText] = React.useState('');
   const [pending, setPending] = useState(true);
   const [feed, setFeed] = useState(null);
@@ -228,7 +230,7 @@ const projectNotes = (props) => {
     contents = <Error>There was an error loading the notes: {error}</Error>;
   }
   return <div className={styles.container}>{contents}</div>;
-};
+}
 
 projectNotes.propTypes = {
   project: PropTypes.object.isRequired,

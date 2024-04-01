@@ -16,12 +16,12 @@ class AssetTree extends Component {
     this.state = { expandedNodes: [], checkedNodes: [] };
   }
 
-  handleClick = node => {
+  handleClick = (node) => {
     this.props.onSelectAsset(node);
   };
 
-  onToggle = node => {
-    this.setState(prevState => {
+  onToggle = (node) => {
+    this.setState((prevState) => {
       const expandedNodes = [...prevState.expandedNodes];
       const index = expandedNodes.indexOf(node.uri);
       if (index === -1) {
@@ -41,16 +41,16 @@ class AssetTree extends Component {
     if (node.type === Constants.AssetType.DIRECTORY) {
       expandedNodes.push(node.uri);
       if (node.children) {
-        node.children.forEach(x => this.setNodeExpanded(x, expandedNodes));
+        node.children.forEach((x) => this.setNodeExpanded(x, expandedNodes));
       }
     }
   };
 
-  setPreCheckedNodes = nodes => {
+  setPreCheckedNodes = (nodes) => {
     this.setState({ checkedNodes: nodes });
   };
 
-  setExpandAll = expand => {
+  setExpandAll = (expand) => {
     this.setState(() => {
       const expandedNodes = [];
       // If we're collapsing, we just set this to an empty array.  Easy!
@@ -61,14 +61,14 @@ class AssetTree extends Component {
       // If we're expanding, we need to recursively add every folder URI.
       expandedNodes.push(this.props.assets.uri);
       if (this.props.assets.children) {
-        this.props.assets.children.forEach(c => this.setNodeExpanded(c, expandedNodes));
+        this.props.assets.children.forEach((c) => this.setNodeExpanded(c, expandedNodes));
       }
       return { expandedNodes };
     });
   };
 
   handleCheck = (node, value) => {
-    this.setState(prevState => {
+    this.setState((prevState) => {
       const checkedNodes = [...prevState.checkedNodes];
       const index = checkedNodes.indexOf(node.uri);
       if (index === -1) {
@@ -109,13 +109,13 @@ AssetTree.propTypes = {
   onSelectAsset: PropTypes.func.isRequired,
   onCheckAsset: PropTypes.func,
   selectedAsset: PropTypes.object,
-  checkboxes: PropTypes.bool
+  checkboxes: PropTypes.bool,
 };
 
 AssetTree.defaultProps = {
   selectedAsset: null,
   checkboxes: false,
-  onCheckAsset: null
+  onCheckAsset: null,
 };
 
 export default AssetTree;

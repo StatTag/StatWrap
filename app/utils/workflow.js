@@ -46,9 +46,9 @@ export default class WorkflowUtil {
     // we don't count the 3 periods towards the max length (meaning, our resulting label will
     // technically go over the max length we detect).
     // eslint-disable-next-line prettier/prettier
-    const beginningPart = name.substring(0, (Constants.MAX_GRAPH_LABEL_LENGTH / 2));
+    const beginningPart = name.substring(0, Constants.MAX_GRAPH_LABEL_LENGTH / 2);
     // eslint-disable-next-line prettier/prettier
-    const endPart = name.substring(name.length - (Constants.MAX_GRAPH_LABEL_LENGTH / 2) + 1);
+    const endPart = name.substring(name.length - Constants.MAX_GRAPH_LABEL_LENGTH / 2 + 1);
 
     return `${beginningPart}...${endPart}`;
   }
@@ -210,8 +210,12 @@ export default class WorkflowUtil {
       };
       // Only push dependencies once (to avoid unnecessary clutter)
       // eslint-disable-next-line prettier/prettier
-      if (!tree.children.some(x => x.name === depEntry.name
-            && x.attributes.assetType === depEntry.attributes.assetType)) {
+      if (
+        !tree.children.some(
+          (x) =>
+            x.name === depEntry.name && x.attributes.assetType === depEntry.attributes.assetType,
+        )
+      ) {
         tree.children.push(depEntry);
       }
     }

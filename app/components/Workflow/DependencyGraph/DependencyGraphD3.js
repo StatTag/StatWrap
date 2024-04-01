@@ -16,14 +16,14 @@ const graphConfig = {
     color: 'white',
     size: 120,
     highlightStrokeColor: 'blue',
-    viewGenerator: node => <CodeNode node={node} />
+    viewGenerator: (node) => <CodeNode node={node} />,
   },
   link: {
-    highlightColor: 'lightblue'
-  }
+    highlightColor: 'lightblue',
+  },
 };
 
-const dependencyGraphD3 = props => {
+const dependencyGraphD3 = (props) => {
   const { assets } = props;
   const [graphData, setGraphData] = useState(null);
   // The actual contents of the filter (no filter by default)
@@ -40,7 +40,7 @@ const dependencyGraphD3 = props => {
 
   // Whenever the filter changes, update the list of assets to include only
   // those that should be displayed.
-  const handleFilterChanged = updatedFilter => {
+  const handleFilterChanged = (updatedFilter) => {
     if (assets) {
       console.log(updatedFilter);
       setFilter(updatedFilter);

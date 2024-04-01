@@ -7,7 +7,7 @@ import {
   FaChevronDown,
   FaChevronRight,
   FaPaperclip,
-  FaFilter
+  FaFilter,
 } from 'react-icons/fa';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
@@ -17,7 +17,7 @@ import Constants from '../../../constants/constants';
 // This implementation borrows heavily from: https://github.com/davidtran/simple-treeview
 // Many thanks to davidtran for the implementation to get us started!
 
-const getPaddingLeft = level => {
+const getPaddingLeft = (level) => {
   return level * 20;
 };
 
@@ -26,20 +26,20 @@ const StyledTreeNode = styled.div`
   flex-direction: row;
   align-items: center;
   padding: 5px 8px;
-  padding-left: ${props => getPaddingLeft(props.$level)}px;
-  ${props => (props.selected ? 'background-color: #eee;' : null)}
+  padding-left: ${(props) => getPaddingLeft(props.$level)}px;
+  ${(props) => (props.selected ? 'background-color: #eee;' : null)}
 `;
 
 const NodeIcon = styled.div`
   font-size: 12px;
-  margin-right: ${props => (props.$marginright ? props.$marginright : 5)}px;
+  margin-right: ${(props) => (props.$marginright ? props.$marginright : 5)}px;
 `;
 
 const StyledInput = styled.input`
   margin-right: 5px;
 `;
 
-const AssetNode = props => {
+function AssetNode(props) {
   const {
     node,
     root,
@@ -50,7 +50,7 @@ const AssetNode = props => {
     checkboxes,
     onToggle,
     onRightClick,
-    onClick
+    onClick,
   } = props;
   const isOpen = root || openNodes.includes(node.uri);
   const isChecked = checkboxes && (root || checkedNodes.includes(node.uri));
@@ -61,7 +61,7 @@ const AssetNode = props => {
   }, [checkedNodes]);
 
   const handleChecked = () => {
-    setChecked(prevState => {
+    setChecked((prevState) => {
       if (props.onCheck) {
         props.onCheck(props.node, !prevState);
       }
@@ -82,12 +82,12 @@ const AssetNode = props => {
         $level={level}
         type={node.type}
         selected={node && selectedAsset && node.uri === selectedAsset.uri}
-        onContextMenu={e => {
+        onContextMenu={(e) => {
           if (onRightClick) {
             onRightClick(e);
           }
         }}
-        onClick={e => {
+        onClick={(e) => {
           e.stopPropagation();
           if (onClick) {
             onClick(node);
@@ -113,7 +113,7 @@ const AssetNode = props => {
       {isOpen &&
         (!node.children
           ? null
-          : node.children.map(childNode => (
+          : node.children.map((childNode) => (
               <AssetNode
                 key={childNode.uri}
                 node={childNode}
@@ -130,7 +130,7 @@ const AssetNode = props => {
             )))}
     </>
   );
-};
+}
 
 AssetNode.propTypes = {
   node: PropTypes.object.isRequired,
@@ -143,7 +143,7 @@ AssetNode.propTypes = {
   onCheck: PropTypes.func,
   openNodes: PropTypes.array,
   checkedNodes: PropTypes.array,
-  checkboxes: PropTypes.bool
+  checkboxes: PropTypes.bool,
 };
 
 AssetNode.defaultProps = {
@@ -156,7 +156,7 @@ AssetNode.defaultProps = {
   selectedAsset: null,
   openNodes: [],
   checkedNodes: [],
-  checkboxes: false
+  checkboxes: false,
 };
 
 export default AssetNode;

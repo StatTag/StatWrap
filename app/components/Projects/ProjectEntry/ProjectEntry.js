@@ -9,17 +9,17 @@ import PortableWifiOffIcon from '@mui/icons-material/PortableWifiOff';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import styles from './ProjectEntry.css';
 
-const HtmlTooltip = withStyles(theme => ({
+const HtmlTooltip = withStyles((theme) => ({
   tooltip: {
     backgroundColor: '#f5f5f9',
     color: 'rgba(0, 0, 0, 0.87)',
     maxWidth: 1000,
     fontSize: theme.typography.pxToRem(12),
-    border: '1px solid #dadde9'
-  }
+    border: '1px solid #dadde9',
+  },
 }))(Tooltip);
 
-const projectEntry = props => {
+function projectEntry(props) {
   const iconClasses = [styles.favoriteIicon];
   if (!props.project.favorite) {
     iconClasses.push(styles.placeholder);
@@ -78,16 +78,16 @@ const projectEntry = props => {
       </div>
     </HtmlTooltip>
   );
-};
+}
 
 projectEntry.propTypes = {
   selected: PropTypes.bool,
-  hasUpdate: PropTypes.bool
+  hasUpdate: PropTypes.bool,
 };
 
 projectEntry.defaultProps = {
   selected: false,
-  hasUpdate: false
+  hasUpdate: false,
 };
 
 export default projectEntry;

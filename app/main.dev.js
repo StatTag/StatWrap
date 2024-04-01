@@ -75,7 +75,7 @@ const installExtensions = async () => {
   const extensions = ['REACT_DEVELOPER_TOOLS', 'REDUX_DEVTOOLS'];
 
   return Promise.all(
-    extensions.map(name => installer.default(installer[name], forceDownload))
+    extensions.map((name) => installer.default(installer[name], forceDownload)),
   ).catch(console.log);
 };
 
@@ -91,8 +91,8 @@ const createWindow = async () => {
     webPreferences: {
       nodeIntegration: true,
       enableRemoteModule: true,
-      contextIsolation: false
-    }
+      contextIsolation: false,
+    },
   });
 
   // Enable electron remote
@@ -162,11 +162,11 @@ app.on('before-quit', () => {
  * @param {object} project The project object that needs to be saved
  * @returns
  */
-const saveProject = project => {
+const saveProject = (project) => {
   const response = {
     project,
     error: false,
-    errorMessage: ''
+    errorMessage: '',
   };
 
   try {
@@ -179,14 +179,14 @@ const saveProject = project => {
       projectConfig.categories = project.categories;
       projectConfig.assets = AssetUtil.recursiveAbsoluteToRelativePath(
         project.path,
-        project.assets
+        project.assets,
       );
       projectConfig.notes = project.notes;
       projectConfig.people = project.people;
       projectConfig.assetGroups = cloneDeep(project.assetGroups);
       projectConfig.assetGroups = ProjectUtil.absoluteToRelativePathForAssetGroups(
         project.path,
-        projectConfig.assetGroups
+        projectConfig.assetGroups,
       );
       projectService.saveProjectFile(project.path, projectConfig);
 
@@ -218,27 +218,27 @@ const saveProject = project => {
  * into absolute paths.  This will allow all other code to assume that they will be given
  * absolute paths and not need to perform any path conversion.
  */
-ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
+ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
   const response = {
     projects: null,
     error: false,
-    errorMessage: ''
+    errorMessage: '',
   };
 
   try {
     const userDataPath = app.getPath('userData');
     console.log(path.join(userDataPath, DefaultProjectListFile));
     let projectsFromFile = projectListService.loadProjectListFromFile(
-      path.join(userDataPath, DefaultProjectListFile)
+      path.join(userDataPath, DefaultProjectListFile),
     );
 
     // For all of the projects we have in our list, load the additional information that exists
     // within the project's local metadata file itself.
-    projectsFromFile = projectsFromFile.map(project => {
+    projectsFromFile = projectsFromFile.map((project) => {
       // Start the log file watcher for each project
       logWatcherService.add(
         path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, Constants.StatWrapFiles.LOG),
-        project.id
+        project.id,
       );
 
       const metadata = projectService.loadProjectFile(project.path);
@@ -252,7 +252,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
         fullProject.name = metadata.name;
         fullProject.assets = AssetUtil.recursiveRelativeToAbsolutePath(
           project.path,
-          metadata.assets
+          metadata.assets,
         );
         fullProject.description = metadata.description;
         fullProject.categories = metadata.categories;
@@ -260,7 +260,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
         fullProject.people = metadata.people;
         fullProject.assetGroups = ProjectUtil.relativeToAbsolutePathForAssetGroups(
           project.path,
-          metadata.assetGroups
+          metadata.assetGroups,
         );
         fullProject.loadError = false;
       }
@@ -282,17 +282,17 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async event => {
 /**
  * Load the StatWrap-wide configuration files in memory
  */
-ipcMain.on(Messages.LOAD_CONFIGURATION_REQUEST, async event => {
+ipcMain.on(Messages.LOAD_CONFIGURATION_REQUEST, async (event) => {
   const response = {
     projectTemplates: null,
     assetAttributes: null,
     error: false,
-    errorMessage: ''
+    errorMessage: '',
   };
 
   try {
     response.projectTemplates = projectTemplateService.loadProjectTemplates(
-      path.join(__dirname, './templates')
+      path.join(__dirname, './templates'),
     );
   } catch (e) {
     response.error = true;
@@ -304,7 +304,8 @@ ipcMain.on(Messages.LOAD_CONFIGURATION_REQUEST, async event => {
     response.assetAttributes = AssetsConfig.attributes;
   } catch (e) {
     response.error = true;
-    response.errorMessage = `${response.errorMessage}\r\nThere was an unexpected error when loading the list of asset attributes`.trim();
+    response.errorMessage =
+      `${response.errorMessage}\r\nThere was an unexpected error when loading the list of asset attributes`.trim();
     console.log(e);
   }
 
@@ -315,14 +316,14 @@ ipcMain.on(Messages.TOGGLE_PROJECT_FAVORITE_REQUEST, async (event, projectId) =>
   const response = {
     projectId,
     error: false,
-    errorMessage: ''
+    errorMessage: '',
   };
 
   try {
     const userDataPath = app.getPath('userData');
     projectListService.toggleProjectFavorite(
       projectId,
-      path.join(userDataPath, DefaultProjectListFile)
+      path.join(userDataPath, DefaultProjectListFile),
     );
     response.error = false;
     response.errorMessage = '';
@@ -340,14 +341,14 @@ ipcMain.on(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, async (event, projectId) 
   const response = {
     projectId,
     error: false,
-    errorMessage: ''
+    errorMessage: '',
   };
 
   try {
     const userDataPath = app.getPath('userData');
     projectListService.removeProjectEntry(
       projectId,
-      path.join(userDataPath, DefaultProjectListFile)
+      path.join(userDataPath, DefaultProjectListFile),
     );
     logWatcherService.removeById(projectId);
     response.error = false;
@@ -371,7 +372,7 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
     project: {},
     statWrapConfigExisted: false,
     error: false,
-    errorMessage: ''
+    errorMessage: '',
   };
 
   try {
@@ -380,7 +381,7 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
       response.project = {
         id: validationReport.project.id,
         path: validationReport.project.path,
-        name: validationReport.project.name
+        name: validationReport.project.name,
       };
 
       switch (project.type) {
@@ -395,7 +396,7 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
             projectTemplateService.createTemplateContents(
               validationReport.project.path,
               project.template.id,
-              project.template.version
+              project.template.version,
             );
 
             // We are going to do just a FileHandler scan of the assets.  Even when we have more handlers, we don't
@@ -420,7 +421,7 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
           } else {
             projectConfig = projectService.createProjectConfig(
               validationReport.project.id,
-              validationReport.project.name
+              validationReport.project.name,
             );
 
             projectService.saveProjectFile(validationReport.project.path, projectConfig);
@@ -442,15 +443,15 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
         const userDataPath = app.getPath('userData');
         projectListService.appendAndSaveProjectToList(
           validationReport.project,
-          path.join(userDataPath, DefaultProjectListFile)
+          path.join(userDataPath, DefaultProjectListFile),
         );
         logWatcherService.add(
           path.join(
             validationReport.project.path,
             Constants.StatWrapFiles.BASE_FOLDER,
-            Constants.StatWrapFiles.LOG
+            Constants.StatWrapFiles.LOG,
           ),
-          validationReport.project.id
+          validationReport.project.id,
         );
       }
     } else {
@@ -483,7 +484,7 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
     project,
     assets: null,
     error: false,
-    errorMessage: ''
+    errorMessage: '',
   };
 
   // If the project is null, it means nothing was selected in the list and we just want to reset.
@@ -500,7 +501,7 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
         new PythonHandler(),
         new RHandler(),
         new SASHandler(),
-        new StataHandler()
+        new StataHandler(),
       ]);
       response.assets = service.scan(project.path); // Returns absolute paths
 
@@ -514,13 +515,13 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
 
       if (!projectConfig.assets) {
         console.log(
-          'No assets registered with the project - assuming this is a newly added project'
+          'No assets registered with the project - assuming this is a newly added project',
         );
       } else {
         // Convert relative to absolute paths, otherwise the note URIs won't match
         projectConfig.assets = AssetUtil.recursiveRelativeToAbsolutePath(
           project.path,
-          projectConfig.assets
+          projectConfig.assets,
         );
         projectService.addNotesAndAttributesToAssets(response.assets, projectConfig.assets);
       }
@@ -536,11 +537,11 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
       response.project.people = projectConfig.people;
       response.project.assets = response.assets;
       response.project.sourceControlEnabled = await sourceControlService.hasSourceControlEnabled(
-        project.path
+        project.path,
       );
       response.project.assetGroups = ProjectUtil.relativeToAbsolutePathForAssetGroups(
         project.path,
-        projectConfig.assetGroups
+        projectConfig.assetGroups,
       );
 
       const saveResponse = saveProject(response.project);
@@ -553,7 +554,7 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
       const userDataPath = app.getPath('userData');
       projectListService.setProjectLastAccessed(
         response.project.id,
-        path.join(userDataPath, DefaultProjectListFile)
+        path.join(userDataPath, DefaultProjectListFile),
       );
     } catch (e) {
       response.error = true;
@@ -576,7 +577,7 @@ ipcMain.on(
   async (event, projectPath, type, title, description, details, level, user) => {
     logService.writeLog(projectPath, type, title, description, details, level, user);
     event.sender.send(Messages.WRITE_PROJECT_LOG_RESPONSE);
-  }
+  },
 );
 
 /**
@@ -588,7 +589,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
     projectId: project ? project.id : null,
     logs: null,
     error: false,
-    errorMessage: ''
+    errorMessage: '',
   };
   if (!project) {
     response.error = true;
@@ -600,7 +601,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
   const userDataPath = app.getPath('userData');
   const projectLastAccessed = projectListService.getProjectLastAccessed(
     project.id,
-    path.join(userDataPath, DefaultProjectListFile)
+    path.join(userDataPath, DefaultProjectListFile),
   );
 
   logService.loadLog(project.path, (error, logs) => {
@@ -616,10 +617,10 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
       if (sourceControlEnabled) {
         sourceControlService
           .getHistory(project.path)
-          .then(commits => {
+          .then((commits) => {
             if (commits) {
               response.logs = logs.file.concat(
-                commits.map(c => {
+                commits.map((c) => {
                   return {
                     level: 'info',
                     type: Constants.ActionType.VERSION_CONTROL_COMMIT,
@@ -629,9 +630,9 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
                     // these to strings so that the ordering will work.
                     timestamp: c.timestamp.toISOString(),
                     user: c.committer,
-                    details: c
+                    details: c,
                   };
-                })
+                }),
               );
               response.logs = orderBy(response.logs, 'timestamp', 'desc');
             } else {
@@ -640,7 +641,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
             response.updates = ProjectUtil.getProjectUpdates(
               projectLastAccessed,
               applicationUser,
-              response.logs
+              response.logs,
             );
             event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
             return true;
@@ -655,7 +656,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
         response.updates = ProjectUtil.getProjectUpdates(
           projectLastAccessed,
           applicationUser,
-          response.logs
+          response.logs,
         );
         event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
       }
@@ -670,11 +671,22 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
 ipcMain.on(
   Messages.UPDATE_PROJECT_REQUEST,
   // eslint-disable-next-line prettier/prettier
-  async (event, projectPath, actionType, entityType, entityKey, title, description, details, level, user) => {
+  async (
+    event,
+    projectPath,
+    actionType,
+    entityType,
+    entityKey,
+    title,
+    description,
+    details,
+    level,
+    user,
+  ) => {
     let response = {
       project: null,
       error: false,
-      errorMessage: ''
+      errorMessage: '',
     };
 
     try {
@@ -684,7 +696,7 @@ ipcMain.on(
         actionType,
         entityType,
         entityKey,
-        details
+        details,
       );
       if (!updatedProject) {
         response.error = true;
@@ -706,18 +718,18 @@ ipcMain.on(
     // console.log(response);
     // await sleep(5000);  // Use to test delays.  Leave disabled in production.
     event.sender.send(Messages.UPDATE_PROJECT_RESPONSE, response);
-  }
+  },
 );
 
 /**
  * Perform all system information gathering
  */
-ipcMain.on(Messages.LOAD_USER_INFO_REQUEST, async event => {
+ipcMain.on(Messages.LOAD_USER_INFO_REQUEST, async (event) => {
   const response = {
     user: Constants.UndefinedDefaults.USER,
     settings: {},
     error: false,
-    errorMessage: ''
+    errorMessage: '',
   };
 
   (async () => {
@@ -727,7 +739,7 @@ ipcMain.on(Messages.LOAD_USER_INFO_REQUEST, async event => {
       response.user = applicationUser;
       const userDataPath = app.getPath('userData');
       response.settings = service.loadUserSettingsFromFile(
-        path.join(userDataPath, DefaultSettingsFile)
+        path.join(userDataPath, DefaultSettingsFile),
       );
     } catch (e) {
       response.error = true;
@@ -743,7 +755,7 @@ ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, mode, project, p
     project: null,
     person: null,
     error: false,
-    errorMessage: ''
+    errorMessage: '',
   };
 
   const projectMode = mode.toLowerCase() === 'project';
@@ -793,7 +805,7 @@ ipcMain.on(Messages.SAVE_USER_PROFILE_REQUEST, async (event, user) => {
   const response = {
     user,
     error: false,
-    errorMessage: ''
+    errorMessage: '',
   };
 
   if (!user) {
@@ -836,7 +848,7 @@ ipcMain.on(Messages.SCAN_ASSET_DYNAMIC_DETAILS_REQUEST, async (event, project, a
     asset,
     details: null,
     error: false,
-    errorMessage: ''
+    errorMessage: '',
   };
 
   // If the project or asset is null, it means nothing was selected in the list and we just want to reset.
@@ -850,7 +862,7 @@ ipcMain.on(Messages.SCAN_ASSET_DYNAMIC_DETAILS_REQUEST, async (event, project, a
     try {
       // If source control isn't enabled, leave early.  This isn't an error we need to report.
       const hasSourceControlEnabled = await sourceControlService.hasSourceControlEnabled(
-        project.path
+        project.path,
       );
       if (!hasSourceControlEnabled) {
         event.sender.send(Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE, response);
@@ -859,7 +871,7 @@ ipcMain.on(Messages.SCAN_ASSET_DYNAMIC_DETAILS_REQUEST, async (event, project, a
 
       response.details = {
         // Just source control for now, but structuring to add more types of details in the future
-        sourceControl: await sourceControlService.getFileHistory(project.path, asset.uri)
+        sourceControl: await sourceControlService.getFileHistory(project.path, asset.uri),
       };
     } catch (e) {
       response.error = true;

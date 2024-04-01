@@ -37,23 +37,25 @@ const ClearButton = styled.button`
 `;
 
 // eslint-disable-next-line react/prop-types
-const FilterComponent = ({ filterText, onFilter, onClear }) => (
-  <>
-    <TextField
-      id="search"
-      type="text"
-      placeholder="Search people"
-      aria-label="Search Input"
-      value={filterText}
-      onChange={onFilter}
-    />
-    <ClearButton type="button" onClick={onClear}>
-      X
-    </ClearButton>
-  </>
-);
+function FilterComponent({ filterText, onFilter, onClear }) {
+  return (
+    <>
+      <TextField
+        id="search"
+        type="text"
+        placeholder="Search people"
+        aria-label="Search Input"
+        value={filterText}
+        onChange={onFilter}
+      />
+      <ClearButton type="button" onClick={onClear}>
+        X
+      </ClearButton>
+    </>
+  );
+}
 
-const peopleTable = props => {
+function peopleTable(props) {
   const { mode, list, onEdit, onDelete } = props;
   const [filterText, setFilterText] = React.useState('');
 
@@ -66,7 +68,7 @@ const peopleTable = props => {
 
     return (
       <FilterComponent
-        onFilter={e => setFilterText(e.target.value)}
+        onFilter={(e) => setFilterText(e.target.value)}
         onClear={handleClear}
         filterText={filterText}
       />
@@ -77,25 +79,25 @@ const peopleTable = props => {
     {
       name: 'Name',
       selector: 'displayName',
-      sortable: true
+      sortable: true,
     },
     {
       name: 'Affiliation',
       selector: 'affiliation',
-      sortable: true
+      sortable: true,
     },
     {
       name: 'Roles',
       selector: 'displayRoles',
       sortable: true,
-      wrap: true
+      wrap: true,
     },
     {
       key: 'edit',
       compact: true,
       width: '5%',
       sortable: false,
-      cell: record => {
+      cell: (record) => {
         return (
           <IconButton
             onClick={() => {
@@ -109,14 +111,14 @@ const peopleTable = props => {
             <FaEdit fontSize="small" />
           </IconButton>
         );
-      }
+      },
     },
     {
       key: 'delete',
       compact: true,
       width: '5%',
       sortable: false,
-      cell: record => {
+      cell: (record) => {
         return (
           <IconButton
             onClick={() => {
@@ -130,13 +132,13 @@ const peopleTable = props => {
             <FaTrash fontSize="small" />
           </IconButton>
         );
-      }
-    }
+      },
+    },
   ];
 
   // Remove the 'roles' column if we aren't displaying for a project.
   if (mode.toLowerCase() !== 'project') {
-    columns = columns.filter(item => {
+    columns = columns.filter((item) => {
       return !item.selector || item.selector !== 'displayRoles';
     });
   }
@@ -144,19 +146,19 @@ const peopleTable = props => {
   let contents = <div className={styles.empty}>No people have been added to this project yet</div>;
   if (list) {
     const data = list
-      .map(p => {
+      .map((p) => {
         return {
           ...p,
           displayName: GeneralUtil.formatName(p.name),
-          displayRoles: p.roles ? p.roles.join(', ') : ''
+          displayRoles: p.roles ? p.roles.join(', ') : '',
         };
       })
       .filter(
-        f =>
+        (f) =>
           filterText === '' ||
           (f.displayName && f.displayName.toLowerCase().includes(filterText.toLowerCase())) ||
           (f.affiliation && f.affiliation.toLowerCase().includes(filterText.toLowerCase())) ||
-          (f.displayRoles && f.displayRoles.toLowerCase().includes(filterText.toLowerCase()))
+          (f.displayRoles && f.displayRoles.toLowerCase().includes(filterText.toLowerCase())),
       );
     contents = (
       <DataTable
@@ -171,19 +173,19 @@ const peopleTable = props => {
   }
 
   return <div className={styles.container}>{contents}</div>;
-};
+}
 
 peopleTable.propTypes = {
   list: PropTypes.array,
   mode: PropTypes.string.isRequired,
   onEdit: PropTypes.func,
-  onDelete: PropTypes.func
+  onDelete: PropTypes.func,
 };
 
 peopleTable.defaultProps = {
   list: [],
   onEdit: null,
-  onDelete: null
+  onDelete: null,
 };
 
 export default peopleTable;

@@ -8,7 +8,7 @@ import NoteEditor from '../NoteEditor/NoteEditor';
 import GeneralUtil from '../../utils/general';
 import styles from './Person.css';
 
-const person = props => {
+function person(props) {
   const { mode } = props;
 
   const updatedNoteHandler = (note, text) => {
@@ -21,7 +21,7 @@ const person = props => {
     }
   };
 
-  const deleteNoteHandler = note => {
+  const deleteNoteHandler = (note) => {
     if (props.onDeletedNote) {
       props.onDeletedNote(props.id, note);
     }
@@ -46,7 +46,7 @@ const person = props => {
         id: props.id,
         name: props.name,
         affiliation: props.affiliation,
-        roles: props.roles
+        roles: props.roles,
       });
     }
   };
@@ -57,7 +57,7 @@ const person = props => {
         id: props.id,
         name: props.name,
         affiliation: props.affiliation,
-        roles: props.roles
+        roles: props.roles,
       });
     }
   };
@@ -77,7 +77,7 @@ const person = props => {
       {noteEditor}
     </div>
   );
-};
+}
 
 person.propTypes = {
   mode: PropTypes.string.isRequired,
@@ -87,7 +87,7 @@ person.propTypes = {
   roles: PropTypes.array,
   notes: PropTypes.array,
   onEditPerson: PropTypes.func,
-  onDeletePerson: PropTypes.func
+  onDeletePerson: PropTypes.func,
 };
 
 person.defaultProps = {
@@ -97,7 +97,7 @@ person.defaultProps = {
   roles: [],
   notes: [],
   onEditPerson: null,
-  onDeletePerson: null
+  onDeletePerson: null,
 };
 
 export default person;

@@ -16,49 +16,47 @@ class Projects extends Component {
     if (this.props.loaded) {
       if (this.props.error) {
         projectDetails = (
-          <>
-            <Error>
-              {this.props.errorMessage}
-              <button type="button" onClick={this.props.onRefresh}>
-                Reload Projects
-              </button>
-            </Error>
-          </>
+          <Error>
+            {this.props.errorMessage}
+            <button type="button" onClick={this.props.onRefresh}>
+              Reload Projects
+            </button>
+          </Error>
         );
       } else {
         const pinnedProjects = this.props.projects
-          .filter(x => x.favorite)
-          .map(item => (
+          .filter((x) => x.favorite)
+          .map((item) => (
             <ProjectEntry
               key={item.id}
               hasUpdate={item.hasUpdate}
               project={item}
               selected={this.props.selectedProject && this.props.selectedProject.id === item.id}
               onSelect={() => this.props.onSelect(item)}
-              onFavoriteClick={e => {
+              onFavoriteClick={(e) => {
                 e.stopPropagation();
                 this.props.onFavoriteClick(item.id);
               }}
-              onMenuClick={event => {
+              onMenuClick={(event) => {
                 event.stopPropagation();
                 this.props.onMenuClick(event.currentTarget, item);
               }}
             />
           ));
         const projects = this.props.projects
-          .filter(x => !x.favorite)
-          .map(item => (
+          .filter((x) => !x.favorite)
+          .map((item) => (
             <ProjectEntry
               key={item.id}
               hasUpdate={item.hasUpdate}
               project={item}
               selected={this.props.selectedProject && this.props.selectedProject.id === item.id}
               onSelect={() => this.props.onSelect(item)}
-              onFavoriteClick={e => {
+              onFavoriteClick={(e) => {
                 e.stopPropagation();
                 this.props.onFavoriteClick(item.id);
               }}
-              onMenuClick={event => {
+              onMenuClick={(event) => {
                 event.stopPropagation();
                 this.props.onMenuClick(event.currentTarget, item);
               }}
@@ -92,7 +90,7 @@ class Projects extends Component {
         {projectDetails}
         <div
           className={styles.filler}
-          onClick={e => {
+          onClick={(e) => {
             e.stopPropagation();
             this.props.onSelect(null);
           }}
@@ -112,12 +110,12 @@ Projects.propTypes = {
   onSelect: PropTypes.func.isRequired,
   onFavoriteClick: PropTypes.func.isRequired,
   onMenuClick: PropTypes.func.isRequired,
-  onAddProject: PropTypes.func.isRequired
+  onAddProject: PropTypes.func.isRequired,
 };
 
 Projects.defaultProps = {
   errorMessage: null,
-  selectedProject: null
+  selectedProject: null,
 };
 
 export default Projects;

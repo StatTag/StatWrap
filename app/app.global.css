@@ -2,11 +2,11 @@
  * @NOTE: Prepend a `~` to css file paths that are in your node_modules
  *        See https://github.com/webpack-contrib/sass-loader#imports
  */
-@import "~@fortawesome/fontawesome-free/css/all.css";
-@import "~react-checkbox-tree/lib/react-checkbox-tree.css";
-@import "~easymde/dist/easymde.min.css";
-@import "~react-tagsinput/react-tagsinput.css";
-@import "~github-markdown-css/github-markdown-light.css";
+@import '~@fortawesome/fontawesome-free/css/all.css';
+@import '~react-checkbox-tree/lib/react-checkbox-tree.css';
+@import '~easymde/dist/easymde.min.css';
+@import '~react-tagsinput/react-tagsinput.css';
+@import '~github-markdown-css/github-markdown-light.css';
 
 /* stylelint-disable selector-class-pattern  */
 
@@ -61,7 +61,7 @@ body {
   height: 100vh;
   width: 100%;
   background-color: #fff;
-  font-family: Arial, Helvetica, "Helvetica Neue", serif;
+  font-family: Arial, Helvetica, 'Helvetica Neue', serif;
   overflow-y: hidden;
   margin: 0;
 }
@@ -93,25 +93,25 @@ body {
 }
 
 .tabIndicator {
-  background-color: "white";
+  background-color: 'white';
 }
 
 .scrollButtons {
-  color: "white";
+  color: 'white';
 }
 
 .tabRoot {
-  background-color: "#cccccc";
-  border: "solid 1px #000";
-  font-size: "0.8rem";
+  background-color: '#cccccc';
+  border: 'solid 1px #000';
+  font-size: '0.8rem';
 }
 
 .tabSelected {
-  background-color: "#ffffff";
-  color: "#000000";
-  font-size: "0.9rem";
+  background-color: '#ffffff';
+  color: '#000000';
+  font-size: '0.9rem';
 }
 
 .tabPanel {
-  padding: "10px";
+  padding: '10px';
 }

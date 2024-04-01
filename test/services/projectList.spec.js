@@ -83,7 +83,7 @@ describe('services', () => {
         fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(invalidProjectListString);
         expect(() =>
-          new ProjectListService().loadProjectListFromFile('test-project-list.json')
+          new ProjectListService().loadProjectListFromFile('test-project-list.json'),
         ).toThrow(SyntaxError);
       });
       it('should use the default file name when no parameter is specified', () => {
@@ -114,14 +114,20 @@ describe('services', () => {
         const service = new ProjectListService();
         expect(() => service.validateProjectListEntry({ path: '/Test/Path' })).toThrow(Error);
         // eslint-disable-next-line prettier/prettier
-        expect(() => service.validateProjectListEntry({ id: null, path: '/Test/Path' })).toThrow(Error);
+        expect(() => service.validateProjectListEntry({ id: null, path: '/Test/Path' })).toThrow(
+          Error,
+        );
         expect(() =>
-          service.validateProjectListEntry({ id: undefined, path: '/Test/Path' })
+          service.validateProjectListEntry({ id: undefined, path: '/Test/Path' }),
         ).toThrow(Error);
         // eslint-disable-next-line prettier/prettier
-        expect(() => service.validateProjectListEntry({ id: '', path: '/Test/Path' })).toThrow(Error);
+        expect(() => service.validateProjectListEntry({ id: '', path: '/Test/Path' })).toThrow(
+          Error,
+        );
         // eslint-disable-next-line prettier/prettier
-        expect(() => service.validateProjectListEntry({ id: '   ', path: '/Test/Path' })).toThrow(Error);
+        expect(() => service.validateProjectListEntry({ id: '   ', path: '/Test/Path' })).toThrow(
+          Error,
+        );
       });
 
       it('should throw an error if the project path is not defined', () => {
@@ -136,7 +142,9 @@ describe('services', () => {
       it('should not throw an error if the ID and path are specified', () => {
         const service = new ProjectListService();
         // eslint-disable-next-line prettier/prettier
-        expect(() => service.validateProjectListEntry({ id: '1', path: '/Test/Path' })).not.toThrow(Error);
+        expect(() => service.validateProjectListEntry({ id: '1', path: '/Test/Path' })).not.toThrow(
+          Error,
+        );
       });
     });
 
@@ -155,17 +163,17 @@ describe('services', () => {
         // Exact same id and path
         service.appendAndSaveProjectToList({
           id: 'd01d2925-f6ff-4f8e-988f-fca2ee193427',
-          path: '~/Development/projects/test1'
+          path: '~/Development/projects/test1',
         });
         // Same id, different path
         service.appendAndSaveProjectToList({
           id: 'd01d2925-f6ff-4f8e-988f-fca2ee193427',
-          path: '~/Development/projects/test2'
+          path: '~/Development/projects/test2',
         });
         // Same path, different id
         service.appendAndSaveProjectToList({
           id: 'd01d2925-f6ff-4f8e-988f-fca2ee193428',
-          path: '~/Development/projects/test1'
+          path: '~/Development/projects/test1',
         });
         expect(fs.writeFileSync).not.toHaveBeenCalled();
       });
@@ -179,7 +187,7 @@ describe('services', () => {
         service.appendAndSaveProjectToList({
           id: '12345',
           name: 'Test',
-          path: '/Test/Project/Path'
+          path: '/Test/Project/Path',
         });
         expect(fs.writeFileSync).toHaveBeenCalledTimes(2);
       });
@@ -191,7 +199,7 @@ describe('services', () => {
         service.appendAndSaveProjectToList({
           id: '12345',
           name: 'Test',
-          path: '/Test/Project/Path'
+          path: '/Test/Project/Path',
         });
         expect(fs.writeFileSync).toHaveBeenCalled();
       });
@@ -203,8 +211,8 @@ describe('services', () => {
           new ProjectListService().appendAndSaveProjectToList({
             id: '12345',
             name: 'Test',
-            path: '/Test/Project/Path'
-          })
+            path: '/Test/Project/Path',
+          }),
         ).toThrow(SyntaxError);
         expect(fs.writeFileSync).not.toHaveBeenCalled();
       });
@@ -244,7 +252,7 @@ describe('services', () => {
         // Flip from 'true' to 'false'
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           '.statwrap-projects.json',
-          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":false,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2020-04-21T21:21:27.041Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2"}]'
+          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":false,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2020-04-21T21:21:27.041Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2"}]',
         );
       });
 
@@ -256,7 +264,7 @@ describe('services', () => {
         // Initialize as 'true'
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           '.statwrap-projects.json',
-          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":true,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2020-04-21T21:21:27.041Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2","favorite":true}]'
+          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":true,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2020-04-21T21:21:27.041Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2","favorite":true}]',
         );
       });
 
@@ -264,7 +272,7 @@ describe('services', () => {
         fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(invalidProjectListString);
         expect(() =>
-          new ProjectListService().toggleProjectFavorite('d01d2925-f6ff-4f8e-988f-fca2ee193427')
+          new ProjectListService().toggleProjectFavorite('d01d2925-f6ff-4f8e-988f-fca2ee193427'),
         ).toThrow(SyntaxError);
         expect(fs.writeFileSync).not.toHaveBeenCalled();
       });
@@ -306,7 +314,7 @@ describe('services', () => {
         // Flip from 'true' to 'false'
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           '.statwrap-projects.json',
-          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":true,"lastAccessed":"2022-08-10T12:13:14.015Z","path":"~/Development/projects/test1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2020-04-21T21:21:27.041Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2"}]'
+          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":true,"lastAccessed":"2022-08-10T12:13:14.015Z","path":"~/Development/projects/test1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2020-04-21T21:21:27.041Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2"}]',
         );
       });
 
@@ -320,7 +328,7 @@ describe('services', () => {
         // Initialize as 'true'
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           '.statwrap-projects.json',
-          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":true,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2022-08-10T12:13:14.015Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2"}]'
+          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":true,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2022-08-10T12:13:14.015Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2"}]',
         );
       });
 
@@ -328,7 +336,7 @@ describe('services', () => {
         fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(invalidProjectListString);
         expect(() =>
-          new ProjectListService().setProjectLastAccessed('d01d2925-f6ff-4f8e-988f-fca2ee193427')
+          new ProjectListService().setProjectLastAccessed('d01d2925-f6ff-4f8e-988f-fca2ee193427'),
         ).toThrow(SyntaxError);
         expect(fs.writeFileSync).not.toHaveBeenCalled();
       });
@@ -362,7 +370,7 @@ describe('services', () => {
         fs.readFileSync.mockReturnValue(projectListString);
         const service = new ProjectListService();
         expect(service.getProjectLastAccessed('d01d2925-f6ff-4f8e-988f-fca2ee193427')).toBe(
-          '2020-04-21T21:21:27.041Z'
+          '2020-04-21T21:21:27.041Z',
         );
       });
     });
@@ -400,7 +408,7 @@ describe('services', () => {
         service.removeProjectEntry('d01d2925-f6ff-4f8e-988f-fca2ee193427');
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           '.statwrap-projects.json',
-          '[{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2020-04-21T21:21:27.041Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2"}]'
+          '[{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2020-04-21T21:21:27.041Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2"}]',
         );
       });
 
@@ -408,7 +416,7 @@ describe('services', () => {
         fs.accessSync.mockReturnValue(true);
         fs.readFileSync.mockReturnValue(invalidProjectListString);
         expect(() =>
-          new ProjectListService().removeProjectEntry('d01d2925-f6ff-4f8e-988f-fca2ee193427')
+          new ProjectListService().removeProjectEntry('d01d2925-f6ff-4f8e-988f-fca2ee193427'),
         ).toThrow(SyntaxError);
         expect(fs.writeFileSync).not.toHaveBeenCalled();
       });
@@ -421,14 +429,14 @@ describe('services', () => {
       it('should throw an error if the project list is null', () => {
         // This is a TypeError because JSON conversion can handle null input.
         expect(() => new ProjectListService().writeProjectList('test.json', null)).toThrow(
-          TypeError
+          TypeError,
         );
         expect(fs.writeFileSync).not.toHaveBeenCalled();
       });
       it('should throw an error if the project list is undefined', () => {
         // This is a SyntaxError because JSON conversion doesn't like undefined
         expect(() => new ProjectListService().writeProjectList('test.json', undefined)).toThrow(
-          SyntaxError
+          SyntaxError,
         );
         expect(fs.writeFileSync).not.toHaveBeenCalled();
       });
@@ -448,13 +456,13 @@ describe('services', () => {
             favorite: false,
             lastAccessed: '2020-12-22T22:27:53.368Z',
             name: 'test',
-            path: '/Users/test/test'
-          }
+            path: '/Users/test/test',
+          },
         ];
         service.writeProjectList('.statwrap-projects.json', project);
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           '.statwrap-projects.json',
-          JSON.stringify(project)
+          JSON.stringify(project),
         );
       });
 
@@ -468,7 +476,7 @@ describe('services', () => {
             lastAccessed: '2020-12-22T22:27:53.368Z',
             name: 'test',
             path: '/Users/test/test',
-            assets: [{ id: '1' }]
+            assets: [{ id: '1' }],
           },
           {
             formatVersion: '1',
@@ -477,13 +485,13 @@ describe('services', () => {
             lastAccessed: '2020-12-22T22:27:53.368Z',
             name: 'test2',
             path: '/Users/test/test2',
-            assets: [{ id: '1' }]
-          }
+            assets: [{ id: '1' }],
+          },
         ];
         service.writeProjectList('.statwrap-projects.json', project);
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           '.statwrap-projects.json',
-          '[{"formatVersion":"1","id":"1234","favorite":false,"lastAccessed":"2020-12-22T22:27:53.368Z","name":"test","path":"/Users/test/test"},{"formatVersion":"1","id":"1235","favorite":false,"lastAccessed":"2020-12-22T22:27:53.368Z","name":"test2","path":"/Users/test/test2"}]'
+          '[{"formatVersion":"1","id":"1234","favorite":false,"lastAccessed":"2020-12-22T22:27:53.368Z","name":"test","path":"/Users/test/test"},{"formatVersion":"1","id":"1235","favorite":false,"lastAccessed":"2020-12-22T22:27:53.368Z","name":"test2","path":"/Users/test/test2"}]',
         );
       });
     });

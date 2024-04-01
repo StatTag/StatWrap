@@ -4,7 +4,7 @@ import DependencyGraph from './DependencyGraph/DependencyGraphEChart';
 import DependencyTree from './DependencyTree/DependencyTreeEChart';
 import styles from './Workflow.css';
 
-const Workflow = props => {
+function Workflow(props) {
   const [diagram, setDiagram] = useState('graph');
   const [zoomLevel, setZoomLevel] = useState(1);
 
@@ -13,11 +13,11 @@ const Workflow = props => {
   };
 
   const handleZoomIn = () => {
-    setZoomLevel(prevZoom => prevZoom * 1.2);
+    setZoomLevel((prevZoom) => prevZoom * 1.2);
   };
 
   const handleZoomOut = () => {
-    setZoomLevel(prevZoom => prevZoom / 1.2);
+    setZoomLevel((prevZoom) => prevZoom / 1.2);
   };
 
   const { project } = props;
@@ -59,6 +59,6 @@ const Workflow = props => {
       {graph}
     </div>
   );
-};
+}
 
 export default Workflow;

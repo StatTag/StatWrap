@@ -3,7 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styles from './GeneralAction.css';
 
-const formatValue = value => {
+const formatValue = (value) => {
   if (typeof value === 'object' && value !== null) {
     return JSON.stringify(value);
   }
@@ -18,14 +18,14 @@ const generateRow = (key, value) => {
   );
 };
 
-const generalAction = props => {
+function generalAction(props) {
   const { data } = props;
-  const rows = Object.keys(data.details).map(k => generateRow(k, data.details[k]));
+  const rows = Object.keys(data.details).map((k) => generateRow(k, data.details[k]));
   return <div className={styles.container}>{rows}</div>;
-};
+}
 
 generalAction.propTypes = {
-  data: PropTypes.object.isRequired
+  data: PropTypes.object.isRequired,
 };
 
 export default generalAction;

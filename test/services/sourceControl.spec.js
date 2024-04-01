@@ -76,14 +76,14 @@ describe('services', () => {
       it('should convert a timestamp if an offset is provided', () => {
         const service = new SourceControlService();
         expect(
-          service.convertTimestamp({ timestamp: 1234567890, timezoneOffset: 360 })
+          service.convertTimestamp({ timestamp: 1234567890, timezoneOffset: 360 }),
         ).toStrictEqual(new Date((1234567890 - 360 * 60) * 1000));
       });
 
       it('should keep the timestamp if the offset is 0', () => {
         const service = new SourceControlService();
         expect(
-          service.convertTimestamp({ timestamp: 1234567890, timezoneOffset: 0 })
+          service.convertTimestamp({ timestamp: 1234567890, timezoneOffset: 0 }),
         ).toStrictEqual(new Date(1234567890000));
       });
     });
@@ -104,7 +104,9 @@ describe('services', () => {
       it('should return an empty array for invalid file path', async () => {
         const service = new SourceControlService();
         // eslint-disable-next-line prettier/prettier
-        return expect(service.getFileHistory('/Invalid/Path', 'DoesNotExist.txt')).resolves.toStrictEqual([]);
+        return expect(
+          service.getFileHistory('/Invalid/Path', 'DoesNotExist.txt'),
+        ).resolves.toStrictEqual([]);
       });
     });
 
@@ -124,10 +126,10 @@ describe('services', () => {
                   name: 'Test Person2',
                   email: 'test2@test.com',
                   timestamp: 1234567890,
-                  timezoneOffset: 360
-                }
-              }
-            }
+                  timezoneOffset: 360,
+                },
+              },
+            },
           ];
         });
         const service = new SourceControlService();
@@ -146,9 +148,9 @@ describe('services', () => {
                   name: 'Test Person2',
                   email: 'test2@test.com',
                   timestamp: 1234567890,
-                  timezoneOffset: 360
-                }
-              }
+                  timezoneOffset: 360,
+                },
+              },
             },
             {
               commit: {
@@ -157,10 +159,10 @@ describe('services', () => {
                   name: 'Test Person',
                   email: 'test@test.com',
                   timestamp: 123456789,
-                  timezoneOffset: 0
-                }
-              }
-            }
+                  timezoneOffset: 0,
+                },
+              },
+            },
           ];
         });
         const service = new SourceControlService();
@@ -169,13 +171,13 @@ describe('services', () => {
           {
             message: 'Test 2',
             committer: 'Test Person2 (test2@test.com)',
-            timestamp: new Date((1234567890 - 360 * 60) * 1000)
+            timestamp: new Date((1234567890 - 360 * 60) * 1000),
           },
           {
             message: 'Test',
             committer: 'Test Person (test@test.com)',
-            timestamp: new Date(123456789000)
-          }
+            timestamp: new Date(123456789000),
+          },
         ]);
       });
     });

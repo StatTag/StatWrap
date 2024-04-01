@@ -14,7 +14,7 @@ const ICON_TYPES = {
   GENERIC: `${ICON_PATH}generic.svg`,
   LIBRARY: `${ICON_PATH}library.svg`,
   DATA: `${ICON_PATH}data.svg`,
-  FIGURE: `${ICON_PATH}figure.svg`
+  FIGURE: `${ICON_PATH}figure.svg`,
 };
 
 /**

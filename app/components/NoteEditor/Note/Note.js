@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import EditableLabel from '../../EditableLabel/EditableLabel';
 import styles from './Note.css';
 
-const noteDetails = (props) => {
+function noteDetails(props) {
   const { note, onEditingComplete, onDelete } = props;
   const metadata = note ? (
     <div className={styles.metadata}>
@@ -37,7 +37,7 @@ const noteDetails = (props) => {
       />
     </div>
   );
-};
+}
 
 noteDetails.propTypes = {
   note: PropTypes.object,

@@ -10,7 +10,7 @@ module.exports = {
         'Is this asset no longer actively used within the project?  StatWrap will ignore this for most of its processing and analysis tasks.',
       type: 'bool',
       default: false,
-      appliesTo: ['*']
+      appliesTo: ['*'],
     },
     {
       id: 'entrypoint',
@@ -18,7 +18,7 @@ module.exports = {
       details: 'Is this asset an entry point for a programmatic workflow?',
       type: 'bool',
       default: false,
-      appliesTo: ['code']
+      appliesTo: ['code'],
     },
     {
       id: 'sensitive',
@@ -26,89 +26,89 @@ module.exports = {
       details: 'Does this asset contain sensitive information (PHI, PII, passwords, secrets)',
       type: 'bool',
       default: false,
-      appliesTo: ['code', 'data', 'documentation']
-    }
+      appliesTo: ['code', 'data', 'documentation'],
+    },
   ],
   contentTypes: [
     {
       name: 'R',
       extensions: ['r', 'rmd', 'rnw', 'snw'],
-      categories: ['code']
+      categories: ['code'],
     },
     {
       name: 'Python',
       extensions: ['py', 'py3', 'pyi'],
-      categories: ['code']
+      categories: ['code'],
     },
     {
       name: 'SAS',
       extensions: ['sas'],
-      categories: ['code']
+      categories: ['code'],
     },
     {
       name: 'Stata',
       extensions: ['do', 'ado', 'mata'],
-      categories: ['code']
+      categories: ['code'],
     },
     {
       name: 'Text Data File',
       extensions: ['csv', 'tsv'],
-      categories: ['data']
+      categories: ['data'],
     },
     {
       name: 'Excel',
       extensions: ['xls', 'xlsx'],
-      categories: ['data']
+      categories: ['data'],
     },
     {
       name: 'Parquet',
       extensions: ['parquet'],
-      categories: ['data']
+      categories: ['data'],
     },
     {
       name: 'JSON',
       extensions: ['json'],
-      categories: ['data']
+      categories: ['data'],
     },
     {
       name: 'XML',
       extensions: ['xml'],
-      categories: ['data']
+      categories: ['data'],
     },
     {
       name: 'Stata Data',
       extensions: ['dta'],
-      categories: ['data']
+      categories: ['data'],
     },
     {
       name: 'R Data',
       extensions: ['rdata', 'rda'],
-      categories: ['data']
+      categories: ['data'],
     },
     {
       name: 'SAS Data',
       extensions: ['sas7bdat', 'sas7bvew', 'sas7bndx', 'sd7', 'sv7', 'si7'],
-      categories: ['data']
+      categories: ['data'],
     },
     {
       name: 'Markdown',
       extensions: ['md', 'markdown'],
-      categories: ['documentation']
+      categories: ['documentation'],
     },
     {
       name: 'HTML',
       extensions: ['htm', 'html'],
-      categories: ['documentation', 'code']
+      categories: ['documentation', 'code'],
     },
     {
       name: 'Text',
       extensions: ['txt'],
-      categories: ['documentation']
-    }
-  // In the patterns, don't use /g. TIL (after hours of debugging), global state preserves
-  // where it's checking between calls, so you can call .test() multiple times on the same
-  // string and you will get different results (https://stackoverflow.com/a/2630538/5670646).
-  // contentTypes: [
+      categories: ['documentation'],
+    },
+    // In the patterns, don't use /g. TIL (after hours of debugging), global state preserves
+    // where it's checking between calls, so you can call .test() multiple times on the same
+    // string and you will get different results (https://stackoverflow.com/a/2630538/5670646).
+    // contentTypes: [
     // {
     //   type: 'code',
     //   patterns: [
@@ -140,5 +140,5 @@ module.exports = {
     //   type: 'documentation',
     //   patterns: [/\.md$/i]
     // }
-  ]
+  ],
 };

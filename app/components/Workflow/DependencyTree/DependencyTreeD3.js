@@ -20,7 +20,7 @@ const dependencyGraphD3 = (props) => {
           nonSiblings: 0.8,
         }}
         dimensions={{ height: window.innerHeight / 2, width: (2 * window.innerWidth) / 3 }}
-        pathFunc={'step'}
+        pathFunc="step"
         zoom={0.4}
         scaleExtent={{ max: 2, min: 0.1 }}
         translate={{ x: 10, y: window.innerHeight / 3 }}

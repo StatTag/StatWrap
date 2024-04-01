@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Person from '../../Person/Person';
 import styles from './PeopleCardList.css';
 
-const peopleCardList = props => {
+function peopleCardList(props) {
   const {
     mode,
     list,
@@ -12,44 +12,44 @@ const peopleCardList = props => {
     onDelete,
     onAddedPersonNote,
     onUpdatedPersonNote,
-    onDeletedPersonNote
+    onDeletedPersonNote,
   } = props;
 
-  const deletePersonHandler = person => {
+  const deletePersonHandler = (person) => {
     if (onDelete) {
       onDelete(person);
     }
   };
 
-  const editPersonHandler = person => {
+  const editPersonHandler = (person) => {
     if (onEdit) {
-      const existingPerson = list.find(x => x.id === person.id);
+      const existingPerson = list.find((x) => x.id === person.id);
       onEdit(existingPerson);
     }
   };
 
   const addedNoteHandler = (personId, text) => {
     if (onAddedPersonNote) {
-      const person = list.find(x => x.id === personId);
+      const person = list.find((x) => x.id === personId);
       onAddedPersonNote(person, text);
     }
   };
 
   const updatedNoteHandler = (personId, text, note) => {
     if (onUpdatedPersonNote) {
-      const person = list.find(x => x.id === personId);
+      const person = list.find((x) => x.id === personId);
       onUpdatedPersonNote(person, text, note);
     }
   };
 
   const deletedNoteHandler = (personId, note) => {
     if (onDeletedPersonNote) {
-      const person = list.find(x => x.id === personId);
+      const person = list.find((x) => x.id === personId);
       onDeletedPersonNote(person, note);
     }
   };
 
-  const personList = list.map(x => (
+  const personList = list.map((x) => (
     <Person
       key={x.id}
       mode={mode}
@@ -67,7 +67,7 @@ const peopleCardList = props => {
   ));
 
   return <div className={styles.container}>{personList}</div>;
-};
+}
 
 peopleCardList.propTypes = {
   list: PropTypes.array,
@@ -76,7 +76,7 @@ peopleCardList.propTypes = {
   onDelete: PropTypes.func,
   onAddedPersonNote: PropTypes.func,
   onUpdatedPersonNote: PropTypes.func,
-  onDeletedPersonNote: PropTypes.func
+  onDeletedPersonNote: PropTypes.func,
 };
 
 peopleCardList.defaultProps = {
@@ -85,7 +85,7 @@ peopleCardList.defaultProps = {
   onDelete: null,
   onAddedPersonNote: null,
   onUpdatedPersonNote: null,
-  onDeletedPersonNote: null
+  onDeletedPersonNote: null,
 };
 
 export default peopleCardList;

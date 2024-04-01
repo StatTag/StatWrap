@@ -3,7 +3,7 @@ import React from 'react';
 import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
 import styles from './ConfigFileInfo.css';
 
-const configFileInfo = props => {
+const configFileInfo = (props) => {
   return (
     <div style={props.style} className={styles.container}>
       <AnnouncementOutlinedIcon className={styles.icon} />

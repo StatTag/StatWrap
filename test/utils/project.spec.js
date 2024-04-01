@@ -24,10 +24,10 @@ describe('utils', () => {
               {
                 key: Constants.AssetType.DIRECTORY,
                 label: Constants.AssetType.DIRECTORY,
-                value: true
-              }
-            ]
-          }
+                value: true,
+              },
+            ],
+          },
         ]);
       });
       it('returns a sorted, distinct filter list for an asset with descendants', () => {
@@ -40,23 +40,23 @@ describe('utils', () => {
                 children: [
                   {
                     type: Constants.AssetType.FILE,
-                    contentTypes: [Constants.AssetContentType.OTHER]
+                    contentTypes: [Constants.AssetContentType.OTHER],
                   },
                   {
                     type: Constants.AssetType.FILE,
                     contentTypes: [Constants.AssetContentType.CODE],
                     metadata: [
                       {
-                        id: 'StatWrap.PythonHandler'
-                      }
-                    ]
-                  }
-                ]
+                        id: 'StatWrap.PythonHandler',
+                      },
+                    ],
+                  },
+                ],
               },
               // Not a real asset type, but lets us test the sorting
-              { type: Constants.AssetType.DIRECTORY, children: [{ type: 'aaaaa' }] }
-            ]
-          })
+              { type: Constants.AssetType.DIRECTORY, children: [{ type: 'aaaaa' }] },
+            ],
+          }),
         ).toStrictEqual([
           {
             category: 'Asset Type',
@@ -65,10 +65,10 @@ describe('utils', () => {
               {
                 key: Constants.AssetType.DIRECTORY,
                 label: Constants.AssetType.DIRECTORY,
-                value: true
+                value: true,
               },
-              { key: Constants.AssetType.FILE, label: Constants.AssetType.FILE, value: true }
-            ]
+              { key: Constants.AssetType.FILE, label: Constants.AssetType.FILE, value: true },
+            ],
           },
           {
             category: 'Content Type',
@@ -76,19 +76,19 @@ describe('utils', () => {
               {
                 key: Constants.AssetContentType.CODE,
                 label: Constants.AssetContentType.CODE,
-                value: true
+                value: true,
               },
               {
                 key: Constants.AssetContentType.OTHER,
                 label: Constants.AssetContentType.OTHER,
-                value: true
-              }
-            ]
+                value: true,
+              },
+            ],
           },
           {
             category: 'File Type',
-            values: [{ key: 'python', label: 'python', value: true }]
-          }
+            values: [{ key: 'python', label: 'python', value: true }],
+          },
         ]);
       });
       it('only returns Content Type filters if there are files', () => {
@@ -99,10 +99,10 @@ describe('utils', () => {
             children: [
               {
                 type: Constants.AssetType.DIRECTORY,
-                contentTypes: [Constants.AssetContentType.DATA]
-              }
-            ]
-          })
+                contentTypes: [Constants.AssetContentType.DATA],
+              },
+            ],
+          }),
         ).toStrictEqual([
           {
             category: 'Asset Type',
@@ -110,10 +110,10 @@ describe('utils', () => {
               {
                 key: Constants.AssetType.DIRECTORY,
                 label: Constants.AssetType.DIRECTORY,
-                value: true
-              }
-            ]
-          }
+                value: true,
+              },
+            ],
+          },
         ]);
       });
       it('only returns File Type filters if there are files', () => {
@@ -126,7 +126,7 @@ describe('utils', () => {
                 children: [
                   {
                     type: Constants.AssetType.FILE,
-                    contentTypes: [Constants.AssetContentType.OTHER]
+                    contentTypes: [Constants.AssetContentType.OTHER],
                   },
                   // In reality this would be a code file, but we're fabricating it so that
                   // we can confirm it's not returning a filter
@@ -135,14 +135,14 @@ describe('utils', () => {
                     contentTypes: [Constants.AssetContentType.OTHER],
                     metadata: [
                       {
-                        id: 'StatWrap.PythonHandler'
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          })
+                        id: 'StatWrap.PythonHandler',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
         ).toStrictEqual([
           {
             category: 'Asset Type',
@@ -150,10 +150,10 @@ describe('utils', () => {
               {
                 key: Constants.AssetType.DIRECTORY,
                 label: Constants.AssetType.DIRECTORY,
-                value: true
+                value: true,
               },
-              { key: Constants.AssetType.FILE, label: Constants.AssetType.FILE, value: true }
-            ]
+              { key: Constants.AssetType.FILE, label: Constants.AssetType.FILE, value: true },
+            ],
           },
           {
             category: 'Content Type',
@@ -161,10 +161,10 @@ describe('utils', () => {
               {
                 key: Constants.AssetContentType.OTHER,
                 label: Constants.AssetContentType.OTHER,
-                value: true
-              }
-            ]
-          }
+                value: true,
+              },
+            ],
+          },
         ]);
       });
     });
@@ -181,7 +181,7 @@ describe('utils', () => {
       });
       it('returns an empty filter for an asset with no children', () => {
         expect(
-          ProjectUtil.getWorkflowFilters({ type: Constants.AssetType.DIRECTORY })
+          ProjectUtil.getWorkflowFilters({ type: Constants.AssetType.DIRECTORY }),
         ).toStrictEqual([]);
       });
       it('does not return IO filter when asset has no dependency', () => {
@@ -191,15 +191,15 @@ describe('utils', () => {
           contentTypes: [Constants.AssetContentType.CODE],
           metadata: [
             {
-              id: 'StatWrap.PythonHandler'
-            }
-          ]
+              id: 'StatWrap.PythonHandler',
+            },
+          ],
         };
         expect(ProjectUtil.getWorkflowFilters(assets)).toStrictEqual([
           {
             category: 'File Type',
-            values: [{ key: 'python', label: 'python', value: true }]
-          }
+            values: [{ key: 'python', label: 'python', value: true }],
+          },
         ]);
       });
       it('does not return filters when there are no code files', () => {
@@ -212,19 +212,19 @@ describe('utils', () => {
             assetType: 'generic',
             dependencies: [
               {
-                type: 'data'
-              }
-            ]
-          }
+                type: 'data',
+              },
+            ],
+          },
         ]);
         const assets = {
           type: Constants.AssetType.FILE,
           contentTypes: [Constants.AssetContentType.OTHER],
           metadata: [
             {
-              id: 'StatWrap.PythonHandler'
-            }
-          ]
+              id: 'StatWrap.PythonHandler',
+            },
+          ],
         };
         expect(ProjectUtil.getWorkflowFilters(assets)).toStrictEqual([]);
       });
@@ -235,29 +235,29 @@ describe('utils', () => {
             assetType: 'python',
             dependencies: [
               {
-                type: 'data'
-              }
-            ]
-          }
+                type: 'data',
+              },
+            ],
+          },
         ]);
         const assets = {
           type: Constants.AssetType.FILE,
           contentTypes: [Constants.AssetContentType.CODE],
           metadata: [
             {
-              id: 'StatWrap.PythonHandler'
-            }
-          ]
+              id: 'StatWrap.PythonHandler',
+            },
+          ],
         };
         expect(ProjectUtil.getWorkflowFilters(assets)).toStrictEqual([
           {
             category: 'File Type',
-            values: [{ key: 'python', label: 'python', value: true }]
+            values: [{ key: 'python', label: 'python', value: true }],
           },
           {
             category: 'Inputs and Outputs',
-            values: [{ key: 'data', label: 'data', value: true }]
-          }
+            values: [{ key: 'data', label: 'data', value: true }],
+          },
         ]);
       });
       it('returns and sorts filters for multiple assets', () => {
@@ -268,9 +268,9 @@ describe('utils', () => {
             dependencies: [
               {
                 id: 'r.csv',
-                type: 'data'
-              }
-            ]
+                type: 'data',
+              },
+            ],
           },
           {
             asset: 'test2',
@@ -280,9 +280,9 @@ describe('utils', () => {
                 id: 'sys',
                 module: 'sys',
                 import: null,
-                alias: null
-              }
-            ]
+                alias: null,
+              },
+            ],
           },
           // Make sure we remove duplicates
           {
@@ -292,9 +292,9 @@ describe('utils', () => {
               {
                 id: 'python.csv',
                 type: 'data',
-                path: 'python.csv'
-              }
-            ]
+                path: 'python.csv',
+              },
+            ],
           },
           // Not a real dependency type, but tests sorting
           {
@@ -303,10 +303,10 @@ describe('utils', () => {
             dependencies: [
               {
                 id: 'aaa',
-                type: 'aaa'
-              }
-            ]
-          }
+                type: 'aaa',
+              },
+            ],
+          },
         ]);
         const assets = {
           type: Constants.AssetType.DIRECTORY,
@@ -319,52 +319,52 @@ describe('utils', () => {
                   contentTypes: [Constants.AssetContentType.CODE],
                   metadata: [
                     {
-                      id: 'StatWrap.RHandler'
-                    }
-                  ]
+                      id: 'StatWrap.RHandler',
+                    },
+                  ],
                 },
                 {
                   type: Constants.AssetType.FILE,
                   contentTypes: [Constants.AssetContentType.CODE],
                   metadata: [
                     {
-                      id: 'StatWrap.PythonHandler'
-                    }
-                  ]
+                      id: 'StatWrap.PythonHandler',
+                    },
+                  ],
                 },
                 {
                   type: Constants.AssetType.FILE,
                   contentTypes: [Constants.AssetContentType.CODE],
                   metadata: [
                     {
-                      id: 'StatWrap.RHandler'
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                      id: 'StatWrap.RHandler',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         };
         expect(ProjectUtil.getWorkflowFilters(assets)).toStrictEqual([
           {
             category: 'File Type',
             values: [
               { key: 'python', label: 'python', value: true },
-              { key: 'r', label: 'r', value: true }
-            ]
+              { key: 'r', label: 'r', value: true },
+            ],
           },
           {
             category: 'Inputs and Outputs',
             values: [
               { key: 'aaa', label: 'aaa', value: true },
               { key: 'data', label: 'data', value: true },
-              { key: 'dependency', label: 'dependency', value: true }
-            ]
+              { key: 'dependency', label: 'dependency', value: true },
+            ],
           },
           {
             category: 'Dependencies/Libraries',
-            values: [{ key: 'sys', label: 'sys', value: true }]
-          }
+            values: [{ key: 'sys', label: 'sys', value: true }],
+          },
         ]);
       });
     });
@@ -376,7 +376,7 @@ describe('utils', () => {
       });
       it('returns the assets for null/empty filters', () => {
         const assets = {
-          uri: 'test1'
+          uri: 'test1',
         };
         expect(ProjectUtil.getFilteredAssets(assets, null)).toStrictEqual(assets);
         expect(ProjectUtil.getFilteredAssets(assets, undefined)).toStrictEqual(assets);
@@ -390,14 +390,14 @@ describe('utils', () => {
               {
                 key: Constants.AssetType.DIRECTORY,
                 label: Constants.AssetType.DIRECTORY,
-                value: true
-              }
-            ]
-          }
+                value: true,
+              },
+            ],
+          },
         ];
         const assets = {
           uri: 'test1',
-          type: Constants.AssetType.DIRECTORY
+          type: Constants.AssetType.DIRECTORY,
         };
         expect(ProjectUtil.getFilteredAssets(assets, filters)).toStrictEqual(assets);
       });
@@ -409,14 +409,14 @@ describe('utils', () => {
               {
                 key: Constants.AssetType.DIRECTORY,
                 label: Constants.AssetType.DIRECTORY,
-                value: false
-              }
-            ]
-          }
+                value: false,
+              },
+            ],
+          },
         ];
         const assets = {
           uri: 'test1',
-          type: Constants.AssetType.DIRECTORY
+          type: Constants.AssetType.DIRECTORY,
         };
         expect(ProjectUtil.getFilteredAssets(assets, filters)).toBeNull();
       });
@@ -428,10 +428,10 @@ describe('utils', () => {
               {
                 key: Constants.AssetType.DIRECTORY,
                 label: Constants.AssetType.DIRECTORY,
-                value: false
-              }
-            ]
-          }
+                value: false,
+              },
+            ],
+          },
         ];
         const assets = {
           uri: 'test1',
@@ -444,14 +444,14 @@ describe('utils', () => {
                 {
                   uri: 'test1/test2/a',
                   type: Constants.AssetType.FILE,
-                  contentTypes: [Constants.AssetContentType.OTHER]
+                  contentTypes: [Constants.AssetContentType.OTHER],
                 },
                 {
                   uri: 'test1/test2/b',
                   type: Constants.AssetType.FILE,
-                  contentTypes: [Constants.AssetContentType.CODE]
-                }
-              ]
+                  contentTypes: [Constants.AssetContentType.CODE],
+                },
+              ],
             },
             {
               uri: 'test1/test3',
@@ -460,11 +460,11 @@ describe('utils', () => {
                 {
                   uri: 'test1/test3/c',
                   type: Constants.AssetType.FILE,
-                  contentTypes: [Constants.AssetContentType.CODE]
-                }
-              ]
-            }
-          ]
+                  contentTypes: [Constants.AssetContentType.CODE],
+                },
+              ],
+            },
+          ],
         };
         expect(ProjectUtil.getFilteredAssets(assets, filters)).toStrictEqual({
           children: [
@@ -473,25 +473,25 @@ describe('utils', () => {
                 {
                   uri: 'test1/test2/a',
                   type: Constants.AssetType.FILE,
-                  contentTypes: [Constants.AssetContentType.OTHER]
+                  contentTypes: [Constants.AssetContentType.OTHER],
                 },
                 {
                   uri: 'test1/test2/b',
                   type: Constants.AssetType.FILE,
-                  contentTypes: [Constants.AssetContentType.CODE]
-                }
-              ]
+                  contentTypes: [Constants.AssetContentType.CODE],
+                },
+              ],
             },
             {
               children: [
                 {
                   uri: 'test1/test3/c',
                   type: Constants.AssetType.FILE,
-                  contentTypes: [Constants.AssetContentType.CODE]
-                }
-              ]
-            }
-          ]
+                  contentTypes: [Constants.AssetContentType.CODE],
+                },
+              ],
+            },
+          ],
         });
       });
       it('leaves empty directories after non-directory filtering is applied', () => {
@@ -502,14 +502,14 @@ describe('utils', () => {
               {
                 key: Constants.AssetType.DIRECTORY,
                 label: Constants.AssetType.DIRECTORY,
-                value: true
+                value: true,
               },
               {
                 key: Constants.AssetType.FILE,
                 label: Constants.AssetType.FILE,
-                value: true
-              }
-            ]
+                value: true,
+              },
+            ],
           },
           {
             category: 'Content Type',
@@ -517,10 +517,10 @@ describe('utils', () => {
               {
                 key: Constants.AssetContentType.CODE,
                 label: Constants.AssetContentType.CODE,
-                value: false
-              }
-            ]
-          }
+                value: false,
+              },
+            ],
+          },
         ];
         const assets = {
           uri: 'test1',
@@ -533,14 +533,14 @@ describe('utils', () => {
                 {
                   uri: 'test1/test2/a',
                   type: Constants.AssetType.FILE,
-                  contentTypes: [Constants.AssetContentType.OTHER]
+                  contentTypes: [Constants.AssetContentType.OTHER],
                 },
                 {
                   uri: 'test1/test2/b',
                   type: Constants.AssetType.FILE,
-                  contentTypes: [Constants.AssetContentType.CODE]
-                }
-              ]
+                  contentTypes: [Constants.AssetContentType.CODE],
+                },
+              ],
             },
             {
               uri: 'test1/test3',
@@ -549,11 +549,11 @@ describe('utils', () => {
                 {
                   uri: 'test1/test3/c',
                   type: Constants.AssetType.FILE,
-                  contentTypes: [Constants.AssetContentType.CODE]
-                }
-              ]
-            }
-          ]
+                  contentTypes: [Constants.AssetContentType.CODE],
+                },
+              ],
+            },
+          ],
         };
         expect(ProjectUtil.getFilteredAssets(assets, filters)).toStrictEqual({
           uri: 'test1',
@@ -566,16 +566,16 @@ describe('utils', () => {
                 {
                   uri: 'test1/test2/a',
                   type: Constants.AssetType.FILE,
-                  contentTypes: [Constants.AssetContentType.OTHER]
-                }
-              ]
+                  contentTypes: [Constants.AssetContentType.OTHER],
+                },
+              ],
             },
             {
               uri: 'test1/test3',
               type: Constants.AssetType.DIRECTORY,
-              children: []
-            }
-          ]
+              children: [],
+            },
+          ],
         });
       });
       it('leaves empty directories when no filtering is needed', () => {
@@ -586,14 +586,14 @@ describe('utils', () => {
               {
                 key: Constants.AssetType.DIRECTORY,
                 label: Constants.AssetType.DIRECTORY,
-                value: true
+                value: true,
               },
               {
                 key: Constants.AssetType.FILE,
                 label: Constants.AssetType.FILE,
-                value: true
-              }
-            ]
+                value: true,
+              },
+            ],
           },
           {
             category: 'Content Type',
@@ -601,10 +601,10 @@ describe('utils', () => {
               {
                 key: Constants.AssetContentType.CODE,
                 label: Constants.AssetContentType.CODE,
-                value: true
-              }
-            ]
-          }
+                value: true,
+              },
+            ],
+          },
         ];
         const assets = {
           uri: 'test1',
@@ -617,20 +617,20 @@ describe('utils', () => {
                 {
                   uri: 'test1/test2/a',
                   type: Constants.AssetType.FILE,
-                  contentTypes: [Constants.AssetContentType.OTHER]
+                  contentTypes: [Constants.AssetContentType.OTHER],
                 },
                 {
                   uri: 'test1/test2/b',
                   type: Constants.AssetType.FILE,
-                  contentTypes: [Constants.AssetContentType.CODE]
-                }
-              ]
+                  contentTypes: [Constants.AssetContentType.CODE],
+                },
+              ],
             },
             {
               uri: 'test1/test3',
-              type: Constants.AssetType.DIRECTORY
-            }
-          ]
+              type: Constants.AssetType.DIRECTORY,
+            },
+          ],
         };
         expect(ProjectUtil.getFilteredAssets(assets, filters)).toStrictEqual(assets);
       });
@@ -643,14 +643,14 @@ describe('utils', () => {
             {
               key: Constants.AssetType.DIRECTORY,
               label: Constants.AssetType.DIRECTORY,
-              value: true
+              value: true,
             },
             {
               key: Constants.AssetType.FILE,
               label: Constants.AssetType.FILE,
-              value: true
-            }
-          ]
+              value: true,
+            },
+          ],
         },
         {
           category: 'Content Type',
@@ -658,9 +658,9 @@ describe('utils', () => {
             {
               key: Constants.AssetContentType.OTHER,
               label: Constants.AssetContentType.OTHER,
-              value: false
-            }
-          ]
+              value: false,
+            },
+          ],
         },
         {
           category: 'File Type',
@@ -668,10 +668,10 @@ describe('utils', () => {
             {
               key: 'generic',
               label: 'generic',
-              value: false
-            }
-          ]
-        }
+              value: false,
+            },
+          ],
+        },
       ];
       const assets = {
         uri: 'test1',
@@ -686,9 +686,9 @@ describe('utils', () => {
               {
                 uri: 'test1/test2/a',
                 type: Constants.AssetType.FILE,
-                contentTypes: [Constants.AssetContentType.OTHER]
-              }
-            ]
+                contentTypes: [Constants.AssetContentType.OTHER],
+              },
+            ],
           },
           {
             uri: 'test1/test3',
@@ -701,13 +701,13 @@ describe('utils', () => {
                 contentTypes: [Constants.AssetContentType.CODE],
                 metadata: [
                   {
-                    id: 'StatWrap.RHandler'
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+                    id: 'StatWrap.RHandler',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       };
       expect(ProjectUtil.getFilteredAssets(assets, filters)).toStrictEqual({
         uri: 'test1',
@@ -718,7 +718,7 @@ describe('utils', () => {
             uri: 'test1/test2',
             type: Constants.AssetType.DIRECTORY,
             contentTypes: [Constants.AssetContentType.OTHER],
-            children: []
+            children: [],
           },
           {
             uri: 'test1/test3',
@@ -731,13 +731,13 @@ describe('utils', () => {
                 contentTypes: [Constants.AssetContentType.CODE],
                 metadata: [
                   {
-                    id: 'StatWrap.RHandler'
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+                    id: 'StatWrap.RHandler',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       });
     });
     it('applies all filters', () => {
@@ -748,14 +748,14 @@ describe('utils', () => {
             {
               key: Constants.AssetType.DIRECTORY,
               label: Constants.AssetType.DIRECTORY,
-              value: false
+              value: false,
             },
             {
               key: Constants.AssetType.FILE,
               label: Constants.AssetType.FILE,
-              value: true
-            }
-          ]
+              value: true,
+            },
+          ],
         },
         {
           category: 'Content Type',
@@ -763,9 +763,9 @@ describe('utils', () => {
             {
               key: Constants.AssetContentType.OTHER,
               label: Constants.AssetContentType.OTHER,
-              value: false
-            }
-          ]
+              value: false,
+            },
+          ],
         },
         {
           category: 'File Type',
@@ -773,15 +773,15 @@ describe('utils', () => {
             {
               key: 'python',
               label: 'python',
-              value: false
+              value: false,
             },
             {
               key: 'r',
               label: 'r',
-              value: true
-            }
-          ]
-        }
+              value: true,
+            },
+          ],
+        },
       ];
       const assets = {
         uri: 'test1',
@@ -794,7 +794,7 @@ describe('utils', () => {
               {
                 uri: 'test1/test2/a',
                 type: Constants.AssetType.FILE,
-                contentTypes: [Constants.AssetContentType.OTHER]
+                contentTypes: [Constants.AssetContentType.OTHER],
               },
               {
                 uri: 'test1/test2/b',
@@ -802,11 +802,11 @@ describe('utils', () => {
                 contentTypes: [Constants.AssetContentType.CODE],
                 metadata: [
                   {
-                    id: 'StatWrap.PythonHandler'
-                  }
-                ]
-              }
-            ]
+                    id: 'StatWrap.PythonHandler',
+                  },
+                ],
+              },
+            ],
           },
           {
             uri: 'test1/test3',
@@ -818,9 +818,9 @@ describe('utils', () => {
                 contentTypes: [Constants.AssetContentType.CODE],
                 metadata: [
                   {
-                    id: 'StatWrap.PythonHandler'
-                  }
-                ]
+                    id: 'StatWrap.PythonHandler',
+                  },
+                ],
               },
               {
                 uri: 'test1/test3/d',
@@ -828,13 +828,13 @@ describe('utils', () => {
                 contentTypes: [Constants.AssetContentType.CODE],
                 metadata: [
                   {
-                    id: 'StatWrap.RHandler'
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+                    id: 'StatWrap.RHandler',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       };
       expect(ProjectUtil.getFilteredAssets(assets, filters)).toStrictEqual({
         children: [
@@ -846,13 +846,13 @@ describe('utils', () => {
                 contentTypes: [Constants.AssetContentType.CODE],
                 metadata: [
                   {
-                    id: 'StatWrap.RHandler'
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+                    id: 'StatWrap.RHandler',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       });
     });
   });
@@ -870,10 +870,10 @@ describe('utils', () => {
             {
               key: Constants.AssetContentType.OTHER,
               label: Constants.AssetContentType.OTHER,
-              value: false
-            }
-          ]
-        }
+              value: false,
+            },
+          ],
+        },
       ];
       expect(ProjectUtil.isDirectoryFilteredOut(filters)).toBe(false);
     });
@@ -885,10 +885,10 @@ describe('utils', () => {
             {
               key: Constants.AssetType.FILE,
               label: Constants.AssetType.FILE,
-              value: true
-            }
-          ]
-        }
+              value: true,
+            },
+          ],
+        },
       ];
       expect(ProjectUtil.isDirectoryFilteredOut(filters)).toBe(false);
     });
@@ -900,15 +900,15 @@ describe('utils', () => {
             {
               key: Constants.AssetType.DIRECTORY,
               label: Constants.AssetType.DIRECTORY,
-              value: true
+              value: true,
             },
             {
               key: Constants.AssetType.FILE,
               label: Constants.AssetType.FILE,
-              value: true
-            }
-          ]
-        }
+              value: true,
+            },
+          ],
+        },
       ];
       expect(ProjectUtil.isDirectoryFilteredOut(filters)).toBe(false);
     });
@@ -920,15 +920,15 @@ describe('utils', () => {
             {
               key: Constants.AssetType.DIRECTORY,
               label: Constants.AssetType.DIRECTORY,
-              value: false
+              value: false,
             },
             {
               key: Constants.AssetType.FILE,
               label: Constants.AssetType.FILE,
-              value: true
-            }
-          ]
-        }
+              value: true,
+            },
+          ],
+        },
       ];
       expect(ProjectUtil.isDirectoryFilteredOut(filters)).toBe(true);
     });
@@ -943,7 +943,7 @@ describe('utils', () => {
     it('returns returns a stub for an empty asset object', () => {
       expect(ProjectUtil.flattenFilteredAssets({})).toStrictEqual({
         uri: 'Filtered List',
-        children: []
+        children: [],
       });
     });
     it('flattens a single level of descendants', () => {
@@ -952,14 +952,14 @@ describe('utils', () => {
           {
             uri: 'test1/a',
             type: Constants.AssetType.FILE,
-            contentTypes: [Constants.AssetContentType.OTHER]
+            contentTypes: [Constants.AssetContentType.OTHER],
           },
           {
             uri: 'test1/b',
             type: Constants.AssetType.FILE,
-            contentTypes: [Constants.AssetContentType.CODE]
-          }
-        ]
+            contentTypes: [Constants.AssetContentType.CODE],
+          },
+        ],
       };
       expect(ProjectUtil.flattenFilteredAssets(assets)).toStrictEqual({
         uri: 'Filtered List',
@@ -967,14 +967,14 @@ describe('utils', () => {
           {
             uri: 'test1/a',
             type: Constants.AssetType.FILE,
-            contentTypes: [Constants.AssetContentType.OTHER]
+            contentTypes: [Constants.AssetContentType.OTHER],
           },
           {
             uri: 'test1/b',
             type: Constants.AssetType.FILE,
-            contentTypes: [Constants.AssetContentType.CODE]
-          }
-        ]
+            contentTypes: [Constants.AssetContentType.CODE],
+          },
+        ],
       });
     });
     it('flattens nested descendants', () => {
@@ -985,30 +985,30 @@ describe('utils', () => {
               {
                 uri: 'test1/test2/a',
                 type: Constants.AssetType.FILE,
-                contentTypes: [Constants.AssetContentType.OTHER]
+                contentTypes: [Constants.AssetContentType.OTHER],
               },
               {
                 uri: 'test1/test2/b',
                 type: Constants.AssetType.FILE,
-                contentTypes: [Constants.AssetContentType.CODE]
-              }
-            ]
+                contentTypes: [Constants.AssetContentType.CODE],
+              },
+            ],
           },
           {
             children: [
               {
                 uri: 'test1/test3/c',
                 type: Constants.AssetType.FILE,
-                contentTypes: [Constants.AssetContentType.CODE]
+                contentTypes: [Constants.AssetContentType.CODE],
               },
               {
                 uri: 'test1/test3/d',
                 type: Constants.AssetType.FILE,
-                contentTypes: [Constants.AssetContentType.CODE]
-              }
-            ]
-          }
-        ]
+                contentTypes: [Constants.AssetContentType.CODE],
+              },
+            ],
+          },
+        ],
       };
       expect(ProjectUtil.flattenFilteredAssets(assets)).toStrictEqual({
         uri: 'Filtered List',
@@ -1016,24 +1016,24 @@ describe('utils', () => {
           {
             uri: 'test1/test2/a',
             type: Constants.AssetType.FILE,
-            contentTypes: [Constants.AssetContentType.OTHER]
+            contentTypes: [Constants.AssetContentType.OTHER],
           },
           {
             uri: 'test1/test2/b',
             type: Constants.AssetType.FILE,
-            contentTypes: [Constants.AssetContentType.CODE]
+            contentTypes: [Constants.AssetContentType.CODE],
           },
           {
             uri: 'test1/test3/c',
             type: Constants.AssetType.FILE,
-            contentTypes: [Constants.AssetContentType.CODE]
+            contentTypes: [Constants.AssetContentType.CODE],
           },
           {
             uri: 'test1/test3/d',
             type: Constants.AssetType.FILE,
-            contentTypes: [Constants.AssetContentType.CODE]
-          }
-        ]
+            contentTypes: [Constants.AssetContentType.CODE],
+          },
+        ],
       });
     });
   });
@@ -1075,36 +1075,36 @@ describe('utils', () => {
     it('should throw an exception if the group ID is expected', () => {
       expect(() => ProjectUtil._validateProjectAndGroup({}, { name: 'test' }, true)).toThrow(Error);
       expect(() =>
-        ProjectUtil._validateProjectAndGroup({}, { id: null, name: 'test' }, true)
+        ProjectUtil._validateProjectAndGroup({}, { id: null, name: 'test' }, true),
       ).toThrow(Error);
       expect(() =>
-        ProjectUtil._validateProjectAndGroup({}, { id: undefined, name: 'test' }, true)
+        ProjectUtil._validateProjectAndGroup({}, { id: undefined, name: 'test' }, true),
       ).toThrow(Error);
       expect(() =>
-        ProjectUtil._validateProjectAndGroup({}, { id: '', name: 'test' }, true)
+        ProjectUtil._validateProjectAndGroup({}, { id: '', name: 'test' }, true),
       ).toThrow(Error);
     });
     it('should not throw an exception if the group ID is not expected and is not provided', () => {
       expect(() => ProjectUtil._validateProjectAndGroup({}, { name: 'test' }, false)).not.toThrow(
-        Error
+        Error,
       );
       expect(() =>
-        ProjectUtil._validateProjectAndGroup({}, { id: null, name: 'test' }, false)
+        ProjectUtil._validateProjectAndGroup({}, { id: null, name: 'test' }, false),
       ).not.toThrow(Error);
       expect(() =>
-        ProjectUtil._validateProjectAndGroup({}, { id: undefined, name: 'test' }, false)
+        ProjectUtil._validateProjectAndGroup({}, { id: undefined, name: 'test' }, false),
       ).not.toThrow(Error);
       expect(() =>
-        ProjectUtil._validateProjectAndGroup({}, { id: '', name: 'test' }, false)
+        ProjectUtil._validateProjectAndGroup({}, { id: '', name: 'test' }, false),
       ).not.toThrow(Error);
     });
     it('should not throw an exception if the group ID is expected and is provided', () => {
       expect(() =>
-        ProjectUtil._validateProjectAndGroup({}, { id: 'a-b-c-d-e', name: 'test' }, true)
+        ProjectUtil._validateProjectAndGroup({}, { id: 'a-b-c-d-e', name: 'test' }, true),
       ).not.toThrow(Error);
       // We are taking IDs exactly as they come, so whitespace is 'valid' (for now)
       expect(() =>
-        ProjectUtil._validateProjectAndGroup({}, { id: '  ', name: 'test' }, true)
+        ProjectUtil._validateProjectAndGroup({}, { id: '  ', name: 'test' }, true),
       ).not.toThrow(Error);
     });
   });
@@ -1121,8 +1121,8 @@ describe('utils', () => {
       expect(
         ProjectUtil.upsertAssetGroup(project, {
           id: '1-2-3',
-          name: 'Test'
-        })
+          name: 'Test',
+        }),
       ).not.toBeNull();
       expect(project.assetGroups).not.toBeNull();
     });
@@ -1130,7 +1130,7 @@ describe('utils', () => {
       const project = {};
       const assetGroup = {
         id: '1-2-3',
-        name: 'Test'
+        name: 'Test',
       };
       expect(ProjectUtil.upsertAssetGroup(project, assetGroup)).not.toBeNull();
       expect(project.assetGroups[0].id).toEqual('1-2-3');
@@ -1141,15 +1141,15 @@ describe('utils', () => {
         assetGroups: [
           {
             id: 'a-b-c',
-            name: 'Test'
-          }
-        ]
+            name: 'Test',
+          },
+        ],
       };
       expect(
         ProjectUtil.upsertAssetGroup(project, {
           id: 'A-b-c',
-          name: 'Other'
-        })
+          name: 'Other',
+        }),
       ).not.toBeNull();
       expect(project.assetGroups[1].id).toEqual('A-b-c');
     });
@@ -1162,12 +1162,12 @@ describe('utils', () => {
       const project = {};
       expect(
         ProjectUtil.upsertAssetGroup(project, {
-          name: 'Test'
-        })
+          name: 'Test',
+        }),
       ).not.toBeNull();
       expect(project.assetGroups[0]).toEqual({
         id: '1-2-3',
-        name: 'Test'
+        name: 'Test',
       });
     });
     it('should update an existing person', () => {
@@ -1177,15 +1177,15 @@ describe('utils', () => {
             id: '1-2-3',
             name: 'Test',
             details: 'Testing',
-            assets: [{ uri: 'test' }]
-          }
-        ]
+            assets: [{ uri: 'test' }],
+          },
+        ],
       };
       const updatedGroup = {
         id: '1-2-3',
         name: 'Updated',
         details: 'Updated details',
-        assets: []
+        assets: [],
       };
       expect(ProjectUtil.upsertAssetGroup(project, updatedGroup)).not.toBeNull();
       expect(project.assetGroups[0]).toEqual(updatedGroup);
@@ -1197,12 +1197,12 @@ describe('utils', () => {
             id: '1-2-3',
             name: 'Test',
             details: 'Testing',
-            assets: [{ uri: 'test' }]
-          }
-        ]
+            assets: [{ uri: 'test' }],
+          },
+        ],
       };
       const updatedGroup = {
-        id: '1-2-3'
+        id: '1-2-3',
       };
       expect(() => ProjectUtil.upsertAssetGroup(project, updatedGroup)).toThrow(Error);
       expect(project.assetGroups[0]).not.toEqual(updatedGroup);
@@ -1217,7 +1217,7 @@ describe('utils', () => {
       const project = {};
       const assetGroup = {
         id: '1-2-3',
-        name: 'Test'
+        name: 'Test',
       };
       ProjectUtil.removeAssetGroup(project, assetGroup);
       expect(project.assetGroups).toEqual(undefined);
@@ -1226,7 +1226,7 @@ describe('utils', () => {
       const project = { assetGroups: null };
       const assetGroup = {
         id: '1-2-3',
-        name: 'Test'
+        name: 'Test',
       };
       ProjectUtil.removeAssetGroup(project, assetGroup);
       expect(project.assetGroups).toBeNull();
@@ -1235,7 +1235,7 @@ describe('utils', () => {
       const project = { assetGroups: [{ id: '1-2-3', name: 'Test' }] };
       const assetGroup = {
         id: '1-2-3',
-        name: 'Test'
+        name: 'Test',
       };
       ProjectUtil.removeAssetGroup(project, assetGroup);
       expect(project.assetGroups.length).toEqual(0);
@@ -1244,7 +1244,7 @@ describe('utils', () => {
       const project = { assetGroups: [{ id: '1-2-3', name: 'Test' }] };
       const assetGroup = {
         id: '1-2-4',
-        name: 'Test'
+        name: 'Test',
       };
       ProjectUtil.removeAssetGroup(project, assetGroup);
       expect(project.assetGroups.length).toEqual(1);
@@ -1260,13 +1260,13 @@ describe('utils', () => {
 
     it('should return upToDate when the log is empty', () => {
       expect(
-        ProjectUtil.getProjectUpdates('2020-12-22T23:55:40.164Z', 'test', null).upToDate
+        ProjectUtil.getProjectUpdates('2020-12-22T23:55:40.164Z', 'test', null).upToDate,
       ).toEqual(true);
       expect(
-        ProjectUtil.getProjectUpdates('2020-12-22T23:55:40.164Z', 'test', undefined).upToDate
+        ProjectUtil.getProjectUpdates('2020-12-22T23:55:40.164Z', 'test', undefined).upToDate,
       ).toEqual(true);
       expect(
-        ProjectUtil.getProjectUpdates('2020-12-22T23:55:40.164Z', 'test', []).upToDate
+        ProjectUtil.getProjectUpdates('2020-12-22T23:55:40.164Z', 'test', []).upToDate,
       ).toEqual(true);
     });
 
@@ -1275,13 +1275,13 @@ describe('utils', () => {
         ProjectUtil.getProjectUpdates('2022-12-22T23:55:40.164Z', 'test3', [
           {
             timestamp: '2021-12-22T23:55:40.164Z',
-            user: 'test'
+            user: 'test',
           },
           {
             timestamp: '2020-12-22T23:55:40.164Z',
-            user: 'test'
-          }
-        ]).upToDate
+            user: 'test',
+          },
+        ]).upToDate,
       ).toEqual(true);
     });
     it('should return upToDate when the log entries are for the current user', () => {
@@ -1289,13 +1289,13 @@ describe('utils', () => {
         ProjectUtil.getProjectUpdates('2019-12-22T23:55:40.164Z', 'test', [
           {
             timestamp: '2021-12-22T23:55:40.164Z',
-            user: 'test'
+            user: 'test',
           },
           {
             timestamp: '2020-12-22T23:55:40.164Z',
-            user: 'test'
-          }
-        ]).upToDate
+            user: 'test',
+          },
+        ]).upToDate,
       ).toEqual(true);
     });
     it('should track the recent log entries and multiple distinct users', () => {
@@ -1303,27 +1303,27 @@ describe('utils', () => {
         // It should skip this entry because it is for the current user
         {
           timestamp: '2022-12-23T23:56:40.164Z',
-          user: 'test3'
+          user: 'test3',
         },
         // It should count the next 2 entries
         {
           timestamp: '2022-12-23T23:55:40.164Z',
-          user: 'test'
+          user: 'test',
         },
         {
           timestamp: '2022-12-22T23:54:40.164Z',
-          user: 'test2'
+          user: 'test2',
         },
         // It should ignore the next two entries because they are past the last viewed
         // date and time.
         {
           timestamp: '2022-12-21T23:55:40.164Z',
-          user: 'test'
+          user: 'test',
         },
         {
           timestamp: '2022-12-20T23:55:40.164Z',
-          user: 'test2'
-        }
+          user: 'test2',
+        },
       ]);
       expect(updates.distinctUsers).toEqual(2);
       expect(updates.log.length).toEqual(3);
@@ -1331,20 +1331,20 @@ describe('utils', () => {
     it('should count missing/null users as one distinct', () => {
       const updates = ProjectUtil.getProjectUpdates('2020-12-21T13:55:40.164Z', 'test3', [
         {
-          timestamp: '2022-12-23T23:55:40.164Z'
+          timestamp: '2022-12-23T23:55:40.164Z',
         },
         {
           timestamp: '2022-12-21T23:55:40.164Z',
-          user: null
+          user: null,
         },
         {
           timestamp: '2022-12-20T23:55:40.164Z',
-          user: undefined
+          user: undefined,
         },
         {
           timestamp: '2022-12-20T23:55:40.164Z',
-          user: ''
-        }
+          user: '',
+        },
       ]);
       expect(updates.distinctUsers).toEqual(1);
       expect(updates.log.length).toEqual(4);
@@ -1360,19 +1360,19 @@ describe('utils', () => {
 
     it('should handle singulars', () => {
       expect(ProjectUtil.getProjectUpdatesSummary({ log: [{}], distinctUsers: 1 })).toEqual(
-        '1 update by 1 user'
+        '1 update by 1 user',
       );
     });
 
     it('should handle plurals', () => {
       expect(ProjectUtil.getProjectUpdatesSummary({ log: [{}, {}, {}], distinctUsers: 2 })).toEqual(
-        '3 updates by 2 users'
+        '3 updates by 2 users',
       );
     });
 
     it('should handle mixed', () => {
       expect(ProjectUtil.getProjectUpdatesSummary({ log: [{}, {}], distinctUsers: 1 })).toEqual(
-        '2 updates by 1 user'
+        '2 updates by 1 user',
       );
     });
   });

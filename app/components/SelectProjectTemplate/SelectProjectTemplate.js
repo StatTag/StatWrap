@@ -11,9 +11,9 @@ class SelectProjectTemplate extends Component {
     let template = null;
     if (this.props.projectTemplates && this.props.selectedTemplate) {
       template = this.props.projectTemplates.find(
-        x =>
+        (x) =>
           x.id === this.props.selectedTemplate.id &&
-          x.version === this.props.selectedTemplate.version
+          x.version === this.props.selectedTemplate.version,
       );
     }
     return (
@@ -39,11 +39,11 @@ class SelectProjectTemplate extends Component {
 SelectProjectTemplate.propTypes = {
   projectTemplates: PropTypes.array.isRequired,
   selectedTemplate: PropTypes.object,
-  onSelectProjectTemplate: PropTypes.func.isRequired
+  onSelectProjectTemplate: PropTypes.func.isRequired,
 };
 
 SelectProjectTemplate.defaultProps = {
-  selectedTemplate: null
+  selectedTemplate: null,
 };
 
 export default SelectProjectTemplate;

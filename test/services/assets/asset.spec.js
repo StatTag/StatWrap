@@ -46,13 +46,13 @@ describe('services', () => {
           {
             name: 'HTML',
             extensions: ['html', 'htm'],
-            categories: ['code', 'documentation']
+            categories: ['code', 'documentation'],
           },
           {
             name: 'Python',
             extensions: ['py'],
-            categories: ['code']
-          }
+            categories: ['code'],
+          },
         ];
         const service = new AssetService(null, contentTypes);
         // eslint-disable-next-line dot-notation
@@ -129,7 +129,7 @@ describe('services', () => {
           type: 'directory',
           contentTypes: ['other'],
           metadata: [],
-          children: []
+          children: [],
         });
       });
 
@@ -167,17 +167,17 @@ describe('services', () => {
                   uri: path.join(testUri, 'Subdir1', 'File1'),
                   type: 'file',
                   contentTypes: ['other'],
-                  metadata: []
-                }
-              ]
+                  metadata: [],
+                },
+              ],
             },
             {
               uri: path.join(testUri, 'File2'),
               type: 'file',
               contentTypes: ['other'],
-              metadata: []
-            }
-          ]
+              metadata: [],
+            },
+          ],
         });
       });
 
@@ -192,14 +192,14 @@ describe('services', () => {
         const testUri = '/Some/Valid/Folder';
         const response = new AssetService([
           new DummyHandler('Dummy1'),
-          new DummyHandler('Dummy2')
+          new DummyHandler('Dummy2'),
         ]).scan(testUri);
         expect(response).toEqual({
           uri: testUri,
           type: 'directory',
           children: [],
           contentTypes: ['other'],
-          metadata: [{ id: 'Dummy1' }, { id: 'Dummy2' }]
+          metadata: [{ id: 'Dummy1' }, { id: 'Dummy2' }],
         });
       });
     });

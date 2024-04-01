@@ -12,7 +12,7 @@ export const useStore = () => {
     globalState = { ...globalState, ...newState }; // Merge new state with old global state
 
     // Inform listeners of state update
-    listeners.forEach(l => l(globalState));
+    listeners.forEach((l) => l(globalState));
     // for (const listener of listeners) {
     //   listener(globalState);
     // }
@@ -24,7 +24,7 @@ export const useStore = () => {
 
     return () => {
       // Remove listener when component unmounts
-      listeners = listeners.filter(li => li !== setState);
+      listeners = listeners.filter((li) => li !== setState);
     };
   }, [setState]);
 

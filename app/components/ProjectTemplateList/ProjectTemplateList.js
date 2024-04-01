@@ -6,7 +6,7 @@ import { List, ListItem, ListItemText } from '@mui/material';
 function ProjectTemplateList(props) {
   let projectTypeList = null;
   if (props.templates !== null) {
-    projectTypeList = props.templates.map(type => (
+    projectTypeList = props.templates.map((type) => (
       <ListItem
         button
         selected={
@@ -26,13 +26,13 @@ function ProjectTemplateList(props) {
 }
 
 ProjectTemplateList.defaultProps = {
-  selectedTemplate: null
+  selectedTemplate: null,
 };
 
 ProjectTemplateList.propTypes = {
   templates: PropTypes.array.isRequired,
   selectedTemplate: PropTypes.object,
-  onSelect: PropTypes.func.isRequired
+  onSelect: PropTypes.func.isRequired,
 };
 
 export default ProjectTemplateList;

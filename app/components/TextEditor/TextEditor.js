@@ -3,7 +3,7 @@ import React from 'react';
 import Editor from 'react-simplemde-editor';
 import styles from './TextEditor.css';
 
-const textEditor = props => {
+const textEditor = (props) => {
   return (
     <div className={styles.container}>
       <Editor
@@ -12,7 +12,7 @@ const textEditor = props => {
         onChange={props.onChange}
         options={{
           autofocus: true,
-          spellChecker: true
+          spellChecker: true,
         }}
       />
     </div>

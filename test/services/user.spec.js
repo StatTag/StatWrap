@@ -92,7 +92,7 @@ describe('services', () => {
         new UserService().saveUserSettingsToFile(settingsObject, 'test-user-settings.json');
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           'test-user-settings.json',
-          JSON.stringify(settingsObject)
+          JSON.stringify(settingsObject),
         );
       });
       it('should save the user settings to the default file', () => {
@@ -100,7 +100,7 @@ describe('services', () => {
         new UserService().saveUserSettingsToFile(settingsObject);
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           '.user-settings.json',
-          JSON.stringify(settingsObject)
+          JSON.stringify(settingsObject),
         );
       });
     });
@@ -116,7 +116,7 @@ describe('services', () => {
       });
       it('should throw an exception if the person is invalid', () => {
         expect(() =>
-          new UserService().upsertPersonInUserDirectory({}, { name: { first: null, last: ' ' } })
+          new UserService().upsertPersonInUserDirectory({}, { name: { first: null, last: ' ' } }),
         ).toThrow(Error);
       });
       it('should initialize the format version and directory collection in an empty settings object', () => {
@@ -124,8 +124,8 @@ describe('services', () => {
         expect(
           new UserService().upsertPersonInUserDirectory(settings, {
             id: '1-2-3',
-            name: { first: 'T', last: 'P' }
-          })
+            name: { first: 'T', last: 'P' },
+          }),
         ).not.toBeNull();
         expect(settings.formatVersion).toBe('1');
         expect(settings.directory).not.toBeNull();
@@ -136,8 +136,8 @@ describe('services', () => {
           id: '1-2-3',
           name: {
             first: 'Test',
-            last: 'Person'
-          }
+            last: 'Person',
+          },
         };
         expect(new UserService().upsertPersonInUserDirectory(settings, person)).not.toBeNull();
         expect(settings.directory[0].id).toEqual('1-2-3');
@@ -150,19 +150,19 @@ describe('services', () => {
               id: 'a-b-c',
               name: {
                 first: 'Test',
-                last: 'Person'
-              }
-            }
-          ]
+                last: 'Person',
+              },
+            },
+          ],
         };
         expect(
           new UserService().upsertPersonInUserDirectory(settings, {
             id: 'A-b-c',
             name: {
               first: 'Other',
-              last: 'Person'
-            }
-          })
+              last: 'Person',
+            },
+          }),
         ).not.toBeNull();
         expect(settings.directory[1].id).toEqual('A-b-c');
       });
@@ -175,13 +175,13 @@ describe('services', () => {
         const settings = {};
         expect(
           new UserService().upsertPersonInUserDirectory(settings, {
-            name: { first: 'Test', last: 'Person' }
-          })
+            name: { first: 'Test', last: 'Person' },
+          }),
         ).not.toBeNull();
         expect(settings.directory[0]).toEqual({
           id: '1-2-3',
           name: { first: 'Test', last: 'Person' },
-          added: '2020-10-30T19:03:43.302Z'
+          added: '2020-10-30T19:03:43.302Z',
         });
       });
       it('should update an existing person', () => {
@@ -191,11 +191,11 @@ describe('services', () => {
               id: '1-2-3',
               name: {
                 first: 'Test',
-                last: 'Person'
+                last: 'Person',
               },
-              added: '2020-10-30T19:03:43.302Z'
-            }
-          ]
+              added: '2020-10-30T19:03:43.302Z',
+            },
+          ],
         };
 
         // Update the result for 'now' to reflect the entry has changed.
@@ -204,16 +204,16 @@ describe('services', () => {
           id: '1-2-3',
           name: {
             first: 'Updated',
-            last: 'Person'
-          }
+            last: 'Person',
+          },
         };
         expect(
-          new UserService().upsertPersonInUserDirectory(settings, updatedPerson)
+          new UserService().upsertPersonInUserDirectory(settings, updatedPerson),
         ).not.toBeNull();
 
         const updatedPersonAnswer = {
           ...updatedPerson,
-          added: '2020-10-30T21:50:23.302Z'
+          added: '2020-10-30T21:50:23.302Z',
         };
         expect(settings.directory[0]).toEqual(updatedPersonAnswer);
       });
@@ -224,10 +224,10 @@ describe('services', () => {
               id: '1-2-3',
               name: {
                 first: 'Test',
-                last: 'Person'
-              }
-            }
-          ]
+                last: 'Person',
+              },
+            },
+          ],
         };
 
         // Update the result for 'now' to reflect the entry has changed.
@@ -236,18 +236,18 @@ describe('services', () => {
           id: '1-2-3',
           name: {
             first: 'Updated',
-            last: 'Person'
-          }
+            last: 'Person',
+          },
         };
         const updatedPersonResponse = new UserService().upsertPersonInUserDirectory(
           settings,
-          updatedPerson
+          updatedPerson,
         );
         expect(updatedPersonResponse).not.toBeNull();
 
         const updatedPersonAnswer = {
           ...updatedPerson,
-          added: '2020-10-30T21:50:23.302Z'
+          added: '2020-10-30T21:50:23.302Z',
         };
         expect(settings.directory[0]).toEqual(updatedPersonAnswer);
         expect(updatedPersonResponse).toEqual(updatedPersonAnswer);
@@ -259,19 +259,19 @@ describe('services', () => {
               id: '1-2-3',
               name: {
                 first: 'Test',
-                last: 'Person'
-              }
-            }
-          ]
+                last: 'Person',
+              },
+            },
+          ],
         };
         const updatedPerson = {
           id: '1-2-3',
           name: {
-            first: 'Updated'
-          }
+            first: 'Updated',
+          },
         };
         expect(() =>
-          new UserService().upsertPersonInUserDirectory(settings, updatedPerson)
+          new UserService().upsertPersonInUserDirectory(settings, updatedPerson),
         ).toThrow(Error);
         expect(settings.directory[0]).not.toEqual(updatedPerson);
       });
@@ -283,13 +283,13 @@ describe('services', () => {
             name: { first: 'Test', last: 'Person' },
             roles: [],
             notes: [],
-            other: 'stuff'
-          })
+            other: 'stuff',
+          }),
         ).not.toBeNull();
         expect(settings.directory[0]).toEqual({
           id: '1-2-3',
           name: { first: 'Test', last: 'Person' },
-          added: '2020-10-30T19:03:43.302Z'
+          added: '2020-10-30T19:03:43.302Z',
         });
       });
       it('should roll off the oldest item when the directory gets too large', () => {
@@ -303,20 +303,20 @@ describe('services', () => {
             // to have something different.  Our next use of Date.now when
             // we add a new entry will then be the most recent time.
             // eslint-disable-next-line prettier/prettier
-            added: new Date(Date.now() - (10 * index)).toISOString()
+            added: new Date(Date.now() - 10 * index).toISOString(),
           });
         }
         expect(
           new UserService().upsertPersonInUserDirectory(settings, {
             id: '1-2-3',
-            name: { first: 'Test', last: 'Person' }
-          })
+            name: { first: 'Test', last: 'Person' },
+          }),
         ).not.toBeNull();
         expect(settings.directory.length).toEqual(PersonDirectoryLimit);
         expect(settings.directory[PersonDirectoryLimit - 1].id).toEqual('1-2-3');
         expect(settings.directory[PersonDirectoryLimit - 1].name).toEqual({
           first: 'Test',
-          last: 'Person'
+          last: 'Person',
         });
       });
       it('should roll off multiple old items when the directory far exceeds its limit', () => {
@@ -334,20 +334,20 @@ describe('services', () => {
             // to have something different.  Our next use of Date.now when
             // we add a new entry will then be the most recent time.
             // eslint-disable-next-line prettier/prettier
-            added: new Date(Date.now() - (10 * index)).toISOString()
+            added: new Date(Date.now() - 10 * index).toISOString(),
           });
         }
         expect(
           new UserService().upsertPersonInUserDirectory(settings, {
             id: '1-2-3',
-            name: { first: 'Test', last: 'Person' }
-          })
+            name: { first: 'Test', last: 'Person' },
+          }),
         ).not.toBeNull();
         expect(settings.directory.length).toEqual(PersonDirectoryLimit);
         expect(settings.directory[PersonDirectoryLimit - 1].id).toEqual('1-2-3');
         expect(settings.directory[PersonDirectoryLimit - 1].name).toEqual({
           first: 'Test',
-          last: 'Person'
+          last: 'Person',
         });
       });
     });
@@ -413,35 +413,35 @@ describe('services', () => {
       it('should return false if the person ID is null or undefined', () => {
         expect(new UserService().removePersonFromUserDirectory({ directory: [] }, {})).toBe(false);
         expect(
-          new UserService().removePersonFromUserDirectory({ directory: [] }, { id: null })
+          new UserService().removePersonFromUserDirectory({ directory: [] }, { id: null }),
         ).toBe(false);
         expect(
-          new UserService().removePersonFromUserDirectory({ directory: [] }, { id: undefined })
+          new UserService().removePersonFromUserDirectory({ directory: [] }, { id: undefined }),
         ).toBe(false);
       });
       it('should set the settings format version if it does not exist', () => {
         const settings = {
-          directory: []
+          directory: [],
         };
         new UserService().removePersonFromUserDirectory(settings, { id: '1-2-3' });
         expect(settings.formatVersion).toBe('1');
       });
       it('should remove a person when matched on ID', () => {
         const settings = {
-          directory: [{ id: '1-2-3' }, { id: '2-3-4' }]
+          directory: [{ id: '1-2-3' }, { id: '2-3-4' }],
         };
         expect(new UserService().removePersonFromUserDirectory(settings, { id: '1-2-3' })).toBe(
-          true
+          true,
         );
         expect(settings.directory.length).toBe(1);
         expect(settings.directory[0]).toEqual({ id: '2-3-4' });
       });
       it('should not remove a person when there is not matching ID', () => {
         const settings = {
-          directory: [{ id: '1-2-3' }, { id: '2-3-4' }]
+          directory: [{ id: '1-2-3' }, { id: '2-3-4' }],
         };
         expect(new UserService().removePersonFromUserDirectory(settings, { id: '3-4-5' })).toBe(
-          false
+          false,
         );
         expect(settings.directory.length).toBe(2);
       });

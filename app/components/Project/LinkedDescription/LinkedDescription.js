@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 import Error from '../../Error/Error';
 import styles from './LinkedDescription.css';
 
-const linkedDescription = props => {
+function linkedDescription(props) {
   const [validationErrorMessage, setValidationErrorMessage] = useState(null);
   const [linkedUri, setLinkedUri] = useState(null);
 
@@ -20,16 +20,16 @@ const linkedDescription = props => {
       .showOpenDialog({
         title: 'Select the file that contains the project description',
         properties: ['openFile'],
-        defaultPath: props.projectPath
+        defaultPath: props.projectPath,
       })
-      .then(result => {
+      .then((result) => {
         if (!result.canceled && result.filePaths !== null && result.filePaths.length > 0) {
           setLinkedUri(result.filePaths[0]);
           props.onChange(result.filePaths[0]);
         }
         return result;
       })
-      .catch(err => {
+      .catch((err) => {
         setValidationErrorMessage(`There was an error accessing the project root folder: ${err}`);
       });
   };
@@ -54,16 +54,16 @@ const linkedDescription = props => {
       {validation}
     </div>
   );
-};
+}
 
 linkedDescription.propTypes = {
   uri: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
-  projectPath: PropTypes.string
+  projectPath: PropTypes.string,
 };
 
 linkedDescription.defaultProps = {
-  projectPath: ''
+  projectPath: '',
 };
 
 export default linkedDescription;

@@ -41,8 +41,8 @@ export default class RHandler extends BaseCodeHandler {
     // Tidyverse is similar, just uses _ instead of .
     const baseMatches = [
       ...text.matchAll(
-        /^[^#]*?(read\.table|read\.csv|read\.csv2|read\.DIF|read\.fortran|read\.fwf|read\.ftable|read\.dcf|read\.csv|read\.csv2|scan|read_delim|read_csv|read_csv2|read_excel|read_xls|read_xlsx|read_tsv|read_fwf|read_log|read_table|read_file|read_file_raw|read_lines|read_lines_raw|read_rds)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)\s*$/gm
-      )
+        /^[^#]*?(read\.table|read\.csv|read\.csv2|read\.DIF|read\.fortran|read\.fwf|read\.ftable|read\.dcf|read\.csv|read\.csv2|scan|read_delim|read_csv|read_csv2|read_excel|read_xls|read_xlsx|read_tsv|read_fwf|read_log|read_table|read_file|read_file_raw|read_lines|read_lines_raw|read_rds)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)\s*$/gm,
+      ),
     ];
     for (let index = 0; index < baseMatches.length; index++) {
       const match = baseMatches[index];
@@ -50,15 +50,15 @@ export default class RHandler extends BaseCodeHandler {
       inputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.DATA,
-        path
+        path,
       });
     }
 
     // source from other code file
     const sourceMatches = [
       ...text.matchAll(
-        /^[^#]*?(source|sys\.source)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)\s*$/gm
-      )
+        /^[^#]*?(source|sys\.source)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)\s*$/gm,
+      ),
     ];
     for (let index = 0; index < sourceMatches.length; index++) {
       const match = sourceMatches[index];
@@ -66,7 +66,7 @@ export default class RHandler extends BaseCodeHandler {
       inputs.push({
         id: `${match[1]} - ${path}`,
         type: 'code',
-        path
+        path,
       });
     }
 
@@ -78,8 +78,8 @@ export default class RHandler extends BaseCodeHandler {
     // TODO: Handle 'open=' parameter
     const fileMatches = [
       ...text.matchAll(
-        /^[^#]*?(file|url|gzfile|bzfile|xzfile|unz|fifo)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s,]*(['"]{1,}[\s\S]+?['"]{1,})?[\s\S]*?\)/gm
-      )
+        /^[^#]*?(file|url|gzfile|bzfile|xzfile|unz|fifo)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s,]*(['"]{1,}[\s\S]+?['"]{1,})?[\s\S]*?\)/gm,
+      ),
     ];
     for (let index = 0; index < fileMatches.length; index++) {
       const match = fileMatches[index];
@@ -90,7 +90,7 @@ export default class RHandler extends BaseCodeHandler {
         inputs.push({
           id: `${match[1]} - ${path}`,
           type: Constants.DependencyType.DATA,
-          path
+          path,
         });
       }
     }
@@ -140,8 +140,8 @@ export default class RHandler extends BaseCodeHandler {
 
     const figureMatches = [
       ...text.matchAll(
-        /^\s*(pdf|win\.metafile|png|jpeg|bmp|postscript|ggsave)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)\s*$/gm
-      )
+        /^\s*(pdf|win\.metafile|png|jpeg|bmp|postscript|ggsave)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)\s*$/gm,
+      ),
     ];
     for (let index = 0; index < figureMatches.length; index++) {
       const match = figureMatches[index];
@@ -149,7 +149,7 @@ export default class RHandler extends BaseCodeHandler {
       outputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.FIGURE,
-        path
+        path,
       });
     }
 
@@ -158,8 +158,8 @@ export default class RHandler extends BaseCodeHandler {
     // Tidyverse is similar, just uses _ instead of .
     const baseMatches = [
       ...text.matchAll(
-        /^\s*(write\.table|write|write\.csv|write\.csv2|write\.ftable|write\.dcf|sink|write_delim|write_csv|write_csv2|write_excel_csv|write_excel_csv2|write_tsv|write_file|write_lines|write_rds)\s*\([\s\S]+?\s*,\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)\s*$/gm
-      )
+        /^\s*(write\.table|write|write\.csv|write\.csv2|write\.ftable|write\.dcf|sink|write_delim|write_csv|write_csv2|write_excel_csv|write_excel_csv2|write_tsv|write_file|write_lines|write_rds)\s*\([\s\S]+?\s*,\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)\s*$/gm,
+      ),
     ];
     for (let index = 0; index < baseMatches.length; index++) {
       const match = baseMatches[index];
@@ -167,7 +167,7 @@ export default class RHandler extends BaseCodeHandler {
       outputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.DATA,
-        path
+        path,
       });
     }
 
@@ -176,8 +176,8 @@ export default class RHandler extends BaseCodeHandler {
     // TODO: Handle 'open=' parameter
     const fileMatches = [
       ...text.matchAll(
-        /^[^#]*?(file|url|gzfile|bzfile|xzfile|unz|fifo)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s,]*(['"]{1,}[\s\S]+?['"]{1,})?[\s\S]*?\)/gm
-      )
+        /^[^#]*?(file|url|gzfile|bzfile|xzfile|unz|fifo)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s,]*(['"]{1,}[\s\S]+?['"]{1,})?[\s\S]*?\)/gm,
+      ),
     ];
     for (let index = 0; index < fileMatches.length; index++) {
       const match = fileMatches[index];
@@ -188,7 +188,7 @@ export default class RHandler extends BaseCodeHandler {
         outputs.push({
           id: `${match[1]} - ${path}`,
           type: Constants.DependencyType.DATA,
-          path
+          path,
         });
       }
     }
@@ -208,8 +208,8 @@ export default class RHandler extends BaseCodeHandler {
     const outputMatches = [
       ...headerText.matchAll(
         // If you add any new entries here, please also add corresponding entry in getRMarkdownOutputExtension
-        /(html_document|html_notebook|ioslides_presentation|slidly_presentation|beamer_presentation|pdf_document|word_document|odt_document|rtf_document|md_document|powerpoint_presentation)+/gm
-      )
+        /(html_document|html_notebook|ioslides_presentation|slidly_presentation|beamer_presentation|pdf_document|word_document|odt_document|rtf_document|md_document|powerpoint_presentation)+/gm,
+      ),
     ];
     for (let index = 0; index < outputMatches.length; index++) {
       const match = outputMatches[index];
@@ -219,7 +219,7 @@ export default class RHandler extends BaseCodeHandler {
       outputs.push({
         id: `${type} - ${baseFileName}.${extension}`,
         type: Constants.DependencyType.FILE,
-        path: `${baseFileName}.${extension}`
+        path: `${baseFileName}.${extension}`,
       });
     }
 
@@ -241,7 +241,7 @@ export default class RHandler extends BaseCodeHandler {
       const packageName = match[1].replace(/['"]/gm, '');
       libraries.push({
         id: this.getLibraryId(packageName),
-        package: packageName
+        package: packageName,
       });
     }
     return libraries;

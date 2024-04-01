@@ -34,9 +34,9 @@ export default class ProjectService {
       name,
       description: {
         contentType: Constants.DescriptionContentType.MARKDOWN,
-        content: `# ${name}`
+        content: `# ${name}`,
       },
-      categories: []
+      categories: [],
     };
     return config;
   }
@@ -67,7 +67,7 @@ export default class ProjectService {
       fs.accessSync(configFolder);
     } catch (err) {
       fs.mkdirSync(configFolder, {
-        recursive: true
+        recursive: true,
       });
     }
 
@@ -91,7 +91,7 @@ export default class ProjectService {
     const filePath = path.join(
       projectPath.replace('~', os.homedir),
       Constants.StatWrapFiles.BASE_FOLDER,
-      DefaultProjectFile
+      DefaultProjectFile,
     );
 
     lockfile.lockSync(filePath);
@@ -101,7 +101,7 @@ export default class ProjectService {
     const filePath = path.join(
       projectPath.replace('~', os.homedir),
       Constants.StatWrapFiles.BASE_FOLDER,
-      DefaultProjectFile
+      DefaultProjectFile,
     );
 
     lockfile.unlockSync(filePath);
@@ -114,7 +114,7 @@ export default class ProjectService {
     const filePath = path.join(
       projectPath.replace('~', os.homedir),
       Constants.StatWrapFiles.BASE_FOLDER,
-      DefaultProjectFile
+      DefaultProjectFile,
     );
 
     try {
@@ -129,10 +129,14 @@ export default class ProjectService {
     // If the user has linked their project description to a URI, we will
     // attempt to load it.  If we fail, we will put in the content an error
     // informing the user that the file couldn't be found or loaded.
-    if (data && data.description && data.description.contentType === Constants.DescriptionContentType.URI) {
+    if (
+      data &&
+      data.description &&
+      data.description.contentType === Constants.DescriptionContentType.URI
+    ) {
       let descriptionFileContents = '';
       try {
-        descriptionFileContents = fs.readFileSync(data.description.uri, { "encoding": "utf8"});
+        descriptionFileContents = fs.readFileSync(data.description.uri, { encoding: 'utf8' });
       } catch (err) {
         descriptionFileContents = `**Unable to load description file at ${data.description.uri}**\r\n${err}`;
       }
@@ -171,7 +175,7 @@ export default class ProjectService {
     // but it actually already exists
     const configFolderPath = path.join(
       projectPath.replace('~', os.homedir),
-      Constants.StatWrapFiles.BASE_FOLDER
+      Constants.StatWrapFiles.BASE_FOLDER,
     );
     try {
       fs.accessSync(configFolderPath);
@@ -205,7 +209,7 @@ export default class ProjectService {
     const validationReport = {
       project: null,
       isValid: false,
-      details: 'Not all validation checks were able to be completed'
+      details: 'Not all validation checks were able to be completed',
     };
 
     if (!project) {
@@ -220,7 +224,7 @@ export default class ProjectService {
       formatVersion: ProjectFileFormatVersion,
       id: uuid(),
       favorite: false,
-      lastAccessed: new Date().toJSON()
+      lastAccessed: new Date().toJSON(),
     };
 
     switch (project.type) {
@@ -230,7 +234,7 @@ export default class ProjectService {
         const sanitizedName = this.sanitizeFolderName(project.name);
         const projectDirectory = path.join(
           project.directory.replace('~', os.homedir),
-          sanitizedName
+          sanitizedName,
         );
         validationReport.project.name = project.name;
         validationReport.project.path = projectDirectory;
@@ -285,8 +289,9 @@ export default class ProjectService {
     if (assets.children) {
       for (let index = 0; index < assets.children.length; index++) {
         const childAsset = assets.children[index];
-        const childAssetWithData = followStructure ? AssetUtil.findChildAssetByUri(assetsWithData, childAsset.uri) :
-          AssetUtil.findDescendantAssetByUri(assetsWithData, childAsset.uri);
+        const childAssetWithData = followStructure
+          ? AssetUtil.findChildAssetByUri(assetsWithData, childAsset.uri)
+          : AssetUtil.findDescendantAssetByUri(assetsWithData, childAsset.uri);
         if (childAssetWithData) {
           this.addNotesAndAttributesToAssets(assets.children[index], childAssetWithData);
         } else {
@@ -305,7 +310,7 @@ export default class ProjectService {
    * @param {object} note The note object we are updating in the entity
    */
   _updateNote(entity, note) {
-    const existingNote = entity.notes.find(x => x.id === note.new.id);
+    const existingNote = entity.notes.find((x) => x.id === note.new.id);
     existingNote.content = note.new.content;
     existingNote.updated = note.new.updated;
   }
@@ -316,7 +321,7 @@ export default class ProjectService {
    * @param {object} note The note object we are deleting from the entity
    */
   _deleteNote(entity, note) {
-    const index = entity.notes.findIndex(x => x.id === note.id);
+    const index = entity.notes.findIndex((x) => x.id === note.id);
     if (index !== -1) {
       entity.notes.splice(index, 1);
     }
@@ -356,13 +361,10 @@ export default class ProjectService {
 
     // Because of the way our downstream code works, it expects the paths to be absolute.  Because we
     // have just loaded from the config file, we need to do that conversion before proceeding.
-    project.assets = AssetUtil.recursiveRelativeToAbsolutePath(
-      projectPath,
-      project.assets
-    );
+    project.assets = AssetUtil.recursiveRelativeToAbsolutePath(projectPath, project.assets);
     project.assetGroups = ProjectUtil.absoluteToRelativePathForAssetGroups(
       project.path,
-      project.assetGroups
+      project.assetGroups,
     );
 
     // This code (per NOTE above) makes some assumptions that we already know for sure the
@@ -383,7 +385,7 @@ export default class ProjectService {
           }
           asset.notes.push(details);
         } else if (entityType === EntityType.PERSON) {
-          const person = project.people.find(p => p.id === entityKey)
+          const person = project.people.find((p) => p.id === entityKey);
           if (!person.notes) {
             person.notes = [];
           }
@@ -401,7 +403,7 @@ export default class ProjectService {
           const asset = AssetUtil.findDescendantAssetByUri(project.assets, entityKey);
           this._updateNote(asset, details);
         } else if (entityType === EntityType.PERSON) {
-          const person = project.people.find(p => p.id === entityKey)
+          const person = project.people.find((p) => p.id === entityKey);
           this._updateNote(person, details);
         } else {
           return null;
@@ -416,7 +418,7 @@ export default class ProjectService {
           const asset = AssetUtil.findDescendantAssetByUri(project.assets, entityKey);
           this._deleteNote(asset, details);
         } else if (entityType === EntityType.PERSON) {
-          const person = project.people.find(p => p.id === entityKey)
+          const person = project.people.find((p) => p.id === entityKey);
           this._deleteNote(person, details);
         } else {
           return null;
@@ -453,12 +455,12 @@ export default class ProjectService {
         break;
       case Constants.ActionType.PERSON_UPDATED:
         if (entityType === EntityType.PROJECT) {
-          const foundIndex = project.people.findIndex(p => p.id === details.id);
+          const foundIndex = project.people.findIndex((p) => p.id === details.id);
           project.people[foundIndex] = {
             ...project.people[foundIndex],
             name: details.name,
             affiliation: details.affiliation,
-            roles: details.roles
+            roles: details.roles,
           };
         } else {
           return null;
@@ -466,7 +468,7 @@ export default class ProjectService {
         break;
       case Constants.ActionType.PERSON_DELETED:
         if (entityType === EntityType.PROJECT) {
-          const foundIndex = project.people.findIndex(p => p.id === details.id);
+          const foundIndex = project.people.findIndex((p) => p.id === details.id);
           project.people.splice(foundIndex, 1);
         } else {
           return null;
@@ -481,7 +483,9 @@ export default class ProjectService {
         break;
       case Constants.ActionType.ASSET_GROUP_UPDATED:
         if (entityType === EntityType.PROJECT) {
-          const oldAssetGroup = cloneDeep(this.props.project.assetGroups.find(x => x.id === details.id));
+          const oldAssetGroup = cloneDeep(
+            this.props.project.assetGroups.find((x) => x.id === details.id),
+          );
           ProjectUtil.upsertAssetGroup(project, oldAssetGroup);
         } else {
           return null;

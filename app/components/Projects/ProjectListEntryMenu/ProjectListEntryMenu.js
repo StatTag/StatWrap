@@ -4,7 +4,7 @@ import { Menu, MenuItem } from '@mui/material';
 import PropTypes from 'prop-types';
 import Messages from '../../../constants/messages';
 
-const projectListEntryMenu = props => {
+function projectListEntryMenu(props) {
   return (
     <Menu
       id="project-list-menu"
@@ -29,18 +29,18 @@ const projectListEntryMenu = props => {
       </MenuItem>
     </Menu>
   );
-};
+}
 
 projectListEntryMenu.propTypes = {
   anchorElement: PropTypes.object,
   project: PropTypes.object,
   onClose: PropTypes.func.isRequired,
-  onMenuClick: PropTypes.func.isRequired
+  onMenuClick: PropTypes.func.isRequired,
 };
 
 projectListEntryMenu.defaultProps = {
   anchorElement: null,
-  project: null
+  project: null,
 };
 
 export default projectListEntryMenu;

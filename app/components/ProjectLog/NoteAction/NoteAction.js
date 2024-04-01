@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { ActionType } from '../../../constants/constants';
 import styles from './NoteAction.css';
 
-const noteAction = props => {
+function noteAction(props) {
   const { data } = props;
   let content = null;
   if (data.type === ActionType.NOTE_ADDED || data.type === ActionType.NOTE_DELETED) {
@@ -69,10 +69,10 @@ const noteAction = props => {
     );
   }
   return <div className={styles.container}>{content}</div>;
-};
+}
 
 noteAction.propTypes = {
-  data: PropTypes.object.isRequired
+  data: PropTypes.object.isRequired,
 };
 
 export default noteAction;
