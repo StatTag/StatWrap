@@ -8,29 +8,31 @@ import Error from '../Error/Error';
 import GeneralUtil from '../../utils/general';
 import AssetUtil from '../../utils/asset';
 import styles from './ProjectNotes.css';
+import NoteEditor from '../NoteEditor/NoteEditor';
+import { Typography } from '@mui/material';
 
 const columns = [
   {
     name: 'Type',
     selector: 'type',
-    sortable: true
+    sortable: true,
   },
   {
     name: 'URI',
     selector: 'uri',
     sortable: true,
     grow: 3,
-    wrap: true
+    wrap: true,
   },
   {
     name: 'Date/Time',
     selector: 'updated',
-    sortable: true
+    sortable: true,
   },
   {
     name: 'Author',
     selector: 'author',
-    sortable: true
+    sortable: true,
   },
   {
     name: 'Note',
@@ -39,12 +41,12 @@ const columns = [
     grow: 3,
     wrap: true,
     // Only way I could figure out to get it to prioritize my white-space CSS setting.
-    cell: row => (
+    cell: (row) => (
       <span style={{ whiteSpace: 'pre-wrap', paddingBottom: '5px', paddingTop: '5px' }}>
         {row.content}
       </span>
-    )
-  }
+    ),
+  },
 ];
 
 const TextField = styled.input`
@@ -92,11 +94,27 @@ const FilterComponent = ({ filterText, onFilter, onClear }) => (
   </>
 );
 
-const projectNotes = props => {
+const projectNotes = (props) => {
   const [filterText, setFilterText] = React.useState('');
   const [pending, setPending] = useState(true);
   const [feed, setFeed] = useState(null);
   const [error, setError] = useState(null);
+
+  const updatedNoteHandler = (note, text) => {
+    if (note) {
+      if (props.onUpdatedNote) {
+        props.onUpdatedNote(props.project, text, note);
+      }
+    } else if (props.onAddedNote) {
+      props.onAddedNote(props.project, text);
+    }
+  };
+
+  const deleteNoteHandler = (note) => {
+    if (props.onDeletedNote) {
+      props.onDeletedNote(props.project, note);
+    }
+  };
 
   const subHeaderComponentMemo = React.useMemo(() => {
     const handleClear = () => {
@@ -107,7 +125,7 @@ const projectNotes = props => {
 
     return (
       <FilterComponent
-        onFilter={e => setFilterText(e.target.value)}
+        onFilter={(e) => setFilterText(e.target.value)}
         onClear={handleClear}
         filterText={filterText}
       />
@@ -120,36 +138,36 @@ const projectNotes = props => {
     if (props.project) {
       let mappedProjectNotes = [];
       if (props.project.notes) {
-        mappedProjectNotes = props.project.notes.map(n => {
+        mappedProjectNotes = props.project.notes.map((n) => {
           return { type: 'Project', updated: n.updated, author: n.author, content: n.content };
         });
       }
 
       let mappedAssetNotes = [];
       if (props.project.assets) {
-        mappedAssetNotes = AssetUtil.getAllNotes(props.project.assets).map(n => {
+        mappedAssetNotes = AssetUtil.getAllNotes(props.project.assets).map((n) => {
           return {
             type: 'Asset',
             uri: n.uri,
             updated: n.updated,
             author: n.author,
-            content: n.content
+            content: n.content,
           };
         });
       }
 
       const mappedPersonNotes = [];
       if (props.project.people) {
-        props.project.people.forEach(p => {
+        props.project.people.forEach((p) => {
           if (p && p.notes) {
-            p.notes.forEach(n =>
+            p.notes.forEach((n) =>
               mappedPersonNotes.push({
                 type: 'Person',
                 uri: GeneralUtil.formatName(p.name),
                 updated: n.updated,
                 author: n.author,
-                content: n.content
-              })
+                content: n.content,
+              }),
             );
           }
         });
@@ -172,29 +190,39 @@ const projectNotes = props => {
     setFeed(null);
   }, [props.project]);
 
-  let contents = <div className={styles.empty}>There are no notes to show</div>;
+  let contents = (
+    <div className={styles.empty}>
+      There are no notes to show
+      <Typography variant="h6" className={styles.addTitle}>Add Project Notes</Typography>
+      <NoteEditor notes={[]} onEditingComplete={updatedNoteHandler} onDelete={deleteNoteHandler} />
+    </div>
+  );
   if (feed) {
     const data = feed
-      .map(f => {
+      .map((f) => {
         return { ...f, datetime: GeneralUtil.formatDateTime(f.timestamp) };
       })
       .filter(
-        f =>
+        (f) =>
           filterText === '' ||
           (f.content && f.content.toLowerCase().includes(filterText.toLowerCase())) ||
           (f.author && f.author.toLowerCase().includes(filterText.toLowerCase())) ||
-          (f.uri && f.uri.toLowerCase().includes(filterText.toLowerCase()))
+          (f.uri && f.uri.toLowerCase().includes(filterText.toLowerCase())),
       );
     contents = (
-      <DataTable
-        title="Notes"
-        columns={columns}
-        data={data}
-        striped
-        progressPending={pending}
-        subHeader
-        subHeaderComponent={subHeaderComponentMemo}
-      />
+      <>
+        <Typography variant="h6" className={styles.addTitle}>Add Project Notes</Typography>
+        <NoteEditor notes={[]} onEditingComplete={updatedNoteHandler} onDelete={deleteNoteHandler} />
+        <DataTable
+          title="Notes"
+          columns={columns}
+          data={data}
+          striped
+          progressPending={pending}
+          subHeader
+          subHeaderComponent={subHeaderComponentMemo}
+        />
+      </>
     );
   } else if (error) {
     contents = <Error>There was an error loading the notes: {error}</Error>;
@@ -203,7 +231,7 @@ const projectNotes = props => {
 };
 
 projectNotes.propTypes = {
-  project: PropTypes.object.isRequired
+  project: PropTypes.object.isRequired,
 };
 
 export default projectNotes;

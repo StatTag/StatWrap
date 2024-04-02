@@ -652,7 +652,12 @@ class Project extends Component<Props> {
       ) : null;
 
       const projectNotes = this.props.project ? (
-        <ProjectNotes project={this.props.project} />
+        <ProjectNotes
+          project={this.props.project}
+          onAddedNote={this.projectUpsertNoteHandler}
+          onUpdatedNote={this.projectUpsertNoteHandler}
+          onDeletedNote={this.projectDeleteNoteHandler}
+        />
       ) : null;
 
       const people = this.props.project ? (

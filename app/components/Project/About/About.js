@@ -16,7 +16,7 @@ import LinkedDescription from '../LinkedDescription/LinkedDescription';
 import ProjectUpdateSummary from '../ProjectUpdateSummary/ProjectUpdateSummary';
 import { DescriptionContentType } from '../../../constants/constants';
 
-const about = props => {
+const about = (props) => {
   const [editing, setEditing] = useState(false);
   const [descriptionEditor, setDescriptionEditor] = useState(
     props.project.description && props.project.description.contentType
@@ -216,7 +216,7 @@ about.propTypes = {
   onUpdatedNote: PropTypes.func,
   onAddedNote: PropTypes.func,
   onDeletedNote: PropTypes.func,
-  onClickUpdatesLink: PropTypes.func
+  onClickUpdatesLink: PropTypes.func,
 };
 
 export default about;
