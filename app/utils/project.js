@@ -130,7 +130,7 @@ export default class ProjectUtil {
    */
   static _processFiltersForAssetAndDescendants(asset, filter) {
     if (!asset || asset === undefined) {
-      return;
+      return null;
     }
 
     // We apply filters in a way that we only remove for 'off' filters.  As we look

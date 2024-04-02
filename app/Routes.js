@@ -8,7 +8,7 @@ import ConfigurationPage from './containers/ConfigurationPage/ConfigurationPage'
 import SearchPage from './containers/SearchPage/SearchPage';
 import AboutPage from './containers/AboutPage/AboutPage';
 
-export default function () {
+export default function Routes() {
   return (
     <HashRouter>
       <App>

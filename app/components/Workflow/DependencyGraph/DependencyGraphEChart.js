@@ -1,6 +1,7 @@
-// import { style } from 'd3-selection';
+/* eslint-disable react/forbid-prop-types */
 import React, { useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
+import PropTypes from 'prop-types';
 import WorkflowUtil from '../../../utils/workflow';
 import ProjectUtil from '../../../utils/project';
 import AssetUtil from '../../../utils/asset';
@@ -136,5 +137,15 @@ function DependencyGraphEChart(props) {
     </div>
   );
 }
+
+DependencyGraphEChart.propTypes = {
+  assets: PropTypes.object,
+  zoomLevel: PropTypes.number,
+};
+
+DependencyGraphEChart.defaultProps = {
+  assets: null,
+  zoomLevel: 1,
+};
 
 export default DependencyGraphEChart;

@@ -107,14 +107,16 @@ describe('services', () => {
 
     describe('scan', () => {
       it('should throw an exception for an invalid directory', () => {
-        fs.accessSync.mockReturnValue(false);
+        fs.accessSync.mockImplementation(() => {
+          throw new Error('Invalid directory path');
+        });
         const service = new AssetService();
         expect(() => service.scan(null)).toThrow(Error);
         expect(() => service.scan(undefined)).toThrow(Error);
         expect(() => service.scan('~/Test/Invalid/Path')).toThrow(Error);
       });
 
-      it('should handle an empty direcctory', () => {
+      it('should handle an empty directory', () => {
         // Empty directory at /Some/Valid/Folder
         fs.accessSync.mockReturnValue(true);
         fs.readdirSync.mockReturnValueOnce([]);

@@ -89,21 +89,20 @@ describe('services', () => {
     });
 
     describe('getFileHistory', () => {
-      it('should return null for empty project paths', () => {
+      it('should return null for empty project paths', async () => {
         const service = new SourceControlService();
-        expect(service.getFileHistory(null, 'test.txt')).resolves.toBeNull();
+        await expect(service.getFileHistory(null, 'test.txt')).resolves.toBeNull();
         return expect(service.getFileHistory(undefined, 'test.txt')).resolves.toBeNull();
       });
 
-      it('should return null for empty file paths', () => {
+      it('should return null for empty file paths', async () => {
         const service = new SourceControlService();
-        expect(service.getFileHistory('/test/path', null)).resolves.toBeNull();
+        await expect(service.getFileHistory('/test/path', null)).resolves.toBeNull();
         return expect(service.getFileHistory('/test/path', undefined)).resolves.toBeNull();
       });
 
       it('should return an empty array for invalid file path', async () => {
         const service = new SourceControlService();
-        // eslint-disable-next-line prettier/prettier
         return expect(
           service.getFileHistory('/Invalid/Path', 'DoesNotExist.txt'),
         ).resolves.toStrictEqual([]);
@@ -111,9 +110,9 @@ describe('services', () => {
     });
 
     describe('getHistory', () => {
-      it('should return null for empty project paths', () => {
+      it('should return null for empty project paths', async () => {
         const service = new SourceControlService();
-        expect(service.getHistory(null)).resolves.toBeNull();
+        await expect(service.getHistory(null)).resolves.toBeNull();
         return expect(service.getHistory(undefined)).resolves.toBeNull();
       });
       it('should return the history', () => {

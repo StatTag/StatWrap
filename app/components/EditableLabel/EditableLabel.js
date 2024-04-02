@@ -36,9 +36,9 @@ export default class EditableLabel extends React.Component {
     }
 
     if (prevProps.isEditing !== this.props.isEditing) {
-      this.setState({
-        isEditing: this.state.isEditing || this.props.isEditing || false,
-      });
+      this.setState((prevState) => ({
+        isEditing: prevState.isEditing || this.props.isEditing || false,
+      }));
     }
   }
 
@@ -54,9 +54,9 @@ export default class EditableLabel extends React.Component {
     }
 
     if (this.isTextValueValid()) {
-      this.setState({
-        isEditing: !this.state.isEditing,
-      });
+      this.setState((prevState) => ({
+        isEditing: !prevState.isEditing,
+      }));
     } else if (this.state.isEditing) {
       this.setState({
         isEditing: this.props.emptyEdit || false,

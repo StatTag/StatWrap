@@ -20,7 +20,7 @@ const editableSelect = (props) => {
     // If there is no selected item, or if it doesn't match the selected
     // value that was there before, clear the display.
     setDisplayValue(selectedItem ? selectedItem.name : title);
-  }, [data, selectedItem]);
+  }, [data, selectedItem, title]);
 
   const handleSelectItem = (item) => {
     setDisplayValue(item ? item.name : title);

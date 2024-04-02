@@ -75,7 +75,7 @@ export default class ProjectService {
     // the directory and just accept what's there.
     const existingConfig = this.loadProjectFile(project.path);
     if (existingConfig && existingConfig.id) {
-      return;
+      return existingConfig;
     }
 
     const projectConfig = this.createProjectConfig(project.id, project.name);

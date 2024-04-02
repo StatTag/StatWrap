@@ -1,5 +1,7 @@
+/* eslint-disable react/forbid-prop-types */
 import { ToggleButtonGroup, ToggleButton } from '@mui/material';
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import DependencyGraph from './DependencyGraph/DependencyGraphEChart';
 import DependencyTree from './DependencyTree/DependencyTreeEChart';
 import styles from './Workflow.css';
@@ -50,8 +52,12 @@ function Workflow(props) {
         <span className={styles.buttonsWrapper}>
           {diagram !== 'tree' && (
             <>
-              <button onClick={handleZoomIn}>Zoom In</button>
-              <button onClick={handleZoomOut}>Zoom Out</button>
+              <button type="button" onClick={handleZoomIn}>
+                Zoom In
+              </button>
+              <button type="button" onClick={handleZoomOut}>
+                Zoom Out
+              </button>
             </>
           )}
         </span>
@@ -60,5 +66,9 @@ function Workflow(props) {
     </div>
   );
 }
+
+Workflow.propTypes = {
+  project: PropTypes.object.isRequired,
+};
 
 export default Workflow;

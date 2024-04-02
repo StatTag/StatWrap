@@ -7,7 +7,6 @@ import styled from 'styled-components';
 import DataTable from 'react-data-table-component';
 import Error from '../Error/Error';
 import ProjectLogRow from './ProjectLogRow/ProjectLogRow';
-import GeneralUtil from '../../utils/general';
 import styles from './ProjectLog.css';
 
 const columns = [

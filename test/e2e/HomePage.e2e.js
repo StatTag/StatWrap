@@ -17,52 +17,57 @@ const assertNoConsoleErrors = async (t) => {
 
 fixture`Home Page`.page('../../app/app.html').afterEach(assertNoConsoleErrors);
 
-test('e2e', async (t) => {
+const assertWindowAndTitle = async (t) => {
   await t.expect(getPageTitle()).eql('StatWrap');
-});
-
-test('should open window and contain expected page title', async (t) => {
-  await t.expect(getPageTitle()).eql('StatWrap');
-});
+};
+test('should open window and contain expected page title', assertWindowAndTitle);
 
 test('should not have any logs in console of main window', assertNoConsoleErrors);
 
-test('should navigate to Counter with click on the "to Counter" link', async (t) => {
+const assertCounterLinkClick = async (t) => {
   await t.click('[data-tid=container] > a').expect(getCounterText()).eql('0');
-});
+};
+test('should navigate to Counter with click on the "to Counter" link', assertCounterLinkClick);
 
-test('should navigate to /counter', async (t) => {
+const assertCounterLink = async (t) => {
   await t.click('a').expect(getPageUrl()).contains('/counter');
-});
+};
+test('should navigate to /counter', assertCounterLink);
 
 fixture`Counter Tests`
   .page('../../app/app.html')
   .beforeEach(clickToCounterLink)
   .afterEach(assertNoConsoleErrors);
 
-test('should display updated count after the increment button click', async (t) => {
+const assertIncrementButton = async (t) => {
   await t.click(incrementButton).expect(getCounterText()).eql('1');
-});
+};
+test('should display updated count after the increment button click', assertIncrementButton);
 
-test('should display updated count after the descrement button click', async (t) => {
+const assertDecrementButton = async (t) => {
   await t.click(decrementButton).expect(getCounterText()).eql('-1');
-});
+};
+test('should display updated count after the decrement button click', assertDecrementButton);
 
-test('should not change even counter if odd button clicked', async (t) => {
+const assertOddButton = async (t) => {
   await t.click(oddButton).expect(getCounterText()).eql('0');
-});
+};
+test('should not change even counter if odd button clicked', assertOddButton);
 
-test('should change odd counter if odd button clicked', async (t) => {
+const assertOddButton2 = async (t) => {
   await t.click(incrementButton).click(oddButton).expect(getCounterText()).eql('2');
-});
+};
+test('should change odd counter if odd button clicked', assertOddButton2);
 
-test('should change if async button clicked and a second later', async (t) => {
+const assertAsyncButton = async (t) => {
   await t.click(asyncButton).expect(getCounterText()).eql('0').expect(getCounterText()).eql('1');
-});
+};
+test('should change if async button clicked and a second later', assertAsyncButton);
 
-test('should back to home if back button clicked', async (t) => {
+const assertBackButton = async (t) => {
   await t
     .click('[data-tid="backButton"] > a')
     .expect(Selector('[data-tid="container"]').visible)
     .ok();
-});
+};
+test('should back to home if back button clicked', assertBackButton);

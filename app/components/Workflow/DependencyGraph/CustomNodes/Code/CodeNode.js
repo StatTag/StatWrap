@@ -47,7 +47,7 @@ function CodeNode({ node, renderType }) {
   if (renderType === 'svg') {
     element = (
       <g fill="white">
-        <image x="-12" y="-12" wiidth="24" height="24" href={iconUrl} />
+        <image x="-12" y="-12" width="24" height="24" href={iconUrl} />
         <text fill="black" strokeWidth="1" x="28" y="5">
           {node.name}
         </text>
