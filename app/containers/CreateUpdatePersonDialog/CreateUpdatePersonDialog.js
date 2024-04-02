@@ -7,7 +7,15 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Draggable from 'react-draggable';
-import { Autocomplete, Dialog, DialogActions, DialogTitle, Button, Paper, TextField } from '@mui/material';
+import {
+  Autocomplete,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  Button,
+  Paper,
+  TextField,
+} from '@mui/material';
 import { ipcRenderer } from 'electron';
 import Messages from '../../constants/messages';
 import GeneralUtil from '../../utils/general';
@@ -33,7 +41,7 @@ class CreateUpdatePersonDialog extends Component {
       firstName: props.name ? props.name.first : '',
       lastName: props.name ? props.name.last : '',
       affiliation: props.affiliation ? props.affiliation : '',
-      roles: props.roles ? props.roles : []
+      roles: props.roles ? props.roles : [],
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -50,7 +58,7 @@ class CreateUpdatePersonDialog extends Component {
   componentWillUnmount() {
     ipcRenderer.removeListener(
       Messages.CREATE_UPDATE_PERSON_RESPONSE,
-      this.handleCreateUpdatePersonCompleted
+      this.handleCreateUpdatePersonCompleted,
     );
   }
 
@@ -70,7 +78,7 @@ class CreateUpdatePersonDialog extends Component {
       Messages.CREATE_UPDATE_PERSON_REQUEST,
       this.props.mode,
       this.props.project,
-      person
+      person,
     );
   }
 
@@ -79,10 +87,10 @@ class CreateUpdatePersonDialog extends Component {
       id: this.state.id,
       name: {
         first: this.state.firstName,
-        last: this.state.lastName
+        last: this.state.lastName,
       },
       affiliation: this.state.affiliation,
-      roles: this.state.roles
+      roles: this.state.roles,
     };
     this.savePerson(person);
   }
@@ -97,7 +105,7 @@ class CreateUpdatePersonDialog extends Component {
     const { name } = target;
 
     this.setState({
-      [name]: value
+      [name]: value,
     });
   }
 
@@ -107,12 +115,12 @@ class CreateUpdatePersonDialog extends Component {
     // already, so no state update takes place.  We will only do the change when they
     // actually select a person from the list.
     if (value) {
-      this.setState(prevState => ({
+      this.setState((prevState) => ({
         ...prevState,
         id: value.id,
         firstName: value.name.first,
         lastName: value.name.last,
-        affiliation: value.affiliation
+        affiliation: value.affiliation,
       }));
     }
   }
@@ -145,7 +153,7 @@ class CreateUpdatePersonDialog extends Component {
       // to (possibly) add an item to it.  We don't want to update the original array with
       // that value if we do add it.
       const sortedDirectory = [...this.props.directory].sort((a, b) =>
-        a.added > b.added ? -1 : b.added > a.added ? 1 : 0
+        a.added > b.added ? -1 : b.added > a.added ? 1 : 0,
       );
 
       // If there is the user's information, push that to the top of the directory
@@ -161,12 +169,12 @@ class CreateUpdatePersonDialog extends Component {
             id="user-directory"
             options={sortedDirectory}
             onChange={this.handleSelectPersonInDirectory}
-            getOptionLabel={option =>
+            getOptionLabel={(option) =>
               option.userEntry
                 ? `${GeneralUtil.formatName(option.name)} (me)`
                 : GeneralUtil.formatName(option.name)
             }
-            renderInput={params => (
+            renderInput={(params) => (
               <TextField {...params} label="Select a recently added person" variant="outlined" />
             )}
           />
@@ -250,7 +258,7 @@ CreateUpdatePersonDialog.propTypes = {
   onClose: PropTypes.func.isRequired,
   open: PropTypes.bool,
   // Triggered on a successful save of the person
-  onSave: PropTypes.func
+  onSave: PropTypes.func,
 };
 
 CreateUpdatePersonDialog.defaultProps = {
@@ -262,7 +270,7 @@ CreateUpdatePersonDialog.defaultProps = {
   affiliation: null,
   roles: [],
   open: false,
-  onSave: null
+  onSave: null,
 };
 
 CreateUpdatePersonDialog.contextType = UserContext;
