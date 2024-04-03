@@ -41,6 +41,7 @@ const projectEntryPoint = (props) => {
     return (
       // eslint-disable-next-line react/jsx-filename-extension
       <div className={styles.container}>
+        <div className={styles.title}>{rootUri}</div>
         <Accordion defaultExpanded>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
