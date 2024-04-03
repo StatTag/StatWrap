@@ -670,7 +670,6 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
  */
 ipcMain.on(
   Messages.UPDATE_PROJECT_REQUEST,
-  // eslint-disable-next-line prettier/prettier
   async (
     event,
     projectPath,

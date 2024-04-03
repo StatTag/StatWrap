@@ -303,7 +303,7 @@ describe('services', () => {
             // to have something different.  Our next use of Date.now when
             // we add a new entry will then be the most recent time.
             // eslint-disable-next-line prettier/prettier
-            added: new Date(Date.now() - 10 * index).toISOString(),
+            added: new Date(Date.now() - (10 * index)).toISOString(),
           });
         }
         expect(
@@ -334,7 +334,7 @@ describe('services', () => {
             // to have something different.  Our next use of Date.now when
             // we add a new entry will then be the most recent time.
             // eslint-disable-next-line prettier/prettier
-            added: new Date(Date.now() - 10 * index).toISOString(),
+            added: new Date(Date.now() - (10 * index)).toISOString(),
           });
         }
         expect(

@@ -484,7 +484,6 @@ describe('services', () => {
         expect(
           new PythonHandler().getOutputs('test.uri', "   #df.to_csv('test.csv')").length,
         ).toEqual(0);
-        // eslint-disable-next-line prettier/prettier
         expect(
           new PythonHandler().getOutputs('test.uri', '   #    f = open("test.dat", "w")').length,
         ).toEqual(0);

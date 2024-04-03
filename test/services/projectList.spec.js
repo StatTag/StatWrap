@@ -113,18 +113,15 @@ describe('services', () => {
       it('should throw an error if the project ID is not defined', () => {
         const service = new ProjectListService();
         expect(() => service.validateProjectListEntry({ path: '/Test/Path' })).toThrow(Error);
-        // eslint-disable-next-line prettier/prettier
         expect(() => service.validateProjectListEntry({ id: null, path: '/Test/Path' })).toThrow(
           Error,
         );
         expect(() =>
           service.validateProjectListEntry({ id: undefined, path: '/Test/Path' }),
         ).toThrow(Error);
-        // eslint-disable-next-line prettier/prettier
         expect(() => service.validateProjectListEntry({ id: '', path: '/Test/Path' })).toThrow(
           Error,
         );
-        // eslint-disable-next-line prettier/prettier
         expect(() => service.validateProjectListEntry({ id: '   ', path: '/Test/Path' })).toThrow(
           Error,
         );
@@ -141,7 +138,6 @@ describe('services', () => {
 
       it('should not throw an error if the ID and path are specified', () => {
         const service = new ProjectListService();
-        // eslint-disable-next-line prettier/prettier
         expect(() => service.validateProjectListEntry({ id: '1', path: '/Test/Path' })).not.toThrow(
           Error,
         );

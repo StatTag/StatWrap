@@ -38,7 +38,7 @@ export default class SourceControlService {
     }
 
     // eslint-disable-next-line prettier/prettier
-    return new Date((committer.timestamp - committer.timezoneOffset * 60) * 1000);
+    return new Date((committer.timestamp - (committer.timezoneOffset * 60)) * 1000);
   }
 
   async _getHistory(projectPath, filePath) {

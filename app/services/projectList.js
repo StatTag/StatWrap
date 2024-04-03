@@ -175,9 +175,7 @@ export default class ProjectListService {
     // We are doing a little normalizing for our string comparison.  If one
     // is null and the other is a blank string, it's okay if they match.
     return projects.sort((a, b) => {
-      // eslint-disable-next-line prettier/prettier
       const stringA = a && a.name ? a.name.toLowerCase() : Constants.UndefinedDefaults.PROJECT;
-      // eslint-disable-next-line prettier/prettier
       const stringB = b && b.name ? b.name.toLowerCase() : Constants.UndefinedDefaults.PROJECT;
       return stringA.localeCompare(stringB);
     });

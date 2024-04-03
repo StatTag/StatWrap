@@ -171,7 +171,6 @@ export default class ProjectUtil {
           // File Type should only apply to files
           f.category === Constants.FilterCategory.FILE_TYPE
         ) {
-          // eslint-disable-next-line prettier/prettier
           const catFilter = f.values.some(
             (v) => !v.value && WorkflowUtil.getAssetType(asset) === v.key,
           )
