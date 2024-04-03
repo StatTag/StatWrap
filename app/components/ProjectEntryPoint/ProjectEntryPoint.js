@@ -35,6 +35,8 @@ const projectEntryPoint = (props) => {
     findEntryPoints(assets, entryPointsList);
   }
 
+  const sep = process.platform === 'win32' ? '\\' : '/';
+
   if (entryPointsList && entryPointsList.length > 0) {
     return (
       // eslint-disable-next-line react/jsx-filename-extension
@@ -51,10 +53,10 @@ const projectEntryPoint = (props) => {
           <AccordionDetails className={styles.details}>
             <ul className={styles.entryPointList} type="disc">
               {entryPointsList.map((asset) => {
-                const fileName = asset.uri.split('/').pop();
-                let folder = asset.uri.replace(`${rootUri}/`, '').split('/')[0];
+                const fileName = asset.uri.split(sep).pop();
+                let folder = asset.uri.replace(`${rootUri}${sep}`, '').split(sep)[0];
                 if (folder === fileName) {
-                  folder = rootUri.split('/').pop();
+                  folder = rootUri.split(sep).pop();
                 }
                 return (
                   <li key={asset.uri} className={styles.entryPointItem}>

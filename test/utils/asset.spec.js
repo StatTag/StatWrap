@@ -391,6 +391,49 @@ describe('services', () => {
       it('should return an empty array if the asset URI contains root URI but not as a prefix', () => {
         expect(AssetUtil.findAllDescendantAssetsByUri('/Test/Rt/Child', '/Rt')).toBeArrayOfSize(0);
       });
+      it.onWindows('should return an empty array if the asset URI is not specified', () => {
+        expect(AssetUtil.findAllDescendantAssetsByUri(null, 'C:\\Test')).toBeArrayOfSize(0);
+        expect(AssetUtil.findAllDescendantAssetsByUri(undefined, 'C:\\Test')).toBeArrayOfSize(0);
+      });
+      it.onWindows('should return an empty array if the root URI is not specified', () => {
+        expect(AssetUtil.findAllDescendantAssetsByUri('C:\\Test', null)).toBeArrayOfSize(0);
+        expect(AssetUtil.findAllDescendantAssetsByUri('C:\\Test', undefined)).toBeArrayOfSize(0);
+      });
+      it.onWindows(
+        'should return an empty array if the asset URI and root URI are the same',
+        () => {
+          expect(
+            AssetUtil.findAllDescendantAssetsByUri('C:\\Test\\Child', 'C:\\Test\\Child'),
+          ).toBeArrayOfSize(0);
+        },
+      );
+      it.onWindows(
+        'should return an empty array if the asset URI is not a descendant of the root URI',
+        () => {
+          expect(AssetUtil.findAllDescendantAssetsByUri('C:\\Test', 'C:\\Other')).toBeArrayOfSize(
+            0,
+          );
+        },
+      );
+      it.onWindows(
+        'should return an array containing all descendant URIs up to the root URI',
+        () => {
+          expect(
+            AssetUtil.findAllDescendantAssetsByUri('C:\\Test\\Child1\\Child2', 'C:\\Test'),
+          ).toEqual(['C:\\Test\\Child1', 'C:\\Test']);
+        },
+      );
+      it.onWindows('should return an empty array if the asset URI is a filename', () => {
+        expect(AssetUtil.findAllDescendantAssetsByUri('C:\\Test', 'C:\\')).toBeArrayOfSize(0);
+      });
+      it.onWindows(
+        'should return an empty array if the asset URI contains root URI but not as a prefix',
+        () => {
+          expect(
+            AssetUtil.findAllDescendantAssetsByUri('C:\\Test\\Rt\\Child', 'C:\\Rt'),
+          ).toBeArrayOfSize(0);
+        },
+      );
     });
 
     describe('getAllNotes', () => {
