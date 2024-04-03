@@ -1,4 +1,5 @@
 import React from 'react';
+import path from 'path';
 import { Accordion, AccordionDetails, AccordionSummary, Button, Typography } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -39,6 +40,7 @@ const projectEntryPoint = (props) => {
     return (
       // eslint-disable-next-line react/jsx-filename-extension
       <div className={styles.container}>
+        <div className={styles.title}>{rootUri}</div>
         <Accordion defaultExpanded>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
@@ -51,10 +53,10 @@ const projectEntryPoint = (props) => {
           <AccordionDetails className={styles.details}>
             <ul className={styles.entryPointList} type="disc">
               {entryPointsList.map((asset) => {
-                const fileName = asset.uri.split('/').pop();
-                let folder = asset.uri.replace(`${rootUri}/`, '').split('/')[0];
+                const fileName = asset.uri.split(path.sep).pop();
+                let folder = asset.uri.replace(`${rootUri}${path.sep}`, '').split(path.sep)[0];
                 if (folder === fileName) {
-                  folder = rootUri.split('/').pop();
+                  folder = rootUri.split(path.sep).pop();
                 }
                 return (
                   <li key={asset.uri} className={styles.entryPointItem}>
