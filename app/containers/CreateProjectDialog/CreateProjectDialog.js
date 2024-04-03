@@ -1,4 +1,3 @@
-/* eslint-disable react/forbid-prop-types */
 /* eslint-disable object-shorthand */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { Component } from 'react';

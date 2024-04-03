@@ -1,5 +1,4 @@
 import React from 'react';
-// import Editor from 'rich-markdown-editor';
 import Editor from 'react-simplemde-editor';
 import styles from './TextEditor.css';
 

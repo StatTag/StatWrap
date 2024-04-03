@@ -1,15 +1,14 @@
-/* eslint-disable react/forbid-prop-types */
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import DataTable from 'react-data-table-component';
+import { Typography } from '@mui/material';
 import Error from '../Error/Error';
 import GeneralUtil from '../../utils/general';
 import AssetUtil from '../../utils/asset';
 import styles from './ProjectNotes.css';
 import NoteEditor from '../NoteEditor/NoteEditor';
-import { Typography } from '@mui/material';
 
 const columns = [
   {
@@ -195,7 +194,9 @@ function projectNotes(props) {
   let contents = (
     <div className={styles.empty}>
       There are no notes to show
-      <Typography variant="h6" className={styles.addTitle}>Add Project Notes</Typography>
+      <Typography variant="h6" className={styles.addTitle}>
+        Add Project Notes
+      </Typography>
       <NoteEditor notes={[]} onEditingComplete={updatedNoteHandler} onDelete={deleteNoteHandler} />
     </div>
   );
@@ -213,8 +214,14 @@ function projectNotes(props) {
       );
     contents = (
       <>
-        <Typography variant="h6" className={styles.addTitle}>Add Project Notes</Typography>
-        <NoteEditor notes={[]} onEditingComplete={updatedNoteHandler} onDelete={deleteNoteHandler} />
+        <Typography variant="h6" className={styles.addTitle}>
+          Add Project Notes
+        </Typography>
+        <NoteEditor
+          notes={[]}
+          onEditingComplete={updatedNoteHandler}
+          onDelete={deleteNoteHandler}
+        />
         <DataTable
           title="Notes"
           columns={columns}

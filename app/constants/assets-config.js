@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 // Collection of constant values
 
 module.exports = {

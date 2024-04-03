@@ -1,4 +1,3 @@
-// import { style } from 'd3-selection';
 import React, { useState, useEffect } from 'react';
 import { Graph } from 'react-d3-graph';
 import CodeNode from './CustomNodes/Code/CodeNode';

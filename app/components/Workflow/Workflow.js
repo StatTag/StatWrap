@@ -1,4 +1,3 @@
-/* eslint-disable react/forbid-prop-types */
 import { ToggleButtonGroup, ToggleButton } from '@mui/material';
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';

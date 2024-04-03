@@ -1,5 +1,4 @@
 /* eslint-disable jsx-a11y/no-autofocus */
-/* eslint-disable react/forbid-prop-types */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { Component } from 'react';

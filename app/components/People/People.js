@@ -1,4 +1,4 @@
-/* eslint-disable react/forbid-prop-types */
+
 import React, { useState, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { FaTh, FaThList } from 'react-icons/fa';

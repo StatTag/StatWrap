@@ -1,4 +1,3 @@
-/* eslint-disable react/forbid-prop-types */
 import React from 'react';
 import { Menu, MenuItem } from '@mui/material';
 import PropTypes from 'prop-types';

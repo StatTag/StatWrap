@@ -1,4 +1,3 @@
-/* eslint-disable no-nested-ternary */
 import { v4 as uuid } from 'uuid';
 import username from 'username';
 

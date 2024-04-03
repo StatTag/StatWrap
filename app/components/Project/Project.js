@@ -1,4 +1,3 @@
-/* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
 import { Tab, Tabs } from '@mui/material';
 import { TabPanel, TabContext } from '@mui/lab';
