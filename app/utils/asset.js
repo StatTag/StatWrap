@@ -120,10 +120,10 @@ export default class AssetUtil {
     const descendantsList = [];
     // check if the asset uri has a descendant root uri in it
     if (assetUri && rootUri && assetUri.includes(rootUri) && assetUri.indexOf(rootUri) === 0) {
-      // just loop through the asset uri and break it apart at each '/' and add to the list till we get to the root uri
-      while (assetUri !== rootUri && assetUri !== '') {
+      // just loop through the asset uri and break it apart at each separator and add to the list till we get to the root uri
+      while (assetUri !== rootUri) {
         const lastSep = assetUri.lastIndexOf(path.sep);
-        // If we can't find a slash, we can't go any further
+        // If we can't find a separator, we can't go any further
         if (lastSep === -1) {
           break;
         }
@@ -131,7 +131,7 @@ export default class AssetUtil {
         // eslint-disable-next-line no-param-reassign
         assetUri = assetUri.substring(0, lastSep);
         // Add the asset uri to the list
-        if (assetUri) {
+        if (assetUri !== rootUri.substring(0, rootUri.indexOf(path.sep))) {
           descendantsList.push(assetUri);
         }
       }
