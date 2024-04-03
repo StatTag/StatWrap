@@ -363,34 +363,48 @@ describe('services', () => {
     });
 
     describe('findAllDescendantAssetsByUri', () => {
-      it('should return an empty array if the asset URI is not specified', () => {
+      it.skipWindows('should return an empty array if the asset URI is not specified', () => {
         expect(AssetUtil.findAllDescendantAssetsByUri(null, '/Test')).toBeArrayOfSize(0);
         expect(AssetUtil.findAllDescendantAssetsByUri(undefined, '/Test')).toBeArrayOfSize(0);
       });
-      it('should return an empty array if the root URI is not specified', () => {
+      it.skipWindows('should return an empty array if the root URI is not specified', () => {
         expect(AssetUtil.findAllDescendantAssetsByUri('/Test', null)).toBeArrayOfSize(0);
         expect(AssetUtil.findAllDescendantAssetsByUri('/Test', undefined)).toBeArrayOfSize(0);
       });
-      it('should return an empty array if the asset URI and root URI are the same', () => {
-        expect(
-          AssetUtil.findAllDescendantAssetsByUri('/Test/Child', '/Test/Child'),
-        ).toBeArrayOfSize(0);
-      });
-      it('should return an empty array if the asset URI is not a descendant of the root URI', () => {
-        expect(AssetUtil.findAllDescendantAssetsByUri('/Test', '/Other')).toBeArrayOfSize(0);
-      });
-      it('should return an array containing all descendant URIs up to the root URI', () => {
-        expect(AssetUtil.findAllDescendantAssetsByUri('/Test/Child1/Child2', '/Test')).toEqual([
-          '/Test/Child1',
-          '/Test',
-        ]);
-      });
-      it('should return an empty array if the asset URI is a filename', () => {
+      it.skipWindows(
+        'should return an empty array if the asset URI and root URI are the same',
+        () => {
+          expect(
+            AssetUtil.findAllDescendantAssetsByUri('/Test/Child', '/Test/Child'),
+          ).toBeArrayOfSize(0);
+        },
+      );
+      it.skipWindows(
+        'should return an empty array if the asset URI is not a descendant of the root URI',
+        () => {
+          expect(AssetUtil.findAllDescendantAssetsByUri('/Test', '/Other')).toBeArrayOfSize(0);
+        },
+      );
+      it.skipWindows(
+        'should return an array containing all descendant URIs up to the root URI',
+        () => {
+          expect(AssetUtil.findAllDescendantAssetsByUri('/Test/Child1/Child2', '/Test')).toEqual([
+            '/Test/Child1',
+            '/Test',
+          ]);
+        },
+      );
+      it.skipWindows('should return an empty array if the asset URI is a filename', () => {
         expect(AssetUtil.findAllDescendantAssetsByUri('/Test', '/')).toBeArrayOfSize(0);
       });
-      it('should return an empty array if the asset URI contains root URI but not as a prefix', () => {
-        expect(AssetUtil.findAllDescendantAssetsByUri('/Test/Rt/Child', '/Rt')).toBeArrayOfSize(0);
-      });
+      it.skipWindows(
+        'should return an empty array if the asset URI contains root URI but not as a prefix',
+        () => {
+          expect(AssetUtil.findAllDescendantAssetsByUri('/Test/Rt/Child', '/Rt')).toBeArrayOfSize(
+            0,
+          );
+        },
+      );
       it.onWindows('should return an empty array if the asset URI is not specified', () => {
         expect(AssetUtil.findAllDescendantAssetsByUri(null, 'C:\\Test')).toBeArrayOfSize(0);
         expect(AssetUtil.findAllDescendantAssetsByUri(undefined, 'C:\\Test')).toBeArrayOfSize(0);

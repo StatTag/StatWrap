@@ -120,11 +120,9 @@ export default class AssetUtil {
     const descendantsList = [];
     // check if the asset uri has a descendant root uri in it
     if (assetUri && rootUri && assetUri.includes(rootUri) && assetUri.indexOf(rootUri) === 0) {
-      // because for windows the path seperator is '\'
-      const sep = process.platform === 'win32' ? '\\' : '/';
       // just loop through the asset uri and break it apart at each '/' and add to the list till we get to the root uri
       while (assetUri !== rootUri && assetUri !== '') {
-        const lastSep = assetUri.lastIndexOf(sep);
+        const lastSep = assetUri.lastIndexOf(path.sep);
         // If we can't find a slash, we can't go any further
         if (lastSep === -1) {
           break;
