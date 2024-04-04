@@ -538,7 +538,6 @@ describe('services', () => {
         expect(
           new SASHandler().getOutputs('test.uri', ' *ods excel file="test.xlsx";').length,
         ).toEqual(0);
-        // eslint-disable-next-line prettier/prettier
         expect(
           new SASHandler().getOutputs('test.uri', '  *   ods excel file="test.xlsx";  ').length,
         ).toEqual(0);

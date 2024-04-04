@@ -1,3 +1,4 @@
+/* eslint-disable react/sort-comp */
 /* eslint-disable jsx-a11y/no-autofocus */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable object-shorthand */
