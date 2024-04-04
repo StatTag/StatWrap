@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import GeneralUtil from '../../app/utils/general';
 
 describe('services', () => {
@@ -171,7 +172,7 @@ describe('services', () => {
           { category: '1', value: 'a' },
           { category: '1', value: 'b' },
         ];
-        expect(GeneralUtil.indexByField(inputArray, 'category')).toStrictEqual({ 1: inputArray });
+        expect(GeneralUtil.indexByField(inputArray, 'category')).toStrictEqual({ '1': inputArray });
       });
       it('processes an array where the index field does not exist', () => {
         const inputArray = [
@@ -188,11 +189,11 @@ describe('services', () => {
           { category: ['1', '2'], value: 'b' },
         ];
         expect(GeneralUtil.indexByField(inputArray, 'category')).toStrictEqual({
-          1: [
+          '1': [
             { category: ['1'], value: 'a' },
             { category: ['1', '2'], value: 'b' },
           ],
-          2: [{ category: ['1', '2'], value: 'b' }],
+          '2': [{ category: ['1', '2'], value: 'b' }],
         });
       });
     });
