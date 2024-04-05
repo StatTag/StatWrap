@@ -1,4 +1,3 @@
-/* eslint-disable react/forbid-prop-types */
 import React, { useEffect, useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -7,7 +6,6 @@ import styled from 'styled-components';
 import DataTable from 'react-data-table-component';
 import Error from '../Error/Error';
 import ProjectLogRow from './ProjectLogRow/ProjectLogRow';
-import GeneralUtil from '../../utils/general';
 import styles from './ProjectLog.css';
 
 const columns = [
@@ -60,23 +58,25 @@ const ClearButton = styled.button`
 `;
 
 // eslint-disable-next-line react/prop-types
-const FilterComponent = ({ filterText, onFilter, onClear }) => (
-  <>
-    <TextField
-      id="search"
-      type="text"
-      placeholder="Search logs"
-      aria-label="Search Input"
-      value={filterText}
-      onChange={onFilter}
-    />
-    <ClearButton type="button" onClick={onClear}>
-      <FontAwesomeIcon icon="times" size="sm" />
-    </ClearButton>
-  </>
-);
+function FilterComponent({ filterText, onFilter, onClear }) {
+  return (
+    <>
+      <TextField
+        id="search"
+        type="text"
+        placeholder="Search logs"
+        aria-label="Search Input"
+        value={filterText}
+        onChange={onFilter}
+      />
+      <ClearButton type="button" onClick={onClear}>
+        <FontAwesomeIcon icon="times" size="sm" />
+      </ClearButton>
+    </>
+  );
+}
 
-const projectLog = (props) => {
+function projectLog(props) {
   const [filterText, setFilterText] = useState('');
   const [expandAll, setExpandAll] = useState(false);
   const { feed, error, updates } = props;
@@ -176,7 +176,7 @@ const projectLog = (props) => {
     contents = <Error>There was an error loading the project log: {error}</Error>;
   }
   return <div className={styles.container}>{contents}</div>;
-};
+}
 
 projectLog.propTypes = {
   project: PropTypes.object.isRequired,

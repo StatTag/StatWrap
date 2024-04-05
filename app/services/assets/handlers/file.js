@@ -22,7 +22,7 @@ const FILE_IGNORE_LIST = [
   '.pytest_cache',
   '.ipynb_checkpoints',
   '.Rhistory',
-  '.Rproj.user'
+  '.Rproj.user',
 ];
 
 /**

@@ -1,14 +1,13 @@
-/* eslint-disable react/forbid-prop-types */
 /* eslint-disable react/destructuring-assignment */
 import React from 'react';
 import PropTypes from 'prop-types';
 import ProjectEntry from '../ProjectEntry/ProjectEntry';
 import styles from './ProjectGroup.css';
 
-const projectGroup = props => {
+function projectGroup(props) {
   let projectList = <div className={styles.emptyMessage}>{props.emptyMessage}</div>;
   if (props.projects && props.projects.length > 0) {
-    projectList = props.projects.map(item => <ProjectEntry key={item.id} project={item} />);
+    projectList = props.projects.map((item) => <ProjectEntry key={item.id} project={item} />);
   }
 
   return (
@@ -17,17 +16,17 @@ const projectGroup = props => {
       {projectList}
     </div>
   );
-};
+}
 
 projectGroup.propTypes = {
   title: PropTypes.string.isRequired,
   emptyMessage: PropTypes.string,
-  projects: PropTypes.array
+  projects: PropTypes.array,
 };
 
 projectGroup.defaultProps = {
   emptyMessage: 'There are no projects to display in this list',
-  projects: []
+  projects: [],
 };
 
 export default projectGroup;

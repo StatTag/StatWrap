@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import styles from './FilterItem.css';
 import WorkflowUtil from '../../../utils/workflow';
 
-const filterItem = props => {
+function filterItem(props) {
   const { disabled, checked, onChecked, category, filter, label } = props;
 
   const handleChange = () => {
@@ -27,7 +27,7 @@ const filterItem = props => {
       {displayLabel}
     </label>
   );
-};
+}
 
 filterItem.propTypes = {
   disabled: PropTypes.bool,
@@ -35,12 +35,12 @@ filterItem.propTypes = {
   onChecked: PropTypes.func,
   category: PropTypes.string.isRequired,
   filter: PropTypes.string.isRequired,
-  label: PropTypes.string.isRequired
+  label: PropTypes.string.isRequired,
 };
 
 filterItem.defaultProps = {
   disabled: false,
-  onChecked: null
+  onChecked: null,
 };
 
 export default filterItem;

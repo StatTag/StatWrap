@@ -1,4 +1,3 @@
-/* eslint-disable react/forbid-prop-types */
 import React from 'react';
 import PropTypes from 'prop-types';
 import GeneralAction from '../GeneralAction/GeneralAction';
@@ -6,7 +5,7 @@ import NoteAction from '../NoteAction/NoteAction';
 import { ActionType } from '../../../constants/constants';
 import styles from './ProjectLogRow.css';
 
-const projectLogRow = props => {
+function projectLogRow(props) {
   const { data } = props;
   let detail = null;
   if (data) {
@@ -21,14 +20,14 @@ const projectLogRow = props => {
     }
   }
   return <div className={styles.container}>{detail}</div>;
-};
+}
 
 projectLogRow.propTypes = {
-  data: PropTypes.object
+  data: PropTypes.object,
 };
 
 projectLogRow.defaultProps = {
-  data: null
+  data: null,
 };
 
 export default projectLogRow;

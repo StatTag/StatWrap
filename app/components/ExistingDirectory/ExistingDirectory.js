@@ -11,7 +11,7 @@ class ExistingDirectory extends Component {
     super(props);
     this.handleBrowseDirectory = this.handleBrowseDirectory.bind(this);
     this.state = {
-      validationErrorMessage: null
+      validationErrorMessage: null,
     };
   }
 
@@ -19,18 +19,18 @@ class ExistingDirectory extends Component {
     dialog
       .showOpenDialog({
         title: 'Select the root path of your project',
-        properties: ['openDirectory']
+        properties: ['openDirectory'],
       })
-      .then(result => {
+      .then((result) => {
         if (!result.canceled && result.filePaths !== null && result.filePaths.length > 0) {
           this.props.onDirectoryChanged(result.filePaths[0]);
           this.setState({ validationErrorMessage: null });
         }
         return result;
       })
-      .catch(err => {
+      .catch((err) => {
         this.setState({
-          validationErrorMessage: `There was an error accessing the project root folder: ${err}`
+          validationErrorMessage: `There was an error accessing the project root folder: ${err}`,
         });
       });
   };
@@ -63,7 +63,7 @@ class ExistingDirectory extends Component {
 
 ExistingDirectory.propTypes = {
   directory: PropTypes.string.isRequired,
-  onDirectoryChanged: PropTypes.func.isRequired
+  onDirectoryChanged: PropTypes.func.isRequired,
 };
 
 export default ExistingDirectory;

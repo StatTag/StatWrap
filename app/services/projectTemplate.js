@@ -10,7 +10,7 @@ const path = require('path');
 function getAllFiles(dirPath) {
   const files = fs.readdirSync(dirPath);
   const arrayOfFiles = [];
-  files.forEach(function(file) {
+  files.forEach(function (file) {
     const filePath = `${dirPath}/${file}`;
     if (!templateList.ignore.includes(file)) {
       if (fs.statSync(filePath).isDirectory()) {
@@ -18,13 +18,13 @@ function getAllFiles(dirPath) {
           name: file,
           type: 'folder',
           path: path.join(dirPath, '/', file),
-          contents: getAllFiles(filePath)
+          contents: getAllFiles(filePath),
         });
       } else {
         arrayOfFiles.push({
           name: file,
           type: 'file',
-          path: path.join(dirPath, '/', file)
+          path: path.join(dirPath, '/', file),
         });
       }
     }
@@ -36,7 +36,7 @@ function getAllFiles(dirPath) {
 // For a given template, create all of the files and folders in dirPath
 // This handles recursively defined template structures.
 function createAllTemplateItems(dirPath, contents) {
-  contents.forEach(function(item) {
+  contents.forEach(function (item) {
     const newPath = path.join(dirPath, item.name);
     if (item.type === 'file') {
       fs.copyFileSync(item.path, newPath);
@@ -74,13 +74,13 @@ export default class ProjectTemplateService {
   }
 
   // Load the list of project templates, stored in templateRoot
-  loadProjectTemplates = templateRoot => {
+  loadProjectTemplates = (templateRoot) => {
     if (this.projectTemplates) {
       return this.projectTemplates;
     }
 
     const templates = [];
-    templateList.templates.forEach(function(template) {
+    templateList.templates.forEach(function (template) {
       const contents = getTemplateContents(template, templateRoot);
       if (contents) {
         templates.push(contents);
@@ -114,7 +114,7 @@ export default class ProjectTemplateService {
       throw new Error('You must specify the version of the template to create');
     }
     const template = this.projectTemplates.find(
-      t => t.id === templateId && t.version === templateVersion
+      (t) => t.id === templateId && t.version === templateVersion,
     );
     if (!template) {
       throw new Error(`The template ID ${templateId} ${templateVersion} does not exist`);

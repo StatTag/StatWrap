@@ -53,9 +53,9 @@ describe('services', () => {
           metadata: [
             {
               id: handler.id(),
-              size: 1234
-            }
-          ]
+              size: 1234,
+            },
+          ],
         };
         let response = handler.scan(testAsset);
         expect(response.metadata.length).toEqual(1);
@@ -67,12 +67,12 @@ describe('services', () => {
         const testAsset = {
           uri: '/Some/Invalid/Path',
           type: 'file',
-          metadata: []
+          metadata: [],
         };
         const response = new FileHandler().scan(testAsset);
         expect(response.metadata[0]).toEqual({
           id: 'StatWrap.FileHandler',
-          error: 'Unable to access asset'
+          error: 'Unable to access asset',
         });
       });
 
@@ -82,12 +82,12 @@ describe('services', () => {
         const testAsset = {
           uri: '/Some/Valid/Path',
           type: 'file',
-          metadata: []
+          metadata: [],
         };
         const response = new FileHandler().scan(testAsset);
         expect(response.metadata[0]).toEqual({
           id: 'StatWrap.FileHandler',
-          error: 'No information could be found for this asset'
+          error: 'No information could be found for this asset',
         });
       });
 
@@ -95,7 +95,7 @@ describe('services', () => {
         const testAsset = {
           uri: '/Some/Other/Asset',
           type: 'other',
-          metadata: []
+          metadata: [],
         };
         const response = new FileHandler().scan(testAsset);
         expect(response.metadata.length).toEqual(0);
@@ -121,7 +121,7 @@ describe('services', () => {
         const testAsset = {
           uri: '/Some/Valid/File',
           type: 'file',
-          metadata: []
+          metadata: [],
         };
         const response = new FileHandler().scan(testAsset);
         expect(response.metadata[0]).toEqual({
@@ -131,7 +131,7 @@ describe('services', () => {
           lastModified: stat.mtime,
           lastStatusChange: stat.ctime,
           created: stat.birthtime,
-          include: true
+          include: true,
         });
       });
 
@@ -160,7 +160,7 @@ describe('services', () => {
             {
               uri: '/Some/Valid/Folder/File1',
               type: 'file',
-              metadata: []
+              metadata: [],
             },
             {
               uri: '/Some/Valid/Folder/SubFolder',
@@ -170,11 +170,11 @@ describe('services', () => {
                 {
                   uri: '/Some/Valid/Folder/SubFolder/File2',
                   type: 'file',
-                  metadata: []
-                }
-              ]
-            }
-          ]
+                  metadata: [],
+                },
+              ],
+            },
+          ],
         };
         const response = new FileHandler().scan(testAsset);
         const expectedMetadata = {
@@ -184,7 +184,7 @@ describe('services', () => {
           lastModified: stat.mtime,
           lastStatusChange: stat.ctime,
           created: stat.birthtime,
-          include: true
+          include: true,
         };
         expect(response.metadata.length).toEqual(1);
         expect(response.metadata[0]).toEqual(expectedMetadata);

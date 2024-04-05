@@ -1,4 +1,4 @@
-/* eslint-disable react/forbid-prop-types */
+
 import React, { useState, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { FaTh, FaThList } from 'react-icons/fa';
@@ -9,7 +9,7 @@ import PeopleTable from './PeopleTable/PeopleTable';
 import SettingsContext from '../../contexts/Settings';
 import styles from './People.css';
 
-const people = props => {
+function people(props) {
   const {
     project,
     mode,
@@ -18,7 +18,7 @@ const people = props => {
     onSave,
     onAddedPersonNote,
     onUpdatedPersonNote,
-    onDeletedPersonNote
+    onDeletedPersonNote,
   } = props;
 
   // This key is part of a trick to get React to throw out and recreate the Create Project
@@ -42,13 +42,13 @@ const people = props => {
     setEditing(false);
   };
 
-  const handleSaved = person => {
+  const handleSaved = (person) => {
     if (onSave) {
       onSave(person);
     }
   };
 
-  const deletePersonHandler = person => {
+  const deletePersonHandler = (person) => {
     if (onDelete) {
       onDelete(person);
     }
@@ -67,7 +67,7 @@ const people = props => {
     setEditing(true);
   };
 
-  const editPersonHandler = person => {
+  const editPersonHandler = (person) => {
     setDialogKey(dialogKey + 1);
     setEditPersonId(person.id);
     setEditPersonName(person.name);
@@ -153,7 +153,7 @@ const people = props => {
       />
     </div>
   );
-};
+}
 
 people.propTypes = {
   project: PropTypes.object,
@@ -163,7 +163,7 @@ people.propTypes = {
   onDelete: PropTypes.func,
   onAddedPersonNote: PropTypes.func,
   onUpdatedPersonNote: PropTypes.func,
-  onDeletedPersonNote: PropTypes.func
+  onDeletedPersonNote: PropTypes.func,
 };
 
 people.defaultProps = {
@@ -173,7 +173,7 @@ people.defaultProps = {
   onDelete: null,
   onAddedPersonNote: null,
   onUpdatedPersonNote: null,
-  onDeletedPersonNote: null
+  onDeletedPersonNote: null,
 };
 
 export default people;

@@ -29,7 +29,7 @@ describe('services', () => {
           .mockReturnValueOnce([]);
         fs.statSync.mockReturnValue(new fs.Stats());
         const projectTemplates = new ProjectTemplateService().loadProjectTemplates(
-          '/path/templates'
+          '/path/templates',
         );
         expect(projectTemplates.length).toBe(3);
       });
@@ -45,7 +45,7 @@ describe('services', () => {
           .mockReturnValueOnce([]);
         fs.statSync.mockReturnValue(new fs.Stats());
         const projectTemplates = new ProjectTemplateService().loadProjectTemplates(
-          '/path/templates'
+          '/path/templates',
         );
         expect(projectTemplates.length).toBe(2);
       });
@@ -61,7 +61,7 @@ describe('services', () => {
           .mockReturnValueOnce(['v1']);
         fs.statSync.mockReturnValue(new fs.Stats());
         const projectTemplates = new ProjectTemplateService().loadProjectTemplates(
-          '/path/templates'
+          '/path/templates',
         );
         expect(projectTemplates.length).toBe(1);
       });
@@ -76,7 +76,7 @@ describe('services', () => {
 
         fs.statSync.mockReturnValue(new fs.Stats());
         const projectTemplates = new ProjectTemplateService().loadProjectTemplates(
-          '/path/templates'
+          '/path/templates',
         );
         expect(projectTemplates.length).toBe(1);
         expect(projectTemplates[0].contents.length).toBe(2);
@@ -89,33 +89,35 @@ describe('services', () => {
       it('should throw an exception when the target directory is not specified', () => {
         fs.accessSync.mockReturnValue(false);
         expect(() => new ProjectTemplateService().createTemplateContents(null, {})).toThrow(Error);
-        expect(() => new ProjectTemplateService().createTemplateContents(undefined, {})).toThrow(Error);
+        expect(() => new ProjectTemplateService().createTemplateContents(undefined, {})).toThrow(
+          Error,
+        );
       });
 
       it('should throw an exception when the target directory does not exist', () => {
         fs.accessSync.mockReturnValue(false);
         expect(() =>
-          new ProjectTemplateService().createTemplateContents('Invalid/Dir', 'STATWRAP-EMPTY')
+          new ProjectTemplateService().createTemplateContents('Invalid/Dir', 'STATWRAP-EMPTY'),
         ).toThrow(Error);
       });
 
       it('should throw an exception when a template is not specified', () => {
         fs.accessSync.mockReturnValue(true);
         expect(() =>
-          new ProjectTemplateService().createTemplateContents('/Project/Dir', null)
+          new ProjectTemplateService().createTemplateContents('/Project/Dir', null),
         ).toThrow(Error);
         expect(() =>
-          new ProjectTemplateService().createTemplateContents('/Project/Dir', undefined)
+          new ProjectTemplateService().createTemplateContents('/Project/Dir', undefined),
         ).toThrow(Error);
       });
 
       it('should throw an exception when a template version is not specified', () => {
         fs.accessSync.mockReturnValue(true);
         expect(() =>
-          new ProjectTemplateService().createTemplateContents('/Project/Dir', 'Test', null)
+          new ProjectTemplateService().createTemplateContents('/Project/Dir', 'Test', null),
         ).toThrow(Error);
         expect(() =>
-          new ProjectTemplateService().createTemplateContents('/Project/Dir', 'Test', undefined)
+          new ProjectTemplateService().createTemplateContents('/Project/Dir', 'Test', undefined),
         ).toThrow(Error);
       });
 
@@ -125,8 +127,8 @@ describe('services', () => {
           new ProjectTemplateService().createTemplateContents(
             '/Project/Dir',
             'INVALID-PROJECT-ID',
-            '1'
-          )
+            '1',
+          ),
         ).toThrow(Error);
       });
 
@@ -136,8 +138,8 @@ describe('services', () => {
           new ProjectTemplateService().createTemplateContents(
             '/Project/Dir',
             'STATWRAP-EMPTY',
-            '110000000'
-          )
+            '110000000',
+          ),
         ).toThrow(Error);
       });
 

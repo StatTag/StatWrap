@@ -44,5 +44,5 @@ module.exports = {
   REMOVE_PROJECT_PERSON_REQUEST: 'statwrap-remove-project-person-request',
   REMOVE_PROJECT_PERSON_RESPONSE: 'statwrap-remove-project-person-response',
 
-  PROJECT_EXTERNALLY_CHANGED_RESPONSE: 'statwrap-project-externally-changed'
+  PROJECT_EXTERNALLY_CHANGED_RESPONSE: 'statwrap-project-externally-changed',
 };

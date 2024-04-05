@@ -4,13 +4,13 @@ module.exports = {
   ProjectType: {
     NEW_PROJECT_TYPE: 'New',
     EXISTING_PROJECT_TYPE: 'Existing',
-    CLONE_PROJECT_TYPE: 'Clone'
+    CLONE_PROJECT_TYPE: 'Clone',
   },
 
   UndefinedDefaults: {
     PROJECT: '(Unnamed Project)',
     ACTION_TYPE: 'StatWrap Event',
-    USER: 'StatWrap'
+    USER: 'StatWrap',
   },
 
   AssetType: {
@@ -22,19 +22,19 @@ module.exports = {
     // These are not a real asset types, but are used in our various controls
     ASSET_GROUP: 'asset-group',
     FILTER: 'filter',
-    DEPENDENCY: 'dependency'
+    DEPENDENCY: 'dependency',
   },
 
   AssetContentType: {
     CODE: 'code',
     DATA: 'data',
     DOCUMENTATION: 'documentation',
-    OTHER: 'other'
+    OTHER: 'other',
   },
 
   StatWrapFiles: {
     BASE_FOLDER: '.statwrap',
-    LOG: '.statwrap.log'
+    LOG: '.statwrap.log',
   },
 
   ActionType: {
@@ -56,30 +56,30 @@ module.exports = {
     ASSET_GROUP_UPDATED: 'Asset Group Updated',
     ASSET_GROUP_DELETED: 'Asset Group Deleted',
 
-    VERSION_CONTROL_COMMIT: 'Version Control Commit'
+    VERSION_CONTROL_COMMIT: 'Version Control Commit',
   },
 
   EntityType: {
     PROJECT: 'project',
     PERSON: 'person',
-    ASSET: 'asset'
+    ASSET: 'asset',
   },
 
   DescriptionContentType: {
     URI: 'URI',
-    MARKDOWN: 'Markdown'
+    MARKDOWN: 'Markdown',
   },
 
   DependencyDirection: {
     IN: 'in',
-    OUT: 'out'
+    OUT: 'out',
   },
 
   DependencyType: {
     DEPENDENCY: 'dependency',
     FIGURE: 'figure',
     DATA: 'data',
-    FILE: 'file'
+    FILE: 'file',
   },
 
   FilterCategory: {
@@ -87,8 +87,8 @@ module.exports = {
     CONTENT_TYPE: 'Content Type',
     ASSET_TYPE: 'Asset Type',
     INPUTS_OUTPUTS: 'Inputs and Outputs',
-    DEPENDENCIES: 'Dependencies/Libraries'
+    DEPENDENCIES: 'Dependencies/Libraries',
   },
 
-  MAX_GRAPH_LABEL_LENGTH: 31
+  MAX_GRAPH_LABEL_LENGTH: 31,
 };

@@ -255,7 +255,7 @@ const assetsComponent = (props) => {
     setAssets(filterProjectAssets(project, filter));
     setCurrentAssetGroup(clonedGroup);
     setGroupedAssets(clonedGroup.assets);
-    treeRef.current.setPreCheckedNodes(clonedGroup.assets.map(x => x.uri));
+    treeRef.current.setPreCheckedNodes(clonedGroup.assets.map((x) => x.uri));
     setMode('paperclip');
   };
 

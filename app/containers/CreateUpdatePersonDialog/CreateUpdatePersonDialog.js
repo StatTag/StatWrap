@@ -1,7 +1,6 @@
-/* eslint-disable no-nested-ternary */
+/* eslint-disable react/sort-comp */
 /* eslint-disable jsx-a11y/no-autofocus */
 /* eslint-disable jsx-a11y/label-has-associated-control */
-/* eslint-disable react/forbid-prop-types */
 /* eslint-disable object-shorthand */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { Component } from 'react';

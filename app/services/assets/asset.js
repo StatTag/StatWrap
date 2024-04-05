@@ -93,12 +93,14 @@ export default class AssetService {
     // TODO: When we move past file/folder assets, this will need to account for
     // other types of assets that aren't reachable via the file system.
     const details = fs.statSync(uri);
+    let result = {};
+
     if (!details) {
       result.error = 'No information could be found for this asset';
       return result;
     }
 
-    const result = {
+    result = {
       uri,
       type: this.assetType(details),
       contentTypes: this.assetContentTypes(uri, details),

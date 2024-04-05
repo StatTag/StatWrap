@@ -1,15 +1,14 @@
-/* eslint-disable react/forbid-prop-types */
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import DataTable from 'react-data-table-component';
+import { Typography } from '@mui/material';
 import Error from '../Error/Error';
 import GeneralUtil from '../../utils/general';
 import AssetUtil from '../../utils/asset';
 import styles from './ProjectNotes.css';
 import NoteEditor from '../NoteEditor/NoteEditor';
-import { Typography } from '@mui/material';
 
 const columns = [
   {
@@ -78,23 +77,25 @@ const ClearButton = styled.button`
 `;
 
 // eslint-disable-next-line react/prop-types
-const FilterComponent = ({ filterText, onFilter, onClear }) => (
-  <>
-    <TextField
-      id="search"
-      type="text"
-      placeholder="Search notes"
-      aria-label="Search Input"
-      value={filterText}
-      onChange={onFilter}
-    />
-    <ClearButton type="button" onClick={onClear}>
-      <FontAwesomeIcon icon="times" size="sm" />
-    </ClearButton>
-  </>
-);
+function FilterComponent({ filterText, onFilter, onClear }) {
+  return (
+    <>
+      <TextField
+        id="search"
+        type="text"
+        placeholder="Search notes"
+        aria-label="Search Input"
+        value={filterText}
+        onChange={onFilter}
+      />
+      <ClearButton type="button" onClick={onClear}>
+        <FontAwesomeIcon icon="times" size="sm" />
+      </ClearButton>
+    </>
+  );
+}
 
-const projectNotes = (props) => {
+function projectNotes(props) {
   const [filterText, setFilterText] = React.useState('');
   const [pending, setPending] = useState(true);
   const [feed, setFeed] = useState(null);
@@ -193,7 +194,9 @@ const projectNotes = (props) => {
   let contents = (
     <div className={styles.empty}>
       There are no notes to show
-      <Typography variant="h6" className={styles.addTitle}>Add Project Notes</Typography>
+      <Typography variant="h6" className={styles.addTitle}>
+        Add Project Notes
+      </Typography>
       <NoteEditor notes={[]} onEditingComplete={updatedNoteHandler} onDelete={deleteNoteHandler} />
     </div>
   );
@@ -211,8 +214,14 @@ const projectNotes = (props) => {
       );
     contents = (
       <>
-        <Typography variant="h6" className={styles.addTitle}>Add Project Notes</Typography>
-        <NoteEditor notes={[]} onEditingComplete={updatedNoteHandler} onDelete={deleteNoteHandler} />
+        <Typography variant="h6" className={styles.addTitle}>
+          Add Project Notes
+        </Typography>
+        <NoteEditor
+          notes={[]}
+          onEditingComplete={updatedNoteHandler}
+          onDelete={deleteNoteHandler}
+        />
         <DataTable
           title="Notes"
           columns={columns}
@@ -228,7 +237,7 @@ const projectNotes = (props) => {
     contents = <Error>There was an error loading the notes: {error}</Error>;
   }
   return <div className={styles.container}>{contents}</div>;
-};
+}
 
 projectNotes.propTypes = {
   project: PropTypes.object.isRequired,

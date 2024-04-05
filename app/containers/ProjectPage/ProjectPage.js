@@ -48,7 +48,7 @@ class ProjectPage extends Component {
       // dialog when we have disposed of it - either by creating a project or cancelling.  This
       // tracks a sequential number that, when changed, signals React that the dialog can be
       // recreated. We don't care what this key is, it just has to change.
-      createProjectDialogKey: 0
+      createProjectDialogKey: 0,
     };
 
     this.handleLoadProjectListResponse = this.handleLoadProjectListResponse.bind(this);
@@ -66,9 +66,11 @@ class ProjectPage extends Component {
     this.handleUpdateProjectResponse = this.handleUpdateProjectResponse.bind(this);
     this.handleLoadProjectLogResponse = this.handleLoadProjectLogResponse.bind(this);
     this.handleRefreshProjectLog = this.handleRefreshProjectLog.bind(this);
-    this.handleScanAssetDynamicDetailsResponse = this.handleScanAssetDynamicDetailsResponse.bind(this);
+    this.handleScanAssetDynamicDetailsResponse =
+      this.handleScanAssetDynamicDetailsResponse.bind(this);
     this.handleAssetSelected = this.handleAssetSelected.bind(this);
-    this.handleProjectExternallyChangedResponse = this.handleProjectExternallyChangedResponse.bind(this);
+    this.handleProjectExternallyChangedResponse =
+      this.handleProjectExternallyChangedResponse.bind(this);
   }
 
   componentDidMount() {
@@ -86,22 +88,49 @@ class ProjectPage extends Component {
     ipcRenderer.on(Messages.LOAD_PROJECT_LOG_RESPONSE, this.handleLoadProjectLogResponse);
     ipcRenderer.on(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
 
-    ipcRenderer.on(Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE, this.handleScanAssetDynamicDetailsResponse);
+    ipcRenderer.on(
+      Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE,
+      this.handleScanAssetDynamicDetailsResponse,
+    );
 
-    ipcRenderer.on(Messages.PROJECT_EXTERNALLY_CHANGED_RESPONSE, this.handleProjectExternallyChangedResponse);
+    ipcRenderer.on(
+      Messages.PROJECT_EXTERNALLY_CHANGED_RESPONSE,
+      this.handleProjectExternallyChangedResponse,
+    );
   }
 
   componentWillUnmount() {
-    ipcRenderer.removeListener(Messages.LOAD_PROJECT_LIST_RESPONSE, this.handleLoadProjectListResponse);
-    ipcRenderer.removeListener(Messages.LOAD_CONFIGURATION_RESPONSE, this.handleLoadConfigurationResponse);
-    ipcRenderer.removeListener(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.refreshProjectsHandler);
-    ipcRenderer.removeListener(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
+    ipcRenderer.removeListener(
+      Messages.LOAD_PROJECT_LIST_RESPONSE,
+      this.handleLoadProjectListResponse,
+    );
+    ipcRenderer.removeListener(
+      Messages.LOAD_CONFIGURATION_RESPONSE,
+      this.handleLoadConfigurationResponse,
+    );
+    ipcRenderer.removeListener(
+      Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE,
+      this.refreshProjectsHandler,
+    );
+    ipcRenderer.removeListener(
+      Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE,
+      this.refreshProjectsHandler,
+    );
     ipcRenderer.removeListener(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
     ipcRenderer.removeListener(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
-    ipcRenderer.removeListener(Messages.LOAD_PROJECT_LOG_RESPONSE, this.handleLoadProjectLogResponse);
+    ipcRenderer.removeListener(
+      Messages.LOAD_PROJECT_LOG_RESPONSE,
+      this.handleLoadProjectLogResponse,
+    );
     ipcRenderer.removeListener(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
-    ipcRenderer.removeListener(Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE, this.handleScanAssetDynamicDetailsResponse);
-    ipcRenderer.removeListener(Messages.PROJECT_EXTERNALLY_CHANGED_RESPONSE, this.handleProjectExternallyChangedResponse);
+    ipcRenderer.removeListener(
+      Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE,
+      this.handleScanAssetDynamicDetailsResponse,
+    );
+    ipcRenderer.removeListener(
+      Messages.PROJECT_EXTERNALLY_CHANGED_RESPONSE,
+      this.handleProjectExternallyChangedResponse,
+    );
   }
 
   handleScanAssetDynamicDetailsResponse(sender, response) {
@@ -111,7 +140,11 @@ class ProjectPage extends Component {
   handleAssetSelected(asset) {
     // When an asset is selected, clear the existing dynamic details so they reload.
     this.setState({ assetDynamicDetails: null });
-    ipcRenderer.send(Messages.SCAN_ASSET_DYNAMIC_DETAILS_REQUEST, this.state.selectedProject, asset);
+    ipcRenderer.send(
+      Messages.SCAN_ASSET_DYNAMIC_DETAILS_REQUEST,
+      this.state.selectedProject,
+      asset,
+    );
   }
 
   handleLoadProjectListResponse(sender, response) {
@@ -121,7 +154,7 @@ class ProjectPage extends Component {
   handleLoadConfigurationResponse(sender, response) {
     this.setState({
       projectTemplates: response.projectTemplates,
-      assetAttributes: response.assetAttributes
+      assetAttributes: response.assetAttributes,
     });
   }
 
@@ -142,13 +175,14 @@ class ProjectPage extends Component {
 
     // This is a lot of code, but the main thing is the line to set hasUpdate.  The rest of the
     // copying, etc. is just to ensure we're managing our state update appropriately for React.
-    this.setState(prevState => {
+    this.setState((prevState) => {
       const updatedProjects = [...prevState.projects];
-      const index = updatedProjects.findIndex(project => project.id === response.projectId);
-      const updatedProject = {...updatedProjects[index]};
-      updatedProject.hasUpdate = (response.updates && !response.updates.upToDate && !response.updates.firstView);
+      const index = updatedProjects.findIndex((project) => project.id === response.projectId);
+      const updatedProject = { ...updatedProjects[index] };
+      updatedProject.hasUpdate =
+        response.updates && !response.updates.upToDate && !response.updates.firstView;
       updatedProjects[index] = updatedProject;
-      return {projects: updatedProjects};
+      return { projects: updatedProjects };
     });
 
     // Only if this log is for the selected project do we need to refresh the selected project logs.
@@ -166,7 +200,7 @@ class ProjectPage extends Component {
     // If any project externally changes - even if it's not the one we currently have selected - we want
     // to reload the project log so we can detect changes and notify (if needed);
     if (response && response.projectId && this.state.projects) {
-      const foundProject = this.state.projects.find(project => project.id === response.projectId);
+      const foundProject = this.state.projects.find((project) => project.id === response.projectId);
       if (foundProject) {
         ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, foundProject);
       }
@@ -178,7 +212,7 @@ class ProjectPage extends Component {
       return;
     }
 
-    this.setState(previousState => {
+    this.setState((previousState) => {
       const { selectedProject } = previousState;
       // If the currently selected project doesn't match the scan request, it may be related to
       // a previously selected project.  In this case, we will just ignore the response and not
@@ -188,9 +222,12 @@ class ProjectPage extends Component {
         return { selectedProject };
       }
 
-      const projectWithAssets = {...selectedProject,
+      const projectWithAssets = {
+        ...selectedProject,
         sourceControlEnabled: response.project.sourceControlEnabled,
-        assets: response.error ? {error: response.error, errorMessage: response.errorMessage} : response.assets
+        assets: response.error
+          ? { error: response.error, errorMessage: response.errorMessage }
+          : response.assets,
       };
       return { selectedProject: projectWithAssets };
     });
@@ -205,12 +242,10 @@ class ProjectPage extends Component {
   }
 
   handleCloseAddProject(refresh) {
-    this.setState(prevState => (
-      {
-        addingProject: false,
-        createProjectDialogKey: prevState.createProjectDialogKey + 1
-      }
-    ));
+    this.setState((prevState) => ({
+      addingProject: false,
+      createProjectDialogKey: prevState.createProjectDialogKey + 1,
+    }));
 
     if (refresh) {
       this.refreshProjectsHandler();
@@ -226,7 +261,7 @@ class ProjectPage extends Component {
   }
 
   handleClickProjectListMenu(event, projectId) {
-    switch(event) {
+    switch (event) {
       case Messages.TOGGLE_PROJECT_FAVORITE_REQUEST:
         this.handleFavoriteClick(projectId);
         break;
@@ -248,9 +283,9 @@ class ProjectPage extends Component {
   handleProjectUpdate(project, actionType, entityType, entityKey, title, description, details) {
     // Update our cached list of projects from which we get the selected projects.  We want to ensure
     // these are kept in sync with any updates.
-    this.setState(prevState => {
+    this.setState((prevState) => {
       const { projects } = prevState;
-      const foundIndex = projects.findIndex(x => x.id === project.id);
+      const foundIndex = projects.findIndex((x) => x.id === project.id);
       projects[foundIndex] = project;
       return { projects };
     });
@@ -268,7 +303,7 @@ class ProjectPage extends Component {
       description,
       details,
       'info',
-      user
+      user,
     );
   }
 
@@ -278,9 +313,9 @@ class ProjectPage extends Component {
     } else {
       // Update our cached list of projects from which we get the selected projects.  We want to ensure
       // these are kept in sync with any updates.
-      this.setState(prevState => {
+      this.setState((prevState) => {
         const { projects } = prevState;
-        const foundIndex = projects.findIndex(x => x.id === response.project.id);
+        const foundIndex = projects.findIndex((x) => x.id === response.project.id);
         projects[foundIndex] = response.project;
         return { selectedProject: response.project, projects };
       });
@@ -325,10 +360,15 @@ class ProjectPage extends Component {
           key={this.state.createProjectDialogKey}
           projectTemplates={this.state.projectTemplates}
           open={this.state.addingProject}
-          onClose={this.handleCloseAddProject} />
+          onClose={this.handleCloseAddProject}
+        />
         <ProjectListEntryMenu
-          anchorElement={this.state.projectListMenuAnchor ? this.state.projectListMenuAnchor.element : null}
-          project={this.state.projectListMenuAnchor ? this.state.projectListMenuAnchor.project : null}
+          anchorElement={
+            this.state.projectListMenuAnchor ? this.state.projectListMenuAnchor.element : null
+          }
+          project={
+            this.state.projectListMenuAnchor ? this.state.projectListMenuAnchor.project : null
+          }
           onClose={this.handleCloseProjectListMenu}
           onMenuClick={this.handleClickProjectListMenu}
         />

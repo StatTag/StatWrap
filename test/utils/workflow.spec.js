@@ -17,15 +17,15 @@ describe('services', () => {
               uri: '/test/1/1',
               children: [
                 {
-                  uri: '/test/1/1/1'
-                }
-              ]
+                  uri: '/test/1/1/1',
+                },
+              ],
             },
             {
               uri: '/test/1/2',
-              children: []
-            }
-          ]
+              children: [],
+            },
+          ],
         };
         // Even though there are no actual dependencies, we will get back all of
         // the assets and children
@@ -48,13 +48,13 @@ describe('services', () => {
                           id: 'sys',
                           module: 'sys',
                           import: null,
-                          alias: null
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
+                          alias: null,
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
             },
             {
               uri: '/test/1/2',
@@ -66,13 +66,13 @@ describe('services', () => {
                       id: 'sys',
                       module: 'sys',
                       import: null,
-                      alias: null
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                      alias: null,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         };
         const dependencies = WorkflowUtil.getAllDependencies(asset);
         // We get back 4 assets, and two of them should have dependencies
@@ -97,15 +97,15 @@ describe('services', () => {
               uri: '/test/1/1',
               children: [
                 {
-                  uri: '/test/1/1/1'
-                }
-              ]
+                  uri: '/test/1/1/1',
+                },
+              ],
             },
             {
               uri: '/test/1/2',
-              children: []
-            }
-          ]
+              children: [],
+            },
+          ],
         };
         const graph = WorkflowUtil.getAllDependenciesAsGraph(asset);
         expect(graph).toEqual({ nodes: [], links: [] });
@@ -125,13 +125,13 @@ describe('services', () => {
                       libraries: [
                         {
                           id: 'dplyr',
-                          package: 'dplyr'
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
+                          package: 'dplyr',
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
             },
             {
               uri: '/test/1/2',
@@ -143,13 +143,13 @@ describe('services', () => {
                       id: 'sys',
                       module: 'sys',
                       import: null,
-                      alias: null
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                      alias: null,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         };
         const graph = WorkflowUtil.getAllDependenciesAsGraph(asset);
         expect(graph).toEqual({
@@ -157,12 +157,12 @@ describe('services', () => {
             { id: '1/1', assetType: 'r' },
             { id: 'dplyr', assetType: 'dependency', direction: 'in' },
             { id: '2', assetType: 'python' },
-            { id: 'sys', assetType: 'dependency', direction: 'in' }
+            { id: 'sys', assetType: 'dependency', direction: 'in' },
           ],
           links: [
             { source: 'dplyr', target: '1/1' },
-            { source: 'sys', target: '2' }
-          ]
+            { source: 'sys', target: '2' },
+          ],
         });
       });
       it('should build the dependency graph and only include unique entries', () => {
@@ -182,13 +182,13 @@ describe('services', () => {
                           id: 'sys',
                           module: 'sys',
                           import: null,
-                          alias: null
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
+                          alias: null,
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
             },
             {
               uri: '/test/1/2',
@@ -200,32 +200,32 @@ describe('services', () => {
                       id: 'sys',
                       module: 'sys',
                       import: null,
-                      alias: null
+                      alias: null,
                     },
                     // Scenario if a Python file includes the same module twice
                     {
                       id: 'sys',
                       module: 'sys',
                       import: null,
-                      alias: null
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                      alias: null,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         };
         const graph = WorkflowUtil.getAllDependenciesAsGraph(asset);
         expect(graph).toEqual({
           nodes: [
             { id: '1/1', assetType: 'python' },
             { id: 'sys', assetType: 'dependency', direction: 'in' },
-            { id: '2', assetType: 'python' }
+            { id: '2', assetType: 'python' },
           ],
           links: [
             { source: 'sys', target: '1/1' },
-            { source: 'sys', target: '2' }
-          ]
+            { source: 'sys', target: '2' },
+          ],
         });
       });
       it('should filter out items from the graph', () => {
@@ -243,20 +243,20 @@ describe('services', () => {
                       libraries: [
                         {
                           id: 'dplyr',
-                          package: 'dplyr'
-                        }
+                          package: 'dplyr',
+                        },
                       ],
                       inputs: [
                         {
                           id: 'r.csv',
                           type: Constants.DependencyType.DATA,
-                          path: 'r.csv'
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
+                          path: 'r.csv',
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
             },
             {
               uri: '/test/1/2',
@@ -268,26 +268,26 @@ describe('services', () => {
                       id: 'sys',
                       module: 'sys',
                       import: null,
-                      alias: null
+                      alias: null,
                     },
                     {
                       id: 'pandas',
                       module: 'pandas',
                       import: null,
-                      alias: null
-                    }
+                      alias: null,
+                    },
                   ],
                   inputs: [
                     {
                       id: 'tmp',
                       type: Constants.DependencyType.DATA,
-                      path: 'python.csv'
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                      path: 'python.csv',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         };
         const filters = [
           {
@@ -296,14 +296,14 @@ describe('services', () => {
               {
                 key: 'python',
                 label: 'python',
-                value: false
+                value: false,
               },
               {
                 key: 'r',
                 label: 'r',
-                value: true
-              }
-            ]
+                value: true,
+              },
+            ],
           },
           {
             category: 'Inputs and Outputs',
@@ -311,14 +311,14 @@ describe('services', () => {
               {
                 key: 'dependency',
                 label: 'dependency',
-                value: false
+                value: false,
               },
               {
                 key: 'data',
                 label: 'data',
-                value: true
-              }
-            ]
+                value: true,
+              },
+            ],
           },
           {
             category: 'Dependencies/Libraries',
@@ -326,23 +326,23 @@ describe('services', () => {
               {
                 key: 'pandas',
                 label: 'pandas',
-                value: true
+                value: true,
               },
               {
                 key: 'sys',
                 label: 'sys',
-                value: true
-              }
-            ]
-          }
+                value: true,
+              },
+            ],
+          },
         ];
         const graph = WorkflowUtil.getAllDependenciesAsGraph(asset, filters);
         expect(graph).toEqual({
           nodes: [
             { id: '1/1', assetType: 'r' },
-            { id: 'r.csv', assetType: 'data', direction: 'in' }
+            { id: 'r.csv', assetType: 'data', direction: 'in' },
           ],
-          links: [{ source: 'r.csv', target: '1/1' }]
+          links: [{ source: 'r.csv', target: '1/1' }],
         });
       });
     });
@@ -361,20 +361,20 @@ describe('services', () => {
                     libraries: [
                       {
                         id: 'dplyr',
-                        package: 'dplyr'
-                      }
+                        package: 'dplyr',
+                      },
                     ],
                     inputs: [
                       {
                         id: 'r.csv',
                         type: Constants.DependencyType.DATA,
-                        path: 'r.csv'
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
+                        path: 'r.csv',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
           },
           {
             uri: '/test/1/2',
@@ -386,26 +386,26 @@ describe('services', () => {
                     id: 'sys',
                     module: 'sys',
                     import: null,
-                    alias: null
+                    alias: null,
                   },
                   {
                     id: 'pandas',
                     module: 'pandas',
                     import: null,
-                    alias: null
-                  }
+                    alias: null,
+                  },
                 ],
                 inputs: [
                   {
                     id: 'tmp',
                     type: Constants.DependencyType.DATA,
-                    path: 'python.csv'
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+                    path: 'python.csv',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       };
       const filters = [
         {
@@ -414,14 +414,14 @@ describe('services', () => {
             {
               key: 'python',
               label: 'python',
-              value: true
+              value: true,
             },
             {
               key: 'r',
               label: 'r',
-              value: false
-            }
-          ]
+              value: false,
+            },
+          ],
         },
         {
           category: 'Inputs and Outputs',
@@ -429,14 +429,14 @@ describe('services', () => {
             {
               key: 'dependency',
               label: 'dependency',
-              value: true
+              value: true,
             },
             {
               key: 'data',
               label: 'data',
-              value: false
-            }
-          ]
+              value: false,
+            },
+          ],
         },
         {
           category: 'Dependencies/Libraries',
@@ -444,23 +444,23 @@ describe('services', () => {
             {
               key: 'pandas',
               label: 'pandas',
-              value: false
+              value: false,
             },
             {
               key: 'sys',
               label: 'sys',
-              value: true
-            }
-          ]
-        }
+              value: true,
+            },
+          ],
+        },
       ];
       const graph = WorkflowUtil.getAllDependenciesAsGraph(asset, filters);
       expect(graph).toEqual({
         nodes: [
           { id: '2', assetType: 'python' },
-          { id: 'sys', assetType: 'dependency', direction: 'in' }
+          { id: 'sys', assetType: 'dependency', direction: 'in' },
         ],
-        links: [{ source: 'sys', target: '2' }]
+        links: [{ source: 'sys', target: '2' }],
       });
     });
 
@@ -468,11 +468,11 @@ describe('services', () => {
       it('should handle empty/invalid inputs', () => {
         expect(WorkflowUtil.getAllDependenciesAsEChartGraph(null)).toEqual({
           nodes: [],
-          links: []
+          links: [],
         });
         expect(WorkflowUtil.getAllDependenciesAsEChartGraph(undefined)).toEqual({
           nodes: [],
-          links: []
+          links: [],
         });
       });
       it('should translate the graph to the EChart data model', () => {
@@ -489,26 +489,26 @@ describe('services', () => {
                       id: 'sys',
                       module: 'sys',
                       import: null,
-                      alias: null
+                      alias: null,
                     },
                     {
                       id: 'pandas',
                       module: 'pandas',
                       import: null,
-                      alias: null
-                    }
+                      alias: null,
+                    },
                   ],
                   inputs: [
                     {
                       id: 'tmp',
                       type: Constants.DependencyType.DATA,
-                      path: 'python.csv'
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                      path: 'python.csv',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         };
         const graph = WorkflowUtil.getAllDependenciesAsEChartGraph(asset);
         expect(graph).toEqual({
@@ -517,44 +517,44 @@ describe('services', () => {
               id: '2',
               fullName: '2',
               name: '2',
-              value: 'python'
+              value: 'python',
             },
             {
               id: 'sys',
               fullName: 'sys',
               name: 'sys',
               value: 'dependency',
-              direction: 'in'
+              direction: 'in',
             },
             {
               id: 'pandas',
               fullName: 'pandas',
               name: 'pandas',
               value: 'dependency',
-              direction: 'in'
+              direction: 'in',
             },
             {
               id: 'tmp',
               fullName: 'tmp',
               name: 'tmp',
               value: 'data',
-              direction: 'in'
-            }
+              direction: 'in',
+            },
           ],
           links: [
             {
               source: 'sys',
-              target: '2'
+              target: '2',
             },
             {
               source: 'pandas',
-              target: '2'
+              target: '2',
             },
             {
               source: 'tmp',
-              target: '2'
-            }
-          ]
+              target: '2',
+            },
+          ],
         });
       });
     });
@@ -567,7 +567,7 @@ describe('services', () => {
 
       it('should return a default value for known types', () => {
         expect(WorkflowUtil.getAssetType({ metadata: [{ id: 'StatWrap.PythonHandler' }] })).toEqual(
-          'python'
+          'python',
         );
       });
 
@@ -587,8 +587,8 @@ describe('services', () => {
           name: '1',
           children: null,
           attributes: {
-            assetType: 'generic'
-          }
+            assetType: 'generic',
+          },
         });
       });
       it.onWindows('should generate a structure even if there are no children', () => {
@@ -596,8 +596,8 @@ describe('services', () => {
           name: '1',
           children: null,
           attributes: {
-            assetType: 'generic'
-          }
+            assetType: 'generic',
+          },
         });
       });
 
@@ -618,13 +618,13 @@ describe('services', () => {
                           id: 'sys',
                           module: 'sys',
                           import: null,
-                          alias: null
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
+                          alias: null,
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
             },
             {
               uri: '/test/1/2',
@@ -636,20 +636,20 @@ describe('services', () => {
                       id: 'sys',
                       module: 'sys',
                       import: null,
-                      alias: null
+                      alias: null,
                     },
                     // Scenario if a Python file includes the same module twice
                     {
                       id: 'sys',
                       module: 'sys',
                       import: null,
-                      alias: null
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                      alias: null,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         };
         expect(WorkflowUtil.getAllDependenciesAsTree(asset)).toEqual({
           name: '1',
@@ -657,24 +657,24 @@ describe('services', () => {
             {
               name: '1',
               attributes: {
-                assetType: 'generic'
+                assetType: 'generic',
               },
               children: [
                 {
                   name: '1',
                   attributes: {
-                    assetType: 'python'
+                    assetType: 'python',
                   },
                   children: [
                     {
                       name: 'sys',
                       attributes: {
-                        assetType: 'dependency'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        assetType: 'dependency',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               name: '2',
@@ -682,18 +682,18 @@ describe('services', () => {
                 {
                   name: 'sys',
                   attributes: {
-                    assetType: 'dependency'
-                  }
-                }
+                    assetType: 'dependency',
+                  },
+                },
               ],
               attributes: {
-                assetType: 'python'
-              }
-            }
+                assetType: 'python',
+              },
+            },
           ],
           attributes: {
-            assetType: 'generic'
-          }
+            assetType: 'generic',
+          },
         });
       });
 
@@ -714,13 +714,13 @@ describe('services', () => {
                           id: 'sys',
                           module: 'sys',
                           import: null,
-                          alias: null
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
+                          alias: null,
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
             },
             {
               uri: 'C:\\test\\1\\2',
@@ -732,20 +732,20 @@ describe('services', () => {
                       id: 'sys',
                       module: 'sys',
                       import: null,
-                      alias: null
+                      alias: null,
                     },
                     // Scenario if a Python file includes the same module twice
                     {
                       id: 'sys',
                       module: 'sys',
                       import: null,
-                      alias: null
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+                      alias: null,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         };
         expect(WorkflowUtil.getAllDependenciesAsTree(asset)).toEqual({
           name: '1',
@@ -753,24 +753,24 @@ describe('services', () => {
             {
               name: '1',
               attributes: {
-                assetType: 'generic'
+                assetType: 'generic',
               },
               children: [
                 {
                   name: '1',
                   attributes: {
-                    assetType: 'python'
+                    assetType: 'python',
                   },
                   children: [
                     {
                       name: 'sys',
                       attributes: {
-                        assetType: 'dependency'
-                      }
-                    }
-                  ]
-                }
-              ]
+                        assetType: 'dependency',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               name: '2',
@@ -778,18 +778,18 @@ describe('services', () => {
                 {
                   name: 'sys',
                   attributes: {
-                    assetType: 'dependency'
-                  }
-                }
+                    assetType: 'dependency',
+                  },
+                },
               ],
               attributes: {
-                assetType: 'python'
-              }
-            }
+                assetType: 'python',
+              },
+            },
           ],
           attributes: {
-            assetType: 'generic'
-          }
+            assetType: 'generic',
+          },
         });
       });
     });
@@ -814,8 +814,8 @@ describe('services', () => {
       it('should shorten a long string appropriately', () => {
         expect(
           WorkflowUtil.getShortDependencyName(
-            'Z:\\Test\\Directory for data\\More folder\\Other location\\file.txt'
-          )
+            'Z:\\Test\\Directory for data\\More folder\\Other location\\file.txt',
+          ),
         ).toEqual(`Z:\\Test\\Directo...cation\\file.txt`);
       });
     });
