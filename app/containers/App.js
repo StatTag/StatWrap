@@ -20,7 +20,7 @@ import {
   faTh,
   faThList,
   faBell,
-  faTimes
+  faTimes,
 } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { ipcRenderer } from 'electron';
@@ -45,7 +45,7 @@ library.add(
   faTh,
   faThList,
   faBell,
-  faTimes
+  faTimes,
 );
 
 export default class App extends React.Component {
@@ -56,7 +56,7 @@ export default class App extends React.Component {
       displayName: 'StatWrap',
       settings: {},
       displayUserProfileDialog: false,
-      userProfileDialogKey: 0
+      userProfileDialogKey: 0,
     };
 
     this.handleLoadUserInfoResponse = this.handleLoadUserInfoResponse.bind(this);
@@ -71,11 +71,11 @@ export default class App extends React.Component {
     ipcRenderer.on(Messages.LOAD_USER_INFO_RESPONSE, this.handleLoadUserInfoResponse);
     ipcRenderer.on(
       Messages.CREATE_UPDATE_PERSON_RESPONSE,
-      this.handlePersonDirectoryChangeResponse
+      this.handlePersonDirectoryChangeResponse,
     );
     ipcRenderer.on(
       Messages.REMOVE_DIRECTORY_PERSON_RESPONSE,
-      this.handlePersonDirectoryChangeResponse
+      this.handlePersonDirectoryChangeResponse,
     );
   }
 
@@ -83,22 +83,22 @@ export default class App extends React.Component {
     ipcRenderer.removeListener(Messages.LOAD_USER_INFO_RESPONSE, this.handleLoadUserInfoResponse);
     ipcRenderer.removeListener(
       Messages.CREATE_UPDATE_PERSON_RESPONSE,
-      this.handlePersonDirectoryChangeResponse
+      this.handlePersonDirectoryChangeResponse,
     );
     ipcRenderer.removeListener(
       Messages.REMOVE_DIRECTORY_PERSON_RESPONSE,
-      this.handlePersonDirectoryChangeResponse
+      this.handlePersonDirectoryChangeResponse,
     );
   }
 
   handleLoadUserInfoResponse(sender, response) {
     const firstTimeRun = !response.settings || !response.settings.user;
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       user: response.user,
       displayName: GeneralUtil.formatDisplayName(response.settings.user),
       settings: response.settings,
       userProfileDialogKey: prevState + 1,
-      displayUserProfileDialog: firstTimeRun
+      displayUserProfileDialog: firstTimeRun,
     }));
   }
 
@@ -108,10 +108,10 @@ export default class App extends React.Component {
   }
 
   handleSaveUserProfile(user) {
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       displayName: GeneralUtil.formatDisplayName(user),
       // Update the user portion of the settings object
-      settings: { ...prevState.settings, user }
+      settings: { ...prevState.settings, user },
     }));
   }
 
@@ -129,12 +129,12 @@ export default class App extends React.Component {
       palette: {
         type: 'light',
         primary: {
-          main: '#222222'
+          main: '#222222',
         },
         secondary: {
-          main: '#f50057'
-        }
-      }
+          main: '#f50057',
+        },
+      },
     });
     // const theme = createTheme(
     //   adaptV4Theme({

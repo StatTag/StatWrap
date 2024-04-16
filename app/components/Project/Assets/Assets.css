@@ -2,15 +2,6 @@
   margin: 5px;
 }
 
-.title {
-  margin-bottom: 10px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 0.8em;
-  font-weight: bold;
-}
-
 .tree {
   width: 50%;
   margin: 0;

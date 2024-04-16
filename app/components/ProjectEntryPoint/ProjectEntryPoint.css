@@ -2,6 +2,15 @@
   margin-top: 10px;
 }
 
+.title {
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
 .heading {
   background-color: #eee !important;
   padding: 0 5px !important;
@@ -28,7 +37,7 @@
   font-size: 0.8rem;
   padding: 0.2rem 0.5rem;
   border-radius: 5px;
-  background-color:whitesmoke;
+  background-color: whitesmoke;
   border: solid 1px gainsboro;
   transition: background-color 0.4s;
 }

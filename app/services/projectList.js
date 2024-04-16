@@ -27,7 +27,7 @@ export default class ProjectListService {
 
     const data = fs.readFileSync(filePath);
     projectList = JSON.parse(data.toString());
-    const project = projectList.find(x => x.id === projectId);
+    const project = projectList.find((x) => x.id === projectId);
     if (!project) {
       return false;
     }
@@ -47,7 +47,7 @@ export default class ProjectListService {
 
     const data = fs.readFileSync(filePath);
     projectList = JSON.parse(data.toString());
-    const index = projectList.findIndex(x => x.id === projectId);
+    const index = projectList.findIndex((x) => x.id === projectId);
     if (index === -1) {
       return false;
     }
@@ -75,7 +75,7 @@ export default class ProjectListService {
     projectList = JSON.parse(data.toString());
 
     // If we have a match based on ID or path, don't add it again.
-    if (!projectList.some(x => x.id === project.id || x.path === project.path)) {
+    if (!projectList.some((x) => x.id === project.id || x.path === project.path)) {
       projectList.push(project);
       this.writeProjectList(filePath, projectList);
     }
@@ -93,7 +93,7 @@ export default class ProjectListService {
     const data = fs.readFileSync(filePath);
     projectList = JSON.parse(data.toString());
 
-    const project = projectList.find(x => x.id === projectId);
+    const project = projectList.find((x) => x.id === projectId);
     if (!project) {
       return false;
     }
@@ -116,7 +116,7 @@ export default class ProjectListService {
     const data = fs.readFileSync(filePath);
     projectList = JSON.parse(data.toString());
 
-    const project = projectList.find(x => x.id === projectId);
+    const project = projectList.find((x) => x.id === projectId);
     if (!project) {
       return null;
     }
@@ -151,7 +151,7 @@ export default class ProjectListService {
     // in the array, and nested objects within those elements.
     const projectListCopy = JSON.parse(JSON.stringify(projectList));
     // Remove assets.  Everything else can stay.
-    projectListCopy.forEach(x => {
+    projectListCopy.forEach((x) => {
       if (x.assets) {
         delete x.assets;
       }
@@ -175,10 +175,8 @@ export default class ProjectListService {
     // We are doing a little normalizing for our string comparison.  If one
     // is null and the other is a blank string, it's okay if they match.
     return projects.sort((a, b) => {
-      // eslint-disable-next-line prettier/prettier
-      const stringA = (a && a.name) ? a.name.toLowerCase() : Constants.UndefinedDefaults.PROJECT;
-      // eslint-disable-next-line prettier/prettier
-      const stringB = (b && b.name) ? b.name.toLowerCase() : Constants.UndefinedDefaults.PROJECT;
+      const stringA = a && a.name ? a.name.toLowerCase() : Constants.UndefinedDefaults.PROJECT;
+      const stringB = b && b.name ? b.name.toLowerCase() : Constants.UndefinedDefaults.PROJECT;
       return stringA.localeCompare(stringB);
     });
   }
@@ -190,7 +188,7 @@ export default class ProjectListService {
         name: 'Local project using relative path',
         favorite: true,
         lastAccessed: '2020-04-21T21:21:27.041Z',
-        path: '~/Development/StatTag/StatWrapProjects/project1'
+        path: '~/Development/StatTag/StatWrapProjects/project1',
       },
       {
         id: '6ff79e02-4f24-4948-ac77-f3f1b67064e5',
@@ -198,15 +196,15 @@ export default class ProjectListService {
         favorite: false,
         lastAccessed: '2020-04-21T21:21:27.041Z',
         // eslint-disable-next-line prettier/prettier
-        path: 'smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/NUCATS/NUCATS_Shared/BERDShared/StatWrap/Test folders/XuS_775'
+        path: 'smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/NUCATS/NUCATS_Shared/BERDShared/StatWrap/Test folders/XuS_775',
       },
       {
         id: '6ff79e02-4f24-4948-ac77-f3f1b67064e6',
         name: 'Invalid project',
         favorite: false,
         lastAccessed: '2020-04-21T21:21:27.041Z',
-        path: 'smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Project3'
-      }
+        path: 'smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Project3',
+      },
     ];
   }
 }

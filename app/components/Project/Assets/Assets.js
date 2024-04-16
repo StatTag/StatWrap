@@ -255,7 +255,7 @@ const assetsComponent = (props) => {
     setAssets(filterProjectAssets(project, filter));
     setCurrentAssetGroup(clonedGroup);
     setGroupedAssets(clonedGroup.assets);
-    treeRef.current.setPreCheckedNodes(clonedGroup.assets.map(x => x.uri));
+    treeRef.current.setPreCheckedNodes(clonedGroup.assets.map((x) => x.uri));
     setMode('paperclip');
   };
 
@@ -383,7 +383,7 @@ const assetsComponent = (props) => {
                 disabled={mode === 'paperclip'}
                 aria-label="group assets together"
               >
-                <FaPlusSquare fontSize="small" /> &nbsp; New Group
+                <FaPlusSquare fontSize="small" /> &nbsp;New Group
               </IconButton>
               <EditableSelect
                 title="Select group"
@@ -406,7 +406,6 @@ const assetsComponent = (props) => {
             />
           </div>
           <div className={styles.details}>
-            <div className={styles.title}>{project.path}</div>
             <ProjectEntryPoint
               assets={assets}
               rootUri={project.path}

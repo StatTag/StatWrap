@@ -1,4 +1,3 @@
-/* eslint-disable react/forbid-prop-types */
 import React, { useEffect, useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -7,14 +6,13 @@ import styled from 'styled-components';
 import DataTable from 'react-data-table-component';
 import Error from '../Error/Error';
 import ProjectLogRow from './ProjectLogRow/ProjectLogRow';
-import GeneralUtil from '../../utils/general';
 import styles from './ProjectLog.css';
 
 const columns = [
   {
     name: 'Date/Time',
     selector: 'datetime',
-    sortable: true
+    sortable: true,
   },
   {
     name: 'Event',
@@ -22,13 +20,13 @@ const columns = [
     sortable: true,
     grow: 3,
     wrap: true,
-    cell: row => (
+    cell: (row) => (
       <div>
         <div style={{ fontWeight: 700, paddingBottom: '5px' }}>{row.title}</div>
         {row.description}
       </div>
-    )
-  }
+    ),
+  },
 ];
 
 const TextField = styled.input`
@@ -60,23 +58,25 @@ const ClearButton = styled.button`
 `;
 
 // eslint-disable-next-line react/prop-types
-const FilterComponent = ({ filterText, onFilter, onClear }) => (
-  <>
-    <TextField
-      id="search"
-      type="text"
-      placeholder="Search logs"
-      aria-label="Search Input"
-      value={filterText}
-      onChange={onFilter}
-    />
-    <ClearButton type="button" onClick={onClear}>
-      <FontAwesomeIcon icon="times" size="sm" />
-    </ClearButton>
-  </>
-);
+function FilterComponent({ filterText, onFilter, onClear }) {
+  return (
+    <>
+      <TextField
+        id="search"
+        type="text"
+        placeholder="Search logs"
+        aria-label="Search Input"
+        value={filterText}
+        onChange={onFilter}
+      />
+      <ClearButton type="button" onClick={onClear}>
+        <FontAwesomeIcon icon="times" size="sm" />
+      </ClearButton>
+    </>
+  );
+}
 
-const projectLog = props => {
+function projectLog(props) {
   const [filterText, setFilterText] = useState('');
   const [expandAll, setExpandAll] = useState(false);
   const { feed, error, updates } = props;
@@ -119,7 +119,7 @@ const projectLog = props => {
           {showUpdatesControl}
         </div>
         <FilterComponent
-          onFilter={e => setFilterText(e.target.value)}
+          onFilter={(e) => setFilterText(e.target.value)}
           onClear={handleClear}
           filterText={filterText}
         />
@@ -138,7 +138,7 @@ const projectLog = props => {
     const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     const data = dataSource
-      .map(f => {
+      .map((f) => {
         const localDateTime = new Date(f.timestamp).toLocaleString(undefined, {
           timeZone: userTimeZone,
           weekday: 'short',
@@ -147,16 +147,16 @@ const projectLog = props => {
           day: 'numeric',
           hour: 'numeric',
           minute: 'numeric',
-          second: 'numeric'
+          second: 'numeric',
         });
         return { ...f, datetime: localDateTime };
       })
       .filter(
-        f =>
+        (f) =>
           filterText === '' ||
           (f.type && f.type.toLowerCase().includes(filterText.toLowerCase())) ||
           (f.title && f.title.toLowerCase().includes(filterText.toLowerCase())) ||
-          (f.description && f.description.toLowerCase().includes(filterText.toLowerCase()))
+          (f.description && f.description.toLowerCase().includes(filterText.toLowerCase())),
       );
     contents = (
       <DataTable
@@ -176,19 +176,19 @@ const projectLog = props => {
     contents = <Error>There was an error loading the project log: {error}</Error>;
   }
   return <div className={styles.container}>{contents}</div>;
-};
+}
 
 projectLog.propTypes = {
   project: PropTypes.object.isRequired,
   feed: PropTypes.arrayOf(PropTypes.object),
   updates: PropTypes.object,
-  error: PropTypes.string
+  error: PropTypes.string,
 };
 
 projectLog.defaultProps = {
   feed: null,
   updates: null,
-  error: null
+  error: null,
 };
 
 export default projectLog;

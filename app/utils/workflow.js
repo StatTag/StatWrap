@@ -209,9 +209,12 @@ export default class WorkflowUtil {
         attributes: { assetType: Constants.AssetType.DEPENDENCY },
       };
       // Only push dependencies once (to avoid unnecessary clutter)
-      // eslint-disable-next-line prettier/prettier
-      if (!tree.children.some(x => x.name === depEntry.name
-            && x.attributes.assetType === depEntry.attributes.assetType)) {
+      if (
+        !tree.children.some(
+          (x) =>
+            x.name === depEntry.name && x.attributes.assetType === depEntry.attributes.assetType,
+        )
+      ) {
         tree.children.push(depEntry);
       }
     }

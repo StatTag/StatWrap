@@ -69,10 +69,10 @@ describe('services', () => {
       it('should include URL-based URIs that have parameters', () => {
         const handler = new StataHandler();
         expect(
-          handler.includeFile('http://github.com/test/content/test.do?ref=_1234')
+          handler.includeFile('http://github.com/test/content/test.do?ref=_1234'),
         ).toBeTruthy();
         expect(
-          handler.includeFile('https://github.com/test/content/test.do?ref=_1234&test2.ado')
+          handler.includeFile('https://github.com/test/content/test.do?ref=_1234&test2.ado'),
         ).toBeTruthy();
       });
     });
@@ -88,9 +88,9 @@ describe('services', () => {
           type: 'file',
           metadata: [
             {
-              id: handler.id()
-            }
-          ]
+              id: handler.id(),
+            },
+          ],
         };
         let response = handler.scan(testAsset);
         expect(response.metadata.length).toEqual(1);
@@ -105,13 +105,13 @@ describe('services', () => {
         const testAsset = {
           uri: '/Some/Invalid/Path.do',
           type: 'file',
-          metadata: []
+          metadata: [],
         };
         const response = new StataHandler().scan(testAsset);
         expect(fs.readFileSync).toHaveBeenCalledTimes(1);
         expect(response.metadata[0]).toEqual({
           id: 'StatWrap.StataHandler',
-          error: 'Unable to read code file'
+          error: 'Unable to read code file',
         });
       });
 
@@ -119,7 +119,7 @@ describe('services', () => {
         const testAsset = {
           uri: '/Some/Other/Asset.do',
           type: 'other',
-          metadata: []
+          metadata: [],
         };
         const response = new StataHandler().scan(testAsset);
         expect(fs.readFileSync).toHaveBeenCalledTimes(0);
@@ -132,7 +132,7 @@ describe('services', () => {
         const testAsset = {
           uri: '/Some/Valid/File.do',
           type: 'file',
-          metadata: []
+          metadata: [],
         };
         const response = new StataHandler().scan(testAsset);
         expect(fs.readFileSync).toHaveBeenCalledTimes(1);
@@ -141,11 +141,11 @@ describe('services', () => {
           libraries: [
             {
               id: 'test',
-              package: 'test'
-            }
+              package: 'test',
+            },
           ],
           inputs: [],
-          outputs: []
+          outputs: [],
         });
       });
 
@@ -162,7 +162,7 @@ describe('services', () => {
             {
               uri: '/Some/Valid/Folder/File1.do',
               type: 'file',
-              metadata: []
+              metadata: [],
             },
             {
               uri: '/Some/Valid/Folder/SubFolder',
@@ -172,11 +172,11 @@ describe('services', () => {
                 {
                   uri: '/Some/Valid/Folder/SubFolder/File2.ado',
                   type: 'file',
-                  metadata: []
-                }
-              ]
-            }
-          ]
+                  metadata: [],
+                },
+              ],
+            },
+          ],
         };
         const response = new StataHandler().scan(testAsset);
         const expectedMetadata1 = {
@@ -184,17 +184,17 @@ describe('services', () => {
           libraries: [
             {
               id: 'test',
-              package: 'test'
-            }
+              package: 'test',
+            },
           ],
           inputs: [],
-          outputs: []
+          outputs: [],
         };
         const expectedMetadata2 = {
           id: 'StatWrap.StataHandler',
           libraries: [],
           inputs: [],
-          outputs: []
+          outputs: [],
         };
         expect(response.metadata.length).toEqual(0);
         expect(response.children[0].metadata.length).toEqual(1);
@@ -210,7 +210,7 @@ describe('services', () => {
         expect(new StataHandler().getLibraries('test.uri', null).length).toEqual(0);
         expect(new StataHandler().getLibraries('test.uri', undefined).length).toEqual(0);
         expect(new StataHandler().getLibraries('test.uri', 'print("hello world")').length).toEqual(
-          0
+          0,
         );
       });
       it('should process do/run statements', () => {
@@ -218,28 +218,28 @@ describe('services', () => {
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test',
-          package: 'test'
+          package: 'test',
         });
 
         libraries = new StataHandler().getLibraries('test.uri', 'run test.do');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test.do',
-          package: 'test.do'
+          package: 'test.do',
         });
 
         libraries = new StataHandler().getLibraries('test.uri', 'ru test');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test',
-          package: 'test'
+          package: 'test',
         });
 
         libraries = new StataHandler().getLibraries('test.uri', 'ru test.do, nostop ');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test.do',
-          package: 'test.do'
+          package: 'test.do',
         });
       });
       it('ignore invalid do/run commands', () => {
@@ -253,28 +253,28 @@ describe('services', () => {
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test file',
-          package: 'test file'
+          package: 'test file',
         });
 
         libraries = new StataHandler().getLibraries('test.uri', 'run "test.do"');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test.do',
-          package: 'test.do'
+          package: 'test.do',
         });
 
         libraries = new StataHandler().getLibraries('test.uri', 'ru "test"');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test',
-          package: 'test'
+          package: 'test',
         });
 
         libraries = new StataHandler().getLibraries('test.uri', 'ru "test.do", nostop ');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test.do',
-          package: 'test.do'
+          package: 'test.do',
         });
       });
       it('ignore invalid quoted do/run commands', () => {
@@ -290,73 +290,73 @@ describe('services', () => {
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test',
-          package: 'test'
+          package: 'test',
         });
 
         libraries = new StataHandler().getLibraries('test.uri', 'pr  test, plug');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test',
-          package: 'test'
+          package: 'test',
         });
 
         libraries = new StataHandler().getLibraries('test.uri', ' program  test , plugin ');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test',
-          package: 'test'
+          package: 'test',
         });
 
         libraries = new StataHandler().getLibraries(
           'test.uri',
-          'program test, plugin using("/test/location.dll")'
+          'program test, plugin using("/test/location.dll")',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test (/test/location.dll)',
-          package: 'test'
+          package: 'test',
         });
 
         libraries = new StataHandler().getLibraries(
           'test.uri',
-          'pr test, plug using("/test/location.dll")'
+          'pr test, plug using("/test/location.dll")',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test (/test/location.dll)',
-          package: 'test'
+          package: 'test',
         });
 
         libraries = new StataHandler().getLibraries(
           'test.uri',
-          'program test , plugin using ( "/test/location.dll" ) '
+          'program test , plugin using ( "/test/location.dll" ) ',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'test (/test/location.dll)',
-          package: 'test'
+          package: 'test',
         });
       });
       it('ignore invalid program/plugin commands', () => {
         expect(new StataHandler().getLibraries('test.uri', 'program test plugin').length).toEqual(
-          0
+          0,
         );
         expect(new StataHandler().getLibraries('test.uri', 'prtest,plug').length).toEqual(0);
         expect(new StataHandler().getLibraries('test.uri', 'program     plugin').length).toEqual(0);
         expect(
           new StataHandler().getLibraries(
             'test.uri',
-            'program test, plugin using(/test/location.dll")'
-          ).length
+            'program test, plugin using(/test/location.dll")',
+          ).length,
         ).toEqual(0);
         expect(
           new StataHandler().getLibraries(
             'test.uri',
-            'program test, plugin using("/test/location.dll)'
-          ).length
+            'program test, plugin using("/test/location.dll)',
+          ).length,
         ).toEqual(0);
         expect(
-          new StataHandler().getLibraries('test.uri', 'program test , plugin usi(ng)').length
+          new StataHandler().getLibraries('test.uri', 'program test , plugin usi(ng)').length,
         ).toEqual(0);
       });
     });
@@ -372,7 +372,7 @@ describe('services', () => {
       });
       it('should include location and package name when provided', () => {
         expect(new StataHandler().getLibraryId('testlib', '/test/file/location.dll')).toEqual(
-          'testlib (/test/file/location.dll)'
+          'testlib (/test/file/location.dll)',
         );
       });
     });
@@ -387,33 +387,33 @@ describe('services', () => {
       it('should retrieve save locations for figures', () => {
         let libraries = new StataHandler().getOutputs(
           'test.uri',
-          'graph export "C:\\dev\\test.pdf"'
+          'graph export "C:\\dev\\test.pdf"',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'graph export - "C:\\dev\\test.pdf"',
           type: 'figure',
-          path: '"C:\\dev\\test.pdf"'
+          path: '"C:\\dev\\test.pdf"',
         });
         libraries = new StataHandler().getOutputs(
           'test.uri',
-          'graph export test.pdf, as(pdf) replace'
+          'graph export test.pdf, as(pdf) replace',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'graph export - test.pdf',
           type: 'figure',
-          path: 'test.pdf'
+          path: 'test.pdf',
         });
         libraries = new StataHandler().getOutputs(
           'test.uri',
-          ' gr export "C:\\Stats\\test.pdf" , as(pdf) replace '
+          ' gr export "C:\\Stats\\test.pdf" , as(pdf) replace ',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'gr export - "C:\\Stats\\test.pdf"',
           type: 'figure',
-          path: '"C:\\Stats\\test.pdf"'
+          path: '"C:\\Stats\\test.pdf"',
         });
       });
       it('should ignore save locations for figures when command case mismatches', () => {
@@ -422,19 +422,19 @@ describe('services', () => {
       });
       it('should ignore commented figure save locations', () => {
         expect(
-          new StataHandler().getOutputs('test.uri', '#graph export "test.pdf"').length
+          new StataHandler().getOutputs('test.uri', '#graph export "test.pdf"').length,
         ).toEqual(0);
         expect(
-          new StataHandler().getOutputs('test.uri', ' #graph export "test.pdf"').length
+          new StataHandler().getOutputs('test.uri', ' #graph export "test.pdf"').length,
         ).toEqual(0);
         expect(
-          new StataHandler().getOutputs('test.uri', '  #  graph export "test.pdf"').length
+          new StataHandler().getOutputs('test.uri', '  #  graph export "test.pdf"').length,
         ).toEqual(0);
       });
       it('should handle multiple figure outputs in a single string', () => {
         const libraries = new StataHandler().getOutputs(
           'test.uri',
-          'graph export "c:\\dev\\test.pdf"\r\n di x \r\n graph export test.pdf, as(pdf) replace\r\r gr export "C:\\Stats\\test.pdf" , as(pdf) replace  \r\n di y '
+          'graph export "c:\\dev\\test.pdf"\r\n di x \r\n graph export test.pdf, as(pdf) replace\r\r gr export "C:\\Stats\\test.pdf" , as(pdf) replace  \r\n di y ',
         );
         expect(libraries.length).toEqual(3);
       });
@@ -444,21 +444,21 @@ describe('services', () => {
         expect(libraries[0]).toMatchObject({
           id: 'cmdlog - C:\\dev\\test.log',
           type: 'log',
-          path: 'C:\\dev\\test.log'
+          path: 'C:\\dev\\test.log',
         });
         libraries = new StataHandler().getOutputs('test.uri', 'cmdlog using "tmp.log"');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'cmdlog - "tmp.log"',
           type: 'log',
-          path: '"tmp.log"'
+          path: '"tmp.log"',
         });
         libraries = new StataHandler().getOutputs('test.uri', ' log   using    tmp2.log  ');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'log - tmp2.log',
           type: 'log',
-          path: 'tmp2.log'
+          path: 'tmp2.log',
         });
       });
       it('should ignore save locations for logs when command case mismatches', () => {
@@ -467,19 +467,19 @@ describe('services', () => {
       });
       it('should ignore commented log save locations', () => {
         expect(new StataHandler().getOutputs('test.uri', '#cmdlog using "tmp.log"').length).toEqual(
-          0
+          0,
         );
         expect(
-          new StataHandler().getOutputs('test.uri', ' #cmdlog using "tmp.log"').length
+          new StataHandler().getOutputs('test.uri', ' #cmdlog using "tmp.log"').length,
         ).toEqual(0);
         expect(
-          new StataHandler().getOutputs('test.uri', '   #  cmdlog using "tmp.log"').length
+          new StataHandler().getOutputs('test.uri', '   #  cmdlog using "tmp.log"').length,
         ).toEqual(0);
       });
       it('should handle multiple log outputs in a single string', () => {
         const libraries = new StataHandler().getOutputs(
           'test.uri',
-          'cmdlog using C:\\dev\\test.log\r\n di x \r\n cmdlog using "tmp.log"\r\r log   using    tmp2.log  \r\n di y '
+          'cmdlog using C:\\dev\\test.log\r\n di x \r\n cmdlog using "tmp.log"\r\r log   using    tmp2.log  \r\n di y ',
         );
         expect(libraries.length).toEqual(3);
       });
@@ -489,48 +489,48 @@ describe('services', () => {
         expect(libraries[0]).toMatchObject({
           id: 'export excel - mydata',
           type: 'data',
-          path: 'mydata'
+          path: 'mydata',
         });
         libraries = new StataHandler().getOutputs(
           'test.uri',
-          'export delimited v1 v2 v3 using "mydata.txt"'
+          'export delimited v1 v2 v3 using "mydata.txt"',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'export delimited - "mydata.txt"',
           type: 'data',
-          path: '"mydata.txt"'
+          path: '"mydata.txt"',
         });
         libraries = new StataHandler().getOutputs('test.uri', ' outfile using mydata, wide ');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'outfile - mydata',
           type: 'data',
-          path: 'mydata'
+          path: 'mydata',
         });
         libraries = new StataHandler().getOutputs(
           'test.uri',
-          ' export sasxport8  mydata  ,  replace  '
+          ' export sasxport8  mydata  ,  replace  ',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'export sasxport8 - mydata',
           type: 'data',
-          path: 'mydata'
+          path: 'mydata',
         });
         libraries = new StataHandler().getOutputs('test.uri', 'export dbase "C:\\test\\test.db"');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'export dbase - "C:\\test\\test.db"',
           type: 'data',
-          path: '"C:\\test\\test.db"'
+          path: '"C:\\test\\test.db"',
         });
         libraries = new StataHandler().getOutputs('test.uri', 'xmlsave "/Users/test/test.xml"');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'xmlsave - "/Users/test/test.xml"',
           type: 'data',
-          path: '"/Users/test/test.xml"'
+          path: '"/Users/test/test.xml"',
         });
       });
       it('should ignore save locations for export when command case mismatches', () => {
@@ -539,19 +539,19 @@ describe('services', () => {
       });
       it('should ignore commented export save locations', () => {
         expect(
-          new StataHandler().getOutputs('test.uri', '#outfile using mydata, wide').length
+          new StataHandler().getOutputs('test.uri', '#outfile using mydata, wide').length,
         ).toEqual(0);
         expect(
-          new StataHandler().getOutputs('test.uri', ' #outfile using mydata, wide').length
+          new StataHandler().getOutputs('test.uri', ' #outfile using mydata, wide').length,
         ).toEqual(0);
         expect(
-          new StataHandler().getOutputs('test.uri', '  # outfile using mydata, wide ').length
+          new StataHandler().getOutputs('test.uri', '  # outfile using mydata, wide ').length,
         ).toEqual(0);
       });
       it('should handle multiple export outputs in a single string', () => {
         const libraries = new StataHandler().getOutputs(
           'test.uri',
-          'export delimited v1 v2 v3 using "mydata.txt"\r\n  export sasxport8  mydata  ,  replace  \r\n di x \r\n Outfile using mydata, wide  \r\n    export dbase "C:\\test\\test.db"'
+          'export delimited v1 v2 v3 using "mydata.txt"\r\n  export sasxport8  mydata  ,  replace  \r\n di x \r\n Outfile using mydata, wide  \r\n    export dbase "C:\\test\\test.db"',
         );
         expect(libraries.length).toEqual(3);
       });
@@ -561,24 +561,24 @@ describe('services', () => {
         expect(libraries[0]).toMatchObject({
           id: "putdocx - 'test'",
           type: 'data',
-          path: "'test'"
+          path: "'test'",
         });
         libraries = new StataHandler().getOutputs('test.uri', 'putpdf save example.pdf');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'putpdf - example.pdf',
           type: 'data',
-          path: 'example.pdf'
+          path: 'example.pdf',
         });
         libraries = new StataHandler().getOutputs(
           'test.uri',
-          ' putexcel  save  "C:\\Documents\\test.xlsx" '
+          ' putexcel  save  "C:\\Documents\\test.xlsx" ',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'putexcel - "C:\\Documents\\test.xlsx"',
           type: 'data',
-          path: '"C:\\Documents\\test.xlsx"'
+          path: '"C:\\Documents\\test.xlsx"',
         });
       });
       it('should ignore save locations for put* when command case mismatches', () => {
@@ -587,19 +587,19 @@ describe('services', () => {
       });
       it('should ignore commented put* locations', () => {
         expect(
-          new StataHandler().getOutputs('test.uri', '#putpdf save example.pdf').length
+          new StataHandler().getOutputs('test.uri', '#putpdf save example.pdf').length,
         ).toEqual(0);
         expect(
-          new StataHandler().getOutputs('test.uri', ' #putpdf save example.pdf').length
+          new StataHandler().getOutputs('test.uri', ' #putpdf save example.pdf').length,
         ).toEqual(0);
         expect(
-          new StataHandler().getOutputs('test.uri', '  # putpdf save example.pdf ').length
+          new StataHandler().getOutputs('test.uri', '  # putpdf save example.pdf ').length,
         ).toEqual(0);
       });
       it('should handle multiple put* commands in a single string', () => {
         const libraries = new StataHandler().getOutputs(
           'test.uri',
-          'putdocx save \'test\', replace\r\n putpdf save example.pdf \r\n\r\n di x\r\n  putexcel  save  "C:\\Documents\\test.xlsx" '
+          'putdocx save \'test\', replace\r\n putpdf save example.pdf \r\n\r\n di x\r\n  putexcel  save  "C:\\Documents\\test.xlsx" ',
         );
         expect(libraries.length).toEqual(3);
       });
@@ -609,24 +609,24 @@ describe('services', () => {
         expect(libraries[0]).toMatchObject({
           id: 'esttab - C:\\dev\\test.csv',
           type: 'data',
-          path: 'C:\\dev\\test.csv'
+          path: 'C:\\dev\\test.csv',
         });
         libraries = new StataHandler().getOutputs('test.uri', 'estout using "tmp.csv"\r\n');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'estout - "tmp.csv"',
           type: 'data',
-          path: '"tmp.csv"'
+          path: '"tmp.csv"',
         });
         libraries = new StataHandler().getOutputs(
           'test.uri',
-          ' esttab  using  example.csv , replace wide plain'
+          ' esttab  using  example.csv , replace wide plain',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'esttab - example.csv',
           type: 'data',
-          path: 'example.csv'
+          path: 'example.csv',
         });
       });
       it('should ignore save locations for est when command case mismatches', () => {
@@ -641,70 +641,70 @@ describe('services', () => {
       });
       it('should ignore commented est save locations', () => {
         expect(new StataHandler().getOutputs('test.uri', '#esttab using test.csv').length).toEqual(
-          0
+          0,
         );
         expect(new StataHandler().getOutputs('test.uri', ' #esttab using test.csv').length).toEqual(
-          0
+          0,
         );
         expect(
-          new StataHandler().getOutputs('test.uri', '  # esttab using test.csv ').length
+          new StataHandler().getOutputs('test.uri', '  # esttab using test.csv ').length,
         ).toEqual(0);
       });
       it('should handle multiple est outputs in a single string', () => {
         const libraries = new StataHandler().getOutputs(
           'test.uri',
-          'estadd using test.csv\r\ndi x\r\nestout using test.csv\r\n\r\nestout using C:\\test.csv\r\n  estout using "C:\\test.csv"  \r\nesttab using example.csv , replace wide plain \r \n  esttab  using  example.csv ,  replace  wide  plain \nestadd using test csv \nestadd using test .csv\nestout using /c:/test.csv'
+          'estadd using test.csv\r\ndi x\r\nestout using test.csv\r\n\r\nestout using C:\\test.csv\r\n  estout using "C:\\test.csv"  \r\nesttab using example.csv , replace wide plain \r \n  esttab  using  example.csv ,  replace  wide  plain \nestadd using test csv \nestadd using test .csv\nestout using /c:/test.csv',
         );
         expect(libraries.length).toEqual(8);
       });
       it('should retrieve save locations for table1 commands', () => {
         let libraries = new StataHandler().getOutputs(
           'test.uri',
-          'table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(C:\\dev\\testing.csv, replace)'
+          'table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(C:\\dev\\testing.csv, replace)',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'table1 - C:\\dev\\testing.csv',
           type: 'data',
-          path: 'C:\\dev\\testing.csv'
+          path: 'C:\\dev\\testing.csv',
         });
         libraries = new StataHandler().getOutputs(
           'test.uri',
-          ' table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(  testing.csv , replace) '
+          ' table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(  testing.csv , replace) ',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'table1 - testing.csv',
           type: 'data',
-          path: 'testing.csv'
+          path: 'testing.csv',
         });
         libraries = new StataHandler().getOutputs(
           'test.uri',
-          ' table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving("testing 2.csv", replace)'
+          ' table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving("testing 2.csv", replace)',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'table1 - "testing 2.csv"',
           type: 'data',
-          path: '"testing 2.csv"'
+          path: '"testing 2.csv"',
         });
       });
       it('should ignore save locations for est when command table1 mismatches', () => {
         const libraries = new StataHandler().getOutputs(
           'test.uri',
-          'Table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing.csv, replace)'
+          'Table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing.csv, replace)',
         );
         expect(libraries.length).toEqual(0);
       });
       it('should ignore save locations for table1 if there is no file extension', () => {
         let libraries = new StataHandler().getOutputs(
           'test.uri',
-          'table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing csv, replace)'
+          'table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing csv, replace)',
         );
         expect(libraries.length).toEqual(0);
         libraries = new StataHandler().getOutputs(
           'test.uri',
-          'table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(\r\n#testing csv, replace)'
+          'table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(\r\n#testing csv, replace)',
         );
         expect(libraries.length).toEqual(0);
       });
@@ -712,26 +712,26 @@ describe('services', () => {
         expect(
           new StataHandler().getOutputs(
             'test.uri',
-            '#table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing.csv, replace)'
-          ).length
+            '#table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing.csv, replace)',
+          ).length,
         ).toEqual(0);
         expect(
           new StataHandler().getOutputs(
             'test.uri',
-            ' # table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing.csv, replace)'
-          ).length
+            ' # table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing.csv, replace)',
+          ).length,
         ).toEqual(0);
         expect(
           new StataHandler().getOutputs(
             'test.uri',
-            '  #  table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing.csv, replace) '
-          ).length
+            '  #  table1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing.csv, replace) ',
+          ).length,
         ).toEqual(0);
       });
       it('should handle multiple table1 outputs in a single string', () => {
         const libraries = new StataHandler().getOutputs(
           'test.uri',
-          '\r\n table1 , vars ( gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving ( testing.csv , replace ) \r\ntable1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing.csv, replace)\r\ntable1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing, replace)'
+          '\r\n table1 , vars ( gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving ( testing.csv , replace ) \r\ntable1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing.csv, replace)\r\ntable1, vars(gender cat \\ race cat \\ ridageyr contn %4.2f \\ married cat \\ income cat \\ education cat \\ bmxht contn %4.2f \\ bmxwt conts \\ bmxbmi conts \\ bmxwaist contn %4.2f \\ lbdhdd contn %4.2f \\ lbdldl contn %4.2f \\ lbxtr conts \\ lbxglu conts \\ lbxin conts) saving(testing, replace)',
         );
         expect(libraries.length).toEqual(2);
       });
@@ -749,71 +749,71 @@ describe('services', () => {
         expect(libraries[0]).toMatchObject({
           id: 'import excel - mydata',
           type: 'data',
-          path: 'mydata'
+          path: 'mydata',
         });
         libraries = new StataHandler().getInputs(
           'test.uri',
-          'import delimited "mydata.txt", varnames(5)'
+          'import delimited "mydata.txt", varnames(5)',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'import delimited - "mydata.txt"',
           type: 'data',
-          path: '"mydata.txt"'
+          path: '"mydata.txt"',
         });
         libraries = new StataHandler().getInputs(
           'test.uri',
-          ' infile str16 name sex:sexfmt age using persons, wide '
+          ' infile str16 name sex:sexfmt age using persons, wide ',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'infile - persons',
           type: 'data',
-          path: 'persons'
+          path: 'persons',
         });
         libraries = new StataHandler().getInputs('test.uri', 'inf using test.raw');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'inf - test.raw',
           type: 'data',
-          path: 'test.raw'
+          path: 'test.raw',
         });
         libraries = new StataHandler().getInputs(
           'test.uri',
-          'infix acc_rate 1-4 spdlimit 6-7 acc_pts 9-11 using test.raw'
+          'infix acc_rate 1-4 spdlimit 6-7 acc_pts 9-11 using test.raw',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'infix - test.raw',
           type: 'data',
-          path: 'test.raw'
+          path: 'test.raw',
         });
         libraries = new StataHandler().getInputs(
           'test.uri',
-          ' import sasxport5  mydata  , novallabels  '
+          ' import sasxport5  mydata  , novallabels  ',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'import sasxport5 - mydata',
           type: 'data',
-          path: 'mydata'
+          path: 'mydata',
         });
         libraries = new StataHandler().getInputs('test.uri', 'import dbase "C:\\test\\test.db"');
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'import dbase - "C:\\test\\test.db"',
           type: 'data',
-          path: '"C:\\test\\test.db"'
+          path: '"C:\\test\\test.db"',
         });
         libraries = new StataHandler().getInputs(
           'test.uri',
-          'xmluse "/Users/test/test.xml", doctype(dta)'
+          'xmluse "/Users/test/test.xml", doctype(dta)',
         );
         expect(libraries.length).toEqual(1);
         expect(libraries[0]).toMatchObject({
           id: 'xmluse - "/Users/test/test.xml"',
           type: 'data',
-          path: '"/Users/test/test.xml"'
+          path: '"/Users/test/test.xml"',
         });
       });
       it('should ignore save locations for export when command case mismatches', () => {
@@ -822,19 +822,19 @@ describe('services', () => {
       });
       it('should ignore commented export save locations', () => {
         expect(
-          new StataHandler().getInputs('test.uri', '#infile using mydata, wide').length
+          new StataHandler().getInputs('test.uri', '#infile using mydata, wide').length,
         ).toEqual(0);
         expect(
-          new StataHandler().getInputs('test.uri', ' #infile using mydata, wide').length
+          new StataHandler().getInputs('test.uri', ' #infile using mydata, wide').length,
         ).toEqual(0);
         expect(
-          new StataHandler().getInputs('test.uri', '  # infile using mydata, wide ').length
+          new StataHandler().getInputs('test.uri', '  # infile using mydata, wide ').length,
         ).toEqual(0);
       });
       it('should handle multiple export outputs in a single string', () => {
         const libraries = new StataHandler().getInputs(
           'test.uri',
-          'import delimited "mydata.txt", varnames(5)\r\n inf using test.raw \r\ndi x\r\n  import  sasxport5  mydata  , novallabels  \r\nInfile using mydata, wide'
+          'import delimited "mydata.txt", varnames(5)\r\n inf using test.raw \r\ndi x\r\n  import  sasxport5  mydata  , novallabels  \r\nInfile using mydata, wide',
         );
         expect(libraries.length).toEqual(3);
       });

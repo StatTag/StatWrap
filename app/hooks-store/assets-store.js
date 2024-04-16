@@ -4,7 +4,7 @@ const configureStore = () => {
   const actions = {
     SELECT_ASSET: (currentState, assetId) => {
       return { selectedAsset: assetId };
-    }
+    },
   };
 
   initStore(actions, { selectedAsset: null });

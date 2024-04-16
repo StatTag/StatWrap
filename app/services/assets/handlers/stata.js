@@ -35,7 +35,7 @@ export default class StataHandler extends BaseCodeHandler {
       const match = matches[index];
       libraries.push({
         id: this.getLibraryId(match[1].trim()),
-        package: match[1].trim()
+        package: match[1].trim(),
       });
     }
   }
@@ -55,8 +55,8 @@ export default class StataHandler extends BaseCodeHandler {
     //   export sasxport5 v1 v2 v3 using mydata if tvar==2010
     const importMatches = [
       ...text.matchAll(
-        /^\s*?((?:import\s+(?:excel|delimited|sasxport|sasxport5|sasxport8|dbase))|(?:infile|inf|infix|xmluse))\s+?(?:(?:.*)using\s+([^,]+?)|([^,]+?))\s*?(?:$|[\r\n,])/gm
-      )
+        /^\s*?((?:import\s+(?:excel|delimited|sasxport|sasxport5|sasxport8|dbase))|(?:infile|inf|infix|xmluse))\s+?(?:(?:.*)using\s+([^,]+?)|([^,]+?))\s*?(?:$|[\r\n,])/gm,
+      ),
     ];
     for (let index = 0; index < importMatches.length; index++) {
       const match = importMatches[index];
@@ -65,7 +65,7 @@ export default class StataHandler extends BaseCodeHandler {
       inputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.DATA,
-        path
+        path,
       });
     }
 
@@ -79,7 +79,7 @@ export default class StataHandler extends BaseCodeHandler {
     }
 
     const figureMatches = [
-      ...text.matchAll(/^\s*(gr(?:aph)? export)\s*([\s\S]+?)(?:,[\s\S]+?)?$/gm)
+      ...text.matchAll(/^\s*(gr(?:aph)? export)\s*([\s\S]+?)(?:,[\s\S]+?)?$/gm),
     ];
     for (let index = 0; index < figureMatches.length; index++) {
       const match = figureMatches[index];
@@ -87,7 +87,7 @@ export default class StataHandler extends BaseCodeHandler {
       outputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.FIGURE,
-        path
+        path,
       });
     }
 
@@ -98,7 +98,7 @@ export default class StataHandler extends BaseCodeHandler {
       outputs.push({
         id: `${match[1]} - ${path}`,
         type: 'log',
-        path
+        path,
       });
     }
 
@@ -111,8 +111,8 @@ export default class StataHandler extends BaseCodeHandler {
     //   export sasxport5 v1 v2 v3 using mydata if tvar==2010
     const exportMatches = [
       ...text.matchAll(
-        /^\s*?((?:export\s+(?:excel|delimited|sasxport|sasxport5|sasxport8|dbase))|outfile|xmlsave)\s+?(?:(?:.*)using\s+([^,]+?)|([^,]+?))\s*?(?:$|[\r\n,])/gm
-      )
+        /^\s*?((?:export\s+(?:excel|delimited|sasxport|sasxport5|sasxport8|dbase))|outfile|xmlsave)\s+?(?:(?:.*)using\s+([^,]+?)|([^,]+?))\s*?(?:$|[\r\n,])/gm,
+      ),
     ];
     for (let index = 0; index < exportMatches.length; index++) {
       const match = exportMatches[index];
@@ -121,12 +121,12 @@ export default class StataHandler extends BaseCodeHandler {
       outputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.DATA,
-        path
+        path,
       });
     }
 
     const putMatches = [
-      ...text.matchAll(/^\s*(putdocx|putexcel|putpdf)\s+save\s+([\s\S]+?)(?:,[\s\S]+?)?$/gm)
+      ...text.matchAll(/^\s*(putdocx|putexcel|putpdf)\s+save\s+([\s\S]+?)(?:,[\s\S]+?)?$/gm),
     ];
     for (let index = 0; index < putMatches.length; index++) {
       const match = putMatches[index];
@@ -134,7 +134,7 @@ export default class StataHandler extends BaseCodeHandler {
       outputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.DATA,
-        path
+        path,
       });
     }
 
@@ -142,8 +142,8 @@ export default class StataHandler extends BaseCodeHandler {
     // are supporting it here.
     const estMatches = [
       ...text.matchAll(
-        /^\s*(est(?:out|add|tab))\s+(?:using)\s+([^,\r\n,#]+?\.[^,\r\n,#]+?)(?:[, \r\n,#]|$)/gm
-      )
+        /^\s*(est(?:out|add|tab))\s+(?:using)\s+([^,\r\n,#]+?\.[^,\r\n,#]+?)(?:[, \r\n,#]|$)/gm,
+      ),
     ];
     for (let index = 0; index < estMatches.length; index++) {
       const match = estMatches[index];
@@ -151,7 +151,7 @@ export default class StataHandler extends BaseCodeHandler {
       outputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.DATA,
-        path
+        path,
       });
     }
 
@@ -159,8 +159,8 @@ export default class StataHandler extends BaseCodeHandler {
     // are supporting it here.
     const table1Matches = [
       ...text.matchAll(
-        /^\s*(table1)[\s\S]+?(?:saving)\s*?\(\s*([^,\r\n,#]+?\.[^,\r\n,#]+?)\s*[,\r\n,#][\s\S]*?\)\s*?$/gm
-      )
+        /^\s*(table1)[\s\S]+?(?:saving)\s*?\(\s*([^,\r\n,#]+?\.[^,\r\n,#]+?)\s*[,\r\n,#][\s\S]*?\)\s*?$/gm,
+      ),
     ];
     for (let index = 0; index < table1Matches.length; index++) {
       const match = table1Matches[index];
@@ -168,7 +168,7 @@ export default class StataHandler extends BaseCodeHandler {
       outputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.DATA,
-        path
+        path,
       });
     }
 
@@ -193,7 +193,7 @@ export default class StataHandler extends BaseCodeHandler {
       const match = pluginMatches[index];
       libraries.push({
         id: this.getLibraryId(match[1]),
-        package: match[1].trim()
+        package: match[1].trim(),
       });
     }
     // Load a plugin with specified location
@@ -202,13 +202,13 @@ export default class StataHandler extends BaseCodeHandler {
     // 1 - handle used for plugin
     // 2 - file location of plugin
     const pluginUsingMatches = [
-      ...text.matchAll(/pr(?:ogram)?\s+(.+),\s+plug(?:in)?\s*(?:using\s*\(\s*"(.+?)"\s*\))/gm)
+      ...text.matchAll(/pr(?:ogram)?\s+(.+),\s+plug(?:in)?\s*(?:using\s*\(\s*"(.+?)"\s*\))/gm),
     ];
     for (let index = 0; index < pluginUsingMatches.length; index++) {
       const match = pluginUsingMatches[index];
       libraries.push({
         id: this.getLibraryId(match[1], match[2]),
-        package: match[1].trim()
+        package: match[1].trim(),
       });
     }
     return libraries;

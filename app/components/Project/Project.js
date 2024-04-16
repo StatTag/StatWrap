@@ -1,6 +1,3 @@
-/* eslint-disable no-param-reassign */
-/* eslint-disable no-lonely-if */
-/* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
 import { Tab, Tabs } from '@mui/material';
 import { TabPanel, TabContext } from '@mui/lab';
@@ -652,7 +649,12 @@ class Project extends Component<Props> {
       ) : null;
 
       const projectNotes = this.props.project ? (
-        <ProjectNotes project={this.props.project} />
+        <ProjectNotes
+          project={this.props.project}
+          onAddedNote={this.projectUpsertNoteHandler}
+          onUpdatedNote={this.projectUpsertNoteHandler}
+          onDeletedNote={this.projectDeleteNoteHandler}
+        />
       ) : null;
 
       const people = this.props.project ? (

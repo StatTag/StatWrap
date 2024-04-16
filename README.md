@@ -71,6 +71,33 @@ We do not use templates for reporting issues - anyone who has a question about h
 
 We appreciate contributions from the community, but as with any project a change suggested may not be something we choose to incorporate into the code base. If you have any questions about creation or implementation of a feature, please feel free to [open a new issue](https://github.com/StatTag/StatWrap/issues/new/choose) to solicit feedback.
 
+## Solutions to Development Issues
+If when running the project locally, you get the following error:
+
+```
+node:internal/errors:497
+    ErrorCaptureStackTrace(err);
+    ^
+
+Error: ENOSPC: System limit for number of file watchers reached, watch '/home/<user>/StatWrap/configs'
+    at FSWatcher.<computed> (node:internal/fs/watchers:247:19)
+    at Object.watch (node:fs:2392:36)
+```
+You will need to increase the number of file watchers available, to its maximum, by running the following command:
+
+For debian-based distros:
+
+Execute this command:
+```
+echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+```
+
+For arch-based distros:
+
+Add `fs.inotify.max_user_watches=524288` to `/etc/sysctl.d/99-sysctl.conf` and then execute `sysctl --system`
+Or
+Follow [these instructions](https://gist.github.com/tbjgolden/c53ca37f3bc2fab8c930183310918c8c) instead.
+
 ## Solutions to Build Issues
 
 There are some potential build/packaging issues that we need to fix long-term, but have temporary workarounds.

@@ -53,12 +53,12 @@ export default class LogWatcherService {
       this.watcher = chokidar.watch(path, {
         persistent: true,
         usePolling: true, // Documentation notes we need this for detecting changes over network
-        awaitWriteFinish: true // Ensure log file (which can grow large) is done being written to
+        awaitWriteFinish: true, // Ensure log file (which can grow large) is done being written to
       });
-      this.watcher.on('change', changedPath => {
+      this.watcher.on('change', (changedPath) => {
         if (this.win) {
           this.win.webContents.send(Messages.PROJECT_EXTERNALLY_CHANGED_RESPONSE, {
-            projectId: this.watchedProjects[changedPath]
+            projectId: this.watchedProjects[changedPath],
           });
         }
       });
@@ -91,7 +91,7 @@ export default class LogWatcherService {
 
     // Solution from: https://stackoverflow.com/a/28191966
     const projectPath = Object.keys(this.watchedProjects).find(
-      key => this.watchedProjects[key] === id
+      (key) => this.watchedProjects[key] === id,
     );
     if (!projectPath) {
       return;

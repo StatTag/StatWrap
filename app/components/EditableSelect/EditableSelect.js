@@ -6,23 +6,23 @@ import { IconButton, Popover } from '@mui/material';
 import { FaChevronDown, FaEdit, FaTrash } from 'react-icons/fa';
 import styles from './EditableSelect.css';
 
-const editableSelect = props => {
+const editableSelect = (props) => {
   const { title, data, selectedItem, disabled, onSelectItem, onEditItem, onDeleteItem } = props;
   const boxRef = React.useRef();
   const [displayValue, setDisplayValue] = React.useState(title);
   const [listOpen, setListOpen] = React.useState(false);
 
   const toggleList = () => {
-    setListOpen(prevState => !prevState);
+    setListOpen((prevState) => !prevState);
   };
 
   React.useEffect(() => {
     // If there is no selected item, or if it doesn't match the selected
     // value that was there before, clear the display.
     setDisplayValue(selectedItem ? selectedItem.name : title);
-  }, [data, selectedItem]);
+  }, [data, selectedItem, title]);
 
-  const handleSelectItem = item => {
+  const handleSelectItem = (item) => {
     setDisplayValue(item ? item.name : title);
     setListOpen(false);
 
@@ -45,13 +45,13 @@ const editableSelect = props => {
   if (data) {
     items = [
       <hr key="separator" />,
-      data.map(d => {
+      data.map((d) => {
         return (
           <li
             key={d.id}
             className={[
               styles.listItem,
-              selectedItem && d.id === selectedItem.id ? styles.selected : ''
+              selectedItem && d.id === selectedItem.id ? styles.selected : '',
             ].join(' ')}
           >
             <div className={styles.itemContainer} onClick={() => handleSelectItem(d)}>
@@ -74,7 +74,7 @@ const editableSelect = props => {
             </IconButton>
           </li>
         );
-      })
+      }),
     ];
   }
 

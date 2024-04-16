@@ -1,4 +1,3 @@
-/* eslint-disable no-nested-ternary */
 import { v4 as uuid } from 'uuid';
 import username from 'username';
 
@@ -90,7 +89,7 @@ export default class UserService {
     } else if (!this.validateName(person.name)) {
       console.log('invalid name');
       throw new Error(
-        'The first name and last name are required, and must be at least one non-whitespace character in length.'
+        'The first name and last name are required, and must be at least one non-whitespace character in length.',
       );
     }
 
@@ -107,7 +106,7 @@ export default class UserService {
       id: person.id,
       name: person.name,
       affiliation: person.affiliation,
-      added: new Date(Date.now()).toISOString()
+      added: new Date(Date.now()).toISOString(),
     };
 
     // If we have an ID for the person, we need to see if they already exist.  That is
@@ -115,7 +114,7 @@ export default class UserService {
     // ID, we need to generate one and then can just add it.
     let addPersonToDirectory = false;
     if (personCopy.id) {
-      const existingPerson = settings.directory.find(p => p.id === personCopy.id);
+      const existingPerson = settings.directory.find((p) => p.id === personCopy.id);
       if (existingPerson) {
         // Copy over only what attributes need to be saved in the directory.  Some
         // attributs may be specific to the project entry for the person.
@@ -138,7 +137,7 @@ export default class UserService {
       // If we have the limit of entries, remove the oldest one
       if (settings.directory.length >= PersonDirectoryLimit) {
         const sortedDirectory = settings.directory.sort((a, b) =>
-          a.added > b.added ? -1 : b.added > a.added ? 1 : 0
+          a.added > b.added ? -1 : b.added > a.added ? 1 : 0,
         );
         settings.directory = sortedDirectory.slice(0, PersonDirectoryLimit - 1);
       }
@@ -164,7 +163,7 @@ export default class UserService {
       settings.formatVersion = SettingsFileFormatVersion;
     }
 
-    const foundIndex = settings.directory.findIndex(p => p.id === person.id);
+    const foundIndex = settings.directory.findIndex((p) => p.id === person.id);
     if (foundIndex === -1) {
       return false;
     }

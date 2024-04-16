@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import TagsInput from 'react-tagsinput';
 
-const tagEditor = props => {
+const tagEditor = (props) => {
   const [tags, setTags] = useState(props.tags);
 
-  const changedTagsHandler = updatedTags => {
+  const changedTagsHandler = (updatedTags) => {
     setTags(updatedTags);
     if (props.onChange) {
       props.onChange(updatedTags);
