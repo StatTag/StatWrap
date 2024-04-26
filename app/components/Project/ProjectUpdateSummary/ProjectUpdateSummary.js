@@ -1,14 +1,12 @@
 /* eslint-disable jsx-a11y/interactive-supports-focus */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
-/* eslint-disable react/no-children-prop */
-/* eslint-disable react/forbid-prop-types */
 import React from 'react';
 import PropTypes from 'prop-types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import styles from './ProjectUpdateSummary.css';
 import ProjectUtil from '../../../utils/project';
 
-const projectUpdateSummary = props => {
+function projectUpdateSummary(props) {
   const { updates } = props;
   let control = null;
   // We only want to display content if the user has looked at the
@@ -32,15 +30,15 @@ const projectUpdateSummary = props => {
       {control}
     </div>
   );
-};
+}
 
 projectUpdateSummary.propTypes = {
   updates: PropTypes.object,
-  onClickLink: PropTypes.func.isRequired
+  onClickLink: PropTypes.func.isRequired,
 };
 
 projectUpdateSummary.defaultProps = {
-  updates: null
+  updates: null,
 };
 
 export default projectUpdateSummary;

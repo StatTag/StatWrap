@@ -44,7 +44,7 @@ export default class PythonHandler extends BaseCodeHandler {
     }
 
     const figureMatches = [
-      ...text.matchAll(/(imread)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)$/gim)
+      ...text.matchAll(/(imread)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)$/gim),
     ];
     for (let index = 0; index < figureMatches.length; index++) {
       const match = figureMatches[index];
@@ -52,14 +52,14 @@ export default class PythonHandler extends BaseCodeHandler {
       inputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.FIGURE,
-        path
+        path,
       });
     }
 
     const pandasMatches = [
       ...text.matchAll(
-        /(read_table|read_fwf|read_feather|read_parquet|read_csv|read_pickle|read_hdf|read_sql_table|read_sql_query|read_sql|read_excel|read_json|read_html|read_xml|read_stata|read_orc|read_sas|read_spss)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim
-      )
+        /(read_table|read_fwf|read_feather|read_parquet|read_csv|read_pickle|read_hdf|read_sql_table|read_sql_query|read_sql|read_excel|read_json|read_html|read_xml|read_stata|read_orc|read_sas|read_spss)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim,
+      ),
     ];
     for (let index = 0; index < pandasMatches.length; index++) {
       const match = pandasMatches[index];
@@ -67,14 +67,14 @@ export default class PythonHandler extends BaseCodeHandler {
       inputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.DATA,
-        path
+        path,
       });
     }
 
     const fileMatches = [
       ...text.matchAll(
-        /(open)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s,]*(['"]{1,}[\s\S]+?['"]{1,})?[\s\S]*?\)/gim
-      )
+        /(open)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s,]*(['"]{1,}[\s\S]+?['"]{1,})?[\s\S]*?\)/gim,
+      ),
     ];
     for (let index = 0; index < fileMatches.length; index++) {
       const match = fileMatches[index];
@@ -85,7 +85,7 @@ export default class PythonHandler extends BaseCodeHandler {
         inputs.push({
           id: `${match[1]} - ${path}`,
           type: Constants.DependencyType.DATA,
-          path
+          path,
         });
       }
     }
@@ -101,8 +101,8 @@ export default class PythonHandler extends BaseCodeHandler {
 
     const figureMatches = [
       ...text.matchAll(
-        /^[^#]*?(plot|savefig|imsave|imwrite|save)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)$/gm
-      )
+        /^[^#]*?(plot|savefig|imsave|imwrite|save)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)$/gm,
+      ),
     ];
     for (let index = 0; index < figureMatches.length; index++) {
       const match = figureMatches[index];
@@ -110,14 +110,14 @@ export default class PythonHandler extends BaseCodeHandler {
       outputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.FIGURE,
-        path
+        path,
       });
     }
 
     const pandasMatches = [
       ...text.matchAll(
-        /^[^#]*?(to_parquet|to_csv|to_pickle|to_hdf|to_sql|to_excel|to_json|to_html|to_feather|to_latex|to_stata|to_markdown)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gm
-      )
+        /^[^#]*?(to_parquet|to_csv|to_pickle|to_hdf|to_sql|to_excel|to_json|to_html|to_feather|to_latex|to_stata|to_markdown)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gm,
+      ),
     ];
     for (let index = 0; index < pandasMatches.length; index++) {
       const match = pandasMatches[index];
@@ -125,14 +125,14 @@ export default class PythonHandler extends BaseCodeHandler {
       outputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.DATA,
-        path
+        path,
       });
     }
 
     const fileMatches = [
       ...text.matchAll(
-        /^[^#]*?(open)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s,]*(['"]{1,}[\s\S]+?['"]{1,})?[\s\S]*?\)/gm
-      )
+        /^[^#]*?(open)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s,]*(['"]{1,}[\s\S]+?['"]{1,})?[\s\S]*?\)/gm,
+      ),
     ];
     for (let index = 0; index < fileMatches.length; index++) {
       const match = fileMatches[index];
@@ -143,7 +143,7 @@ export default class PythonHandler extends BaseCodeHandler {
         outputs.push({
           id: `${match[1]} - ${path}`,
           type: Constants.DependencyType.DATA,
-          path
+          path,
         });
       }
     }
@@ -167,7 +167,7 @@ export default class PythonHandler extends BaseCodeHandler {
     // 3 - alias for the import
     //     e.g., "import one as two" --> m[3]: "two"
     const matches = [
-      ...text.matchAll(/^[^#]*?(?:from[ ]+(\S+)[ ]+)?import[ ]+(.+?)(?:[ ]+as[ ]+(\S+))?[ ]*$/gm)
+      ...text.matchAll(/^[^#]*?(?:from[ ]+(\S+)[ ]+)?import[ ]+(.+?)(?:[ ]+as[ ]+(\S+))?[ ]*$/gm),
     ];
     for (let index = 0; index < matches.length; index++) {
       const match = matches[index];
@@ -175,7 +175,7 @@ export default class PythonHandler extends BaseCodeHandler {
         id: this.getLibraryId(match[1], match[2]),
         module: match[1] ? match[1] : null,
         import: match[2] ? match[2] : null,
-        alias: match[3] ? match[3] : null
+        alias: match[3] ? match[3] : null,
       });
     }
     return libraries;

@@ -1,4 +1,3 @@
-/* eslint-disable react/forbid-prop-types */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { Component } from 'react';
@@ -29,7 +28,7 @@ class UserProfileDialog extends Component {
       displayName: props.name ? props.name.display : '',
       firstName: props.name ? props.name.first : '',
       lastName: props.name ? props.name.last : '',
-      affiliation: props.affiliation ? props.affiliation : ''
+      affiliation: props.affiliation ? props.affiliation : '',
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -44,7 +43,7 @@ class UserProfileDialog extends Component {
   componentWillUnmount() {
     ipcRenderer.removeListener(
       Messages.SAVE_USER_PROFILE_RESPONSE,
-      this.handleSaveUserProfileCompleted
+      this.handleSaveUserProfileCompleted,
     );
   }
 
@@ -65,9 +64,9 @@ class UserProfileDialog extends Component {
       name: {
         first: this.state.firstName,
         last: this.state.lastName,
-        display: this.state.displayName
+        display: this.state.displayName,
       },
-      affiliation: this.state.affiliation
+      affiliation: this.state.affiliation,
     };
     ipcRenderer.send(Messages.SAVE_USER_PROFILE_REQUEST, user);
   }
@@ -78,7 +77,7 @@ class UserProfileDialog extends Component {
     const { name } = target;
 
     this.setState({
-      [name]: value
+      [name]: value,
     });
   }
 
@@ -174,7 +173,7 @@ UserProfileDialog.propTypes = {
   onClose: PropTypes.func.isRequired,
   open: PropTypes.bool,
   // Triggered on a successful save of the person
-  onSave: PropTypes.func
+  onSave: PropTypes.func,
 };
 
 UserProfileDialog.defaultProps = {
@@ -182,7 +181,7 @@ UserProfileDialog.defaultProps = {
   name: null,
   affiliation: null,
   open: false,
-  onSave: null
+  onSave: null,
 };
 
 UserProfileDialog.contextType = UserContext;

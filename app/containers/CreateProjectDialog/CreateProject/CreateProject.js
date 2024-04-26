@@ -3,6 +3,7 @@ import { List, ListItem, ListItemAvatar, ListItemText, Avatar } from '@mui/mater
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import FolderIcon from '@mui/icons-material/Folder';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
+import PropTypes from 'prop-types';
 import Constants from '../../../constants/constants';
 
 export default function CreateProject(props) {
@@ -44,3 +45,7 @@ export default function CreateProject(props) {
     </List>
   );
 }
+
+CreateProject.propTypes = {
+  onSelect: PropTypes.func.isRequired,
+};

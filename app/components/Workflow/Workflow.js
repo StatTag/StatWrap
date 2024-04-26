@@ -1,10 +1,11 @@
 import { ToggleButtonGroup, ToggleButton } from '@mui/material';
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import DependencyGraph from './DependencyGraph/DependencyGraphEChart';
 import DependencyTree from './DependencyTree/DependencyTreeEChart';
 import styles from './Workflow.css';
 
-const Workflow = props => {
+function Workflow(props) {
   const [diagram, setDiagram] = useState('graph');
   const [zoomLevel, setZoomLevel] = useState(1);
 
@@ -13,11 +14,11 @@ const Workflow = props => {
   };
 
   const handleZoomIn = () => {
-    setZoomLevel(prevZoom => prevZoom * 1.2);
+    setZoomLevel((prevZoom) => prevZoom * 1.2);
   };
 
   const handleZoomOut = () => {
-    setZoomLevel(prevZoom => prevZoom / 1.2);
+    setZoomLevel((prevZoom) => prevZoom / 1.2);
   };
 
   const { project } = props;
@@ -50,8 +51,12 @@ const Workflow = props => {
         <span className={styles.buttonsWrapper}>
           {diagram !== 'tree' && (
             <>
-              <button onClick={handleZoomIn}>Zoom In</button>
-              <button onClick={handleZoomOut}>Zoom Out</button>
+              <button type="button" onClick={handleZoomIn}>
+                Zoom In
+              </button>
+              <button type="button" onClick={handleZoomOut}>
+                Zoom Out
+              </button>
             </>
           )}
         </span>
@@ -59,6 +64,10 @@ const Workflow = props => {
       {graph}
     </div>
   );
+}
+
+Workflow.propTypes = {
+  project: PropTypes.object.isRequired,
 };
 
 export default Workflow;

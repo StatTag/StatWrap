@@ -34,8 +34,8 @@ export default class SASHandler extends BaseCodeHandler {
 
     const procMatches = [
       ...text.matchAll(
-        /^\s*(proc import)\b[\S\s]*?(?:datafile)\s*?=\s*?(["'][\s\S]*?["'])[\S\s]*?;[\s]*?$/gim
-      )
+        /^\s*(proc import)\b[\S\s]*?(?:datafile)\s*?=\s*?(["'][\s\S]*?["'])[\S\s]*?;[\s]*?$/gim,
+      ),
     ];
     for (let index = 0; index < procMatches.length; index++) {
       const match = procMatches[index];
@@ -43,12 +43,12 @@ export default class SASHandler extends BaseCodeHandler {
       inputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.DATA,
-        path
+        path,
       });
     }
 
     const infileMatches = [
-      ...text.matchAll(/^\s*(infile)\b[\S\s]*?(["'][\s\S]*?["'])[\S\s]*?;[\s]*?$/gim)
+      ...text.matchAll(/^\s*(infile)\b[\S\s]*?(["'][\s\S]*?["'])[\S\s]*?;[\s]*?$/gim),
     ];
     for (let index = 0; index < infileMatches.length; index++) {
       const match = infileMatches[index];
@@ -56,7 +56,7 @@ export default class SASHandler extends BaseCodeHandler {
       inputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.DATA,
-        path
+        path,
       });
     }
 
@@ -71,8 +71,8 @@ export default class SASHandler extends BaseCodeHandler {
 
     const figureMatches = [
       ...text.matchAll(
-        /^\s*(ods pdf|ods epub|ods epub2|ods epub3|ods pcl|ods powerpoint|ods ps|ods rtf|ods word)\b[\S\s]*?file\s*?=\s*?(["'][\s\S]*?["'])[\S\s]*?;[\s]*?$/gim
-      )
+        /^\s*(ods pdf|ods epub|ods epub2|ods epub3|ods pcl|ods powerpoint|ods ps|ods rtf|ods word)\b[\S\s]*?file\s*?=\s*?(["'][\s\S]*?["'])[\S\s]*?;[\s]*?$/gim,
+      ),
     ];
     for (let index = 0; index < figureMatches.length; index++) {
       const match = figureMatches[index];
@@ -80,14 +80,14 @@ export default class SASHandler extends BaseCodeHandler {
       outputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.FIGURE,
-        path
+        path,
       });
     }
 
     const dataMatches = [
       ...text.matchAll(
-        /^\s*(ods chtml|ods csv|ods csvall|ods markup|ods excel|ods html|ods html3|ods html5|ods phtml)\b[\S\s]*?(?:body|file|path)\s*?=\s*?(["'][\s\S]*?["'])[\S\s]*?;[\s]*?$/gim
-      )
+        /^\s*(ods chtml|ods csv|ods csvall|ods markup|ods excel|ods html|ods html3|ods html5|ods phtml)\b[\S\s]*?(?:body|file|path)\s*?=\s*?(["'][\s\S]*?["'])[\S\s]*?;[\s]*?$/gim,
+      ),
     ];
     for (let index = 0; index < dataMatches.length; index++) {
       const match = dataMatches[index];
@@ -95,14 +95,14 @@ export default class SASHandler extends BaseCodeHandler {
       outputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.DATA,
-        path
+        path,
       });
     }
 
     const procMatches = [
       ...text.matchAll(
-        /^\s*(proc export)\b[\S\s]*?(?:outfile)\s*?=\s*?(["'][\s\S]*?["'])[\S\s]*?;[\s]*?$/gim
-      )
+        /^\s*(proc export)\b[\S\s]*?(?:outfile)\s*?=\s*?(["'][\s\S]*?["'])[\S\s]*?;[\s]*?$/gim,
+      ),
     ];
     for (let index = 0; index < procMatches.length; index++) {
       const match = procMatches[index];
@@ -110,7 +110,7 @@ export default class SASHandler extends BaseCodeHandler {
       outputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.DATA,
-        path
+        path,
       });
     }
 
@@ -139,7 +139,7 @@ export default class SASHandler extends BaseCodeHandler {
       const match = includePathMatches[index];
       libraries.push({
         id: this.getLibraryId(match[1]),
-        package: match[1]
+        package: match[1],
       });
     }
 
@@ -153,7 +153,7 @@ export default class SASHandler extends BaseCodeHandler {
       const matchName = match[1].trim();
       libraries.push({
         id: this.getLibraryId(matchName),
-        package: matchName
+        package: matchName,
       });
     }
 
@@ -163,13 +163,13 @@ export default class SASHandler extends BaseCodeHandler {
     // 1 - fileref label
     // 2 - path to file
     const referenceMatches = [
-      ...text.matchAll(/filename\s+(.+)\s+'(.+)'\s?(?:encoding\s?=\s?".*")?;/gim)
+      ...text.matchAll(/filename\s+(.+)\s+'(.+)'\s?(?:encoding\s?=\s?".*")?;/gim),
     ];
     for (let index = 0; index < referenceMatches.length; index++) {
       const match = referenceMatches[index];
       libraries.push({
         id: this.getLibraryId(match[1]),
-        package: match[2]
+        package: match[2],
       });
     }
 
@@ -183,7 +183,7 @@ export default class SASHandler extends BaseCodeHandler {
       const match = libnameMatches[index];
       libraries.push({
         id: this.getLibraryId(match[1]),
-        package: match[2]
+        package: match[2],
       });
     }
 

@@ -49,7 +49,7 @@ export default class SourceControlService {
     const config = {
       fs,
       dir: projectPath,
-      force: true
+      force: true,
     };
 
     if (filePath) {
@@ -63,7 +63,7 @@ export default class SourceControlService {
         formattedCommits.push({
           message,
           committer: `${committer.name} (${committer.email})`,
-          timestamp: this.convertTimestamp(committer)
+          timestamp: this.convertTimestamp(committer),
         });
       }
     }

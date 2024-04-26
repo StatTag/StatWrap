@@ -24,10 +24,10 @@ export default class LogService {
           filename: path.join(
             projectPath,
             Constants.StatWrapFiles.BASE_FOLDER,
-            Constants.StatWrapFiles.LOG
-          )
-        })
-      ]
+            Constants.StatWrapFiles.LOG,
+          ),
+        }),
+      ],
     });
 
     logger.log({
@@ -35,7 +35,7 @@ export default class LogService {
       type: type || Constants.UndefinedDefaults.ACTION_TYPE,
       title: title || Constants.UndefinedDefaults.ACTION_TYPE,
       description,
-      details
+      details,
     });
     logger.close();
   }
@@ -53,17 +53,17 @@ export default class LogService {
           filename: path.join(
             projectPath,
             Constants.StatWrapFiles.BASE_FOLDER,
-            Constants.StatWrapFiles.LOG
-          )
-        })
-      ]
+            Constants.StatWrapFiles.LOG,
+          ),
+        }),
+      ],
     });
 
     const options = {
       from: new Date() - LOG_TIME_LOOKBACK,
       until: new Date(),
       limit: LOG_ROW_LIMIT,
-      start: 0
+      start: 0,
     };
 
     logger.query(options, callback);

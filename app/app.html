@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -32,13 +32,11 @@
         scripts.push(
           process.env.START_HOT
             ? `http://localhost:${port}/dist/renderer.dev.js`
-            : './dist/renderer.prod.js'
+            : './dist/renderer.prod.js',
         );
 
         document.write(
-          scripts
-            .map(script => `<script defer src="${script}"><\/script>`)
-            .join('')
+          scripts.map((script) => `<script defer src="${script}"><\/script>`).join(''),
         );
       }
     </script>

@@ -1,5 +1,4 @@
 /* eslint-disable jsx-a11y/no-autofocus */
-/* eslint-disable react/forbid-prop-types */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { Component } from 'react';
@@ -26,7 +25,7 @@ class AssetGroupDialog extends Component {
       id: props.id ? props.id : null,
       name: props.name ? props.name : '',
       details: props.details ? props.details : '',
-      assets: props.assets ? props.assets : []
+      assets: props.assets ? props.assets : [],
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -38,7 +37,7 @@ class AssetGroupDialog extends Component {
       id: this.state.id,
       name: this.state.name,
       details: this.state.details,
-      assets: this.state.assets
+      assets: this.state.assets,
     };
 
     if (this.props.onSave) {
@@ -52,7 +51,7 @@ class AssetGroupDialog extends Component {
     const { name } = target;
 
     this.setState({
-      [name]: value
+      [name]: value,
     });
   }
 
@@ -124,7 +123,7 @@ AssetGroupDialog.propTypes = {
   onClose: PropTypes.func.isRequired,
   open: PropTypes.bool,
   // Triggered on a successful save of the group
-  onSave: PropTypes.func
+  onSave: PropTypes.func,
 };
 
 AssetGroupDialog.defaultProps = {
@@ -133,7 +132,7 @@ AssetGroupDialog.defaultProps = {
   details: null,
   assets: null,
   open: false,
-  onSave: null
+  onSave: null,
 };
 
 AssetGroupDialog.contextType = UserContext;

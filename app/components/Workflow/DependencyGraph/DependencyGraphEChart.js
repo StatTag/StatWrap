@@ -1,6 +1,6 @@
-// import { style } from 'd3-selection';
 import React, { useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
+import PropTypes from 'prop-types';
 import WorkflowUtil from '../../../utils/workflow';
 import ProjectUtil from '../../../utils/project';
 import AssetUtil from '../../../utils/asset';
@@ -18,7 +18,7 @@ const ICON_TYPES = {
   GENERIC: `${ICON_PATH}generic.svg`,
   LIBRARY: `${ICON_PATH}library.svg`,
   DATA: `${ICON_PATH}data.svg`,
-  FIGURE: `${ICON_PATH}figure.svg`
+  FIGURE: `${ICON_PATH}figure.svg`,
 };
 
 /**
@@ -46,7 +46,7 @@ function getIcon(node) {
   return iconUrl;
 }
 
-const DependencyGraphEChart = props => {
+function DependencyGraphEChart(props) {
   const { assets, zoomLevel } = props;
   const [graphData, setGraphData] = useState(null);
   const [filter, setFilter] = useState([]);
@@ -67,7 +67,7 @@ const DependencyGraphEChart = props => {
 
   // Whenever the filter changes, update the list of assets to include only
   // those that should be displayed.
-  const handleFilterChanged = updatedFilter => {
+  const handleFilterChanged = (updatedFilter) => {
     if (assets) {
       setFilter(updatedFilter);
       setGraphData(WorkflowUtil.getAllDependenciesAsEChartGraph(assets, filter));
@@ -96,8 +96,8 @@ const DependencyGraphEChart = props => {
         confine: true,
         textStyle: {
           overflow: 'breakAll',
-          width: 200
-        }
+          width: 200,
+        },
       },
       series: [
         {
@@ -108,16 +108,16 @@ const DependencyGraphEChart = props => {
           label: {
             show: true,
             position: 'right',
-            formatter: '{b}'
+            formatter: '{b}',
           },
           labelLayout: {
-            hideOverlap: false
+            hideOverlap: false,
           },
           force: { repulsion: 100, edgeLength: 50 },
-          data: graphData.nodes.map(x => ({ ...x, symbol: getIcon(x) })),
-          links: graphData.links
-        }
-      ]
+          data: graphData.nodes.map((x) => ({ ...x, symbol: getIcon(x) })),
+          links: graphData.links,
+        },
+      ],
     };
     graph = <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />;
   }
@@ -135,6 +135,16 @@ const DependencyGraphEChart = props => {
       <div className={styles.graph}>{graph}</div>
     </div>
   );
+}
+
+DependencyGraphEChart.propTypes = {
+  assets: PropTypes.object,
+  zoomLevel: PropTypes.number,
+};
+
+DependencyGraphEChart.defaultProps = {
+  assets: null,
+  zoomLevel: 1,
 };
 
 export default DependencyGraphEChart;

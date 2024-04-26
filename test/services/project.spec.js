@@ -56,7 +56,7 @@ describe('services', () => {
         const project = new ProjectService().loadProjectFile('~/Test/Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith(
-          `${TEST_USER_HOME_PATH}Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`
+          `${TEST_USER_HOME_PATH}Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
         );
       });
       it.onWindows('should resolve the ~ home path', () => {
@@ -64,7 +64,7 @@ describe('services', () => {
         const project = new ProjectService().loadProjectFile('~\\Test\\Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith(
-          `${TEST_USER_HOME_PATH}Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`
+          `${TEST_USER_HOME_PATH}Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
         );
       });
       it.onMac('should return the project details', () => {
@@ -72,7 +72,7 @@ describe('services', () => {
         const project = new ProjectService().loadProjectFile('/Test/Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith(
-          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`
+          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
         );
       });
       it.onWindows('should return the project details', () => {
@@ -80,7 +80,7 @@ describe('services', () => {
         const project = new ProjectService().loadProjectFile('C:\\Test\\Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith(
-          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`
+          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
         );
       });
       it('should throw an exception if the JSON is invalid', () => {
@@ -104,16 +104,22 @@ describe('services', () => {
         expect(project).not.toBeNull();
         expect(project.description.uri).toBe(DESCRIPTION_FILE_PATH);
         expect(project.description.uriContent).toBe(descriptionFileString);
-        expect(fs.readFileSync).toHaveBeenCalledWith(DESCRIPTION_FILE_PATH, { "encoding": "utf8"});
+        expect(fs.readFileSync).toHaveBeenCalledWith(DESCRIPTION_FILE_PATH, { encoding: 'utf8' });
       });
       it('should return an error if the linked description file fails to load', () => {
         fs.readFileSync
-          .mockImplementationOnce(() => { return projectWithLinkedDescriptionString; })
-          .mockImplementationOnce(() => { throw new Error('Invalid'); });
+          .mockImplementationOnce(() => {
+            return projectWithLinkedDescriptionString;
+          })
+          .mockImplementationOnce(() => {
+            throw new Error('Invalid');
+          });
         const project = new ProjectService().loadProjectFile('Path');
         expect(project).not.toBeNull();
         expect(project.description.uri).toBe(DESCRIPTION_FILE_PATH);
-        expect(project.description.uriContent).toBe(`**Unable to load description file at ${DESCRIPTION_FILE_PATH}**\r\nError: Invalid`);
+        expect(project.description.uriContent).toBe(
+          `**Unable to load description file at ${DESCRIPTION_FILE_PATH}**\r\nError: Invalid`,
+        );
       });
     });
 
@@ -122,42 +128,46 @@ describe('services', () => {
         new ProjectService().saveProjectFile('~/Test/Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           `${TEST_USER_HOME_PATH}Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
-          '{"id":"1"}'
+          '{"id":"1"}',
         );
       });
       it.onWindows('should resolve the ~ home path', () => {
         new ProjectService().saveProjectFile('~\\Test\\Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           `${TEST_USER_HOME_PATH}Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
-          '{"id":"1"}'
+          '{"id":"1"}',
         );
       });
       it.onMac('should save the project details', () => {
         new ProjectService().saveProjectFile('/Test/Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
-          '{"id":"1"}'
+          '{"id":"1"}',
         );
       });
       it.onWindows('should save the project details', () => {
         new ProjectService().saveProjectFile('C:\\Test\\Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
-          '{"id":"1"}'
+          '{"id":"1"}',
         );
       });
       it.onMac('should create the .statwrap folder', () => {
         fs.accessSync
-          .mockImplementationOnce(() => { return ''; })   // First time checks for project folder
-          .mockImplementationOnce(() => { throw new Error(); });  // Second time is looking for .statwrap
+          .mockImplementationOnce(() => {
+            return '';
+          }) // First time checks for project folder
+          .mockImplementationOnce(() => {
+            throw new Error();
+          }); // Second time is looking for .statwrap
         new ProjectService().saveProjectFile('/Test/Path', { id: '1' });
         expect(fs.mkdirSync).toHaveBeenCalledWith(
           `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}`,
-          {"recursive": true}
+          { recursive: true },
         );
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
-          '{"id":"1"}'
+          '{"id":"1"}',
         );
       });
       it.onWindows('should create the .statwrap folder', () => {
@@ -171,11 +181,11 @@ describe('services', () => {
         new ProjectService().saveProjectFile('C:\\Test\\Path', { id: '1' });
         expect(fs.mkdirSync).toHaveBeenCalledWith(
           `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}`,
-          {"recursive": true}
+          { recursive: true },
         );
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
-          '{"id":"1"}'
+          '{"id":"1"}',
         );
       });
       it('should throw an error if the project path is invalid', () => {
@@ -183,7 +193,7 @@ describe('services', () => {
           throw new Error();
         });
         expect(() =>
-          new ProjectService().saveProjectFile('/Invalid/Test/Path', { id: '1' })
+          new ProjectService().saveProjectFile('/Invalid/Test/Path', { id: '1' }),
         ).toThrow(Error);
         expect(fs.writeFileSync).not.toHaveBeenCalled();
       });
@@ -248,55 +258,61 @@ describe('services', () => {
         const validationReport = new ProjectService().convertAndValidateProject({
           directory: '/Test/Path',
           name: 'My Test Project',
-          type: 'Invalid'
+          type: 'Invalid',
         });
         expect(validationReport.isValid).toBe(false);
         expect(validationReport.details).toBe('An unknown project type (Invalid) was specified.');
       });
 
-      it.onMac('should create transform and create new ID and lastAccessed for a new project', () => {
-        const validationReport = new ProjectService().convertAndValidateProject({
-          directory: '/Test/Path',
-          name: 'My Test Project',
-          type: Constants.ProjectType.NEW_PROJECT_TYPE
-        });
-        expect(validationReport.isValid).toBe(true);
-        expect(validationReport.details).toBe('');
-        expect(validationReport.project).not.toBeNull();
-        expect(validationReport.project.formatVersion).toBe(ProjectFileFormatVersion);
-        expect(validationReport.project.id).not.toBe(null);
-        expect(validationReport.project.id.length).toBe(36); // v4 UUID length, with hyphens
-        expect(validationReport.project.path).toBe('/Test/Path/My Test Project');
-        expect(validationReport.project.lastAccessed).not.toBe(null);
-        expect(validationReport.project.lastAccessed.length).not.toBe(0);
-        expect(validationReport.project.favorite).toBe(false);
-        expect(validationReport.project.name).toBe('My Test Project');
-      });
+      it.onMac(
+        'should create transform and create new ID and lastAccessed for a new project',
+        () => {
+          const validationReport = new ProjectService().convertAndValidateProject({
+            directory: '/Test/Path',
+            name: 'My Test Project',
+            type: Constants.ProjectType.NEW_PROJECT_TYPE,
+          });
+          expect(validationReport.isValid).toBe(true);
+          expect(validationReport.details).toBe('');
+          expect(validationReport.project).not.toBeNull();
+          expect(validationReport.project.formatVersion).toBe(ProjectFileFormatVersion);
+          expect(validationReport.project.id).not.toBe(null);
+          expect(validationReport.project.id.length).toBe(36); // v4 UUID length, with hyphens
+          expect(validationReport.project.path).toBe('/Test/Path/My Test Project');
+          expect(validationReport.project.lastAccessed).not.toBe(null);
+          expect(validationReport.project.lastAccessed.length).not.toBe(0);
+          expect(validationReport.project.favorite).toBe(false);
+          expect(validationReport.project.name).toBe('My Test Project');
+        },
+      );
 
-	    it.onWindows('should create transform and create new ID and lastAccessed for a new project', () => {
-        const validationReport = new ProjectService().convertAndValidateProject({
-          directory: 'C:\\Test\\Path',
-          name: 'My Test Project',
-          type: Constants.ProjectType.NEW_PROJECT_TYPE
-        });
-        expect(validationReport.isValid).toBe(true);
-        expect(validationReport.details).toBe('');
-        expect(validationReport.project).not.toBeNull();
-        expect(validationReport.project.formatVersion).toBe(ProjectFileFormatVersion);
-        expect(validationReport.project.id).not.toBe(null);
-        expect(validationReport.project.id.length).toBe(36); // v4 UUID length, with hyphens
-        expect(validationReport.project.path).toBe('C:\\Test\\Path\\My Test Project');
-        expect(validationReport.project.lastAccessed).not.toBe(null);
-        expect(validationReport.project.lastAccessed.length).not.toBe(0);
-        expect(validationReport.project.favorite).toBe(false);
-        expect(validationReport.project.name).toBe('My Test Project');
-      });
+      it.onWindows(
+        'should create transform and create new ID and lastAccessed for a new project',
+        () => {
+          const validationReport = new ProjectService().convertAndValidateProject({
+            directory: 'C:\\Test\\Path',
+            name: 'My Test Project',
+            type: Constants.ProjectType.NEW_PROJECT_TYPE,
+          });
+          expect(validationReport.isValid).toBe(true);
+          expect(validationReport.details).toBe('');
+          expect(validationReport.project).not.toBeNull();
+          expect(validationReport.project.formatVersion).toBe(ProjectFileFormatVersion);
+          expect(validationReport.project.id).not.toBe(null);
+          expect(validationReport.project.id.length).toBe(36); // v4 UUID length, with hyphens
+          expect(validationReport.project.path).toBe('C:\\Test\\Path\\My Test Project');
+          expect(validationReport.project.lastAccessed).not.toBe(null);
+          expect(validationReport.project.lastAccessed.length).not.toBe(0);
+          expect(validationReport.project.favorite).toBe(false);
+          expect(validationReport.project.name).toBe('My Test Project');
+        },
+      );
 
       it('should transform a relative root directory for a new project', () => {
         const validationReport = new ProjectService().convertAndValidateProject({
           directory: '~',
           name: 'My Test Project',
-          type: Constants.ProjectType.NEW_PROJECT_TYPE
+          type: Constants.ProjectType.NEW_PROJECT_TYPE,
         });
         expect(validationReport.project.path).toBe(`${TEST_USER_HOME_PATH}My Test Project`);
       });
@@ -306,57 +322,63 @@ describe('services', () => {
         const validationReport = new ProjectService().convertAndValidateProject({
           directory: '/Test/Path',
           name: folderWithInvalidChars,
-          type: Constants.ProjectType.NEW_PROJECT_TYPE
+          type: Constants.ProjectType.NEW_PROJECT_TYPE,
         });
         expect(validationReport.project.name).toBe(folderWithInvalidChars);
         expect(validationReport.project.path).toBe('/Test/Path/My Test Project');
       });
 
-	    it.onWindows('should strip invalid characters from a new project name for the path', () => {
+      it.onWindows('should strip invalid characters from a new project name for the path', () => {
         const folderWithInvalidChars = '.My: Test** Project ??';
         const validationReport = new ProjectService().convertAndValidateProject({
           directory: 'C:\\Test\\Path',
           name: folderWithInvalidChars,
-          type: Constants.ProjectType.NEW_PROJECT_TYPE
+          type: Constants.ProjectType.NEW_PROJECT_TYPE,
         });
         expect(validationReport.project.name).toBe(folderWithInvalidChars);
         expect(validationReport.project.path).toBe('C:\\Test\\Path\\My Test Project');
       });
 
-      it.onMac('should create transform and create new ID and lastAccessed for an existing project', () => {
-        const validationReport = new ProjectService().convertAndValidateProject({
-          directory: '/Test/Path/My Test Project',
-          type: Constants.ProjectType.EXISTING_PROJECT_TYPE
-        });
-        expect(validationReport.isValid).toBe(true);
-        expect(validationReport.details).toBe('');
-        expect(validationReport.project).not.toBeNull();
-        expect(validationReport.project.formatVersion).toBe(ProjectFileFormatVersion);
-        expect(validationReport.project.id).not.toBe(null);
-        expect(validationReport.project.id.length).toBe(36); // v4 UUID length, with hyphens
-        expect(validationReport.project.path).toBe('/Test/Path/My Test Project');
-        expect(validationReport.project.lastAccessed).not.toBe(null);
-        expect(validationReport.project.lastAccessed.length).not.toBe(0);
-        expect(validationReport.project.favorite).toBe(false);
-        expect(validationReport.project.name).toBe('My Test Project');
-      });
-	    it.onWindows('should create transform and create new ID and lastAccessed for an existing project', () => {
-        const validationReport = new ProjectService().convertAndValidateProject({
-          directory: 'C:\\Test\\Path\\My Test Project',
-          type: Constants.ProjectType.EXISTING_PROJECT_TYPE
-        });
-        expect(validationReport.isValid).toBe(true);
-        expect(validationReport.details).toBe('');
-        expect(validationReport.project).not.toBeNull();
-        expect(validationReport.project.formatVersion).toBe(ProjectFileFormatVersion);
-        expect(validationReport.project.id).not.toBe(null);
-        expect(validationReport.project.id.length).toBe(36); // v4 UUID length, with hyphens
-        expect(validationReport.project.path).toBe('C:\\Test\\Path\\My Test Project');
-        expect(validationReport.project.lastAccessed).not.toBe(null);
-        expect(validationReport.project.lastAccessed.length).not.toBe(0);
-        expect(validationReport.project.favorite).toBe(false);
-        expect(validationReport.project.name).toBe('My Test Project');
-      });
+      it.onMac(
+        'should create transform and create new ID and lastAccessed for an existing project',
+        () => {
+          const validationReport = new ProjectService().convertAndValidateProject({
+            directory: '/Test/Path/My Test Project',
+            type: Constants.ProjectType.EXISTING_PROJECT_TYPE,
+          });
+          expect(validationReport.isValid).toBe(true);
+          expect(validationReport.details).toBe('');
+          expect(validationReport.project).not.toBeNull();
+          expect(validationReport.project.formatVersion).toBe(ProjectFileFormatVersion);
+          expect(validationReport.project.id).not.toBe(null);
+          expect(validationReport.project.id.length).toBe(36); // v4 UUID length, with hyphens
+          expect(validationReport.project.path).toBe('/Test/Path/My Test Project');
+          expect(validationReport.project.lastAccessed).not.toBe(null);
+          expect(validationReport.project.lastAccessed.length).not.toBe(0);
+          expect(validationReport.project.favorite).toBe(false);
+          expect(validationReport.project.name).toBe('My Test Project');
+        },
+      );
+      it.onWindows(
+        'should create transform and create new ID and lastAccessed for an existing project',
+        () => {
+          const validationReport = new ProjectService().convertAndValidateProject({
+            directory: 'C:\\Test\\Path\\My Test Project',
+            type: Constants.ProjectType.EXISTING_PROJECT_TYPE,
+          });
+          expect(validationReport.isValid).toBe(true);
+          expect(validationReport.details).toBe('');
+          expect(validationReport.project).not.toBeNull();
+          expect(validationReport.project.formatVersion).toBe(ProjectFileFormatVersion);
+          expect(validationReport.project.id).not.toBe(null);
+          expect(validationReport.project.id.length).toBe(36); // v4 UUID length, with hyphens
+          expect(validationReport.project.path).toBe('C:\\Test\\Path\\My Test Project');
+          expect(validationReport.project.lastAccessed).not.toBe(null);
+          expect(validationReport.project.lastAccessed.length).not.toBe(0);
+          expect(validationReport.project.favorite).toBe(false);
+          expect(validationReport.project.name).toBe('My Test Project');
+        },
+      );
     });
 
     describe('initializeNewProject', () => {
@@ -380,8 +402,8 @@ describe('services', () => {
             formatVersion: ProjectFileFormatVersion,
             id: '1',
             name: 'Test',
-            path: '/Invalid/dir'
-          })
+            path: '/Invalid/dir',
+          }),
         ).toThrow(Error);
         expect(saveProjectFile).not.toHaveBeenCalled();
       });
@@ -397,8 +419,8 @@ describe('services', () => {
             formatVersion: ProjectFileFormatVersion,
             id: '1',
             name: 'Test',
-            path: '/Existing/Dir'
-          })
+            path: '/Existing/Dir',
+          }),
         ).not.toThrow(Error);
         expect(mkdirSync).not.toHaveBeenCalledTimes(2); // Project folder and config folder
       });
@@ -413,7 +435,7 @@ describe('services', () => {
           formatVersion: ProjectFileFormatVersion,
           id: '1',
           name: 'Test',
-          path: '/Invalid/dir'
+          path: '/Invalid/dir',
         });
         expect(mkdirSync).not.toHaveBeenCalled();
         expect(saveProjectFile).not.toHaveBeenCalled();
@@ -429,7 +451,7 @@ describe('services', () => {
           formatVersion: ProjectFileFormatVersion,
           id: '1',
           name: 'Test',
-          path: '/Test/Path'
+          path: '/Test/Path',
         });
         expect(saveProjectFile).toHaveBeenCalled();
         expect(mkdirSync).not.toHaveBeenCalledTimes(1); // Config folder should already exist
@@ -454,7 +476,7 @@ describe('services', () => {
           formatVersion: ProjectFileFormatVersion,
           id: '1',
           name: 'Test',
-          path: '/Test/Path'
+          path: '/Test/Path',
         });
         expect(saveProjectFile).toHaveBeenCalled();
         expect(mkdirSync).toHaveBeenCalledTimes(2); // Root project folder and then config folder
@@ -469,7 +491,7 @@ describe('services', () => {
           formatVersion: ProjectFileFormatVersion,
           id: '1',
           name: 'Test',
-          path: '/Test/Path'
+          path: '/Test/Path',
         };
         const service = new ProjectService();
         service.loadProjectFile = jest.fn().mockReturnValue(null);
@@ -488,7 +510,7 @@ describe('services', () => {
           formatVersion: ProjectFileFormatVersion,
           id: '1',
           name: 'Test',
-          path: '/Test/Path'
+          path: '/Test/Path',
         };
         const template = { id: 'test', version: '1' };
         const service = new ProjectService();
@@ -505,7 +527,7 @@ describe('services', () => {
           formatVersion: ProjectFileFormatVersion,
           id: '1',
           name: 'Test',
-          path: '/Test/Path'
+          path: '/Test/Path',
         };
         const template = { id: 'test', blah: 'test', version: '1', foo: 'bar' };
         const service = new ProjectService();
@@ -521,22 +543,22 @@ describe('services', () => {
       it('should throw errors when the parameters are not defined', () => {
         const service = new ProjectService();
         expect(() => service.addNotesAndAttributesToAssets(null, null)).toThrow(
-          'The assets object must be specified'
+          'The assets object must be specified',
         );
         expect(() => service.addNotesAndAttributesToAssets(undefined, undefined)).toThrow(
-          'The assets object must be specified'
+          'The assets object must be specified',
         );
         expect(() => service.addNotesAndAttributesToAssets(null, {})).toThrow(
-          'The assets object must be specified'
+          'The assets object must be specified',
         );
         expect(() => service.addNotesAndAttributesToAssets(undefined, {})).toThrow(
-          'The assets object must be specified'
+          'The assets object must be specified',
         );
         expect(() => service.addNotesAndAttributesToAssets({}, null)).toThrow(
-          'The assets object with notes and attributes must be specified'
+          'The assets object with notes and attributes must be specified',
         );
         expect(() => service.addNotesAndAttributesToAssets({}, undefined)).toThrow(
-          'The assets object with notes and attributes must be specified'
+          'The assets object with notes and attributes must be specified',
         );
       });
 
@@ -569,7 +591,11 @@ describe('services', () => {
       it('will copy over the notes and attributes for the root asset', () => {
         const service = new ProjectService();
         const assets = { uri: '/Test/Asset' };
-        const assetsWithNotes = { uri: '/Test/Asset ', notes: [{ id: '1', content: 'Test' }], attributes: { test: true } };
+        const assetsWithNotes = {
+          uri: '/Test/Asset ',
+          notes: [{ id: '1', content: 'Test' }],
+          attributes: { test: true },
+        };
 
         const updatedAssets = service.addNotesAndAttributesToAssets(assets, assetsWithNotes);
         expect(updatedAssets.notes).toBeDefined();
@@ -585,13 +611,13 @@ describe('services', () => {
           children: [
             {
               uri: '/Test/Asset/1',
-              children: [{ uri: '/Test/Asset/1/a' }]
+              children: [{ uri: '/Test/Asset/1/a' }],
             },
             {
               uri: '/Test/Asset/2',
-              children: [{ uri: '/Test/Asset/2/a' }]
-            }
-          ]
+              children: [{ uri: '/Test/Asset/2/a' }],
+            },
+          ],
         };
         const assetsWithNotes = {
           uri: '/Test/Asset',
@@ -601,16 +627,16 @@ describe('services', () => {
               uri: '/Test/Asset/1',
               attributes: { test: 1 },
               children: [{ uri: '/Test/Asset/1/a', notes: [{ id: '3', content: 'Test 3' }] }],
-              notes: [{ id: '2', content: 'Test 2' }]
-            }
-          ]
+              notes: [{ id: '2', content: 'Test 2' }],
+            },
+          ],
         };
 
         const updatedAssets = service.addNotesAndAttributesToAssets(assets, assetsWithNotes);
         expect(updatedAssets.children[0].notes[0]).toEqual(assetsWithNotes.children[0].notes[0]);
         expect(updatedAssets.children[0].attributes).toEqual({ test: 1 });
         expect(updatedAssets.children[0].children[0].notes[0]).toEqual(
-          assetsWithNotes.children[0].children[0].notes[0]
+          assetsWithNotes.children[0].children[0].notes[0],
         );
         expect(updatedAssets.children[1].notes.length).toBe(0);
         expect(updatedAssets.children[1].attributes).toEqual({});
@@ -623,18 +649,18 @@ describe('services', () => {
           uri: '/Test/Asset',
           children: [
             {
-              uri: '/Test/Asset/1'
+              uri: '/Test/Asset/1',
             },
             {
-              uri: '/Test/Asset/1/a'
+              uri: '/Test/Asset/1/a',
             },
             {
-              uri: '/Test/Asset/2'
+              uri: '/Test/Asset/2',
             },
             {
-              uri: '/Test/Asset/2/a'
-            }
-          ]
+              uri: '/Test/Asset/2/a',
+            },
+          ],
         };
         const assetsWithNotes = {
           uri: '/Test/Asset',
@@ -644,16 +670,16 @@ describe('services', () => {
               uri: '/Test/Asset/1',
               attributes: { test: 1 },
               children: [{ uri: '/Test/Asset/1/a', notes: [{ id: '3', content: 'Test 3' }] }],
-              notes: [{ id: '2', content: 'Test 2' }]
-            }
-          ]
+              notes: [{ id: '2', content: 'Test 2' }],
+            },
+          ],
         };
 
         const updatedAssets = service.addNotesAndAttributesToAssets(assets, assetsWithNotes, false);
         expect(updatedAssets.children[0].notes[0]).toEqual(assetsWithNotes.children[0].notes[0]);
         expect(updatedAssets.children[0].attributes).toEqual({ test: 1 });
         expect(updatedAssets.children[1].notes[0]).toEqual(
-          assetsWithNotes.children[0].children[0].notes[0]
+          assetsWithNotes.children[0].children[0].notes[0],
         );
         expect(updatedAssets.children[2].notes.length).toBe(0);
         expect(updatedAssets.children[2].attributes).toEqual({});
@@ -674,15 +700,15 @@ describe('services', () => {
         const service = new ProjectService();
         const config = service.createProjectConfig('12345', 'Test Project');
         expect(config).toEqual({
-          formatVersion: "1",
+          formatVersion: '1',
           id: '12345',
           name: 'Test Project',
           description: {
             contentType: 'Markdown',
-            content: '# Test Project'
+            content: '# Test Project',
           },
-          categories: []
-        })
+          categories: [],
+        });
       });
     });
 
@@ -690,63 +716,93 @@ describe('services', () => {
       it('will return null if no project path is provided', () => {
         const service = new ProjectService();
         expect(service.loadAndMergeProjectUpdates(null, 'Test', 'Test', 'Test', {})).toBeNull();
-        expect(service.loadAndMergeProjectUpdates(undefined, 'Test', 'Test', 'Test', {})).toBeNull();
+        expect(
+          service.loadAndMergeProjectUpdates(undefined, 'Test', 'Test', 'Test', {}),
+        ).toBeNull();
         expect(service.loadAndMergeProjectUpdates('', 'Test', 'Test', 'Test', {})).toBeNull();
       });
 
       it('will return null if no action type is provided', () => {
         const service = new ProjectService();
         expect(service.loadAndMergeProjectUpdates('test', null, 'Test', 'Test', {})).toBeNull();
-        expect(service.loadAndMergeProjectUpdates('test', undefined, 'Test', 'Test', {})).toBeNull();
+        expect(
+          service.loadAndMergeProjectUpdates('test', undefined, 'Test', 'Test', {}),
+        ).toBeNull();
         expect(service.loadAndMergeProjectUpdates('test', '', 'Test', 'Test', {})).toBeNull();
       });
 
       it('will return null if no entity type is provided', () => {
         const service = new ProjectService();
         expect(service.loadAndMergeProjectUpdates('test', 'Test', null, 'Test', {})).toBeNull();
-        expect(service.loadAndMergeProjectUpdates('test', 'Test', undefined, 'Test', {})).toBeNull();
+        expect(
+          service.loadAndMergeProjectUpdates('test', 'Test', undefined, 'Test', {}),
+        ).toBeNull();
         expect(service.loadAndMergeProjectUpdates('test', 'Test', '', 'Test', {})).toBeNull();
       });
 
       it('will return null if no entity key is provided', () => {
         const service = new ProjectService();
         expect(service.loadAndMergeProjectUpdates('test', 'Test', 'Test', null, {})).toBeNull();
-        expect(service.loadAndMergeProjectUpdates('test', 'Test', 'Test', undefined, {})).toBeNull();
+        expect(
+          service.loadAndMergeProjectUpdates('test', 'Test', 'Test', undefined, {}),
+        ).toBeNull();
         expect(service.loadAndMergeProjectUpdates('test', 'Test', 'Test', '', {})).toBeNull();
       });
 
       it('will return null if no details are provided', () => {
         const service = new ProjectService();
         expect(service.loadAndMergeProjectUpdates('test', 'Test', 'Test', 'Test', null)).toBeNull();
-        expect(service.loadAndMergeProjectUpdates('test', 'Test', 'Test', 'Test', undefined)).toBeNull();
+        expect(
+          service.loadAndMergeProjectUpdates('test', 'Test', 'Test', 'Test', undefined),
+        ).toBeNull();
       });
 
       it('will return null if the project fails to load', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue(null);
-        expect(service.loadAndMergeProjectUpdates(TEST_PROJECT_PATH, 'Test', 'Test', 'Test', {})).toBeNull();
+        expect(
+          service.loadAndMergeProjectUpdates(TEST_PROJECT_PATH, 'Test', 'Test', 'Test', {}),
+        ).toBeNull();
       });
 
       it('will set the project path once loaded', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({});
-        expect(service.loadAndMergeProjectUpdates(TEST_PROJECT_PATH, Constants.ActionType.NOTE_ADDED, Constants.EntityType.PROJECT, 'Test', {}).path).toBe(TEST_PROJECT_PATH);
+        expect(
+          service.loadAndMergeProjectUpdates(
+            TEST_PROJECT_PATH,
+            Constants.ActionType.NOTE_ADDED,
+            Constants.EntityType.PROJECT,
+            'Test',
+            {},
+          ).path,
+        ).toBe(TEST_PROJECT_PATH);
       });
 
       it('will return null if the update type is unknown', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({});
-        expect(service.loadAndMergeProjectUpdates(TEST_PROJECT_PATH, 'invalid', Constants.EntityType.PROJECT, 'Test', {})).toBeNull();
+        expect(
+          service.loadAndMergeProjectUpdates(
+            TEST_PROJECT_PATH,
+            'invalid',
+            Constants.EntityType.PROJECT,
+            'Test',
+            {},
+          ),
+        ).toBeNull();
       });
 
       it('adds a note to a project when the notes collectiong is empty', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({});
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.NOTE_ADDED, Constants.EntityType.PROJECT,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.NOTE_ADDED,
+          Constants.EntityType.PROJECT,
           '1',
-          { id: '1', author: 'test', content: 'test' });
+          { id: '1', author: 'test', content: 'test' },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.notes).not.toBeNull();
         expect(updatedProject.notes[0].id).toBe('1');
@@ -756,10 +812,12 @@ describe('services', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ notes: [] });
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.NOTE_ADDED, Constants.EntityType.PROJECT,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.NOTE_ADDED,
+          Constants.EntityType.PROJECT,
           '1',
-          { id: '1', author: 'test', content: 'test' });
+          { id: '1', author: 'test', content: 'test' },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.notes).not.toBeNull();
         expect(updatedProject.notes[0].id).toBe('1');
@@ -767,12 +825,16 @@ describe('services', () => {
 
       it('adds a note to an asset when the notes collectiong is empty', () => {
         const service = new ProjectService();
-        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ assets: { uri: '1', type: 'file' }});
+        jest
+          .spyOn(service, 'loadProjectFile')
+          .mockReturnValue({ assets: { uri: '1', type: 'file' } });
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.NOTE_ADDED, Constants.EntityType.ASSET,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.NOTE_ADDED,
+          Constants.EntityType.ASSET,
           `${TEST_PROJECT_PATH}1`,
-          { id: '1', author: 'test', content: 'test' });
+          { id: '1', author: 'test', content: 'test' },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.assets.notes).not.toBeNull();
         expect(updatedProject.assets.notes[0].id).toBe('1');
@@ -780,12 +842,16 @@ describe('services', () => {
 
       it('adds a note to an asset', () => {
         const service = new ProjectService();
-        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ assets: { uri: '1', type: 'file', notes: [] }});
+        jest
+          .spyOn(service, 'loadProjectFile')
+          .mockReturnValue({ assets: { uri: '1', type: 'file', notes: [] } });
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.NOTE_ADDED, Constants.EntityType.ASSET,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.NOTE_ADDED,
+          Constants.EntityType.ASSET,
           `${TEST_PROJECT_PATH}1`,
-          { id: '1', author: 'test', content: 'test' });
+          { id: '1', author: 'test', content: 'test' },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.assets.notes).not.toBeNull();
         expect(updatedProject.assets.notes[0].id).toBe('1');
@@ -793,12 +859,14 @@ describe('services', () => {
 
       it('adds a note to a person when the notes collectiong is empty', () => {
         const service = new ProjectService();
-        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ people: [{ id: '1' }]});
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ people: [{ id: '1' }] });
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.NOTE_ADDED, Constants.EntityType.PERSON,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.NOTE_ADDED,
+          Constants.EntityType.PERSON,
           '1',
-          { id: '1', author: 'test', content: 'test' });
+          { id: '1', author: 'test', content: 'test' },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.people[0].notes).not.toBeNull();
         expect(updatedProject.people[0].notes[0].id).toBe('1');
@@ -806,12 +874,16 @@ describe('services', () => {
 
       it('adds a note to a person', () => {
         const service = new ProjectService();
-        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ people: [{ id: '1', notes: [] }]});
+        jest
+          .spyOn(service, 'loadProjectFile')
+          .mockReturnValue({ people: [{ id: '1', notes: [] }] });
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.NOTE_ADDED, Constants.EntityType.PERSON,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.NOTE_ADDED,
+          Constants.EntityType.PERSON,
           '1',
-          { id: '1', author: 'test', content: 'test' });
+          { id: '1', author: 'test', content: 'test' },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.people[0].notes).not.toBeNull();
         expect(updatedProject.people[0].notes[0].id).toBe('1');
@@ -819,12 +891,16 @@ describe('services', () => {
 
       it('updates a project note', () => {
         const service = new ProjectService();
-        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ notes: [{ id: 'a', author: 'test', content: 'test' }] });
+        jest
+          .spyOn(service, 'loadProjectFile')
+          .mockReturnValue({ notes: [{ id: 'a', author: 'test', content: 'test' }] });
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.NOTE_UPDATED, Constants.EntityType.PROJECT,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.NOTE_UPDATED,
+          Constants.EntityType.PROJECT,
           '1',
-          {new: { id: 'a', author: 'test', content: 'test2' }});
+          { new: { id: 'a', author: 'test', content: 'test2' } },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.notes).not.toBeNull();
         expect(updatedProject.notes[0].id).toBe('a');
@@ -833,12 +909,20 @@ describe('services', () => {
 
       it('updates an asset note', () => {
         const service = new ProjectService();
-        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ assets: { uri: '1', type: 'file', notes: [{ id: 'a', author: 'test', content: 'test' }] }});
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({
+          assets: {
+            uri: '1',
+            type: 'file',
+            notes: [{ id: 'a', author: 'test', content: 'test' }],
+          },
+        });
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.NOTE_UPDATED, Constants.EntityType.ASSET,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.NOTE_UPDATED,
+          Constants.EntityType.ASSET,
           `${TEST_PROJECT_PATH}1`,
-          {new: { id: 'a', author: 'test', content: 'test2' }});
+          { new: { id: 'a', author: 'test', content: 'test2' } },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.assets.notes).not.toBeNull();
         expect(updatedProject.assets.notes[0].id).toBe('a');
@@ -847,12 +931,16 @@ describe('services', () => {
 
       it('updates a person note', () => {
         const service = new ProjectService();
-        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ people: [{ id: '1', notes: [{ id: 'a', author: 'test', content: 'test' }] }]});
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({
+          people: [{ id: '1', notes: [{ id: 'a', author: 'test', content: 'test' }] }],
+        });
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.NOTE_UPDATED, Constants.EntityType.PERSON,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.NOTE_UPDATED,
+          Constants.EntityType.PERSON,
           '1',
-          {new: { id: 'a', author: 'test', content: 'test2' }});
+          { new: { id: 'a', author: 'test', content: 'test2' } },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.people[0].notes).not.toBeNull();
         expect(updatedProject.people[0].notes[0].id).toBe('a');
@@ -861,24 +949,36 @@ describe('services', () => {
 
       it('deletes a project note', () => {
         const service = new ProjectService();
-        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ notes: [{ id: 'a', author: 'test', content: 'test' }] });
+        jest
+          .spyOn(service, 'loadProjectFile')
+          .mockReturnValue({ notes: [{ id: 'a', author: 'test', content: 'test' }] });
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.NOTE_DELETED, Constants.EntityType.PROJECT,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.NOTE_DELETED,
+          Constants.EntityType.PROJECT,
           '1',
-          { id: 'a', author: 'test', content: 'test' });
+          { id: 'a', author: 'test', content: 'test' },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.notes.length).toBe(0);
       });
 
       it('deletes an asset note', () => {
         const service = new ProjectService();
-        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ assets: { uri: '1', type: 'file', notes: [{ id: 'a', author: 'test', content: 'test' }] }});
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({
+          assets: {
+            uri: '1',
+            type: 'file',
+            notes: [{ id: 'a', author: 'test', content: 'test' }],
+          },
+        });
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.NOTE_DELETED, Constants.EntityType.ASSET,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.NOTE_DELETED,
+          Constants.EntityType.ASSET,
           `${TEST_PROJECT_PATH}1`,
-          { id: 'a', author: 'test', content: 'test' });
+          { id: 'a', author: 'test', content: 'test' },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.assets.notes).not.toBeNull();
         expect(updatedProject.assets.notes.length).toBe(0);
@@ -886,12 +986,16 @@ describe('services', () => {
 
       it('deletes a person note', () => {
         const service = new ProjectService();
-        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ people: [{ id: '1', notes: [{ id: 'a', author: 'test', content: 'test' }] }]});
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({
+          people: [{ id: '1', notes: [{ id: 'a', author: 'test', content: 'test' }] }],
+        });
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.NOTE_DELETED, Constants.EntityType.PERSON,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.NOTE_DELETED,
+          Constants.EntityType.PERSON,
           '1',
-          { id: 'a', author: 'test', content: 'test' });
+          { id: 'a', author: 'test', content: 'test' },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.people[0].notes).not.toBeNull();
         expect(updatedProject.people[0].notes.length).toBe(0);
@@ -899,12 +1003,16 @@ describe('services', () => {
 
       it('updates an asset attribute even if the attributes object does not exist', () => {
         const service = new ProjectService();
-        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ assets: { uri: '1', type: 'file' }});
+        jest
+          .spyOn(service, 'loadProjectFile')
+          .mockReturnValue({ assets: { uri: '1', type: 'file' } });
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.ATTRIBUTE_UPDATED, Constants.EntityType.ASSET,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.ATTRIBUTE_UPDATED,
+          Constants.EntityType.ASSET,
           `${TEST_PROJECT_PATH}1`,
-          { name: 'test', value: '1000'});
+          { name: 'test', value: '1000' },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.assets.attributes).not.toBeNull();
         expect(updatedProject.assets.attributes.test).toBe('1000');
@@ -912,12 +1020,16 @@ describe('services', () => {
 
       it('updates an asset attribute value', () => {
         const service = new ProjectService();
-        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ assets: { uri: '1', type: 'file', attributes: { test: '1000' } }});
+        jest
+          .spyOn(service, 'loadProjectFile')
+          .mockReturnValue({ assets: { uri: '1', type: 'file', attributes: { test: '1000' } } });
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.ATTRIBUTE_UPDATED, Constants.EntityType.ASSET,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.ATTRIBUTE_UPDATED,
+          Constants.EntityType.ASSET,
           `${TEST_PROJECT_PATH}1`,
-          { name: 'test', value: 'a'});
+          { name: 'test', value: 'a' },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.assets.attributes).not.toBeNull();
         expect(updatedProject.assets.attributes.test).toBe('a');
@@ -927,10 +1039,12 @@ describe('services', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({});
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.ABOUT_DETAILS_UPDATED, Constants.EntityType.PROJECT,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.ABOUT_DETAILS_UPDATED,
+          Constants.EntityType.PROJECT,
           '1',
-          { description: 'test', categories: ['a']});
+          { description: 'test', categories: ['a'] },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.description).toBe('test');
         expect(updatedProject.categories[0]).toBe('a');
@@ -940,10 +1054,12 @@ describe('services', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({});
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.PERSON_ADDED, Constants.EntityType.PROJECT,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.PERSON_ADDED,
+          Constants.EntityType.PROJECT,
           '1',
-          { id: '1234' });
+          { id: '1234' },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.people).not.toBeNull();
         expect(updatedProject.people[0].id).toBe('1234');
@@ -953,10 +1069,12 @@ describe('services', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ people: [] });
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.PERSON_ADDED, Constants.EntityType.PROJECT,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.PERSON_ADDED,
+          Constants.EntityType.PROJECT,
           '1',
-          { id: '1234' });
+          { id: '1234' },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.people).not.toBeNull();
         expect(updatedProject.people[0].id).toBe('1234');
@@ -964,12 +1082,16 @@ describe('services', () => {
 
       it('updates a person in a project', () => {
         const service = new ProjectService();
-        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ people: [{id: '1234', name: 'old value', affiliation: 'old value'}] });
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({
+          people: [{ id: '1234', name: 'old value', affiliation: 'old value' }],
+        });
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.PERSON_UPDATED, Constants.EntityType.PROJECT,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.PERSON_UPDATED,
+          Constants.EntityType.PROJECT,
           '1',
-          { id: '1234', name: 'test person', affiliation: 'location' });
+          { id: '1234', name: 'test person', affiliation: 'location' },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.people).not.toBeNull();
         expect(updatedProject.people[0].id).toBe('1234');
@@ -979,12 +1101,14 @@ describe('services', () => {
 
       it('deletes a person from a project', () => {
         const service = new ProjectService();
-        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ people: [{id: '1234'}] });
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ people: [{ id: '1234' }] });
         const updatedProject = service.loadAndMergeProjectUpdates(
-		  TEST_PROJECT_PATH,
-          Constants.ActionType.PERSON_DELETED, Constants.EntityType.PROJECT,
+          TEST_PROJECT_PATH,
+          Constants.ActionType.PERSON_DELETED,
+          Constants.EntityType.PROJECT,
           '1',
-          { id: '1234' });
+          { id: '1234' },
+        );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.people).not.toBeNull();
         expect(updatedProject.people.length).toBe(0);

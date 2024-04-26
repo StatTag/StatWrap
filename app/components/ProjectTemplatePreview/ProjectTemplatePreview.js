@@ -1,4 +1,3 @@
-/* eslint-disable react/forbid-prop-types */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import CheckboxTree from 'react-checkbox-tree';

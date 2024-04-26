@@ -7,15 +7,19 @@ import React, { useState } from 'react';
 import Note from './Note/Note';
 import styles from './NoteEditor.css';
 
-const noteEditor = props => {
+const noteEditor = (props) => {
   const { notes, onEditingComplete, onDelete } = props;
   const [createNoteKey, setCreateNoteKey] = useState(1);
   const notesControls = notes
-    ? notes.map(n => (
+    ? notes.map((n) => (
         <Note
           key={n.id}
           note={n}
-          onDelete={note => { if (onDelete) { onDelete(note); }}}
+          onDelete={(note) => {
+            if (onDelete) {
+              onDelete(note);
+            }
+          }}
           onEditingComplete={(note, text) => onEditingComplete(note, text)}
         />
       ))

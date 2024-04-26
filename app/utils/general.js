@@ -148,7 +148,7 @@ export default class GeneralUtil {
       const value = acc[key] ? [...acc[key], it] : [it];
       return {
         ...acc,
-        [key]: value
+        [key]: value,
       };
     }, []);
   }

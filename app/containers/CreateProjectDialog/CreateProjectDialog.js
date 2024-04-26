@@ -1,4 +1,3 @@
-/* eslint-disable react/forbid-prop-types */
 /* eslint-disable object-shorthand */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { Component } from 'react';
@@ -45,10 +44,10 @@ class CreateProjectDialog extends Component {
       project: {
         type: null,
         name: '',
-        directory: ''
+        directory: '',
       },
       canProgress: false,
-      errorMessage: null
+      errorMessage: null,
     };
 
     this.handleSelectAddProject = this.handleSelectAddProject.bind(this);
@@ -76,47 +75,47 @@ class CreateProjectDialog extends Component {
     //  2. Existing Directory
     //  3. Clone Directory
     {
-      step: 'SelectProjectType'
+      step: 'SelectProjectType',
     },
 
     // Progression for New Project
     {
       step: 'SelectNewProjectTemplate',
       next: 'NewProjectDetails',
-      prev: 'SelectProjectType'
+      prev: 'SelectProjectType',
     },
     {
       step: 'NewProjectDetails',
       next: 'Create',
-      prev: 'SelectNewProjectTemplate'
+      prev: 'SelectNewProjectTemplate',
     },
 
     // Progression for Existing Directory
     {
       step: 'ExistingProjectDetails',
       next: 'Create',
-      prev: 'SelectProjectType'
+      prev: 'SelectProjectType',
     },
 
     // Progression for Clone Directory
     {
       step: 'CloneProjectDetails',
       next: 'SelectAssets',
-      prev: 'SelectProjectType'
+      prev: 'SelectProjectType',
     },
     {
       step: 'SelectAssets',
       next: 'Create',
-      prev: 'CloneProjectDetails'
-    }
+      prev: 'CloneProjectDetails',
+    },
   ];
 
   handleSelectAddProject(type) {
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       project: {
         ...prevState.project,
-        type: type
-      }
+        type: type,
+      },
     }));
     switch (type) {
       case Constants.ProjectType.NEW_PROJECT_TYPE:
@@ -135,13 +134,13 @@ class CreateProjectDialog extends Component {
 
   handleBack() {
     const currentStep = this.state.step;
-    const stepDetails = CreateProjectDialog.steps.find(x => x.step === currentStep);
+    const stepDetails = CreateProjectDialog.steps.find((x) => x.step === currentStep);
     this.setState({ step: stepDetails.prev, canProgress: false });
   }
 
   handleNext() {
     const currentStep = this.state.step;
-    const stepDetails = CreateProjectDialog.steps.find(x => x.step === currentStep);
+    const stepDetails = CreateProjectDialog.steps.find((x) => x.step === currentStep);
     this.setState({ step: stepDetails.next, canProgress: false });
   }
 
@@ -159,7 +158,7 @@ class CreateProjectDialog extends Component {
           `${this.context} created project ${response.project.name}`,
           response.project,
           'info',
-          this.context
+          this.context,
         );
       }
       this.props.onClose(true);
@@ -171,7 +170,7 @@ class CreateProjectDialog extends Component {
   handleCreateProject() {
     const project = {
       ...this.state.project,
-      template: this.state.selectedTemplate
+      template: this.state.selectedTemplate,
     };
     console.log(project);
     ipcRenderer.send(Messages.CREATE_PROJECT_REQUEST, project);
@@ -181,41 +180,41 @@ class CreateProjectDialog extends Component {
     console.log(`${templateId} - ${templateVersion}`);
     this.setState({
       selectedTemplate: { id: templateId, version: templateVersion },
-      canProgress: true
+      canProgress: true,
     });
   }
 
   handleDirectoryChanged(dir) {
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       project: {
         ...prevState.project,
-        directory: dir
+        directory: dir,
       },
       canProgress: CreateProjectDialog.validateProjectDirectory(
         prevState.step,
         dir,
-        prevState.project.name
-      )
+        prevState.project.name,
+      ),
     }));
   }
 
   handleNameChanged(name) {
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       project: {
         ...prevState.project,
-        name: name
+        name: name,
       },
       canProgress: CreateProjectDialog.validateProjectDirectory(
         prevState.step,
         prevState.project.directory,
-        name
-      )
+        name,
+      ),
     }));
   }
 
   render() {
     const currentStep = this.state.step;
-    const stepDetails = CreateProjectDialog.steps.find(x => x.step === currentStep);
+    const stepDetails = CreateProjectDialog.steps.find((x) => x.step === currentStep);
     const hasNextStep = stepDetails.next !== null && stepDetails.next !== undefined;
     let displayComponent = null;
     let dialogTitle = null;
@@ -344,11 +343,11 @@ class CreateProjectDialog extends Component {
 CreateProjectDialog.propTypes = {
   projectTemplates: PropTypes.array.isRequired,
   onClose: PropTypes.func.isRequired,
-  open: PropTypes.bool
+  open: PropTypes.bool,
 };
 
 CreateProjectDialog.defaultProps = {
-  open: false
+  open: false,
 };
 
 CreateProjectDialog.contextType = UserContext;

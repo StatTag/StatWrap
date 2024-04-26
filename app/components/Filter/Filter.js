@@ -3,16 +3,16 @@ import React from 'react';
 import FilterItem from './FilterItem/FilterItem';
 import styles from './Filter.css';
 
-const filterComponent = props => {
+const filterComponent = (props) => {
   const { filter } = props;
 
   const handleFilterChecked = (category, filterKey, value) => {
-    const categoryIndex = filter.findIndex(x => x.category === category);
+    const categoryIndex = filter.findIndex((x) => x.category === category);
     if (categoryIndex === -1) {
       return;
     }
 
-    const filterIndex = filter[categoryIndex].values.findIndex(x => x.key === filterKey);
+    const filterIndex = filter[categoryIndex].values.findIndex((x) => x.key === filterKey);
     if (filterIndex === -1) {
       return;
     }
@@ -25,8 +25,8 @@ const filterComponent = props => {
   };
 
   const filterElements = [];
-  filter.forEach(x => {
-    const valueElements = x.values.map(f => {
+  filter.forEach((x) => {
+    const valueElements = x.values.map((f) => {
       return (
         <FilterItem
           onChecked={handleFilterChecked}
@@ -43,7 +43,7 @@ const filterComponent = props => {
       <div className={styles.category} key={x.category}>
         <div className={styles.categoryHeader}>{x.category}</div>
         <div className={styles.categoryList}>{valueElements}</div>
-      </div>
+      </div>,
     );
   });
 
@@ -53,7 +53,7 @@ const filterComponent = props => {
         <button type="button" onClick={props.onFilterReset}>
           Reset Filter
         </button>
-      </div>
+      </div>,
     );
   }
 

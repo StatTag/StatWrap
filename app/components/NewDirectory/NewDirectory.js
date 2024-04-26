@@ -12,7 +12,7 @@ class NewDirectory extends Component {
     this.handleBrowseDirectory = this.handleBrowseDirectory.bind(this);
     this.handleNameChanged = this.handleNameChanged.bind(this);
     this.state = {
-      validationErrorMessage: null
+      validationErrorMessage: null,
     };
   }
 
@@ -20,23 +20,23 @@ class NewDirectory extends Component {
     dialog
       .showOpenDialog({
         title: 'Select the root path of your project',
-        properties: ['openDirectory']
+        properties: ['openDirectory'],
       })
-      .then(result => {
+      .then((result) => {
         if (!result.canceled && result.filePaths !== null && result.filePaths.length > 0) {
           this.props.onDirectoryChanged(result.filePaths[0]);
           this.setState({ validationErrorMessage: null });
         }
         return result;
       })
-      .catch(err => {
+      .catch((err) => {
         this.setState({
-          validationErrorMessage: `There was an error accessing the project root folder: ${err}`
+          validationErrorMessage: `There was an error accessing the project root folder: ${err}`,
         });
       });
   };
 
-  handleNameChanged = e => {
+  handleNameChanged = (e) => {
     this.props.onNameChanged(e.target.value);
   };
 
@@ -74,7 +74,7 @@ NewDirectory.propTypes = {
   name: PropTypes.string.isRequired,
   directory: PropTypes.string.isRequired,
   onDirectoryChanged: PropTypes.func.isRequired,
-  onNameChanged: PropTypes.func.isRequired
+  onNameChanged: PropTypes.func.isRequired,
 };
 
 export default NewDirectory;
