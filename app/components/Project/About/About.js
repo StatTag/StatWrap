@@ -21,9 +21,10 @@ import LinkedDescription from '../LinkedDescription/LinkedDescription';
 import ProjectUpdateSummary from '../ProjectUpdateSummary/ProjectUpdateSummary';
 import { DescriptionContentType } from '../../../constants/constants';
 
-function about(props) {
+function About(props) {
   const [editing, setEditing] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+
   const [initialState, setInitialState] = useState({
     descriptionEditor:
       props.project.description && props.project.description.contentType
@@ -42,6 +43,34 @@ function about(props) {
     categories: props.project.categories ? props.project.categories : [],
     notes: props.project.notes ? props.project.notes : [],
   });
+
+  useEffect(() => {
+    const newState = {
+      descriptionEditor:
+        props.project.description && props.project.description.contentType
+          ? props.project.description.contentType
+          : DescriptionContentType.MARKDOWN,
+      descriptionText:
+        props.project.description && props.project.description.uri
+          ? props.project.description.uriContent
+          : props.project.description && props.project.description.content
+            ? props.project.description.content
+            : '',
+      descriptionUri:
+        props.project.description && props.project.description.uri
+          ? props.project.description.uri
+          : '',
+      categories: props.project.categories ? props.project.categories : [],
+      notes: props.project.notes ? props.project.notes : [],
+    };
+
+    setInitialState(newState);
+    setDescriptionEditor(newState.descriptionEditor);
+    setDescriptionText(newState.descriptionText);
+    setDescriptionUri(newState.descriptionUri);
+    setCategories(newState.categories);
+    setNotes(newState.notes);
+  }, [props.project]);
 
   const [descriptionEditor, setDescriptionEditor] = useState(initialState.descriptionEditor);
   const [descriptionText, setDescriptionText] = useState(initialState.descriptionText);
@@ -287,7 +316,7 @@ function about(props) {
   );
 }
 
-about.propTypes = {
+About.propTypes = {
   project: PropTypes.object.isRequired,
   updates: PropTypes.object,
   onUpdateDetails: PropTypes.func.isRequired,
@@ -297,4 +326,4 @@ about.propTypes = {
   onClickUpdatesLink: PropTypes.func,
 };
 
-export default about;
+export default About;
