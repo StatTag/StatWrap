@@ -33,7 +33,7 @@ function ChecklistItem({ item, project, onUpdatedNote, onDeletedNote, onAddedNot
     <div className={styles.item}>
       <div className={styles.header}>
         <span>{item.statement}</span>
-        <div className={styles.buttoncontainer}>
+        <div className={styles.buttonContainer}>
           <button
             className={answer === 'yes' ? styles.yesset : styles.yes}
             onClick={() => setAnswer('yes')}
@@ -49,19 +49,6 @@ function ChecklistItem({ item, project, onUpdatedNote, onDeletedNote, onAddedNot
         </div>
       </div>
       <div className={styles.details}>
-        {notes.length > 0 && (
-          <div className={styles.notes}>
-            <h4>Notes:</h4>
-            <ul>
-              {notes.map((note) => (
-                <li key={note.id}>
-                  <strong>{note.author}:</strong> {note.content}
-                  <span className={styles.timestamp}>{note.updated}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
         <NoteEditor
           notes={notes}
           onEditingComplete={handleNoteUpdate}

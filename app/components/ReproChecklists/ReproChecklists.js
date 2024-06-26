@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import ChecklistItem from './ChecklistItem';
+import { Typography } from '@mui/material';
 
 const dummyChecklistItems = [
   {
@@ -46,6 +47,8 @@ function ReproChecklists(props) {
 
   return (
     <div>
+      <Typography variant='h5' align='center'>Reproducibility Checklists</Typography>
+      <br />
       {checklistItems.map(item => (
         <ChecklistItem
           key={item.id}

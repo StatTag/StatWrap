@@ -39,6 +39,7 @@ The **Sub-Checklist Object** represents a sub-item within a checklist item. It s
 #### About
 
 The **Note Object** stores user-added note associated with checklist items.
+This follows the same structure as the existing [notes data type](https://github.com/StatTag/StatWrap/blob/master/docs/Notes.md)
 
 #### Attributes
 
