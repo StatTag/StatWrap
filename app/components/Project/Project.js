@@ -682,7 +682,7 @@ class Project extends Component<Props> {
           />
         ) : null;
 
-      const reproChecklists = <ReproChecklists
+      const Checklists = <ReproChecklists
         project={this.props.project}
         onAddedNote={this.projectUpsertNoteHandler}
         onUpdatedNote={this.projectUpsertNoteHandler}
@@ -717,7 +717,7 @@ class Project extends Component<Props> {
               <Tab label="People" value="people" classes={tabStyle} />
               <Tab label="Notes" value="projectNotes" classes={tabStyle} />
               <Tab label="Project Log" value="projectLog" classes={tabStyle} />
-              <Tab label="Reproducibility Checklists" value="reproChecklists" classes={tabStyle} />
+              <Tab label="Checklists" value="Checklists" classes={tabStyle} />
             </Tabs>
           </div>
           <TabPanel value="about" classes={tabPanelStyle}>
@@ -738,8 +738,8 @@ class Project extends Component<Props> {
           <TabPanel value="projectLog" classes={tabPanelStyle}>
             {projectLog}
           </TabPanel>
-          <TabPanel value="reproChecklists" classes={tabPanelStyle}>
-            {reproChecklists}
+          <TabPanel value="Checklists" classes={tabPanelStyle}>
+            {Checklists}
           </TabPanel>
         </TabContext>
       );
