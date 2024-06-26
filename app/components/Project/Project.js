@@ -13,6 +13,7 @@ import Assets from './Assets/Assets';
 import Workflow from '../Workflow/Workflow';
 import People from '../People/People';
 import ProjectLog from '../ProjectLog/ProjectLog';
+import ReproChecklists from '../ReproChecklists/ReproChecklists';
 import ProjectNotes from '../ProjectNotes/ProjectNotes';
 import { ActionType, EntityType, DescriptionContentType } from '../../constants/constants';
 import AssetUtil from '../../utils/asset';
@@ -681,6 +682,13 @@ class Project extends Component<Props> {
           />
         ) : null;
 
+      const Checklists = <ReproChecklists
+        project={this.props.project}
+        onAddedNote={this.projectUpsertNoteHandler}
+        onUpdatedNote={this.projectUpsertNoteHandler}
+        onDeletedNote={this.projectDeleteNoteHandler}
+      />
+
       content = (
         <TabContext value={this.state.selectedTab}>
           <div className={styles.header}>
@@ -709,6 +717,7 @@ class Project extends Component<Props> {
               <Tab label="People" value="people" classes={tabStyle} />
               <Tab label="Notes" value="projectNotes" classes={tabStyle} />
               <Tab label="Project Log" value="projectLog" classes={tabStyle} />
+              <Tab label="Checklists" value="Checklists" classes={tabStyle} />
             </Tabs>
           </div>
           <TabPanel value="about" classes={tabPanelStyle}>
@@ -728,6 +737,9 @@ class Project extends Component<Props> {
           </TabPanel>
           <TabPanel value="projectLog" classes={tabPanelStyle}>
             {projectLog}
+          </TabPanel>
+          <TabPanel value="Checklists" classes={tabPanelStyle}>
+            {Checklists}
           </TabPanel>
         </TabContext>
       );

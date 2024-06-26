@@ -1,0 +1,87 @@
+.item {
+  padding: 10px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+}
+
+.buttonContainer {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.details {
+  padding-left: 20px;
+  margin-top: 10px;
+}
+
+.notes,
+.images,
+.urls,
+.subChecklists {
+  margin-top: 10px;
+}
+
+.notes ul,
+.images ul,
+.urls ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.notes li,
+.images li,
+.urls li {
+  margin-bottom: 5px;
+}
+
+.notes li strong {
+  display: block;
+}
+
+.timestamp {
+  display: block;
+  font-size: 12px;
+  color: #888;
+}
+
+.images img {
+  max-width: 100%;
+  height: auto;
+}
+
+.item button {
+  min-width: 50px;
+  height: 32px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.item button.yes {
+  background-color:#aa94d1;
+  color: white;
+}
+
+.item button.yesset {
+  background-color:rebeccapurple;
+  color: white;
+}
+
+.item button.no {
+  background-color: silver;
+  color: white;
+}
+
+.item button.noset {
+  background-color: grey;
+  color: white;
+}
+
+.item button:hover {
+  opacity: 0.9;
+}
