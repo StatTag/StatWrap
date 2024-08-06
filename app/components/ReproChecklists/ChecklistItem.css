@@ -3,8 +3,12 @@
   border-bottom: 1px solid #e5e5e5;
 }
 
+.header span {
+  max-width: 83%;
+}
+
 .header {
-  display: flex;
+  display:flex;
   align-items: center;
 }
 
@@ -18,28 +22,47 @@
   margin-top: 10px;
 }
 
-.notes,
 .images,
 .urls,
 .subChecklists {
   margin-top: 10px;
 }
 
-.notes ul,
-.images ul,
+.images ul{
+  list-style-type: none;
+  padding-left: 0;
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
 .urls ul {
   list-style-type: none;
   padding-left: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: nowrap;
 }
 
-.notes li,
-.images li,
-.urls li {
+.images li{
+  margin-right: 10px;
   margin-bottom: 5px;
+  padding-right: 5px;
+  position: relative;
 }
 
-.notes li strong {
-  display: block;
+.urls li{
+  margin-right: 10px;
+  margin-bottom: 5px;
+  padding-bottom: 5px;
+  position: relative;
+}
+
+.images li:not(:last-child) {
+  border-right: 1px solid #ccc;
+}
+.urls li:not(:last-child) {
+  border-bottom: 1px solid #ccc;
 }
 
 .timestamp {
@@ -49,8 +72,40 @@
 }
 
 .images img {
-  max-width: 100%;
   height: auto;
+  max-height: 150px;
+  transition: max-height 0.3s ease;
+  display: block;
+  margin-top: 5px;
+}
+
+.imageContent,
+.urlContent {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.imageContent.show,
+.urlContent.show {
+  max-height: 500px;
+}
+
+.urls a {
+  text-decoration: none;
+  color: #007bff;
+  display: block;
+  margin-top: 5px;
+}
+
+.urls a:hover {
+  color: darkblue;
+}
+
+.images p,
+.urls p {
+  margin-top: 8px;
+  font-size: 15px;
 }
 
 .item button {
@@ -63,12 +118,12 @@
 }
 
 .item button.yes {
-  background-color:#aa94d1;
+  background-color: #aa94d1;
   color: white;
 }
 
 .item button.yesset {
-  background-color:rebeccapurple;
+  background-color: rebeccapurple;
   color: white;
 }
 
@@ -84,4 +139,45 @@
 
 .item button:hover {
   opacity: 0.9;
+}
+
+.headerWithButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dropdownButton {
+  background-color: #f8f9fa;
+  color: #333;
+  border: none;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.dropdownButton:hover {
+  background-color: #e9ecef;
+}
+
+.dropdownContent {
+  display: none;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-top: 5px;
+  transition: max-height 0.3s ease;
+}
+
+.dropdownContent.show {
+  display: block;
+  max-height: 500px;
+}
+
+.imageTitle,
+.urlTitle {
+  font-size: 16px;
 }
