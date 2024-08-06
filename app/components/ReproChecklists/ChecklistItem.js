@@ -6,6 +6,8 @@ import NoteEditor from '../NoteEditor/NoteEditor';
 function ChecklistItem({ item, project, onUpdatedNote, onDeletedNote, onAddedNote }) {
   const [answer, setAnswer] = useState(item.answer);
   const [notes, setNotes] = useState(item.userNotes || []);
+  const [showImages, setShowImages] = useState(false);
+  const [showURLs, setShowURLs] = useState(false);
 
   const handleNoteUpdate = (note, text) => {
     if (note) {
@@ -56,30 +58,48 @@ function ChecklistItem({ item, project, onUpdatedNote, onDeletedNote, onAddedNot
         />
         {item.attachedImages.length > 0 && (
           <div className={styles.images}>
-            <h4>Attached Images:</h4>
-            <ul>
-              {item.attachedImages.map((image) => (
-                <li key={image.id}>
-                  <img src={URL.createObjectURL(image.data)} alt="attached" />
-                  <span className={styles.timestamp}>{image.updated}</span>
-                </li>
-              ))}
-            </ul>
+            <div className={styles.headerWithButton}>
+              <h4>Attached Images:</h4>
+              <button className={styles.dropdownButton} onClick={() => setShowImages(!showImages)}>
+                {showImages ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            <div className={`${styles.imageContent} ${showImages ? styles.show : ''}`}>
+              <ul>
+                {item.attachedImages.map((image) => (
+                  <li key={image.id}>
+                    <span className={styles.imageTitle}>{image.title}</span>
+                    <img src={image.uri} alt="attached" />
+                    <p>{image.description}</p>
+                    <span className={styles.timestamp}>{image.updated}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         )}
         {item.attachedURLs.length > 0 && (
           <div className={styles.urls}>
-            <h4>Attached URLs:</h4>
-            <ul>
-              {item.attachedURLs.map((url) => (
-                <li key={url.id}>
-                  <a href={url.hyperlink} target="">
-                    {url.hyperlink}
-                  </a>
-                  <span className={styles.timestamp}>{url.updated}</span>
-                </li>
-              ))}
-            </ul>
+            <div className={styles.headerWithButton}>
+              <h4>Attached URLs:</h4>
+              <button className={styles.dropdownButton} onClick={() => setShowURLs(!showURLs)}>
+                {showURLs ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            <div className={`${styles.urlContent} ${showURLs ? styles.show : ''}`}>
+              <ul>
+                {item.attachedURLs.map((url) => (
+                  <li key={url.id}>
+                    <span className={styles.urlTitle}>{url.title}</span>
+                    <a href={url.hyperlink} target="">
+                      {url.hyperlink}
+                    </a>
+                    <p>{url.description}</p>
+                    <span className={styles.timestamp}>{url.updated}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         )}
         {item.subChecklists.length > 0 && (
@@ -119,7 +139,9 @@ ChecklistItem.propTypes = {
     attachedImages: PropTypes.arrayOf(
       PropTypes.shape({
         id: PropTypes.string.isRequired,
-        data: PropTypes.instanceOf(Blob).isRequired,
+        uri: PropTypes.string.isRequired,
+        title: PropTypes.string.isRequired,
+        description: PropTypes.string.isRequired,
         updated: PropTypes.string.isRequired,
       })
     ),
@@ -127,6 +149,8 @@ ChecklistItem.propTypes = {
       PropTypes.shape({
         id: PropTypes.string.isRequired,
         hyperlink: PropTypes.string.isRequired,
+        title: PropTypes.string.isRequired,
+        description: PropTypes.string.isRequired,
         updated: PropTypes.string.isRequired,
       })
     ),
