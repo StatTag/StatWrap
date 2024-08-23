@@ -1,5 +1,13 @@
-import React, { useState } from 'react';
-import { Button, Box } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import {
+  Button,
+  Box,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from '@mui/material';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 import PropTypes from 'prop-types';
@@ -13,30 +21,64 @@ import LinkedDescription from '../LinkedDescription/LinkedDescription';
 import ProjectUpdateSummary from '../ProjectUpdateSummary/ProjectUpdateSummary';
 import { DescriptionContentType } from '../../../constants/constants';
 
-function about(props) {
+function About(props) {
   const [editing, setEditing] = useState(false);
-  const [descriptionEditor, setDescriptionEditor] = useState(
-    props.project.description && props.project.description.contentType
-      ? props.project.description.contentType
-      : DescriptionContentType.MARKDOWN,
-  );
-  const [descriptionText, setDescriptionText] = useState(
-    props.project.description && props.project.description.uri
-      ? props.project.description.uriContent
-      : props.project.description && props.project.description.content
-        ? props.project.description.content
-        : '',
-  );
-  const [descriptionUri, setDescriptionUri] = useState(
-    props.project.description && props.project.description.uri ? props.project.description.uri : '',
-  );
-  const [categories, setCategories] = useState(
-    props.project.categories ? props.project.categories : [],
-  );
-  const [notes, setNotes] = useState(props.project.notes ? props.project.notes : []);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
-  // Derive updated state from props
-  React.useEffect(() => {
+  const [initialState, setInitialState] = useState({
+    descriptionEditor:
+      props.project.description && props.project.description.contentType
+        ? props.project.description.contentType
+        : DescriptionContentType.MARKDOWN,
+    descriptionText:
+      props.project.description && props.project.description.uri
+        ? props.project.description.uriContent
+        : props.project.description && props.project.description.content
+          ? props.project.description.content
+          : '',
+    descriptionUri:
+      props.project.description && props.project.description.uri
+        ? props.project.description.uri
+        : '',
+    categories: props.project.categories ? props.project.categories : [],
+    notes: props.project.notes ? props.project.notes : [],
+  });
+
+  useEffect(() => {
+    const newState = {
+      descriptionEditor:
+        props.project.description && props.project.description.contentType
+          ? props.project.description.contentType
+          : DescriptionContentType.MARKDOWN,
+      descriptionText:
+        props.project.description && props.project.description.uri
+          ? props.project.description.uriContent
+          : props.project.description && props.project.description.content
+            ? props.project.description.content
+            : '',
+      descriptionUri:
+        props.project.description && props.project.description.uri
+          ? props.project.description.uri
+          : '',
+      categories: props.project.categories ? props.project.categories : [],
+      notes: props.project.notes ? props.project.notes : [],
+    };
+
+    setInitialState(newState);
+    setDescriptionEditor(newState.descriptionEditor);
+    setDescriptionText(newState.descriptionText);
+    setDescriptionUri(newState.descriptionUri);
+    setCategories(newState.categories);
+    setNotes(newState.notes);
+  }, [props.project]);
+
+  const [descriptionEditor, setDescriptionEditor] = useState(initialState.descriptionEditor);
+  const [descriptionText, setDescriptionText] = useState(initialState.descriptionText);
+  const [descriptionUri, setDescriptionUri] = useState(initialState.descriptionUri);
+  const [categories, setCategories] = useState(initialState.categories);
+  const [notes, setNotes] = useState(initialState.notes);
+
+  useEffect(() => {
     setDescriptionText(
       props.project.description && props.project.description.uri
         ? props.project.description.uriContent
@@ -45,17 +87,20 @@ function about(props) {
           : '',
     );
   }, [props.project.description]);
-  React.useEffect(() => {
+
+  useEffect(() => {
     setDescriptionUri(
       props.project.description && props.project.description.uri
         ? props.project.description.uri
         : '',
     );
   }, [props.project.description]);
-  React.useEffect(() => {
+
+  useEffect(() => {
     setCategories(props.project.categories ? props.project.categories : []);
   }, [props.project.categories]);
-  React.useEffect(() => {
+
+  useEffect(() => {
     setNotes(props.project.notes ? props.project.notes : []);
   }, [props.project.notes]);
 
@@ -80,18 +125,41 @@ function about(props) {
     );
   };
 
-  const handleButtonToggled = () => {
-    const currentStatus = editing;
-    setEditing(!currentStatus);
+  const handleSave = () => {
+    setEditing(false);
+    props.onUpdateDetails(
+      descriptionText,
+      descriptionEditor === DescriptionContentType.URI ? descriptionUri : null,
+      categories,
+    );
+  };
 
-    // If we're back to view mode, trigger a save of the data
-    if (currentStatus) {
-      props.onUpdateDetails(
-        descriptionText,
-        descriptionEditor === DescriptionContentType.URI ? descriptionUri : null,
-        categories,
-      );
+  const handleCancel = () => {
+    if (hasUnsavedChanges()) {
+      setShowCancelDialog(true);
+    } else {
+      revertChanges();
     }
+  };
+
+  const revertChanges = () => {
+    setDescriptionEditor(initialState.descriptionEditor);
+    setDescriptionText(initialState.descriptionText);
+    setDescriptionUri(initialState.descriptionUri);
+    setCategories(initialState.categories);
+    setNotes(initialState.notes);
+    setEditing(false);
+    setShowCancelDialog(false);
+  };
+
+  const hasUnsavedChanges = () => {
+    return (
+      descriptionEditor !== initialState.descriptionEditor ||
+      descriptionText !== initialState.descriptionText ||
+      descriptionUri !== initialState.descriptionUri ||
+      JSON.stringify(categories) !== JSON.stringify(initialState.categories) ||
+      JSON.stringify(notes) !== JSON.stringify(initialState.notes)
+    );
   };
 
   const updatedNoteHandler = (note, text) => {
@@ -111,9 +179,7 @@ function about(props) {
   };
 
   let view = null;
-  let buttonLabel = '';
   if (editing) {
-    buttonLabel = 'Save Details';
     let descriptionControl = null;
     let descriptionEditorButtonLabel = null;
     if (descriptionEditor === DescriptionContentType.URI) {
@@ -159,7 +225,6 @@ function about(props) {
       </Box>
     );
   } else {
-    buttonLabel = 'Edit Details';
     let tagViewerControl = null;
     if (categories && categories.length > 0) {
       tagViewerControl = <TagViewer className={styles.tagViewer} tags={categories} />;
@@ -192,21 +257,66 @@ function about(props) {
 
   return (
     <div className={styles.container}>
-      <Button
-        className={styles.button}
-        variant="outlined"
-        color="primary"
-        size="small"
-        onClick={handleButtonToggled}
-      >
-        {buttonLabel}
-      </Button>
+      {editing ? (
+        <>
+          <Button
+            className={styles.button}
+            variant="outlined"
+            color="secondary"
+            size="small"
+            onClick={handleCancel}
+            style={{ marginTop: '32px' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            className={styles.button}
+            variant="outlined"
+            color="primary"
+            size="small"
+            onClick={handleSave}
+            style={{
+              marginTop: '32px',
+              marginLeft: '20px',
+              marginRight: '20px',
+            }}
+          >
+            Save Details
+          </Button>
+        </>
+      ) : (
+        <Button
+          className={styles.button}
+          variant="outlined"
+          color="primary"
+          size="small"
+          onClick={() => setEditing(true)}
+        >
+          Edit Details
+        </Button>
+      )}
       {view}
+      <Dialog open={showCancelDialog} onClose={() => setShowCancelDialog(false)}>
+        <DialogTitle style={{ color: 'white' }}>Discard Changes?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            You have made changes. Do you wish to discard those changes?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={revertChanges} color="primary">
+            Yes
+          </Button>
+          <Button onClick={() => setShowCancelDialog(false)} color="secondary">
+            No
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
 
-about.propTypes = {
+About.propTypes = {
   project: PropTypes.object.isRequired,
   updates: PropTypes.object,
   onUpdateDetails: PropTypes.func.isRequired,
@@ -216,4 +326,4 @@ about.propTypes = {
   onClickUpdatesLink: PropTypes.func,
 };
 
-export default about;
+export default About;
