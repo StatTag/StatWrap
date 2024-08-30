@@ -10,8 +10,8 @@ const reproducibilityChecklist = [
     id: '1',
     statement: 'First checklist item statement. Now, I am just trying to make this statement a bit longer to see how it looks in the UI, without making any sense.',
     type: 'Type1',
-    bool: true,
-    answerList: {},
+    answer: true,
+    scanResult: {},
     userNotes: [
       {
         id: 'note1',
@@ -66,8 +66,8 @@ const reproducibilityChecklist = [
     id: '2',
     statement: 'Second checklist item statement',
     type: 'Type2',
-    bool: false,
-    answerList: {},
+    answer: false,
+    scanResult: {},
     userNotes: [
       {
         id: 'note2',
@@ -84,8 +84,8 @@ const reproducibilityChecklist = [
     id: '3',
     statement: 'List of all the languages used and the dependencies of the project',
     type: 'List',
-    bool: true,
-    answerList: {},
+    answer: true,
+    scanResult: {},
     userNotes: [],
     attachedImages: [],
     attachedURLs: [],
@@ -152,8 +152,8 @@ ReproChecklists.propTypes = {
       id: PropTypes.string.isRequired,
       statement: PropTypes.string.isRequired,
       type: PropTypes.string.isRequired,
-      bool: PropTypes.bool.isRequired,
-      answerList: PropTypes.objectOf(
+      answer: PropTypes.bool.isRequired,
+      scanResult: PropTypes.objectOf(
         PropTypes.arrayOf(PropTypes.string)
       ),
       userNotes: PropTypes.arrayOf(
@@ -187,8 +187,8 @@ ReproChecklists.propTypes = {
           id: PropTypes.string.isRequired,
           statement: PropTypes.string.isRequired,
           type: PropTypes.string.isRequired,
-          bool: PropTypes.bool.isRequired,
-          answerList: PropTypes.objectOf(
+          answer: PropTypes.bool.isRequired,
+          scanResult: PropTypes.objectOf(
             PropTypes.arrayOf(PropTypes.string)
           ),
         })
