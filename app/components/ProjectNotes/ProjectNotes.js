@@ -157,7 +157,7 @@ function projectNotes(props) {
         });
       }
 
-      const mappedPersonNotes = [];
+      let mappedPersonNotes = [];
       if (props.project.people) {
         props.project.people.forEach((p) => {
           if (p && p.notes) {

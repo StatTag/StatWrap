@@ -1,5 +1,5 @@
 /* eslint-disable no-underscore-dangle */
-import path from 'path';
+const path = require('path');
 import last from 'lodash/last';
 import constants from '../constants/constants';
 
