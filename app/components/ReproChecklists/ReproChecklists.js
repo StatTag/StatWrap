@@ -2,13 +2,16 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import ChecklistItem from './ChecklistItem';
 import { Typography } from '@mui/material';
-// /home/adi/Pictures/Screenshots/maskedvt.png
-const dummyChecklistItems = [
+const path = require('path');
+const AssetsConfig = require('../../constants/assets-config');
+
+const reproducibilityChecklist = [
   {
     id: '1',
     statement: 'First checklist item statement. Now, I am just trying to make this statement a bit longer to see how it looks in the UI, without making any sense.',
     type: 'Type1',
-    answer: 'yes',
+    bool: true,
+    answerList: {},
     userNotes: [
       {
         id: 'note1',
@@ -23,21 +26,18 @@ const dummyChecklistItems = [
         uri: '/home/adi/Pictures/Screenshots/maskedvt.png',
         title: 'Dummy Image',
         description: 'This is a dummy image description',
-        updated: '2024-06-09',
       },
       {
-        id: 'image1',
+        id: 'image2',
         uri: '/home/adi/Pictures/Screenshots/maskedvt.png',
         title: 'Dummy Image',
         description: 'This is a dummy image description',
-        updated: '2024-06-09',
       },
       {
-        id: 'image1',
+        id: 'image3',
         uri: '/home/adi/Pictures/Screenshots/maskedvt.png',
         title: 'Dummy Image',
         description: 'This is a dummy image description',
-        updated: '2024-06-09',
       },
     ],
     attachedURLs: [
@@ -46,31 +46,28 @@ const dummyChecklistItems = [
         hyperlink: 'https://github.com/StatTag/StatWrap/blob/master/app/services/user.js',
         title: 'StatWrap URL',
         description: 'This is URL description',
-        updated: '2024-06-09',
       },
       {
-        id: 'url1',
+        id: 'url2',
         hyperlink: 'https://github.com/StatTag/StatWrap/blob/master/app/services/user.js',
         title: 'StatWrap URL',
         description: 'This is URL description',
-        updated: '2024-06-09',
       },
       {
-        id: 'url1',
+        id: 'url3',
         hyperlink: 'https://github.com/StatTag/StatWrap/blob/master/app/services/user.js',
         title: 'StatWrap URL',
         description: 'This is URL description',
-        updated: '2024-06-09',
       },
     ],
     subChecklists: [],
-    updated: '2024-06-01',
   },
   {
     id: '2',
     statement: 'Second checklist item statement',
     type: 'Type2',
-    answer: 'no',
+    bool: false,
+    answerList: {},
     userNotes: [
       {
         id: 'note2',
@@ -82,41 +79,51 @@ const dummyChecklistItems = [
     attachedImages: [],
     attachedURLs: [],
     subChecklists: [],
-    updated: '2024-06-02',
   },
+  {
+    id: '3',
+    statement: 'List of all the languages used and the dependencies of the project',
+    type: 'List',
+    bool: true,
+    answerList: {},
+    userNotes: [],
+    attachedImages: [],
+    attachedURLs: [],
+    subChecklists:[],
+  }
 ];
+
+const languages = new Set();
+const dependencies = new Set();
+
+function findAssetLanguagesAndDependencies(asset) {
+  if (asset.contentTypes.includes('code') && asset.type === 'file') {
+    const lastSep = asset.uri.lastIndexOf(path.sep);
+    const fileName = asset.uri.substring(lastSep + 1);
+    const ext = fileName.split('.').pop();
+    if(ext){
+      AssetsConfig.contentTypes.forEach((contentType) => {
+        if(contentType.extensions.includes(ext)) {
+          languages.add(contentType.name);
+        }
+      });
+    }
+  }
+
+  if(asset.children){
+    asset.children.forEach(findAssetLanguagesAndDependencies);
+  }
+
+  reproducibilityChecklist[2].answerList = {languages: Array.from(languages),dependencies: Array.from(dependencies) };
+}
 
 function ReproChecklists(props) {
   const { project, reproChecklist, onUpdatedNote, onDeletedNote, onAddedNote } = props;
-  const [checklistItems, setChecklistItems] = useState(dummyChecklistItems);
+  const [checklistItems, setChecklistItems] = useState(reproducibilityChecklist);
 
   useEffect(() => {
-    if (project && Array.isArray(project.assets)) {
-      const imageAssets = [];
-
-      const findImageAssets = (asset) => {
-        if (asset.type === 'image') {
-          imageAssets.push(asset);
-        }
-        if (asset.children) {
-          asset.children.forEach(findImageAssets);
-        }
-      };
-
-      project.assets.forEach(findImageAssets);
-
-      const updatedItems = dummyChecklistItems.map(item => ({
-        ...item,
-        attachedImages: imageAssets.map(asset => ({
-          id: asset.id,
-          uri: asset.uri,
-          title: asset.title || 'Image',
-          description: asset.description || 'About Image',
-          updated: asset.updated || 'NA',
-        })),
-      }));
-
-      setChecklistItems(updatedItems);
+    if (project && project.assets) {
+      findAssetLanguagesAndDependencies(project.assets);
     }
   }, [project]);
 
@@ -145,7 +152,10 @@ ReproChecklists.propTypes = {
       id: PropTypes.string.isRequired,
       statement: PropTypes.string.isRequired,
       type: PropTypes.string.isRequired,
-      answer: PropTypes.string.isRequired,
+      bool: PropTypes.bool.isRequired,
+      answerList: PropTypes.objectOf(
+        PropTypes.arrayOf(PropTypes.string)
+      ),
       userNotes: PropTypes.arrayOf(
         PropTypes.shape({
           id: PropTypes.string.isRequired,
@@ -177,11 +187,12 @@ ReproChecklists.propTypes = {
           id: PropTypes.string.isRequired,
           statement: PropTypes.string.isRequired,
           type: PropTypes.string.isRequired,
-          answer: PropTypes.string.isRequired,
-          updated: PropTypes.string.isRequired,
+          bool: PropTypes.bool.isRequired,
+          answerList: PropTypes.objectOf(
+            PropTypes.arrayOf(PropTypes.string)
+          ),
         })
       ),
-      updated: PropTypes.string.isRequired,
     })
   ).isRequired,
   onUpdatedNote: PropTypes.func.isRequired,
@@ -190,7 +201,7 @@ ReproChecklists.propTypes = {
 };
 
 ReproChecklists.defaultProps = {
-  reproChecklist: dummyChecklistItems,
+  reproChecklist: reproducibilityChecklist,
 };
 
 export default ReproChecklists;

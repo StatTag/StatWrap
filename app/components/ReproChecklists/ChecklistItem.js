@@ -8,6 +8,7 @@ function ChecklistItem({ item, project, onUpdatedNote, onDeletedNote, onAddedNot
   const [notes, setNotes] = useState(item.userNotes || []);
   const [showImages, setShowImages] = useState(false);
   const [showURLs, setShowURLs] = useState(false);
+  const [allImages, setAllImages] = useState([]);
 
   const handleNoteUpdate = (note, text) => {
     if (note) {
@@ -28,6 +29,24 @@ function ChecklistItem({ item, project, onUpdatedNote, onDeletedNote, onAddedNot
   };
 
   useEffect(() => {
+    if (project && Array.isArray(project.assets)) {
+      const imageAssets = [];
+      const findImageAssets = (asset) => {
+        if (asset.type === 'image') {
+          imageAssets.push(asset.uri);
+        }
+        if (asset.children) {
+          asset.children.forEach(findImageAssets);
+        }
+      };
+
+      setAllImages(imageAssets);
+
+      project.assets.forEach(findImageAssets);
+    }
+  }, [project]);
+
+  useEffect(() => {
     setNotes(item.userNotes || []);
   }, [item.userNotes]);
 
@@ -37,18 +56,36 @@ function ChecklistItem({ item, project, onUpdatedNote, onDeletedNote, onAddedNot
         <span>{item.statement}</span>
         <div className={styles.buttonContainer}>
           <button
-            className={answer === 'yes' ? styles.yesset : styles.yes}
-            onClick={() => setAnswer('yes')}
+            className={answer ? styles.yesset : styles.yes}
+            onClick={() => setAnswer(true)}
           >
             {'Yes'}
           </button>
           <button
-            className={answer === 'no' ? styles.noset : styles.no}
-            onClick={() => setAnswer('no')}
+            className={answer  ? styles.noset : styles.no}
+            onClick={() => setAnswer(false)}
           >
             {'No'}
           </button>
         </div>
+      </div>
+      <div className={styles.scanResult}>
+        {item.scanResult &&
+          Object.keys(item.scanResult).map((key) => {
+            return (
+            <div key={key}>
+              <span>{key}</span>
+              <ul>
+                {item.scanResult[key].length ? (
+                  item.scanResult[key].map((answer) => (
+                    <li key={answer}>{answer}</li>
+                  ))
+                ) : (
+                  <li>No answers available</li>
+                )}
+              </ul>
+            </div>
+          )})}
       </div>
       <div className={styles.details}>
         <NoteEditor
@@ -127,7 +164,10 @@ ChecklistItem.propTypes = {
     id: PropTypes.string.isRequired,
     statement: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
-    answer: PropTypes.string.isRequired,
+    answer: PropTypes.bool.isRequired,
+    scanResult: PropTypes.objectOf(
+      PropTypes.arrayOf(PropTypes.string)
+    ),
     userNotes: PropTypes.arrayOf(
       PropTypes.shape({
         id: PropTypes.string.isRequired,
@@ -159,11 +199,12 @@ ChecklistItem.propTypes = {
         id: PropTypes.string.isRequired,
         statement: PropTypes.string.isRequired,
         type: PropTypes.string.isRequired,
-        answer: PropTypes.string.isRequired,
-        updated: PropTypes.string.isRequired,
+        answer: PropTypes.bool.isRequired,
+        scanResult: PropTypes.objectOf(
+          PropTypes.arrayOf(PropTypes.string)
+        ),
       })
     ),
-    updated: PropTypes.string.isRequired,
   }).isRequired,
   project: PropTypes.object.isRequired,
   onUpdatedNote: PropTypes.func.isRequired,
