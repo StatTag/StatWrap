@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+import styles from './ReproChecklists.css';
 import ChecklistItem from './ChecklistItem';
 import { Typography } from '@mui/material';
+import { SaveAlt } from '@mui/icons-material';
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
+
+pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 const path = require('path');
+const fs = require('fs');
 const AssetsConfig = require('../../constants/assets-config');
 
 const reproducibilityChecklist = [
@@ -101,6 +108,40 @@ function findImageAssets(asset) {
   }
 };
 
+
+function convertImageToBase64(filePath) {
+  try {
+    const file = fs.readFileSync(filePath);
+    const ext = path.extname(filePath).toLowerCase();
+    let mimeType;
+    switch (ext) {
+      case '.jpg':
+      case '.jpeg':
+        mimeType = 'image/jpeg';
+        break;
+      case '.png':
+        mimeType = 'image/png';
+        break;
+      case '.gif':
+        mimeType = 'image/gif';
+        break;
+      case '.webp':
+        mimeType = 'image/webp';
+        break;
+      case '.svg':
+        mimeType = 'image/svg+xml';
+        break;
+      default:
+        mimeType = 'application/octet-stream';
+    }
+    return `data:${mimeType};base64,${file.toString('base64')}`;
+  } catch (error) {
+    console.error('Error converting image to Base64:', error);
+    return null;
+  }
+};
+
+
 function ReproChecklists(props) {
   const { project, reproChecklist, onUpdatedNote, onDeletedNote, onAddedNote } = props;
   const [checklistItems, setChecklistItems] = useState(reproducibilityChecklist);
@@ -121,6 +162,147 @@ function ReproChecklists(props) {
     setChecklistItems(updatedChecklistItems);
   };
 
+  const handleReportGeneration = () => {
+    const checkedIcon = convertImageToBase64(path.join(__dirname, 'images/yes.png'));
+    const uncheckedIcon = convertImageToBase64(path.join(__dirname, 'images/no.png'));
+    const statWrapLogo = convertImageToBase64(path.join(__dirname, 'images/banner.png'));
+
+    const documentDefinition = {
+      content: [
+        {
+          image: statWrapLogo,
+          width: 150,
+          alignment: 'center',
+        },
+        {
+          text: 'Reproducibility Checklists Report',
+          style: 'mainHeader',
+          alignment: 'center',
+          margin: [0, 20],
+        },
+        {
+          text: 'Project Overview',
+          style: 'sectionHeader',
+          margin: [0, 10],
+        },
+        {
+          text: `Project Name: ${project.name}`,
+          margin: [0, 5],
+        },
+        {
+          text: `Date: ${new Date().toLocaleDateString()}`,
+          margin: [0, 5],
+        },
+        {
+          text: `Checklist Summary`,
+          style: 'sectionHeader',
+          margin: [0, 10],
+        },
+        ...checklistItems.map((item, index) => {
+          let subChecklists = [];
+          if (item.subChecklists && item.subChecklists.length > 0) {
+            subChecklists = item.subChecklists.map((subItem, subIndex) => ({
+              columns: [
+                {
+                  text: `${index + 1}.${subIndex + 1} ${subItem.statement}`,
+                  margin: [15, 5],
+                  width: '*',
+                  alignment: 'left',
+                },
+                {
+                  image: subItem.answer ? checkedIcon : uncheckedIcon,
+                  width: 15,
+                  height: 15,
+                  alignment: 'right',
+                  margin: [0, 6, 1, 0],
+                },
+              ],
+              columnGap: 0,
+            }));
+          }
+
+          let images = [];
+          if(item.attachedImages && item.attachedImages.length > 0){
+            images = item.attachedImages.map((image) => {
+              const base64Image = convertImageToBase64(image.uri);
+              if (base64Image) {
+                return [
+                  {
+                    image: base64Image,
+                    width: 150,
+                    margin: [0, 5],
+                    alignment: 'center',
+                  },
+                  {
+                    text: `${image.title}`,
+                    style: 'imageTitle',
+                    margin: [0, 2],
+                    alignment: 'center',
+                  },
+                ];
+              }
+              return { text: `Failed to load image: ${image.uri}`, color: 'red' };
+            });
+          }
+
+          return [
+            {
+              columns: [
+                {
+                  text: `${index + 1}. `,
+                  width: 10,
+                  margin: [0, 10],
+                  alignment: 'left',
+                },
+                {
+                  text: `${item.statement}`,
+                  margin: [0, 10],
+                  width: '*',
+                  alignment: 'left',
+                },
+                {
+                  image: item.answer ? checkedIcon : uncheckedIcon,
+                  width: 20,
+                  height: 20,
+                  alignment: 'right',
+                  margin: [0, 10],
+                },
+              ],
+              columnGap: 5,
+            },
+            ...subChecklists,
+            images.length > 0 ? { text: 'Related Images:', style: 'subheader', margin: [0, 10] } : '',
+            {
+              columns: images,
+              columnGap: 5,
+              width: '*',
+              wrap: true,
+              margin: [0, 5],
+            }
+          ];
+        }).flat(),
+      ],
+      styles: {
+        mainHeader: { fontSize: 22, bold: true, color: '#663399' },
+        sectionHeader: { fontSize: 18, bold: true, color: '#8b6fb3', margin: [0, 20] },
+        header: { fontSize: 16, bold: true },
+      },
+      defaultStyle: {
+        fontSize: 12,
+      },
+      pageMargins: [40, 25, 40, 60],
+      footer: function (currentPage, pageCount) {
+        return {
+          text: `Page ${currentPage} of ${pageCount}`,
+          alignment: 'center',
+          margin: [0, 30],
+        };
+      },
+    };
+
+    pdfMake.createPdf(documentDefinition).download('Reproducibility_Checklist_Report.pdf');
+  };
+
   return (
     <div>
       <Typography variant='h5' align='center' marginTop='10px'>Reproducibility Checklists</Typography>
@@ -137,6 +319,18 @@ function ReproChecklists(props) {
           onItemUpdate={handleItemUpdate}
         />
       ))}
+      <br />
+      <div className={styles.downloadContainer}>
+        <button
+          onClick={handleReportGeneration}
+          className={styles.downloadButton}
+        >
+          <div className={styles.buttonContent}>
+            <span className={styles.buttonText}>Report</span>
+            <SaveAlt />
+          </div>
+        </button>
+      </div>
     </div>
   );
 }

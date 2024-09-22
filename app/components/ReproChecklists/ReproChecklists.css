@@ -1,8 +1,27 @@
-.container {
-  padding: 20px;
+.downloadContainer {
+  position: fixed;
+  bottom: 10px;
+  right: 20px;
 }
 
-h2 {
-  margin-bottom: 20px;
-  font-size: 24px;
+.downloadButton {
+  background-color: #639;
+  padding-right: 4px;
+  padding-left: 5px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+
+.downloadButton:hover {
+  opacity: 0.9;
+}
+
+.buttonContent {
+  display: flex;
+  color: white;
+  font-size: 16px;
+}
+
+.buttonText {
+  margin-top: 3px;
+  margin-right: 2px;
 }
