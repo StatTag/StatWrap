@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import ChecklistItem from './ChecklistItem';
 import { Typography } from '@mui/material';
+
 const path = require('path');
 const AssetsConfig = require('../../constants/assets-config');
 
@@ -9,7 +10,6 @@ const reproducibilityChecklist = [
   {
     id: '1',
     statement: 'First checklist item statement. Now, I am just trying to make this statement a bit longer to see how it looks in the UI, without making any sense.',
-    type: 'Type1',
     answer: true,
     scanResult: {},
     userNotes: [
@@ -20,52 +20,13 @@ const reproducibilityChecklist = [
         content: 'First note content',
       },
     ],
-    attachedImages: [
-      {
-        id: 'image1',
-        uri: '/home/adi/Pictures/Screenshots/maskedvt.png',
-        title: 'Dummy Image',
-        description: 'This is a dummy image description',
-      },
-      {
-        id: 'image2',
-        uri: '/home/adi/Pictures/Screenshots/maskedvt.png',
-        title: 'Dummy Image',
-        description: 'This is a dummy image description',
-      },
-      {
-        id: 'image3',
-        uri: '/home/adi/Pictures/Screenshots/maskedvt.png',
-        title: 'Dummy Image',
-        description: 'This is a dummy image description',
-      },
-    ],
-    attachedURLs: [
-      {
-        id: 'url1',
-        hyperlink: 'https://github.com/StatTag/StatWrap/blob/master/app/services/user.js',
-        title: 'StatWrap URL',
-        description: 'This is URL description',
-      },
-      {
-        id: 'url2',
-        hyperlink: 'https://github.com/StatTag/StatWrap/blob/master/app/services/user.js',
-        title: 'StatWrap URL',
-        description: 'This is URL description',
-      },
-      {
-        id: 'url3',
-        hyperlink: 'https://github.com/StatTag/StatWrap/blob/master/app/services/user.js',
-        title: 'StatWrap URL',
-        description: 'This is URL description',
-      },
-    ],
+    attachedImages: [],
+    attachedURLs: [],
     subChecklists: [],
   },
   {
     id: '2',
-    statement: 'Second checklist item statement',
-    type: 'Type2',
+    statement: 'Second checklist item statement.',
     answer: false,
     scanResult: {},
     userNotes: [
@@ -82,29 +43,40 @@ const reproducibilityChecklist = [
   },
   {
     id: '3',
-    statement: 'List of all the languages used and the dependencies of the project',
-    type: 'List',
+    statement: 'List of all the languages used and the dependencies of the project.',
     answer: true,
     scanResult: {},
     userNotes: [],
     attachedImages: [],
     attachedURLs: [],
-    subChecklists:[],
+    subChecklists:[
+      {
+        id: '3.1',
+        statement: 'Are all the languages used in the project listed?',
+        answer: true,
+      },
+      {
+        id: '3.2',
+        statement: 'Are all the dependencies of the project listed?',
+        answer: false,
+      },
+    ],
   }
 ];
 
-const languages = new Set();
-const dependencies = new Set();
+const languages = {};
+const dependencies = {};
+const imageAssets = {};
 
 function findAssetLanguagesAndDependencies(asset) {
-  if (asset.contentTypes.includes('code') && asset.type === 'file') {
+  if (asset.type === 'file' && asset.contentTypes.includes('code') ) {
     const lastSep = asset.uri.lastIndexOf(path.sep);
     const fileName = asset.uri.substring(lastSep + 1);
     const ext = fileName.split('.').pop();
     if(ext){
       AssetsConfig.contentTypes.forEach((contentType) => {
         if(contentType.extensions.includes(ext)) {
-          languages.add(contentType.name);
+          languages[contentType.name] = true;
         }
       });
     }
@@ -114,31 +86,55 @@ function findAssetLanguagesAndDependencies(asset) {
     asset.children.forEach(findAssetLanguagesAndDependencies);
   }
 
-  reproducibilityChecklist[2].answerList = {languages: Array.from(languages),dependencies: Array.from(dependencies) };
+  reproducibilityChecklist[2].scanResult = {
+    languages: Object.keys(languages),
+    dependencies: Object.keys(dependencies)
+  };
 }
+
+function findImageAssets(asset) {
+  if (asset.type === 'file' && asset.contentTypes.includes('image')) {
+    imageAssets[asset.uri] = true;
+  }
+  if (asset.children) {
+    asset.children.forEach(findImageAssets);
+  }
+};
 
 function ReproChecklists(props) {
   const { project, reproChecklist, onUpdatedNote, onDeletedNote, onAddedNote } = props;
   const [checklistItems, setChecklistItems] = useState(reproducibilityChecklist);
+  const [allImages, setAllImages] = useState([]);
 
   useEffect(() => {
     if (project && project.assets) {
       findAssetLanguagesAndDependencies(project.assets);
+      findImageAssets(project.assets);
+      setAllImages(Object.keys(imageAssets));
     }
   }, [project]);
 
+  const handleItemUpdate = (updatedItem) => {
+    const updatedChecklistItems = checklistItems.map(item =>
+      item.id === updatedItem.id ? updatedItem : item
+    );
+    setChecklistItems(updatedChecklistItems);
+  };
+
   return (
     <div>
-      <Typography variant='h5' align='center'>Reproducibility Checklists</Typography>
+      <Typography variant='h5' align='center' marginTop='10px'>Reproducibility Checklists</Typography>
       <br />
       {checklistItems.map(item => (
         <ChecklistItem
           key={item.id}
           item={item}
           project={project}
+          imageAssets={allImages}
           onUpdatedNote={onUpdatedNote}
           onDeletedNote={onDeletedNote}
           onAddedNote={onAddedNote}
+          onItemUpdate={handleItemUpdate}
         />
       ))}
     </div>
@@ -151,7 +147,6 @@ ReproChecklists.propTypes = {
     PropTypes.shape({
       id: PropTypes.string.isRequired,
       statement: PropTypes.string.isRequired,
-      type: PropTypes.string.isRequired,
       answer: PropTypes.bool.isRequired,
       scanResult: PropTypes.objectOf(
         PropTypes.arrayOf(PropTypes.string)
@@ -186,15 +181,12 @@ ReproChecklists.propTypes = {
         PropTypes.shape({
           id: PropTypes.string.isRequired,
           statement: PropTypes.string.isRequired,
-          type: PropTypes.string.isRequired,
           answer: PropTypes.bool.isRequired,
-          scanResult: PropTypes.objectOf(
-            PropTypes.arrayOf(PropTypes.string)
-          ),
         })
       ),
     })
   ).isRequired,
+  imageAssets: PropTypes.arrayOf(PropTypes.string),
   onUpdatedNote: PropTypes.func.isRequired,
   onDeletedNote: PropTypes.func.isRequired,
   onAddedNote: PropTypes.func.isRequired,

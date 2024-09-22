@@ -682,7 +682,7 @@ class Project extends Component<Props> {
           />
         ) : null;
 
-      const Checklists = <ReproChecklists
+      const checklists = <ReproChecklists
         project={this.props.project}
         onAddedNote={this.projectUpsertNoteHandler}
         onUpdatedNote={this.projectUpsertNoteHandler}
@@ -739,7 +739,7 @@ class Project extends Component<Props> {
             {projectLog}
           </TabPanel>
           <TabPanel value="Checklists" classes={tabPanelStyle}>
-            {Checklists}
+            {checklists}
           </TabPanel>
         </TabContext>
       );

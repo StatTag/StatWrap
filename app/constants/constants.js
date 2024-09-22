@@ -29,6 +29,7 @@ module.exports = {
     CODE: 'code',
     DATA: 'data',
     DOCUMENTATION: 'documentation',
+    IMAGE: 'image',
     OTHER: 'other',
   },
 
