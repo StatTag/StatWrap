@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styles from './ChecklistItem.css';
 import NoteEditor from '../NoteEditor/NoteEditor';
-import { AddBox, ContentCopy , Done} from '@mui/icons-material';
+import { AddBox, ContentCopy , Done, Delete} from '@mui/icons-material';
 import Modal from './Modal/Modal';
 
 function ChecklistItem(props) {
@@ -18,7 +18,7 @@ function ChecklistItem(props) {
 
   const handleSubmitImage = (e) => {
     e.preventDefault();
-    const img ={id: checklistItem.attachedImages.length + 1, uri: imageModal.image, title: e.target.title.value, description: e.target.description.value};
+    const img = {id: Math.random().toString(36).substr(2, 9), uri: imageModal.image, title: e.target.title.value, description: e.target.description.value};
     const updatedItem = { ...item, attachedImages: [...checklistItem.attachedImages, img] };
     onItemUpdate(updatedItem);
     setChecklistItem(updatedItem);
@@ -27,7 +27,7 @@ function ChecklistItem(props) {
 
   const handleSubmitUrl = (e) => {
     e.preventDefault();
-    const url = {id: checklistItem.attachedURLs.length + 1, hyperlink: e.target.hyperlink.value, title: e.target.title.value, description: e.target.description.value};
+    const url = {id: Math.random().toString(36).substr(2, 9), hyperlink: e.target.hyperlink.value, title: e.target.title.value, description: e.target.description.value};
     const updatedItem = { ...item, attachedURLs: [...checklistItem.attachedURLs, url] };
     onItemUpdate(updatedItem);
     setChecklistItem(updatedItem);
@@ -41,6 +41,18 @@ function ChecklistItem(props) {
         setCopiedUrlId(null);
       }, 3000);
     });
+  };
+
+  const handleDeleteUrl = (urlId) => {
+    const updatedItem = { ...item, attachedURLs: checklistItem.attachedURLs.filter((url) => url.id !== urlId) };
+    onItemUpdate(updatedItem);
+    setChecklistItem(updatedItem);
+  };
+
+  const handleDeleteImage = (imageId) => {
+    const updatedItem = { ...item, attachedImages: checklistItem.attachedImages.filter((image) => image.id !== imageId) };
+    onItemUpdate(updatedItem);
+    setChecklistItem(updatedItem);
   };
 
   const handleNoteUpdate = (note, text) => {
@@ -135,7 +147,13 @@ function ChecklistItem(props) {
               <ul>
                 {checklistItem.attachedImages.map((image) => (
                   <li key={image} className={styles.image}>
-                    <span className={styles.imageText}>{image.title}</span>
+                    <div className={styles.imageHeader}>
+                      <span className={styles.imageText}>{image.title}</span>
+                      <Delete
+                        className={styles.delButton}
+                        onClick={() => handleDeleteImage(image.id)}
+                      />
+                    </div>
                     <img src={image.uri} alt="attached"/>
                     <p>{image.description}</p>
                   </li>
@@ -184,18 +202,20 @@ function ChecklistItem(props) {
                       <li key={url.id} className={styles.url}>
                         <div className={styles.urlHeader}>
                           <span className={styles.urlText}>{url.title}</span>
-                          {copiedUrlId === url.id ? (
-                            <button className={styles.btn} title="Copied!">
-                              <Done className={styles.doneButton} />
-                            </button>
-                          ) : (
-                            <button className={styles.btn} title="Copy URL">
-                              <ContentCopy
-                                className={styles.copyButton}
-                                onClick={() => handleCopy(url.id, url.hyperlink)}
-                              />
-                            </button>
-                          )}
+                          <div>
+                            {copiedUrlId === url.id ? (
+                                <Done className={styles.doneButton} />
+                            ) : (
+                                <ContentCopy
+                                  className={styles.copyButton}
+                                  onClick={() => handleCopy(url.id, url.hyperlink)}
+                                />
+                            )}
+                            <Delete
+                              className={styles.delButton}
+                              onClick={() => handleDeleteUrl(url.id)}
+                            />
+                          </div>
                         </div>
                         <a href={url.hyperlink} target="">
                           {url.hyperlink}
