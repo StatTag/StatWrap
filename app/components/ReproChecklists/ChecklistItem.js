@@ -7,7 +7,6 @@ import Modal from './Modal/Modal';
 
 function ChecklistItem(props) {
   const { item, project, imageAssets, onUpdatedNote, onDeletedNote, onAddedNote, onItemUpdate } = props;
-  const [checklistItem, setChecklistItem] = useState(item);
   const [addImages, setAddImages] = useState(false);
   const [addURL, setAddURL] = useState(false);
   const [showImages, setShowImages] = useState(false);
@@ -16,21 +15,21 @@ function ChecklistItem(props) {
   const [imageModal, setImageModal] = useState({isOpen: false, image: ''});
   const [copiedUrlId, setCopiedUrlId] = useState(null);
 
+  console.log('ChecklistItem Note', item.userNotes);
+
   const handleSubmitImage = (e) => {
     e.preventDefault();
     const img = {id: Math.random().toString(36).substr(2, 9), uri: imageModal.image, title: e.target.title.value, description: e.target.description.value};
-    const updatedItem = { ...item, attachedImages: [...checklistItem.attachedImages, img] };
+    const updatedItem = { ...item, attachedImages: [...item.attachedImages, img] };
     onItemUpdate(updatedItem);
-    setChecklistItem(updatedItem);
     setImageModal({isOpen: false, image: ''});
   }
 
   const handleSubmitUrl = (e) => {
     e.preventDefault();
     const url = {id: Math.random().toString(36).substr(2, 9), hyperlink: e.target.hyperlink.value, title: e.target.title.value, description: e.target.description.value};
-    const updatedItem = { ...item, attachedURLs: [...checklistItem.attachedURLs, url] };
+    const updatedItem = { ...item, attachedURLs: [...item.attachedURLs, url] };
     onItemUpdate(updatedItem);
-    setChecklistItem(updatedItem);
     setAddURL(false);
   }
 
@@ -44,18 +43,17 @@ function ChecklistItem(props) {
   };
 
   const handleDeleteUrl = (urlId) => {
-    const updatedItem = { ...item, attachedURLs: checklistItem.attachedURLs.filter((url) => url.id !== urlId) };
+    const updatedItem = { ...item, attachedURLs: item.attachedURLs.filter((url) => url.id !== urlId) };
     onItemUpdate(updatedItem);
-    setChecklistItem(updatedItem);
   };
 
   const handleDeleteImage = (imageId) => {
-    const updatedItem = { ...item, attachedImages: checklistItem.attachedImages.filter((image) => image.id !== imageId) };
+    const updatedItem = { ...item, attachedImages: item.attachedImages.filter((image) => image.id !== imageId) };
     onItemUpdate(updatedItem);
-    setChecklistItem(updatedItem);
   };
 
   const handleNoteUpdate = (note, text) => {
+    text = `Checklist ${item.id}: ` + text;
     if (note) {
       if (onUpdatedNote) {
         onUpdatedNote(project, text, note);
@@ -87,23 +85,21 @@ function ChecklistItem(props) {
   return (
     <div className={styles.item}>
       <div className={styles.header}>
-        <span className={styles.statement}>{checklistItem.statement}</span>
+        <span className={styles.statement}>{item.statement}</span>
         <div className={styles.buttonContainer}>
           <button
-            className={checklistItem.answer ? styles.yesset : styles.yes}
+            className={item.answer ? styles.yesset : styles.yes}
             onClick={() => {
               const updatedItem = { ...item, answer: true };
-              setChecklistItem(updatedItem);
               onItemUpdate(updatedItem);
             }}
           >
             {'Yes'}
           </button>
           <button
-            className={checklistItem.answer  ? styles.no : styles.noset}
+            className={item.answer  ? styles.no : styles.noset}
             onClick={() => {
               const updatedItem = { ...item, answer: false };
-              setChecklistItem(updatedItem);
               onItemUpdate(updatedItem);
             }}
           >
@@ -112,14 +108,14 @@ function ChecklistItem(props) {
         </div>
       </div>
       <div className={styles.scanResult}>
-        {checklistItem.scanResult &&
-          Object.keys(checklistItem.scanResult).map((key) => {
+        {item.scanResult &&
+          Object.keys(item.scanResult).map((key) => {
             return (
             <div key={key}>
               <span className={styles.scanKey}>{key}</span>
               <ul className={styles.scanList}>
-                {checklistItem.scanResult[key].length ? (
-                  checklistItem.scanResult[key].map((answer) => (
+                {item.scanResult[key].length ? (
+                  item.scanResult[key].map((answer) => (
                     <li key={answer}>{answer}</li>
                   ))
                 ) : (
@@ -131,11 +127,11 @@ function ChecklistItem(props) {
       </div>
       <div className={styles.details}>
         <NoteEditor
-          notes={checklistItem.userNotes}
+          notes={item.userNotes}
           onEditingComplete={handleNoteUpdate}
           onDelete={handleNoteDelete}
         />
-        {checklistItem.attachedImages.length > 0 && (
+        {item.attachedImages.length > 0 && (
           <div className={styles.images}>
             <div className={styles.headerWithButton}>
               <h4>Attached Images:</h4>
@@ -145,7 +141,7 @@ function ChecklistItem(props) {
             </div>
             <div className={`${styles.imageContent} ${showImages ? styles.show : ''}`}>
               <ul>
-                {checklistItem.attachedImages.map((image) => (
+                {item.attachedImages.map((image) => (
                   <li key={image} className={styles.image}>
                     <div className={styles.imageHeader}>
                       <span className={styles.imageText}>{image.title}</span>
@@ -171,7 +167,7 @@ function ChecklistItem(props) {
               <ul>
                 {imageAssets.map((image) => (
                   <li key={image} className={styles.header}>
-                    <AddBox className={styles.addIcon}  onClick={()=>setImageModal({isOpen: true, image: image})}/>
+                    <AddBox className={styles.addIcon}  onClick={()=> setImageModal({isOpen: true, image: image})}/>
                     <img src={image} alt="project image" />
                   </li>
                 ))}
@@ -186,7 +182,7 @@ function ChecklistItem(props) {
           title="Image"
           component={imageComponent}
         />
-        {checklistItem.attachedURLs.length > 0 && (
+        {item.attachedURLs.length > 0 && (
           <div className={styles.urls}>
             <div className={styles.headerWithButton}>
               <h4>Attached URLs:</h4>
@@ -196,7 +192,7 @@ function ChecklistItem(props) {
             </div>
             <div className={`${styles.urlContent} ${showURLs ? styles.show : ''}`}>
               <ul>
-                {checklistItem.attachedURLs.map((url) => (
+                {item.attachedURLs.map((url) => (
                   <div>
                     <div>
                       <li key={url.id} className={styles.url}>
@@ -242,7 +238,7 @@ function ChecklistItem(props) {
           title="URL"
           component={urlComponent}
         />
-        {checklistItem.subChecklists.length > 0 && (
+        {item.subChecklists.length > 0 && (
           <div className={styles.subChecklists}>
             <div className={styles.headerWithButton}>
               <h4>Sub-Checklists:</h4>
@@ -252,7 +248,7 @@ function ChecklistItem(props) {
             </div>
             <div className={`${styles.subChecksContent} ${showSubChecks ? styles.show : ''}`}>
               <ul>
-                {checklistItem.subChecklists.map((subCheck) => (
+                {item.subChecklists.map((subCheck) => (
                   <li key={subCheck.id}>
                   <div className={styles.header}>
                     <span>{subCheck.statement}</span>
@@ -260,15 +256,13 @@ function ChecklistItem(props) {
                       <button
                         className={subCheck.answer ? styles.yesset : styles.yes}
                         onClick={() => {
-                          // update the subchecklist item corresponding to the subchecklist id
-                          const updatedItem = { ...item, subChecklists: checklistItem.subChecklists.map((sub) => {
+                          const updatedItem = { ...item, subChecklists: item.subChecklists.map((sub) => {
                             if (sub.id === subCheck.id) {
                               return { ...sub, answer: true };
                             }
                             return sub;
                           })};
                           onItemUpdate(updatedItem);
-                          setChecklistItem(updatedItem);
                         }}
                       >
                         {'Yes'}
@@ -276,14 +270,13 @@ function ChecklistItem(props) {
                       <button
                         className={subCheck.answer ? styles.no : styles.noset}
                         onClick={() => {
-                          const updatedItem = { ...item, subChecklists: checklistItem.subChecklists.map((sub) => {
+                          const updatedItem = { ...item, subChecklists: item.subChecklists.map((sub) => {
                             if (sub.id === subCheck.id) {
                               return { ...sub, answer: false };
                             }
                             return sub;
                           })};
                           onItemUpdate(updatedItem);
-                          setChecklistItem(updatedItem);
                         }}
                       >
                         {'No'}

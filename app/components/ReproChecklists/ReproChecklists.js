@@ -19,14 +19,7 @@ const reproducibilityChecklist = [
     statement: 'First checklist item statement. Now, I am just trying to make this statement a bit longer to see how it looks in the UI, without making any sense.',
     answer: true,
     scanResult: {},
-    userNotes: [
-      {
-        id: 'note1',
-        author: 'Author1',
-        updated: '2024-06-01',
-        content: 'First note content',
-      },
-    ],
+    userNotes: [],
     attachedImages: [],
     attachedURLs: [],
     subChecklists: [],
@@ -36,14 +29,7 @@ const reproducibilityChecklist = [
     statement: 'Second checklist item statement.',
     answer: false,
     scanResult: {},
-    userNotes: [
-      {
-        id: 'note2',
-        author: 'Author2',
-        updated: '2024-06-02',
-        content: 'Second note content',
-      },
-    ],
+    userNotes: [],
     attachedImages: [],
     attachedURLs: [],
     subChecklists: [],
@@ -108,6 +94,26 @@ function findImageAssets(asset) {
   }
 };
 
+function findChecklistNotesFromProject(project) {
+  const checklistNotes = {};
+  project.notes.forEach((note) => {
+    if (note.content.startsWith('Checklist') && note.content.includes(':')) {
+      const id = note.content.split(':')[0].split(' ')[1];
+      if (!checklistNotes[id]) {
+        checklistNotes[id] = [];
+      }
+      const checklistNote = {
+        id: note.id,
+        author: note.author,
+        updated: note.updated,
+        content: note.content.split(':')[1].trim(),
+      };
+      checklistNotes[id].push(checklistNote);
+    }
+  });
+  return checklistNotes;
+}
+
 
 function convertImageToBase64(filePath) {
   try {
@@ -151,6 +157,17 @@ function ReproChecklists(props) {
     if (project && project.assets) {
       findAssetLanguagesAndDependencies(project.assets);
       findImageAssets(project.assets);
+      const checklistNotes = findChecklistNotesFromProject(project);
+      const updatedChecklistItems = checklistItems.map((item) => {
+        if (checklistNotes[item.id]) {
+          return {
+            ...item,
+            userNotes: checklistNotes[item.id],
+          };
+        }
+        return item;
+      });
+      setChecklistItems(updatedChecklistItems);
       setAllImages(Object.keys(imageAssets));
     }
   }, [project]);
