@@ -243,22 +243,48 @@ function ReproChecklists(props) {
             images = item.attachedImages.map((image) => {
               const base64Image = convertImageToBase64(image.uri);
               if (base64Image) {
-                return [
-                  {
-                    image: base64Image,
-                    width: 150,
-                    margin: [0, 5],
-                    alignment: 'center',
-                  },
-                  {
-                    text: `${image.title}`,
-                    style: 'imageTitle',
-                    margin: [0, 2],
-                    alignment: 'center',
-                  },
-                ];
+                return {
+                  unbreakable: true,
+                  stack: [
+                    {
+                      image: base64Image,
+                      width: 150,
+                      margin: [0, 5],
+                      alignment: 'center',
+                    },
+                    {
+                      text: image.title,
+                      margin: [0, 2],
+                      alignment: 'center',
+                    },
+                  ],
+                };
               }
               return { text: `Failed to load image: ${image.uri}`, color: 'red' };
+            });
+          }
+
+          let urls = [];
+          if(item.attachedURLs && item.attachedURLs.length > 0){
+            console.log(item.attachedURLs);
+            urls = item.attachedURLs.map((url) => {
+              return {
+                unbreakable: true,
+                stack: [
+                  {
+                    text: url.hyperlink,
+                    margin: [15, 1],
+                    alignment: 'left',
+                    style: 'hyperlink',
+                    link: url.hyperlink,
+                  },
+                  {
+                    text: `${url.title}`,
+                    margin: [15, 5],
+                    alignment: 'left',
+                  },
+                ],
+              };
             });
           }
 
@@ -288,14 +314,16 @@ function ReproChecklists(props) {
               columnGap: 5,
             },
             ...subChecklists,
-            images.length > 0 ? { text: 'Related Images:', style: 'subheader', margin: [0, 10] } : '',
+            images.length > 0 ? { text: 'Related Images:', margin: [0, 10] } : '',
             {
               columns: images,
               columnGap: 5,
               width: '*',
               wrap: true,
               margin: [0, 5],
-            }
+            },
+            urls.length > 0 ? { text: 'Related URLs:', margin: [0, 10] } : '',
+            ...urls,
           ];
         }).flat(),
       ],
@@ -303,6 +331,7 @@ function ReproChecklists(props) {
         mainHeader: { fontSize: 22, bold: true, color: '#663399' },
         sectionHeader: { fontSize: 18, bold: true, color: '#8b6fb3', margin: [0, 20] },
         header: { fontSize: 16, bold: true },
+        hyperlink: { color: '#0000EE' },
       },
       defaultStyle: {
         fontSize: 12,

@@ -5,6 +5,8 @@ import NoteEditor from '../NoteEditor/NoteEditor';
 import { AddBox, ContentCopy , Done, Delete} from '@mui/icons-material';
 import Modal from './Modal/Modal';
 
+const { v4: uuidv4 } = require('uuid');
+
 function ChecklistItem(props) {
   const { item, project, imageAssets, onUpdatedNote, onDeletedNote, onAddedNote, onItemUpdate } = props;
   const [addImages, setAddImages] = useState(false);
@@ -15,11 +17,9 @@ function ChecklistItem(props) {
   const [imageModal, setImageModal] = useState({isOpen: false, image: ''});
   const [copiedUrlId, setCopiedUrlId] = useState(null);
 
-  console.log('ChecklistItem Note', item.userNotes);
-
   const handleSubmitImage = (e) => {
     e.preventDefault();
-    const img = {id: Math.random().toString(36).substr(2, 9), uri: imageModal.image, title: e.target.title.value, description: e.target.description.value};
+    const img = {id: uuidv4(), uri: imageModal.image, title: e.target.title.value, description: e.target.description.value};
     const updatedItem = { ...item, attachedImages: [...item.attachedImages, img] };
     onItemUpdate(updatedItem);
     setImageModal({isOpen: false, image: ''});
@@ -27,7 +27,7 @@ function ChecklistItem(props) {
 
   const handleSubmitUrl = (e) => {
     e.preventDefault();
-    const url = {id: Math.random().toString(36).substr(2, 9), hyperlink: e.target.hyperlink.value, title: e.target.title.value, description: e.target.description.value};
+    const url = {id: uuidv4(), hyperlink: e.target.hyperlink.value, title: e.target.title.value, description: e.target.description.value};
     const updatedItem = { ...item, attachedURLs: [...item.attachedURLs, url] };
     onItemUpdate(updatedItem);
     setAddURL(false);
@@ -53,14 +53,13 @@ function ChecklistItem(props) {
   };
 
   const handleNoteUpdate = (note, text) => {
-    text = `Checklist ${item.id}: ` + text;
     if (note) {
       if (onUpdatedNote) {
-        onUpdatedNote(project, text, note);
+        onUpdatedNote(project, `Checklist ${item.id}: ` + text, note);
       }
     } else {
       if (onAddedNote) {
-        onAddedNote(project, text);
+        onAddedNote(project, `Checklist ${item.id}: ` + text);
       }
     }
   };
@@ -69,6 +68,8 @@ function ChecklistItem(props) {
     if (onDeletedNote) {
       onDeletedNote(project, note);
     }
+    const updatedItem = { ...item, userNotes: item.userNotes.filter((n) => n.id !== note.id) };
+    onItemUpdate(updatedItem);
   };
 
   let imageComponent = null;
