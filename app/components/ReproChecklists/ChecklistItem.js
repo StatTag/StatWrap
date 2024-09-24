@@ -68,6 +68,7 @@ function ChecklistItem(props) {
     if (onDeletedNote) {
       onDeletedNote(project, note);
     }
+
     const updatedItem = { ...item, userNotes: item.userNotes.filter((n) => n.id !== note.id) };
     onItemUpdate(updatedItem);
   };
