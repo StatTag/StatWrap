@@ -60,6 +60,7 @@ const reproducibilityChecklist = [
 const languages = {};
 const dependencies = {};
 const imageAssets = {};
+const checklistNotes = {};
 
 function findAssetLanguagesAndDependencies(asset) {
   if (asset.type === 'file' && asset.contentTypes.includes('code') ) {
@@ -94,9 +95,8 @@ function findImageAssets(asset) {
   }
 };
 
-function findChecklistNotesFromProject(project) {
-  const checklistNotes = {};
-  project.notes.forEach((note) => {
+function findChecklistNotes(notes) {
+  notes.forEach((note) => {
     if (note.content.startsWith('Checklist') && note.content.includes(':')) {
       const id = note.content.split(':')[0].split(' ')[1];
       if (!checklistNotes[id]) {
@@ -154,10 +154,14 @@ function ReproChecklists(props) {
   const [allImages, setAllImages] = useState([]);
 
   useEffect(() => {
-    if (project && project.assets) {
-      findAssetLanguagesAndDependencies(project.assets);
-      findImageAssets(project.assets);
-      const checklistNotes = findChecklistNotesFromProject(project);
+    if (project) {
+      if(project.assets) {
+        findAssetLanguagesAndDependencies(project.assets);
+        findImageAssets(project.assets);
+      }
+      if(project.notes){
+        findChecklistNotes(project.notes);
+      }
       const updatedChecklistItems = checklistItems.map((item) => {
         if (checklistNotes[item.id]) {
           return {
