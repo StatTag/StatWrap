@@ -3,19 +3,48 @@ import PropTypes from 'prop-types';
 import styles from './ChecklistItem.css';
 import NoteEditor from '../NoteEditor/NoteEditor';
 import { AddBox, ContentCopy , Done, Delete} from '@mui/icons-material';
+import { Box, IconButton, Tabs, Tab } from '@mui/material';
+import { TabContext, TabPanel } from '@mui/lab';
+import { FaFolderOpen, FaFolderMinus, FaPlusSquare } from 'react-icons/fa';
 import Modal from './Modal/Modal';
+import AssetTree from '../AssetTree/AssetTree';
+import AssetUtil from '../../utils/asset';
 
 const { v4: uuidv4 } = require('uuid');
 
 function ChecklistItem(props) {
-  const { item, project, imageAssets, onUpdatedNote, onDeletedNote, onAddedNote, onItemUpdate } = props;
+  const { item, project, imageAssets, onUpdatedNote, onDeletedNote, onAddedNote, onItemUpdate, onSelectedAsset } = props;
+
+  const treeRef = React.useRef(null);
+
   const [addImages, setAddImages] = useState(false);
   const [addURL, setAddURL] = useState(false);
+  const [addFile, setAddFile] = useState(false);
   const [showImages, setShowImages] = useState(false);
   const [showURLs, setShowURLs] = useState(false);
   const [showSubChecks, setShowSubChecks] = useState(false);
   const [imageModal, setImageModal] = useState({isOpen: false, image: ''});
   const [copiedUrlId, setCopiedUrlId] = useState(null);
+  const [selectedTab, setSelectedTab] = useState('urls');
+  const [selectedAsset, setSelectedAsset] = useState();
+
+  const handleTabChange = (event, newValue) => {
+    setSelectedTab(newValue);
+  };
+
+  const handleSelectAsset = (selAsset) => {
+    let asset = selAsset;
+    if (asset && (asset.contentTypes === null || asset.contentTypes === undefined)) {
+      if (project && project.assets) {
+        asset = AssetUtil.findDescendantAssetByUri(project.assets, asset.uri);
+      }
+    }
+
+    setSelectedAsset(asset);
+    if (onSelectedAsset) {
+      onSelectedAsset(asset);
+    }
+  };
 
   const handleSubmitImage = (e) => {
     e.preventDefault();
@@ -23,6 +52,7 @@ function ChecklistItem(props) {
     const updatedItem = { ...item, attachedImages: [...item.attachedImages, img] };
     onItemUpdate(updatedItem);
     setImageModal({isOpen: false, image: ''});
+    setShowImages(true);
   }
 
   const handleSubmitUrl = (e) => {
@@ -31,6 +61,8 @@ function ChecklistItem(props) {
     const updatedItem = { ...item, attachedURLs: [...item.attachedURLs, url] };
     onItemUpdate(updatedItem);
     setAddURL(false);
+    setAddFile(false);
+    setShowURLs(true);
   }
 
   const handleCopy = (urlId, hyperlink) => {
@@ -53,6 +85,10 @@ function ChecklistItem(props) {
   };
 
   const handleNoteUpdate = (note, text) => {
+    if (!text) {
+      console.log("Detected an empty new note - this will not be created");
+      return;
+    }
     if (note) {
       if (onUpdatedNote) {
         onUpdatedNote(project, `Checklist ${item.id}: ` + text, note);
@@ -75,12 +111,19 @@ function ChecklistItem(props) {
 
   let imageComponent = null;
   let urlComponent = null;
+  let fileComponent = null;
 
   imageComponent = <img src={imageModal.image} alt="selected" className={styles.selectedImage}/>;
   urlComponent = (
     <div className={styles.hyperlink}>
       <label htmlFor="hyperlink">URL:</label>
-      <input type="text" id="hyperlink" name="hyperlink"/>
+      <input type="url" id="hyperlink" name="hyperlink" required/>
+    </div>
+  )
+  fileComponent = (
+    <div className={styles.hyperlink}>
+      <label htmlFor="hyperlink">File Path:</label>
+      <input type="text" id="hyperlink" name="hyperlink" value={selectedAsset&&selectedAsset.uri} required/>
     </div>
   )
 
@@ -184,50 +227,103 @@ function ChecklistItem(props) {
           title="Image"
           component={imageComponent}
         />
-        {item.attachedURLs.length > 0 && (
-          <div className={styles.urls}>
-            <div className={styles.headerWithButton}>
-              <h4>Attached URLs:</h4>
-              <button className={styles.dropdownButton} onClick={() => setShowURLs(!showURLs)}>
-                {showURLs ? 'Hide' : 'Show'}
-              </button>
+        <TabContext value={selectedTab}>
+          <Tabs value={selectedTab} onChange={handleTabChange} aria-label="tabs">
+            <Tab label="Assets" value="assets" />
+            <Tab label="URLs" value="urls" />
+          </Tabs>
+          <TabPanel value="assets" style={{paddingTop : '5px', paddingLeft : '5px', paddingBottom : '5px'}}>
+            <div className={styles.tree}>
+              <div className={styles.toolbar}>
+                <IconButton
+                  onClick={() => treeRef.current.setExpandAll(true)}
+                  className={styles.toolbarButton}
+                  aria-label="expand all tree items"
+                  fontSize="small"
+                >
+                  <FaFolderOpen fontSize="small" /> &nbsp;Expand
+                </IconButton>
+                <IconButton
+                  onClick={() => treeRef.current.setExpandAll(false)}
+                  className={styles.toolbarButton}
+                  aria-label="collapse all tree items"
+                  fontSize="small"
+                >
+                  <FaFolderMinus fontSize="small" /> &nbsp;Collapse
+                </IconButton>
+                <IconButton
+                  onClick={() => setAddFile(true)}
+                  className={styles.toolbarButton}
+                  aria-label="add selected asset"
+                  fontSize="small"
+                >
+                  <FaPlusSquare fontSize="small" /> &nbsp;Add Selected Asset
+                </IconButton>
+              </div>
+              <AssetTree
+                assets={project.assets}
+                ref={treeRef}
+                onSelectAsset={handleSelectAsset}
+                selectedAsset={selectedAsset}
+              />
             </div>
-            <div className={`${styles.urlContent} ${showURLs ? styles.show : ''}`}>
-              <ul>
-                {item.attachedURLs.map((url) => (
-                  <div>
-                    <div>
-                      <li key={url.id} className={styles.url}>
-                        <div className={styles.urlHeader}>
-                          <span className={styles.urlText}>{url.title}</span>
-                          <div>
-                            {copiedUrlId === url.id ? (
-                                <Done className={styles.doneButton} />
-                            ) : (
-                                <ContentCopy
-                                  className={styles.copyButton}
-                                  onClick={() => handleCopy(url.id, url.hyperlink)}
+          </TabPanel>
+          <TabPanel value="urls" style={{paddingTop : '5px', paddingLeft : '15px', paddingBottom : '5px'}}>
+            {item.attachedURLs.length > 0 ? (
+              <div className={styles.urls}>
+                <div className={styles.headerWithButton}>
+                  <h4>Attached URLs:</h4>
+                  <button className={styles.dropdownButton} onClick={() => setShowURLs(!showURLs)}>
+                    {showURLs ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+                <div className={`${styles.urlContent} ${showURLs ? styles.show : ''}`}>
+                  <ul>
+                    {item.attachedURLs.map((url) => (
+                      <div key={url.id}>
+                        <div>
+                          <li className={styles.url}>
+                            <div className={styles.urlHeader}>
+                              <span className={styles.urlText}>{url.title}</span>
+                              <div>
+                                {copiedUrlId === url.id ? (
+                                  <Done className={styles.doneButton} />
+                                ) : (
+                                  <ContentCopy
+                                    className={styles.copyButton}
+                                    onClick={() => handleCopy(url.id, url.hyperlink)}
+                                  />
+                                )}
+                                <Delete
+                                  className={styles.delButton}
+                                  onClick={() => handleDeleteUrl(url.id)}
                                 />
-                            )}
-                            <Delete
-                              className={styles.delButton}
-                              onClick={() => handleDeleteUrl(url.id)}
-                            />
-                          </div>
+                              </div>
+                            </div>
+                            <a href={url.hyperlink} target="">
+                              {url.hyperlink}
+                            </a>
+                            <p>{url.description}</p>
+                          </li>
                         </div>
-                        <a href={url.hyperlink} target="">
-                          {url.hyperlink}
-                        </a>
-                        <p>{url.description}</p>
-                      </li>
-                    </div>
-                    <hr/>
-                  </div>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
+                        <hr />
+                      </div>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              <p>No URLs attached.</p>
+            )}
+          </TabPanel>
+        </TabContext>
+        <Modal
+          isOpen={addFile}
+          onClose={()=>setAddFile(false)}
+          onSubmit={handleSubmitUrl}
+          title="URL"
+          component={fileComponent}
+        />
         <div>
           <button className={styles.addUrlsButton} onClick={() => setAddURL(true)}>
             Add URLs

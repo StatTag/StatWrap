@@ -687,6 +687,7 @@ class Project extends Component<Props> {
         onAddedNote={this.projectUpsertNoteHandler}
         onUpdatedNote={this.projectUpsertNoteHandler}
         onDeletedNote={this.projectDeleteNoteHandler}
+        onSelectedAsset={this.assetSelectedHandler}
       />
 
       content = (
@@ -717,7 +718,7 @@ class Project extends Component<Props> {
               <Tab label="People" value="people" classes={tabStyle} />
               <Tab label="Notes" value="projectNotes" classes={tabStyle} />
               <Tab label="Project Log" value="projectLog" classes={tabStyle} />
-              <Tab label="Checklists" value="Checklists" classes={tabStyle} />
+              <Tab label="Checklists" value="checklists" classes={tabStyle} />
             </Tabs>
           </div>
           <TabPanel value="about" classes={tabPanelStyle}>
@@ -738,7 +739,7 @@ class Project extends Component<Props> {
           <TabPanel value="projectLog" classes={tabPanelStyle}>
             {projectLog}
           </TabPanel>
-          <TabPanel value="Checklists" classes={tabPanelStyle}>
+          <TabPanel value="checklists" classes={tabPanelStyle}>
             {checklists}
           </TabPanel>
         </TabContext>

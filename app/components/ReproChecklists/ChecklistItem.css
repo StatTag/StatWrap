@@ -42,9 +42,11 @@
 }
 
 .images,
-.urls,
 .subChecklists {
   margin-top: 10px;
+}
+
+.urls {
 }
 
 .images ul{
@@ -306,4 +308,20 @@
 .urlText, .imageText {
   font-size: 16px;
   font-weight: 600;
+}
+
+.tree {
+  width: 50%;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toolbarButton {
+  font-size: 0.8rem !important;
 }
