@@ -60,7 +60,6 @@ const reproducibilityChecklist = [
 const languages = {};
 const dependencies = {};
 const imageAssets = {};
-const checklistNotes = {};
 
 function findAssetLanguagesAndDependencies(asset) {
   if (asset.type === 'file' && asset.contentTypes.includes('code') ) {
@@ -96,6 +95,7 @@ function findImageAssets(asset) {
 };
 
 function findChecklistNotes(notes) {
+  const checklistNotes = {};
   notes.forEach((note) => {
     if (note.content.startsWith('Checklist') && note.content.includes(':')) {
       const id = note.content.split(':')[0].split(' ')[1];
@@ -149,7 +149,7 @@ function convertImageToBase64(filePath) {
 
 
 function ReproChecklists(props) {
-  const { project, reproChecklist, onUpdatedNote, onDeletedNote, onAddedNote } = props;
+  const { project, reproChecklist, onUpdatedNote, onDeletedNote, onAddedNote, onSelectedAsset} = props;
   const [checklistItems, setChecklistItems] = useState(reproducibilityChecklist);
   const [allImages, setAllImages] = useState([]);
 
@@ -158,21 +158,21 @@ function ReproChecklists(props) {
       if(project.assets) {
         findAssetLanguagesAndDependencies(project.assets);
         findImageAssets(project.assets);
+        setAllImages(Object.keys(imageAssets));
       }
       if(project.notes){
-        findChecklistNotes(project.notes);
+        const checklistNotes = findChecklistNotes(project.notes);
+        const updatedChecklistItems = checklistItems.map((item) => {
+          if (checklistNotes[item.id]) {
+            return {
+              ...item,
+              userNotes: checklistNotes[item.id],
+            };
+          }
+          return item;
+        });
+        setChecklistItems(updatedChecklistItems);
       }
-      const updatedChecklistItems = checklistItems.map((item) => {
-        if (checklistNotes[item.id]) {
-          return {
-            ...item,
-            userNotes: checklistNotes[item.id],
-          };
-        }
-        return item;
-      });
-      setChecklistItems(updatedChecklistItems);
-      setAllImages(Object.keys(imageAssets));
     }
   }, [project]);
 
@@ -270,22 +270,32 @@ function ReproChecklists(props) {
 
           let urls = [];
           if(item.attachedURLs && item.attachedURLs.length > 0){
-            console.log(item.attachedURLs);
-            urls = item.attachedURLs.map((url) => {
+            urls = item.attachedURLs.map((url, urlIndex) => {
               return {
                 unbreakable: true,
-                stack: [
+                columns: [
                   {
-                    text: url.hyperlink,
-                    margin: [15, 1],
+                    text: `${urlIndex + 1}. `,
+                    width: 25,
+                    margin: [15, 1 , 0, 0],
                     alignment: 'left',
-                    style: 'hyperlink',
-                    link: url.hyperlink,
                   },
                   {
-                    text: `${url.title}`,
-                    margin: [15, 5],
-                    alignment: 'left',
+                    stack: [
+                      {
+                        text: url.title,
+                        margin: [5, 1],
+                        alignment: 'left',
+                        style: 'hyperlink',
+                        link: url.hyperlink,
+                      },
+                      {
+                        text: url.description,
+                        margin: [5, 5],
+                        alignment: 'left',
+                      },
+                    ],
+                    width: '470',
                   },
                 ],
               };
@@ -367,6 +377,7 @@ function ReproChecklists(props) {
           onDeletedNote={onDeletedNote}
           onAddedNote={onAddedNote}
           onItemUpdate={handleItemUpdate}
+          onSelectedAsset={onSelectedAsset}
         />
       ))}
       <br />

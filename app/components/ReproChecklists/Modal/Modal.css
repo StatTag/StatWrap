@@ -37,7 +37,7 @@
 }
 
 .submitButton {
-  background-color: #ccc;
+  background-color: #aa94d1;
   color: #000;
   border: none;
   cursor: pointer;
@@ -48,5 +48,20 @@
 }
 
 .submitButton:hover {
-  background-color: #e5e5e5;
+  opacity: 0.9;
+}
+
+.cancelButton {
+  background-color: #ccc;
+  color: #000;
+  border: none;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 15px;
+  transition: background-color 0.3s ease;
+}
+
+.cancelButton:hover {
+  opacity: 0.9;
 }

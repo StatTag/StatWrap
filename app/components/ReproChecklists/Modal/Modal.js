@@ -13,21 +13,22 @@ function AttachModal(props) {
           aria-describedby="modal-description"
           className={styles.modal}
     >
-      <form onSubmit={onSubmit} className={styles.form}>
+      <form onSubmit = {onSubmit} className={styles.form}>
           <div className={styles.header}>
             <h3>Attach {title}</h3>
           </div>
           {component}
           <div className={styles.title}>
             <label htmlFor="title">Title:</label>
-            <input type="text" id="title" name="title"/>
+            <input type="text" id="title" name="title" required/>
           </div>
           <div className={styles.description}>
             <label htmlFor="description">Description:</label>
-            <textarea id="description" name="description" />
+            <textarea id="description" name="description" required/>
           </div>
           <div className={styles.submit}>
             <button type="submit" className={styles.submitButton}>Submit</button>
+            <button type="button" className={styles.cancelButton} onClick = {onClose}>Cancel</button>
           </div>
         </form>
     </Modal>
