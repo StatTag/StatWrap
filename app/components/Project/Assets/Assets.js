@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { IconButton } from '@mui/material';
-import { FaPlusSquare, FaSave, FaBan, FaFolderOpen, FaFolderMinus } from 'react-icons/fa';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlusSquare, faSave, faBan, faFolderOpen, faFolderMinus, faFileCirclePlus } from '@fortawesome/free-solid-svg-icons';
 import { cloneDeep } from 'lodash';
 import AssetGroupDialog from '../../../containers/AssetGroupDialog/AssetGroupDialog';
+import ResourceDialog from '../../../containers/ResourceDialog/ResourceDialog';
 import Error from '../../Error/Error';
 import AssetTree from '../../AssetTree/AssetTree';
 import AssetDetails from '../../AssetDetails/AssetDetails';
@@ -82,9 +84,13 @@ const assetsComponent = (props) => {
   // dialog when we have disposed of it - either by creating a project or cancelling.  This
   // tracks a sequential number that, when changed, signals React that the dialog can be
   // recreated. We don't care what this key is, it just has to change.
-  const [dialogKey, setDialogKey] = useState(0);
+  const [assetDialogKey, setAssetDialogKey] = useState(0);
+  // Offset the key to avoid overlap.
+  const [resourceDialogKey, setResourceDialogKey] = useState(1000);
   // UI state flag to let us know when we're in the process of adding/editing a group
   const [editingGroup, setEditingGroup] = useState(false);
+  // UI state flag to let us know when we're in the process of adding/editing a group
+  const [editingResource, setEditingResource] = useState(false);
   // Array of currently selected assets that are either for an existing asset group, or
   // that could be added to a new asset group.
   const [groupedAssets, setGroupedAssets] = useState([]);
@@ -144,12 +150,16 @@ const assetsComponent = (props) => {
   // When the user triggers saving an Asset Group, update the UI so the dialog
   // appears to enter the asset group details.
   const handleStartSaveAssetGroup = () => {
-    setDialogKey(dialogKey + 1);
+    setAssetDialogKey(assetDialogKey + 1);
     setEditingGroup(true);
   };
 
   const handleCloseAssetGroupDialog = () => {
     setEditingGroup(false);
+  };
+
+  const handleCloseResourceDialog = () => {
+    setEditingResource(false);
   };
 
   const handleSavedAssetGroup = (group) => {
@@ -161,6 +171,17 @@ const assetsComponent = (props) => {
       onUpdatedAssetGroup(group);
     }
     setEditingGroup(false);
+  };
+
+  const handleSavedResource = (resource) => {
+    if (resource.id === null || resource.id === undefined) {
+      if (onAddedResource) {
+        onAddedResource(resource);
+      }
+    } else if (onUpdatedResource) {
+      onUpdatedResource(resource);
+    }
+    setEditingResource(false);
   };
 
   // When the user selects a checkbox next to an asset - initially used just for building
@@ -303,8 +324,18 @@ const assetsComponent = (props) => {
     setAssets(filterProjectAssets(project, filter));
     setCurrentAssetGroup(null);
     setGroupedAssets(null);
+    console.log(treeRef);
+    console.log(treeRef.current);
     treeRef.current.setPreCheckedNodes([]);
     setMode('paperclip');
+  };
+
+  /**
+ * Prepare the state/UI for creating a new resource
+ */
+  const handleNewResource = () => {
+    setResourceDialogKey(resourceDialogKey + 1);
+    setEditingResource(true);
   };
 
   let assetDisplay = null;
@@ -332,14 +363,14 @@ const assetsComponent = (props) => {
               aria-label="save asset group"
               onClick={handleStartSaveAssetGroup}
             >
-              <FaSave fontSize="small" /> &nbsp; Save Asset Group
+              <FontAwesomeIcon icon={faSave} /> &nbsp;Save Asset Group
             </IconButton>
             <IconButton
               className={styles.toolbarButton}
               aria-label="cancel creating asset group"
               onClick={handleCancelEditAssetGroup}
             >
-              <FaBan fontSize="small" /> &nbsp; Cancel
+              <FontAwesomeIcon icon={faBan} /> &nbsp;Cancel
             </IconButton>
           </div>
         );
@@ -367,7 +398,7 @@ const assetsComponent = (props) => {
                 aria-label="expand all tree items"
                 fontSize="small"
               >
-                <FaFolderOpen fontSize="small" /> &nbsp;Expand
+                <FontAwesomeIcon icon={faFolderOpen} /> &nbsp;Expand
               </IconButton>
               <IconButton
                 onClick={() => treeRef.current.setExpandAll(false)}
@@ -375,7 +406,15 @@ const assetsComponent = (props) => {
                 aria-label="collapse all tree items"
                 fontSize="small"
               >
-                <FaFolderMinus fontSize="small" /> &nbsp;Collapse
+                <FontAwesomeIcon icon={faFolderMinus} /> &nbsp;Collapse
+              </IconButton>
+              <IconButton
+                onClick={handleNewResource}
+                className={styles.toolbarButton}
+                aria-label="add a resource"
+                fontSize="small"
+              >
+                <FontAwesomeIcon icon={faFileCirclePlus} /> &nbsp;New Resource
               </IconButton>
               <IconButton
                 onClick={handleNewAssetGroup}
@@ -383,7 +422,7 @@ const assetsComponent = (props) => {
                 disabled={mode === 'paperclip'}
                 aria-label="group assets together"
               >
-                <FaPlusSquare fontSize="small" /> &nbsp;New Group
+                <FontAwesomeIcon icon={faPlusSquare} /> &nbsp;New Group
               </IconButton>
               <EditableSelect
                 title="Select group"
@@ -414,7 +453,7 @@ const assetsComponent = (props) => {
             {assetDetails}
           </div>
           <AssetGroupDialog
-            key={dialogKey}
+            key={assetDialogKey}
             open={editingGroup}
             onClose={handleCloseAssetGroupDialog}
             onSave={handleSavedAssetGroup}
@@ -422,6 +461,12 @@ const assetsComponent = (props) => {
             id={currentAssetGroup ? currentAssetGroup.id : ''}
             name={currentAssetGroup ? currentAssetGroup.name : ''}
             details={currentAssetGroup ? currentAssetGroup.details : ''}
+          />
+          <ResourceDialog
+            key={resourceDialogKey}
+            open={editingResource}
+            onClose={handleCloseResourceDialog}
+            onSave={handleSavedResource}
           />
         </>
       );

@@ -1,5 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 const DefaultDisplayName = '(empty)';
+const AllowedUrlProtocols = ['http:', 'https:', 'ftp:', 'ssh:', 'file:', 'ws:', 'wss:', 'smb:', 's3:']
 
 export default class GeneralUtil {
   static formatDateTime(date) {
@@ -151,5 +152,29 @@ export default class GeneralUtil {
         [key]: value,
       };
     }, []);
+  }
+
+  /**
+   * Given a string, determine if it is a valid URL with a protocol of:
+   * http, https, ftp, ssh, file, ws, wss, smb, s3
+   * Protocol list we allow is curated from: https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml
+   * Credit for code goes to Snyk! https://medium.com/@snyksec/secure-javascript-url-validation-a74ef7b19ca8
+   * @param {*} url
+   * @returns
+   */
+  static isValidResourceUrl(url) {
+    if (url == null || url == undefined) {
+      return false;
+    }
+
+    let givenURL;
+    try {
+        givenURL = new URL(url);
+    } catch (error) {
+      return false;
+    }
+
+    let lowerProtocol = givenURL.protocol.toLowerCase();
+    return AllowedUrlProtocols.includes(lowerProtocol);
   }
 }
