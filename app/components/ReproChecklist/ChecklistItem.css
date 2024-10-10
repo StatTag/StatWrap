@@ -13,7 +13,20 @@
   border: 1px solid #e5e5e5;
   border-radius: 7px;
   background-color: #f1f1f1;
-  padding: 10px 10px 0px 10px;
+  padding: 10px 10px 0;
+}
+
+.expandButton {
+  background: none;
+  padding-left: 0px;
+  margin-right: 0px;
+  align-items: center;
+  display: flex;
+}
+
+.chevron {
+  padding: 10px;
+  font-size: 1.2rem;
 }
 
 .header {
@@ -27,6 +40,7 @@
   margin-right: 5px;
   margin-bottom: 10px;
 }
+
 .buttonContainer {
   display: flex;
   margin-left: auto;
@@ -92,6 +106,7 @@
 .images li:not(:last-child) {
   border-right: 1px solid #ccc;
 }
+
 .urls li:not(:last-child) {
   border-bottom: 1px solid #ccc;
 }
@@ -135,11 +150,12 @@
 .image {
   text-wrap: wrap;
 }
+
 .url {
   background-color:#f2ebff;
   border:1px solid rebeccapurple;
   padding: 7px;
-  padding-right: 0px;
+  padding-right: 0;
   border-radius: 5px;
   text-wrap: wrap;
   word-wrap: break-word;
@@ -328,8 +344,8 @@
 
 .toolbar {
   display: flex;
+  width: 100%;
   justify-content: space-between;
-  align-items: center;
 }
 
 .toolbarButton {
@@ -343,7 +359,7 @@
   cursor: pointer;
   padding: 5px 10px;
   border-radius: 4px;
-  font-size: 15px;
+  font-size: 20px;
   transition: background-color 0.3s ease;
 }
 
@@ -358,7 +374,7 @@
   cursor: pointer;
   padding: 5px 10px;
   border-radius: 4px;
-  font-size: 15px;
+  font-size: 20px;
   transition: background-color 0.3s ease;
 }
 
@@ -368,8 +384,26 @@
 
 .dialogTitle {
   color: white;
+  display: flex;
+  justify-content: center;
 }
 
 .dialogContent {
   padding-bottom: 5px;
+  display: flex;
+  justify-content: center;
+}
+
+.title {
+  display: flex;
+  justify-content: flex-end;
+}
+.description {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.form {
+  margin-top: 20px;
 }

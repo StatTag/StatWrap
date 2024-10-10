@@ -3,9 +3,8 @@ import PropTypes from 'prop-types';
 import styles from './ChecklistItem.css';
 import NoteEditor from '../NoteEditor/NoteEditor';
 import { AddBox, ContentCopy , Done, Delete} from '@mui/icons-material';
-import { Box, IconButton, Tabs, Tab, Typography, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
-import { TabContext, TabPanel } from '@mui/lab';
-import { FaFolderOpen, FaFolderMinus, FaPlusSquare } from 'react-icons/fa';
+import { IconButton, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { FaFolderOpen, FaFolderMinus, FaChevronUp, FaChevronDown } from 'react-icons/fa';
 import Modal from './Modal/Modal';
 import AssetTree from '../AssetTree/AssetTree';
 import AssetUtil from '../../utils/asset';
@@ -17,20 +16,15 @@ function ChecklistItem(props) {
 
   const treeRef = React.useRef(null);
 
-  const [addImages, setAddImages] = useState(false);
-  const [addURL, setAddURL] = useState(false);
-  const [addFile, setAddFile] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [showImages, setShowImages] = useState(false);
   const [showURLs, setShowURLs] = useState(false);
   const [showSubChecks, setShowSubChecks] = useState(false);
-  const [imageModal, setImageModal] = useState({isOpen: false, image: ''});
   const [copiedUrlId, setCopiedUrlId] = useState(null);
-  const [selectedTab, setSelectedTab] = useState('urls');
   const [selectedAsset, setSelectedAsset] = useState();
-
-  const handleTabChange = (event, newValue) => {
-    setSelectedTab(newValue);
-  };
+  const [addAsset, setAddAsset] = useState(false);
+  const [assetTitle, setAssetTitle] = useState('');
+  const [assetDescription, setAssetDescription] = useState('');
 
   const handleSelectAsset = (selAsset) => {
     let asset = selAsset;
@@ -40,29 +34,50 @@ function ChecklistItem(props) {
       }
     }
 
+    if (asset && asset.uri) {
+      if (asset.type === 'file') {
+        const fileName = AssetUtil.getAssetNameFromUri(asset.uri);
+        setAssetTitle(fileName);
+      } else if (asset.type === 'url') {
+        setAssetTitle(asset.uri);
+      } else {
+        setAssetTitle('');
+      }
+    }
+
     setSelectedAsset(asset);
     if (onSelectedAsset) {
       onSelectedAsset(asset);
     }
   };
 
-  const handleSubmitImage = (e) => {
-    e.preventDefault();
-    const img = {id: uuidv4(), uri: imageModal.image, title: e.target.title.value, description: e.target.description.value};
-    const updatedItem = { ...item, attachedImages: [...item.attachedImages, img] };
-    onItemUpdate(updatedItem);
-    setImageModal({isOpen: false, image: ''});
-    setShowImages(true);
-  }
+  const handleAddAsset = () => {
+    if (!selectedAsset) {
+      console.log("No asset selected - cannot add asset reference");
+      return;
+    }
+    if (!assetTitle) {
+      console.log("No title provided - cannot add asset reference");
+      return;
+    }
 
-  const handleSubmitUrl = (e) => {
-    e.preventDefault();
-    const url = {id: uuidv4(), hyperlink: e.target.hyperlink.value, title: e.target.title.value, description: e.target.description.value};
-    const updatedItem = { ...item, attachedURLs: [...item.attachedURLs, url] };
-    onItemUpdate(updatedItem);
-    setAddURL(false);
-    setAddFile(false);
-    setShowURLs(true);
+    if (selectedAsset.type === 'file') {
+      if(selectedAsset.contentTypes.includes('image')) {
+        const updatedItem = { ...item, attachedImages: [...item.attachedImages, {id: uuidv4(), uri: selectedAsset.uri, title: assetTitle, description: assetDescription}] };
+        onItemUpdate(updatedItem);
+        setShowImages(true);
+      } else {
+        const updatedItem = { ...item, attachedURLs: [...item.attachedURLs, {id: uuidv4(), hyperlink: AssetUtil.absoluteToRelativePath(project.path, selectedAsset), title: assetTitle, description: assetDescription}] };
+        onItemUpdate(updatedItem);
+        setShowURLs(true);
+      }
+    } else if (selectedAsset.type === 'url') {
+      const updatedItem = { ...item, attachedURLs: [...item.attachedURLs, {id: uuidv4(), hyperlink: selectedAsset.uri, title: assetTitle, description: assetDescription}] };
+      onItemUpdate(updatedItem);
+      setShowURLs(true);
+    }
+
+    setAddAsset(false);
   }
 
   const handleCopy = (urlId, hyperlink) => {
@@ -109,27 +124,12 @@ function ChecklistItem(props) {
     onItemUpdate(updatedItem);
   };
 
-  let imageComponent = null;
-  let urlComponent = null;
-  let fileComponent = null;
-
-  imageComponent = <img src={imageModal.image} alt="selected" className={styles.selectedImage}/>;
-  urlComponent = (
-    <div className={styles.hyperlink}>
-      <label htmlFor="hyperlink">URL:</label>
-      <input type="url" id="hyperlink" name="hyperlink" required/>
-    </div>
-  )
-  fileComponent = (
-    <div className={styles.hyperlink}>
-      <label htmlFor="hyperlink">File Path:</label>
-      <input type="text" id="hyperlink" name="hyperlink" value={selectedAsset&&selectedAsset.uri} required/>
-    </div>
-  )
-
   return (
     <div className={styles.item}>
       <div className={styles.statementHeader}>
+        <button className={styles.expandButton}>
+          {expanded ? <FaChevronUp className={styles.chevron} onClick={() => setExpanded(false)} /> : <FaChevronDown  className={styles.chevron} onClick={() => setExpanded(true)} />}
+        </button>
         <span className={styles.statement}>{item.id}. {item.statement}</span>
         <div className={styles.buttonContainer}>
           <button
@@ -152,31 +152,36 @@ function ChecklistItem(props) {
           </button>
         </div>
       </div>
-      <div className={styles.scanResult}>
-        {item.scanResult &&
-          Object.keys(item.scanResult).map((key) => {
-            return (
-            <div key={key}>
-              <span className={styles.scanKey}>{key}</span>
-              <ul className={styles.scanList}>
-                {item.scanResult[key].length ? (
-                  item.scanResult[key].map((answer) => (
-                    <li key={answer}>{answer}</li>
-                  ))
-                ) : (
-                  <li>No answers available</li>
-                )}
-              </ul>
-            </div>
-          )})}
-      </div>
-      <div className={styles.details}>
+      {expanded && <div className={styles.details}>
+        <div className={styles.scanResult}>
+          {item.scanResult &&
+            Object.keys(item.scanResult).map((key) => {
+              return (
+              <div key={key}>
+                <span className={styles.scanKey}>{key}</span>
+                <ul className={styles.scanList}>
+                  {item.scanResult[key].length ? (
+                    item.scanResult[key].map((answer) => (
+                      <li key={answer}>{answer}</li>
+                    ))
+                  ) : (
+                    <li>No answers available</li>
+                  )}
+                </ul>
+              </div>
+            )})}
+        </div>
         <NoteEditor
           notes={item.userNotes}
           onEditingComplete={handleNoteUpdate}
           onDelete={handleNoteDelete}
         />
-        <Dialog open={addFile} onClose={() => setAddFile(false)}>
+        <div>
+          <button className={styles.addUrlsButton} onClick={() => setAddAsset(true)}>
+            Add Asset Reference
+          </button>
+        </div>
+        <Dialog open={addAsset} onClose={() => setAddAsset(false)}>
           <DialogTitle className={styles.dialogTitle}>Add Asset Reference</DialogTitle>
           <DialogContent className={styles.dialogContent}>
             <div className={styles.tree}>
@@ -197,14 +202,6 @@ function ChecklistItem(props) {
                 >
                   <FaFolderMinus fontSize="small" /> &nbsp;Collapse
                 </IconButton>
-                <IconButton
-                  onClick={() => setAddFile(true)}
-                  className={styles.toolbarButton}
-                  aria-label="add selected asset"
-                  fontSize="small"
-                >
-                  <FaPlusSquare fontSize="small" /> &nbsp;Add Selected Asset
-                </IconButton>
               </div>
               <AssetTree
                 assets={project.assets}
@@ -213,16 +210,82 @@ function ChecklistItem(props) {
                 selectedAsset={selectedAsset}
               />
             </div>
+            <div className={styles.form}>
+              <div className={styles.title}>
+                <label htmlFor="title">Title:</label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={assetTitle}
+                  onChange={(e) => setAssetTitle(e.target.value)}
+                  required
+                />
+              </div>
+              <div className={styles.description}>
+                <label htmlFor="description">Description:</label>
+                <input
+                  id="description"
+                  name="description"
+                  value={assetDescription}
+                  onChange={(e) => setAssetDescription(e.target.value)}
+                />
+              </div>
+            </div>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => handleSubmitUrl()} className={styles.submitButton}>
+            <button onClick={() => handleAddAsset()} className={styles.submitButton}>
               Add
-            </Button>
-            <Button className={styles.cancelButton} autoFocus>
+            </button>
+            <button onClick={() => setAddAsset(false)} className={styles.cancelButton} autoFocus>
               Cancel
-            </Button>
+            </button>
           </DialogActions>
         </Dialog>
+        {item.attachedURLs.length > 0 && (
+          <div className={styles.urls}>
+            <div className={styles.headerWithButton}>
+              <h4>Attached URLs:</h4>
+              <button className={styles.dropdownButton} onClick={() => setShowURLs(!showURLs)}>
+                {showURLs ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            <div className={`${styles.urlContent} ${showURLs ? styles.show : ''}`}>
+              <ul>
+                {item.attachedURLs.map((url) => (
+                  <div key={url.id}>
+                    <div>
+                      <li className={styles.url}>
+                        <div className={styles.urlHeader}>
+                          <span className={styles.urlText}>{url.title}</span>
+                          <div>
+                            {copiedUrlId === url.id ? (
+                              <Done className={styles.doneButton} />
+                            ) : (
+                              <ContentCopy
+                                className={styles.copyButton}
+                                onClick={() => handleCopy(url.id, url.hyperlink)}
+                              />
+                            )}
+                            <Delete
+                              className={styles.delButton}
+                              onClick={() => handleDeleteUrl(url.id)}
+                            />
+                          </div>
+                        </div>
+                        <a href={url.hyperlink} target="">
+                          {url.hyperlink}
+                        </a>
+                        <p>{url.description}</p>
+                      </li>
+                    </div>
+                    <hr />
+                  </div>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
         {item.attachedImages.length > 0 && (
           <div className={styles.images}>
             <div className={styles.headerWithButton}>
@@ -301,7 +364,7 @@ function ChecklistItem(props) {
             </div>
           </div>
         )}
-      </div>
+      </div>}
     </div>
   );
 }
