@@ -1,4 +1,4 @@
-# Reproducible Research Checklists
+# Reproducible Research Checklist
 
 This document provides design guidance and general requirements for the reproducible research checklist feature in StatWrap.
 

@@ -2,7 +2,7 @@
 
 ### About
 
-The **Checklist Object** represents a single checklist item within the reproducibility checklist. It encompasses various attributes and sub-objects to capture different aspects such as statement, type, answer, user notes, attached images, attached URLs, and sub-checklists.
+The **Checklist Object** represents a single checklist item within the reproducibility checklist. It encompasses various attributes and sub-objects to capture different aspects such as statement, type, answer, user notes, attached images, attached URLs, and sub-checklist.
 
 ### Attributes
 
@@ -15,7 +15,7 @@ The **Checklist Object** represents a single checklist item within the reproduci
 | `userNotes`        | Array ([]Note)| An array containing user-added notes associated with the checklist item.                                                                               |
 | `attachedImages`   | Array ([]Image)| An array containing image data of images attached to the checklist item.                                                                              |
 | `attachedURLs`     | Array ([]URL)| An array containing URLs attached to the checklist item.                                                                                                |
-| `subChecklists`    | Array ([]Sub_checklist)| An array containing sub-checklists associated with the checklist item.                                                                        |
+| `subChecklist`    | Array ([]Sub_checklist)| An array containing sub-checklist associated with the checklist item.                                                                        |
 | `updated`          | String     | The timestamp indicating when the checklist item was last updated.                                                                                        |
 
 ### Sub-Checklist Object
