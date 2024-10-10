@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import styles from './ReproChecklists.css';
 import ChecklistItem from './ChecklistItem';
-import { Typography } from '@mui/material';
+import { Typography, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { SaveAlt } from '@mui/icons-material';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
@@ -152,6 +152,7 @@ function ReproChecklists(props) {
   const { project, reproChecklist, onUpdatedNote, onDeletedNote, onAddedNote, onSelectedAsset} = props;
   const [checklistItems, setChecklistItems] = useState(reproducibilityChecklist);
   const [allImages, setAllImages] = useState([]);
+  const [openExportDialog, setOpenExportDialog] = useState(false);
 
   useEffect(() => {
     if (project) {
@@ -183,9 +184,8 @@ function ReproChecklists(props) {
     setChecklistItems(updatedChecklistItems);
   };
 
-  const handleReportGeneration = () => {
+  const handleReportGeneration = (exportNotes) => {
     const checkedIcon = convertImageToBase64(path.join(__dirname, 'images/yes.png'));
-    const uncheckedIcon = convertImageToBase64(path.join(__dirname, 'images/no.png'));
     const statWrapLogo = convertImageToBase64(path.join(__dirname, 'images/banner.png'));
 
     const documentDefinition = {
@@ -215,11 +215,34 @@ function ReproChecklists(props) {
           margin: [0, 5],
         },
         {
-          text: `Checklist Summary`,
-          style: 'sectionHeader',
-          margin: [0, 10],
+          columns: [
+            {
+              text: `Checklist Summary`,
+              style: 'sectionHeader',
+              margin: [0, 10],
+            },
+            {
+              text: 'Yes',
+              margin: [0, 12, 5, 0],
+              width: 30,
+              alignment: 'right',
+              fontSize: 16,
+              bold: true,
+              noWrap: true,
+            },
+            {
+              text: 'No',
+              margin: [0, 12],
+              width: 40,
+              alignment: 'right',
+              fontSize: 16,
+              bold: true,
+              noWrap: true,
+            },
+          ],
         },
         ...checklistItems.map((item, index) => {
+          const maxWidth = 450;
           let subChecklists = [];
           if (item.subChecklists && item.subChecklists.length > 0) {
             subChecklists = item.subChecklists.map((subItem, subIndex) => ({
@@ -230,41 +253,59 @@ function ReproChecklists(props) {
                   width: '*',
                   alignment: 'left',
                 },
-                {
-                  image: subItem.answer ? checkedIcon : uncheckedIcon,
+                subItem.answer ? {
+                  image: checkedIcon,
                   width: 15,
-                  height: 15,
                   alignment: 'right',
-                  margin: [0, 6, 1, 0],
+                  margin: [0, 5, 25, 0],
+                } : {
+                  image: checkedIcon,
+                  width: 15,
+                  alignment: 'right',
+                  margin: [0, 5, 1, 0],
                 },
               ],
               columnGap: 0,
             }));
           }
 
+          let notes = [];
+          if (exportNotes && item.userNotes && item.userNotes.length > 0) {
+            notes = item.userNotes.map((note, noteIndex) => ({
+              text: `${noteIndex + 1}. ${note.content}`,
+              margin: [20, 2],
+              width: maxWidth,
+            }));
+          }
+
           let images = [];
+          const imageWidth = 135;
           if(item.attachedImages && item.attachedImages.length > 0){
             images = item.attachedImages.map((image) => {
               const base64Image = convertImageToBase64(image.uri);
               if (base64Image) {
                 return {
-                  unbreakable: true,
-                  stack: [
-                    {
-                      image: base64Image,
-                      width: 150,
-                      margin: [0, 5],
-                      alignment: 'center',
-                    },
-                    {
-                      text: image.title,
-                      margin: [0, 2],
-                      alignment: 'center',
-                    },
-                  ],
+                  image: base64Image,
+                  width: imageWidth,
+                  margin: [0, 5],
+                  alignment: 'center',
                 };
               }
               return { text: `Failed to load image: ${image.uri}`, color: 'red' };
+            });
+          }
+
+          // imageWidth*n + calumnGap*(n-1) <= maxWidth - leftMargin - rightMargin
+          // 135*n + 10*(n-1) <= 450 - 20 - 0;
+          // n <= 440/145 --> n = 3
+          const imagesPerRow = Math.floor((maxWidth - 20 + 10) / (imageWidth + 10));
+
+          let imageRows = [];
+          for (let i = 0; i < images.length; i += imagesPerRow) {
+            imageRows.push({
+              columns: images.slice(i, i + imagesPerRow),
+              columnGap: 10,
+              margin: [20, 5],
             });
           }
 
@@ -277,25 +318,26 @@ function ReproChecklists(props) {
                   {
                     text: `${urlIndex + 1}. `,
                     width: 25,
-                    margin: [15, 1 , 0, 0],
+                    margin: [20, 1 , 0, 0],
                     alignment: 'left',
+                    noWrap: true,
                   },
                   {
                     stack: [
                       {
                         text: url.title,
-                        margin: [5, 1],
+                        margin: [7, 1],
                         alignment: 'left',
                         style: 'hyperlink',
                         link: url.hyperlink,
                       },
                       {
                         text: url.description,
-                        margin: [5, 5],
+                        margin: [7, 3],
                         alignment: 'left',
                       },
                     ],
-                    width: '470',
+                    width: maxWidth,
                   },
                 ],
               };
@@ -313,30 +355,32 @@ function ReproChecklists(props) {
                 },
                 {
                   text: `${item.statement}`,
-                  margin: [0, 10],
-                  width: '*',
+                  margin: [0, 10, 25, 0],
+                  width: maxWidth,
                   alignment: 'left',
+                  bold: true,
                 },
-                {
-                  image: item.answer ? checkedIcon : uncheckedIcon,
-                  width: 20,
-                  height: 20,
+                item.answer ? {
+                  image: checkedIcon,
+                  width: 15,
                   alignment: 'right',
-                  margin: [0, 10],
+                  marginRight: 10,
+                  marginTop: 12,
+                } : {
+                  image: checkedIcon,
+                  width: 15,
+                  marginLeft: 28,
+                  marginTop: 12,
                 },
               ],
               columnGap: 5,
             },
             ...subChecklists,
-            images.length > 0 ? { text: 'Related Images:', margin: [0, 10] } : '',
-            {
-              columns: images,
-              columnGap: 5,
-              width: '*',
-              wrap: true,
-              margin: [0, 5],
-            },
-            urls.length > 0 ? { text: 'Related URLs:', margin: [0, 10] } : '',
+            notes.length > 0 ? { text: 'Notes:', margin: [15, 5] } : '',
+            ...notes,
+            images.length > 0 ? { text: 'Related Images:', margin: [15, 10] } : '',
+            ...imageRows,
+            urls.length > 0 ? { text: 'Related URLs:', margin: [15, 10] } : '',
             ...urls,
           ];
         }).flat(),
@@ -344,7 +388,6 @@ function ReproChecklists(props) {
       styles: {
         mainHeader: { fontSize: 22, bold: true, color: '#663399' },
         sectionHeader: { fontSize: 18, bold: true, color: '#8b6fb3', margin: [0, 20] },
-        header: { fontSize: 16, bold: true },
         hyperlink: { color: '#0000EE' },
       },
       defaultStyle: {
@@ -361,6 +404,7 @@ function ReproChecklists(props) {
     };
 
     pdfMake.createPdf(documentDefinition).download('Reproducibility_Checklist_Report.pdf');
+    setOpenExportDialog(false);
   };
 
   return (
@@ -383,7 +427,7 @@ function ReproChecklists(props) {
       <br />
       <div className={styles.downloadContainer}>
         <button
-          onClick={handleReportGeneration}
+          onClick={() => setOpenExportDialog(true)}
           className={styles.downloadButton}
         >
           <div className={styles.buttonContent}>
@@ -392,6 +436,24 @@ function ReproChecklists(props) {
           </div>
         </button>
       </div>
+
+      <Dialog open={openExportDialog} onClose={() => setOpenExportDialog(false)}>
+        <DialogTitle className={styles.dialogTitle}>Export Report</DialogTitle>
+        <DialogContent className={styles.dialogContent}>
+          <DialogContentText>
+            Do you want to include the checklist notes in the exported reproducibility checklist?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleReportGeneration(true)} color="primary">
+            Yes
+          </Button>
+          <Button onClick={() => handleReportGeneration(false)} color="primary" autoFocus>
+            No
+          </Button>
+        </DialogActions>
+      </Dialog>
+
     </div>
   );
 }

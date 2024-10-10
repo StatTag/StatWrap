@@ -130,7 +130,7 @@ function ChecklistItem(props) {
   return (
     <div className={styles.item}>
       <div className={styles.header}>
-        <span className={styles.statement}>{item.statement}</span>
+        <span className={styles.statement}>{item.id}. {item.statement}</span>
         <div className={styles.buttonContainer}>
           <button
             className={item.answer ? styles.yesset : styles.yes}

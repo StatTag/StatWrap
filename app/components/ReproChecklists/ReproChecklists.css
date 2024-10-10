@@ -25,3 +25,11 @@
   margin-top: 3px;
   margin-right: 2px;
 }
+
+.dialogTitle {
+  color: white;
+}
+
+.dialogContent {
+  padding-bottom: 5px;
+}
