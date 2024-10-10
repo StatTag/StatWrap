@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import styles from './ReproChecklists.css';
+import styles from './ReproChecklist.css';
 import ChecklistItem from './ChecklistItem';
 import { Typography, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { SaveAlt } from '@mui/icons-material';
@@ -22,7 +22,7 @@ const reproducibilityChecklist = [
     userNotes: [],
     attachedImages: [],
     attachedURLs: [],
-    subChecklists: [],
+    subChecklist: [],
   },
   {
     id: '2',
@@ -32,7 +32,7 @@ const reproducibilityChecklist = [
     userNotes: [],
     attachedImages: [],
     attachedURLs: [],
-    subChecklists: [],
+    subChecklist: [],
   },
   {
     id: '3',
@@ -42,7 +42,7 @@ const reproducibilityChecklist = [
     userNotes: [],
     attachedImages: [],
     attachedURLs: [],
-    subChecklists:[
+    subChecklist:[
       {
         id: '3.1',
         statement: 'Are all the languages used in the project listed?',
@@ -148,7 +148,7 @@ function convertImageToBase64(filePath) {
 };
 
 
-function ReproChecklists(props) {
+function ReproChecklist(props) {
   const { project, reproChecklist, onUpdatedNote, onDeletedNote, onAddedNote, onSelectedAsset} = props;
   const [checklistItems, setChecklistItems] = useState(reproducibilityChecklist);
   const [allImages, setAllImages] = useState([]);
@@ -196,7 +196,7 @@ function ReproChecklists(props) {
           alignment: 'center',
         },
         {
-          text: 'Reproducibility Checklists Report',
+          text: 'Reproducibility Checklist',
           style: 'mainHeader',
           alignment: 'center',
           margin: [0, 20],
@@ -243,9 +243,9 @@ function ReproChecklists(props) {
         },
         ...checklistItems.map((item, index) => {
           const maxWidth = 450;
-          let subChecklists = [];
-          if (item.subChecklists && item.subChecklists.length > 0) {
-            subChecklists = item.subChecklists.map((subItem, subIndex) => ({
+          let subChecklist = [];
+          if (item.subChecklist && item.subChecklist.length > 0) {
+            subChecklist = item.subChecklist.map((subItem, subIndex) => ({
               columns: [
                 {
                   text: `${index + 1}.${subIndex + 1} ${subItem.statement}`,
@@ -375,7 +375,7 @@ function ReproChecklists(props) {
               ],
               columnGap: 5,
             },
-            ...subChecklists,
+            ...subChecklist,
             notes.length > 0 ? { text: 'Notes:', margin: [15, 5] } : '',
             ...notes,
             images.length > 0 ? { text: 'Related Images:', margin: [15, 10] } : '',
@@ -403,13 +403,13 @@ function ReproChecklists(props) {
       },
     };
 
-    pdfMake.createPdf(documentDefinition).download('Reproducibility_Checklist_Report.pdf');
+    pdfMake.createPdf(documentDefinition).download('Reproducibility_Checklist.pdf');
     setOpenExportDialog(false);
   };
 
   return (
     <div>
-      <Typography variant='h5' align='center' marginTop='10px'>Reproducibility Checklists</Typography>
+      <Typography variant='h5' align='center' marginTop='10px'>Reproducibility Checklist</Typography>
       <br />
       {checklistItems.map(item => (
         <ChecklistItem
@@ -458,7 +458,7 @@ function ReproChecklists(props) {
   );
 }
 
-ReproChecklists.propTypes = {
+ReproChecklist.propTypes = {
   project: PropTypes.object.isRequired,
   reproChecklist: PropTypes.arrayOf(
     PropTypes.shape({
@@ -494,7 +494,7 @@ ReproChecklists.propTypes = {
           updated: PropTypes.string.isRequired,
         })
       ),
-      subChecklists: PropTypes.arrayOf(
+      subChecklist: PropTypes.arrayOf(
         PropTypes.shape({
           id: PropTypes.string.isRequired,
           statement: PropTypes.string.isRequired,
@@ -509,8 +509,8 @@ ReproChecklists.propTypes = {
   onAddedNote: PropTypes.func.isRequired,
 };
 
-ReproChecklists.defaultProps = {
+ReproChecklist.defaultProps = {
   reproChecklist: reproducibilityChecklist,
 };
 
-export default ReproChecklists;
+export default ReproChecklist;

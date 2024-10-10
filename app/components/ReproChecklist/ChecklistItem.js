@@ -336,17 +336,17 @@ function ChecklistItem(props) {
           title="URL"
           component={urlComponent}
         />
-        {item.subChecklists.length > 0 && (
-          <div className={styles.subChecklists}>
+        {item.subChecklist.length > 0 && (
+          <div className={styles.subChecklist}>
             <div className={styles.headerWithButton}>
-              <h4>Sub-Checklists:</h4>
+              <h4>Sub-Checklist:</h4>
               <button className={styles.dropdownButton} onClick={() => setShowSubChecks(!showSubChecks)}>
                 {showSubChecks ? 'Hide' : 'Show'}
               </button>
             </div>
             <div className={`${styles.subChecksContent} ${showSubChecks ? styles.show : ''}`}>
               <ul>
-                {item.subChecklists.map((subCheck) => (
+                {item.subChecklist.map((subCheck) => (
                   <li key={subCheck.id}>
                   <div className={styles.header}>
                     <span>{subCheck.statement}</span>
@@ -354,7 +354,7 @@ function ChecklistItem(props) {
                       <button
                         className={subCheck.answer ? styles.yesset : styles.yes}
                         onClick={() => {
-                          const updatedItem = { ...item, subChecklists: item.subChecklists.map((sub) => {
+                          const updatedItem = { ...item, subChecklist: item.subChecklist.map((sub) => {
                             if (sub.id === subCheck.id) {
                               return { ...sub, answer: true };
                             }
@@ -368,7 +368,7 @@ function ChecklistItem(props) {
                       <button
                         className={subCheck.answer ? styles.no : styles.noset}
                         onClick={() => {
-                          const updatedItem = { ...item, subChecklists: item.subChecklists.map((sub) => {
+                          const updatedItem = { ...item, subChecklist: item.subChecklist.map((sub) => {
                             if (sub.id === subCheck.id) {
                               return { ...sub, answer: false };
                             }
@@ -424,7 +424,7 @@ ChecklistItem.propTypes = {
         description: PropTypes.string.isRequired,
       })
     ),
-    subChecklists: PropTypes.arrayOf(
+    subChecklist: PropTypes.arrayOf(
       PropTypes.shape({
         id: PropTypes.string.isRequired,
         statement: PropTypes.string.isRequired,
