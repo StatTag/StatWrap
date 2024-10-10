@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import styles from './ChecklistItem.css';
 import NoteEditor from '../NoteEditor/NoteEditor';
 import { AddBox, ContentCopy , Done, Delete} from '@mui/icons-material';
-import { Box, IconButton, Tabs, Tab } from '@mui/material';
+import { Box, IconButton, Tabs, Tab, Typography, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { TabContext, TabPanel } from '@mui/lab';
 import { FaFolderOpen, FaFolderMinus, FaPlusSquare } from 'react-icons/fa';
 import Modal from './Modal/Modal';
@@ -129,7 +129,7 @@ function ChecklistItem(props) {
 
   return (
     <div className={styles.item}>
-      <div className={styles.header}>
+      <div className={styles.statementHeader}>
         <span className={styles.statement}>{item.id}. {item.statement}</span>
         <div className={styles.buttonContainer}>
           <button
@@ -176,6 +176,53 @@ function ChecklistItem(props) {
           onEditingComplete={handleNoteUpdate}
           onDelete={handleNoteDelete}
         />
+        <Dialog open={addFile} onClose={() => setAddFile(false)}>
+          <DialogTitle className={styles.dialogTitle}>Add Asset Reference</DialogTitle>
+          <DialogContent className={styles.dialogContent}>
+            <div className={styles.tree}>
+              <div className={styles.toolbar}>
+                <IconButton
+                  onClick={() => treeRef.current.setExpandAll(true)}
+                  className={styles.toolbarButton}
+                  aria-label="expand all tree items"
+                  fontSize="small"
+                >
+                  <FaFolderOpen fontSize="small" /> &nbsp;Expand
+                </IconButton>
+                <IconButton
+                  className={styles.toolbarButton}
+                  aria-label="collapse all tree items"
+                  fontSize="small"
+                  onClick={() => treeRef.current.setExpandAll(false)}
+                >
+                  <FaFolderMinus fontSize="small" /> &nbsp;Collapse
+                </IconButton>
+                <IconButton
+                  onClick={() => setAddFile(true)}
+                  className={styles.toolbarButton}
+                  aria-label="add selected asset"
+                  fontSize="small"
+                >
+                  <FaPlusSquare fontSize="small" /> &nbsp;Add Selected Asset
+                </IconButton>
+              </div>
+              <AssetTree
+                assets={project.assets}
+                ref={treeRef}
+                onSelectAsset={handleSelectAsset}
+                selectedAsset={selectedAsset}
+              />
+            </div>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => handleSubmitUrl()} className={styles.submitButton}>
+              Add
+            </Button>
+            <Button className={styles.cancelButton} autoFocus>
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
         {item.attachedImages.length > 0 && (
           <div className={styles.images}>
             <div className={styles.headerWithButton}>
@@ -203,139 +250,6 @@ function ChecklistItem(props) {
             </div>
           </div>
         )}
-        {imageAssets.length > 0 && (
-          <div className={styles.images}>
-            <button className={styles.addImagesButton} onClick={() => setAddImages(!addImages)}>
-              Add Images
-            </button>
-            <div className={`${styles.imageContent} ${addImages ? styles.show : ''}`}>
-              <ul>
-                {imageAssets.map((image) => (
-                  <li key={image} className={styles.header}>
-                    <AddBox className={styles.addIcon}  onClick={()=> setImageModal({isOpen: true, image: image})}/>
-                    <img src={image} alt="project image" />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
-        <Modal
-          isOpen={imageModal.isOpen}
-          onClose={()=>setImageModal({isOpen: false, image: ''})}
-          onSubmit={handleSubmitImage}
-          title="Image"
-          component={imageComponent}
-        />
-        <TabContext value={selectedTab}>
-          <Tabs value={selectedTab} onChange={handleTabChange} aria-label="tabs">
-            <Tab label="Assets" value="assets" />
-            <Tab label="URLs" value="urls" />
-          </Tabs>
-          <TabPanel value="assets" style={{paddingTop : '5px', paddingLeft : '5px', paddingBottom : '5px'}}>
-            <div className={styles.tree}>
-              <div className={styles.toolbar}>
-                <IconButton
-                  onClick={() => treeRef.current.setExpandAll(true)}
-                  className={styles.toolbarButton}
-                  aria-label="expand all tree items"
-                  fontSize="small"
-                >
-                  <FaFolderOpen fontSize="small" /> &nbsp;Expand
-                </IconButton>
-                <IconButton
-                  onClick={() => treeRef.current.setExpandAll(false)}
-                  className={styles.toolbarButton}
-                  aria-label="collapse all tree items"
-                  fontSize="small"
-                >
-                  <FaFolderMinus fontSize="small" /> &nbsp;Collapse
-                </IconButton>
-                <IconButton
-                  onClick={() => setAddFile(true)}
-                  className={styles.toolbarButton}
-                  aria-label="add selected asset"
-                  fontSize="small"
-                >
-                  <FaPlusSquare fontSize="small" /> &nbsp;Add Selected Asset
-                </IconButton>
-              </div>
-              <AssetTree
-                assets={project.assets}
-                ref={treeRef}
-                onSelectAsset={handleSelectAsset}
-                selectedAsset={selectedAsset}
-              />
-            </div>
-          </TabPanel>
-          <TabPanel value="urls" style={{paddingTop : '5px', paddingLeft : '15px', paddingBottom : '5px'}}>
-            {item.attachedURLs.length > 0 ? (
-              <div className={styles.urls}>
-                <div className={styles.headerWithButton}>
-                  <h4>Attached URLs:</h4>
-                  <button className={styles.dropdownButton} onClick={() => setShowURLs(!showURLs)}>
-                    {showURLs ? 'Hide' : 'Show'}
-                  </button>
-                </div>
-                <div className={`${styles.urlContent} ${showURLs ? styles.show : ''}`}>
-                  <ul>
-                    {item.attachedURLs.map((url) => (
-                      <div key={url.id}>
-                        <div>
-                          <li className={styles.url}>
-                            <div className={styles.urlHeader}>
-                              <span className={styles.urlText}>{url.title}</span>
-                              <div>
-                                {copiedUrlId === url.id ? (
-                                  <Done className={styles.doneButton} />
-                                ) : (
-                                  <ContentCopy
-                                    className={styles.copyButton}
-                                    onClick={() => handleCopy(url.id, url.hyperlink)}
-                                  />
-                                )}
-                                <Delete
-                                  className={styles.delButton}
-                                  onClick={() => handleDeleteUrl(url.id)}
-                                />
-                              </div>
-                            </div>
-                            <a href={url.hyperlink} target="">
-                              {url.hyperlink}
-                            </a>
-                            <p>{url.description}</p>
-                          </li>
-                        </div>
-                        <hr />
-                      </div>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            ) : (
-              <p>No URLs attached.</p>
-            )}
-          </TabPanel>
-        </TabContext>
-        <Modal
-          isOpen={addFile}
-          onClose={()=>setAddFile(false)}
-          onSubmit={handleSubmitUrl}
-          title="URL"
-          component={fileComponent}
-        />
-        <div>
-          <button className={styles.addUrlsButton} onClick={() => setAddURL(true)}>
-            Add URLs
-          </button>
-        </div>
-        <Modal
-          isOpen={addURL}
-          onClose={()=>setAddURL(false)}
-          onSubmit={handleSubmitUrl}
-          title="URL"
-          component={urlComponent}
-        />
         {item.subChecklist.length > 0 && (
           <div className={styles.subChecklist}>
             <div className={styles.headerWithButton}>
