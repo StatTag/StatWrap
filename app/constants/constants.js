@@ -17,6 +17,7 @@ module.exports = {
     DIRECTORY: 'directory',
     FOLDER: 'directory', // 'DIRECTORY' is the preferred name, but we know we'll use this sometimes
     FILE: 'file',
+    URL: 'url',
     GENERIC: 'generic',
 
     // These are not a real asset types, but are used in our various controls

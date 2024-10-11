@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import styles from './ReproChecklist.css';
 import ChecklistItem from './ChecklistItem';
+import Constants from '../../constants/constants';
 import { Typography, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { SaveAlt } from '@mui/icons-material';
 import pdfMake from 'pdfmake/build/pdfmake';
@@ -62,7 +63,7 @@ const dependencies = {};
 const imageAssets = {};
 
 function findAssetLanguagesAndDependencies(asset) {
-  if (asset.type === 'file' && asset.contentTypes.includes('code') ) {
+  if (asset.type === Constants.AssetType.FILE && asset.contentTypes.includes(Constants.AssetContentType.CODE) ) {
     const lastSep = asset.uri.lastIndexOf(path.sep);
     const fileName = asset.uri.substring(lastSep + 1);
     const ext = fileName.split('.').pop();
@@ -84,15 +85,6 @@ function findAssetLanguagesAndDependencies(asset) {
     dependencies: Object.keys(dependencies)
   };
 }
-
-function findImageAssets(asset) {
-  if (asset.type === 'file' && asset.contentTypes.includes('image')) {
-    imageAssets[asset.uri] = true;
-  }
-  if (asset.children) {
-    asset.children.forEach(findImageAssets);
-  }
-};
 
 function findChecklistNotes(notes) {
   const checklistNotes = {};
@@ -151,15 +143,12 @@ function convertImageToBase64(filePath) {
 function ReproChecklist(props) {
   const { project, checklist, error, onUpdatedNote, onDeletedNote, onAddedNote, onSelectedAsset} = props;
   const [checklistItems, setChecklistItems] = useState(checklist);
-  const [allImages, setAllImages] = useState([]);
   const [openExportDialog, setOpenExportDialog] = useState(false);
 
   useEffect(() => {
     if (project) {
       if(project.assets) {
         findAssetLanguagesAndDependencies(project.assets);
-        findImageAssets(project.assets);
-        setAllImages(Object.keys(imageAssets));
       }
       if(project.notes){
         const checklistNotes = findChecklistNotes(project.notes);
@@ -416,7 +405,6 @@ function ReproChecklist(props) {
           key={item.id}
           item={item}
           project={project}
-          imageAssets={allImages}
           onUpdatedNote={onUpdatedNote}
           onDeletedNote={onDeletedNote}
           onAddedNote={onAddedNote}

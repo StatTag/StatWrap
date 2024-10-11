@@ -5,14 +5,14 @@ import NoteEditor from '../NoteEditor/NoteEditor';
 import { AddBox, ContentCopy , Done, Delete} from '@mui/icons-material';
 import { IconButton, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { FaFolderOpen, FaFolderMinus, FaChevronUp, FaChevronDown } from 'react-icons/fa';
-import Modal from './Modal/Modal';
 import AssetTree from '../AssetTree/AssetTree';
 import AssetUtil from '../../utils/asset';
+import Constants from '../../constants/constants';
 
 const { v4: uuidv4 } = require('uuid');
 
 function ChecklistItem(props) {
-  const { item, project, imageAssets, onUpdatedNote, onDeletedNote, onAddedNote, onItemUpdate, onSelectedAsset } = props;
+  const { item, project, onUpdatedNote, onDeletedNote, onAddedNote, onItemUpdate, onSelectedAsset } = props;
 
   const treeRef = React.useRef(null);
 
@@ -35,10 +35,10 @@ function ChecklistItem(props) {
     }
 
     if (asset && asset.uri) {
-      if (asset.type === 'file') {
+      if (asset.type === Constants.AssetType.FILE) {
         const fileName = AssetUtil.getAssetNameFromUri(asset.uri);
         setAssetTitle(fileName);
-      } else if (asset.type === 'url') {
+      } else if (asset.type === Constants.AssetType.URL) {
         setAssetTitle(asset.uri);
       } else {
         setAssetTitle('');
@@ -61,8 +61,8 @@ function ChecklistItem(props) {
       return;
     }
 
-    if (selectedAsset.type === 'file') {
-      if(selectedAsset.contentTypes.includes('image')) {
+    if (selectedAsset.type === Constants.AssetType.FILE) {
+      if(selectedAsset.contentTypes.includes(Constants.AssetContentType.IMAGE)) {
         const updatedItem = { ...item, attachedImages: [...item.attachedImages, {id: uuidv4(), uri: selectedAsset.uri, title: assetTitle, description: assetDescription}] };
         onItemUpdate(updatedItem);
         setShowImages(true);
@@ -71,7 +71,7 @@ function ChecklistItem(props) {
         onItemUpdate(updatedItem);
         setShowURLs(true);
       }
-    } else if (selectedAsset.type === 'url') {
+    } else if (selectedAsset.type === Constants.AssetType.URL) {
       const updatedItem = { ...item, attachedURLs: [...item.attachedURLs, {id: uuidv4(), hyperlink: selectedAsset.uri, title: assetTitle, description: assetDescription}] };
       onItemUpdate(updatedItem);
       setShowURLs(true);
@@ -410,7 +410,6 @@ ChecklistItem.propTypes = {
     ),
   }).isRequired,
   project: PropTypes.object.isRequired,
-  imageAssets: PropTypes.arrayOf(PropTypes.string),
   onUpdatedNote: PropTypes.func.isRequired,
   onDeletedNote: PropTypes.func.isRequired,
   onAddedNote: PropTypes.func.isRequired,
