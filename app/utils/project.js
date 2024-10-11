@@ -387,6 +387,23 @@ export default class ProjectUtil {
     }
   }
 
+    /**
+   * Utility function to avoid duplicating parameter checks in our create/update/remove external asset methods
+   * @param {object} project The project to validate
+   * @param {object} asset The asset to validate
+   */
+    static _validateProjectAndAsset(project, asset) {
+      if (!project) {
+        throw new Error('The project object cannot be null or undefined');
+      } else if (!asset) {
+        throw new Error('The asset object cannot be null or undefined');
+      } else if (!asset.uri || asset.uri === undefined || asset.uri === '') {
+        throw new Error(
+          'The asset URI is required, and must be at least one non-whitespace character in length.',
+        );
+      }
+    }
+
   /**
    * Utility function to handle adding or updating an asset group within a project
    * @param {object} project The project object, assumed to be recently loaded.
@@ -448,6 +465,63 @@ export default class ProjectUtil {
     const existingGroupIndex = project.assetGroups.findIndex((p) => p.id === group.id);
     if (existingGroupIndex > -1) {
       project.assetGroups.splice(existingGroupIndex, 1);
+    }
+  }
+
+  /**
+   * Utility function to handle adding or updating an asset group within a project
+   * @param {object} project The project object, assumed to be recently loaded.
+   * @param {object} asset The external asset to add to the project's collection
+   * @returns object Will be the external asset if the upsert succeeded.
+   * If the upsert did not succeed, it will throw an exception.  If successful, the change will be reflected
+   * in the `project` object. Even if no actual change is needed, this function will still
+   * return the external asset.
+   */
+  static upsertExternalAsset(project, asset) {
+    ProjectUtil._validateProjectAndAsset(project, asset);
+
+    // Initialize the externalAssets array if it doesn't exist already in the object
+    if (!project.externalAssets || project.externalAssets === undefined) {
+      project.externalAssets = [];
+    }
+
+    // If we have a URI for the asset, we need to see if it already exists.  Note that our
+    // earlier check confirms the URI is set, so we proceed without any other checks.
+    let addAssetToArray = false;
+    const existingAsset = project.externalAssets.find((p) => p.uri === asset.uri);
+    if (existingAsset) {
+      // Copy over only what attributes need to be saved in the directory.
+      existingAsset.uri = asset.uri;
+      existingAsset.name = asset.name;
+      existingAsset.type = asset.type;
+    } else {
+      addAssetToArray = true;
+    }
+
+    if (addAssetToArray) {
+      project.externalAssets.push(asset);
+    }
+
+    return asset;
+  }
+
+  /**
+   * Utility function to handle removing an external asset within a project.  Modifies the project parameter.
+   * @param {object} project The project object, assumed to be recently loaded.
+   * @param {object} group The external asset to remove from to the project's collection
+   */
+  static removeExternalAsset(project, asset) {
+    ProjectUtil._validateProjectAndAsset(project, asset);
+
+    // If there is no asset group collection, we're done - there's nothing to remove.
+    if (!project.externalAssets || project.externalAssets === undefined) {
+      return;
+    }
+
+    // If we don't find the asset group, we're going to let it slide silently for now.
+    const existingAssetIndex = project.externalAssets.findIndex((p) => p.uri === asset.uri);
+    if (existingAssetIndex > -1) {
+      project.externalAssets.splice(existingAssetIndex, 1);
     }
   }
 

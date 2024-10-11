@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusSquare, faSave, faBan, faFolderOpen, faFolderMinus, faFileCirclePlus } from '@fortawesome/free-solid-svg-icons';
 import { cloneDeep } from 'lodash';
 import AssetGroupDialog from '../../../containers/AssetGroupDialog/AssetGroupDialog';
-import ResourceDialog from '../../../containers/ResourceDialog/ResourceDialog';
+import ExternalAssetDialog from '../../../containers/ExternalAssetDialog/ExternalAssetDialog';
 import Error from '../../Error/Error';
 import AssetTree from '../../AssetTree/AssetTree';
 import AssetDetails from '../../AssetDetails/AssetDetails';
@@ -74,6 +74,9 @@ const assetsComponent = (props) => {
     onAddedAssetGroup,
     onUpdatedAssetGroup,
     onDeletedAssetGroup,
+    onAddedExternalAsset,
+    onUpdatedExternalAsset,
+    onDeletedExternalAsset,
     assetAttributes,
     dynamicDetails,
   } = props;
@@ -86,11 +89,11 @@ const assetsComponent = (props) => {
   // recreated. We don't care what this key is, it just has to change.
   const [assetDialogKey, setAssetDialogKey] = useState(0);
   // Offset the key to avoid overlap.
-  const [resourceDialogKey, setResourceDialogKey] = useState(1000);
+  const [externalAssetDialogKey, setExternalAssetDialogKey] = useState(1000);
   // UI state flag to let us know when we're in the process of adding/editing a group
   const [editingGroup, setEditingGroup] = useState(false);
   // UI state flag to let us know when we're in the process of adding/editing a group
-  const [editingResource, setEditingResource] = useState(false);
+  const [editingExternalAsset, setEditingExternalAsset] = useState(false);
   // Array of currently selected assets that are either for an existing asset group, or
   // that could be added to a new asset group.
   const [groupedAssets, setGroupedAssets] = useState([]);
@@ -158,8 +161,8 @@ const assetsComponent = (props) => {
     setEditingGroup(false);
   };
 
-  const handleCloseResourceDialog = () => {
-    setEditingResource(false);
+  const handleCloseExternalAssetDialog = () => {
+    setEditingExternalAsset(false);
   };
 
   const handleSavedAssetGroup = (group) => {
@@ -173,15 +176,15 @@ const assetsComponent = (props) => {
     setEditingGroup(false);
   };
 
-  const handleSavedResource = (resource) => {
-    if (resource.id === null || resource.id === undefined) {
-      if (onAddedResource) {
-        onAddedResource(resource);
+  const handleSavedExternalAsset = (asset) => {
+    if (asset.id === null || asset.id === undefined) {
+      if (onAddedExternalAsset) {
+        onAddedExternalAsset(asset);
       }
-    } else if (onUpdatedResource) {
-      onUpdatedResource(resource);
+    } else if (onUpdatedExternalAsset) {
+      onUpdatedExternalAsset(asset);
     }
-    setEditingResource(false);
+    setEditingExternalAsset(false);
   };
 
   // When the user selects a checkbox next to an asset - initially used just for building
@@ -331,11 +334,11 @@ const assetsComponent = (props) => {
   };
 
   /**
- * Prepare the state/UI for creating a new resource
+ * Prepare the state/UI for creating a new external asset
  */
-  const handleNewResource = () => {
-    setResourceDialogKey(resourceDialogKey + 1);
-    setEditingResource(true);
+  const handleNewExternalAsset = () => {
+    setExternalAssetDialogKey(externalAssetDialogKey + 1);
+    setEditingExternalAsset(true);
   };
 
   let assetDisplay = null;
@@ -409,12 +412,12 @@ const assetsComponent = (props) => {
                 <FontAwesomeIcon icon={faFolderMinus} /> &nbsp;Collapse
               </IconButton>
               <IconButton
-                onClick={handleNewResource}
+                onClick={handleNewExternalAsset}
                 className={styles.toolbarButton}
-                aria-label="add a resource"
+                aria-label="add an external asset as a project resource"
                 fontSize="small"
               >
-                <FontAwesomeIcon icon={faFileCirclePlus} /> &nbsp;New Resource
+                <FontAwesomeIcon icon={faFileCirclePlus} /> &nbsp;Add Resource
               </IconButton>
               <IconButton
                 onClick={handleNewAssetGroup}
@@ -462,11 +465,11 @@ const assetsComponent = (props) => {
             name={currentAssetGroup ? currentAssetGroup.name : ''}
             details={currentAssetGroup ? currentAssetGroup.details : ''}
           />
-          <ResourceDialog
-            key={resourceDialogKey}
-            open={editingResource}
-            onClose={handleCloseResourceDialog}
-            onSave={handleSavedResource}
+          <ExternalAssetDialog
+            key={externalAssetDialogKey}
+            open={editingExternalAsset}
+            onClose={handleCloseExternalAssetDialog}
+            onSave={handleSavedExternalAsset}
           />
         </>
       );

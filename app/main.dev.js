@@ -188,6 +188,7 @@ const saveProject = (project) => {
         project.path,
         projectConfig.assetGroups,
       );
+      projectConfig.externalAssets = cloneDeep(project.externalAssets);
       projectService.saveProjectFile(project.path, projectConfig);
 
       // Reload the project configuration.  Depending on what's changed, we may need to re-load it
@@ -262,6 +263,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
           project.path,
           metadata.assetGroups,
         );
+        fullProject.externalAssets = metadata.externalAssets;
         fullProject.loadError = false;
       }
       return fullProject;
@@ -543,6 +545,7 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
         project.path,
         projectConfig.assetGroups,
       );
+      response.project.externalAssets = projectConfig.externalAssets;
 
       const saveResponse = saveProject(response.project);
       response.project = saveResponse.project; // Pick up any enrichment from saveProject

@@ -18,6 +18,7 @@ module.exports = {
     FOLDER: 'directory', // 'DIRECTORY' is the preferred name, but we know we'll use this sometimes
     FILE: 'file',
     GENERIC: 'generic',
+    URL: 'url',
 
     // These are not a real asset types, but are used in our various controls
     ASSET_GROUP: 'asset-group',
@@ -57,6 +58,10 @@ module.exports = {
     ASSET_GROUP_DELETED: 'Asset Group Deleted',
 
     VERSION_CONTROL_COMMIT: 'Version Control Commit',
+
+    EXTERNAL_ASSET_ADDED: 'External Asset Added',
+    EXTERNAL_ASSET_UPDATED: 'External Asset Updated',
+    EXTERNAL_ASSET_DELETED: 'External Asset Deleted',
   },
 
   EntityType: {

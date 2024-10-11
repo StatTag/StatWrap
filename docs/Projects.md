@@ -51,6 +51,7 @@ For each project, within the root of the project container, there will be a file
 | `notes`         | Array   | An array of [Note](Notes.md) Objects                                                                                                                                                                                                                                                    |
 | `people`        | Array   | An array of Person Objects                                                                                                                                                                                                                                                              |
 | `assetGroups`   | Array   | An array of [Asset Group](Assets.md) objects                                                                                                                                                                                                                                            |
+| `externalAssets`   | Array   | An array of [Asset](Assets.md) objects that live outside of the project root directory.                                                                                                                                                                                                                             |
 
 ### Loading and Discovery Lifecycle
 

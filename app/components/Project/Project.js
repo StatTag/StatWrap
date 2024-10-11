@@ -596,6 +596,81 @@ class Project extends Component<Props> {
     }
   };
 
+  externalAssetDeletedHandler = asset => {
+    const currentProject = { ...this.props.project };
+
+    const action = {
+      type: ActionType.EXTERNAL_ASSET_DELETED,
+      title: ActionType.EXTERNAL_ASSET_DELETED,
+      description: 'Deleted external asset',
+      details: asset
+    };
+
+    ProjectUtil.removeExternalAsset(currentProject, asset);
+    if (this.props.onUpdated) {
+      this.props.onUpdated(
+        currentProject,
+        action.type,
+        EntityType.PROJECT,
+        currentProject.id,
+        action.title,
+        action.description,
+        action.details
+      );
+    }
+  };
+
+  externalAssetAddedHandler = asset => {
+    const user = this.context;
+    const currentProject = { ...this.props.project };
+
+    const action = {
+      type: ActionType.EXTERNAL_ASSET_ADDED,
+      title: ActionType.EXTERNAL_ASSET_ADDED,
+      description: `${user} created external asset ${asset.name} at ${asset.uri}`,
+      details: asset
+    };
+
+    ProjectUtil.upsertExternalAsset(currentProject, asset);
+    if (this.props.onUpdated) {
+      this.props.onUpdated(
+        currentProject,
+        action.type,
+        EntityType.PROJECT,
+        currentProject.id,
+        action.title,
+        action.description,
+        action.details
+      );
+    }
+  };
+
+  externalAssetUpdatedHandler = asset => {
+    const user = this.context;
+    const currentProject = { ...this.props.project };
+
+    const oldExternalAsset = cloneDeep(this.props.project.externalAssets.find(x => x.uri === asset.uri));
+    const action = {
+      type: ActionType.EXTERNAL_ASSET_UPDATED,
+      title: ActionType.EXTERNAL_ASSET_UPDATED,
+      description: `${user} updated external asset ${asset.name} ${asset.uri}`,
+      details: { old: oldExternalAsset, new: asset }
+    };
+
+    ProjectUtil.upsertExternalAsset(currentProject, asset);
+    if (this.props.onUpdated) {
+      this.props.onUpdated(
+        currentProject,
+        action.type,
+        EntityType.PROJECT,
+        currentProject.id,
+        action.title,
+        action.description,
+        action.details
+      );
+    }
+  };
+
   clickUpdatesLinkHandler = () => {
     this.setState({ selectedTab: 'projectLog', showLogUpdatesOnly: true });
   };
@@ -628,6 +703,9 @@ class Project extends Component<Props> {
           onAddedAssetGroup={this.assetGroupAddedHandler}
           onUpdatedAssetGroup={this.assetGroupUpdatedHandler}
           onDeletedAssetGroup={this.assetGroupDeletedHandler}
+          onAddedExternalAsset={this.externalAssetAddedHandler}
+          onUpdatedExternalAsset={this.externalAssetUpdatedHandler}
+          onDeletedExternalAsset={this.externalAssetDeletedHandler}
           assetAttributes={this.props.configuration.assetAttributes}
           dynamicDetails={this.props.assetDynamicDetails}
         />

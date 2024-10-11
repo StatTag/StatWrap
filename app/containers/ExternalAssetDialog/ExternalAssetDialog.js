@@ -5,25 +5,24 @@ import { Dialog, DialogActions, DialogTitle, Button, Paper } from '@mui/material
 import Error from '../../components/Error/Error';
 import GeneralUtil from '../../utils/general';
 import UserContext from '../../contexts/User';
-import styles from './ResourceDialog.css';
+import styles from './ExternalAssetDialog.css';
 
 function PaperComponent(props) {
   return (
-    <Draggable handle="#resource-dialog-title" cancel={'[class*="MuiDialogContent-root"]'}>
+    <Draggable handle="#external-asset-dialog-title" cancel={'[class*="MuiDialogContent-root"]'}>
       <Paper {...props} />
     </Draggable>
   );
 }
 
-class ResourceDialog extends Component {
+class ExternalAssetDialog extends Component {
   constructor(props) {
     super(props);
     this.state = {
       errorMessage: null,
-      id: props.id ? props.id : null,
+      uri: props.uri ? props.uri : null,
       name: props.name ? props.name : '',
       details: props.details ? props.details : '',
-      path: props.path ? props.path : '',
       validPath: true
     };
 
@@ -33,15 +32,19 @@ class ResourceDialog extends Component {
   }
 
   handleSave() {
-    const group = {
-      id: this.state.id,
+    const asset = {
+      uri: this.state.uri,
       name: this.state.name,
       details: this.state.details,
-      path: this.state.path,
     };
 
+    if (asset.name.trim() === '' || asset.uri.trim() === '') {
+      this.setState({errorMessage: 'You must enter a resource name and URL'});
+      return;
+    }
+
     if (this.props.onSave) {
-      this.props.onSave(group);
+      this.props.onSave(asset);
     }
   }
 
@@ -70,44 +73,44 @@ class ResourceDialog extends Component {
       pathError = <div className={styles.pathError}>Please check that your URL is valid</div>
     }
 
-    let dialogAction = (this.state.id === null) ? 'Add' : 'Edit';
+    let dialogAction = (this.state.uri === null) ? 'Add' : 'Edit';
 
     return (
       <Dialog
         onClose={this.props.onClose}
-        aria-labelledby="resource-dialog-title"
+        aria-labelledby="external-asset-dialog-title"
         PaperComponent={PaperComponent}
         open={this.props.open}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle classes={{ root: styles.title }} id="resource-dialog-title">
-          {dialogAction} Project Resource
+        <DialogTitle classes={{ root: styles.title }} id="external-asset-dialog-title">
+          {dialogAction} External Resource
         </DialogTitle>
         <form onSubmit={this.onSubmit}>
           <div className={styles.formBody}>
             <div className={styles.formRow}>
-              <label className={styles.label}>Name:</label>
+              <label className={styles.label}>*Name:</label>
               <input
                 autoFocus
                 type="text"
                 id={styles.name}
                 className={styles.input}
                 name="name"
-                placeholder="My Resource"
+                placeholder="My external resource"
                 value={this.state.name}
                 onChange={this.handleInputChange}
               />
             </div>
             <div className={styles.formRow}>
-              <label className={styles.label}>URL:</label>
+              <label className={styles.label}>*URL:</label>
               <input
                 type="text"
                 id={styles.path}
                 className={styles.input}
-                name="path"
+                name="uri"
                 placeholder="https://statwrap.org"
-                value={this.state.url}
+                value={this.state.uri}
                 onChange={this.handleInputChange}
                 onBlur={this.handleValidatePath}
               />
@@ -120,7 +123,7 @@ class ResourceDialog extends Component {
                 name="details"
                 rows="4"
                 value={this.state.details}
-                placeholder="About my resource..."
+                placeholder="About my external resource (optional)..."
                 onChange={this.handleInputChange}
               />
             </div>
@@ -140,26 +143,24 @@ class ResourceDialog extends Component {
   }
 }
 
-ResourceDialog.propTypes = {
-  id: PropTypes.string,
+ExternalAssetDialog.propTypes = {
+  uri: PropTypes.string,
   name: PropTypes.string,
   details: PropTypes.string,
-  path: PropTypes.string,
   onClose: PropTypes.func.isRequired,
   open: PropTypes.bool,
   // Triggered on a successful save
   onSave: PropTypes.func,
 };
 
-ResourceDialog.defaultProps = {
-  id: null,
+ExternalAssetDialog.defaultProps = {
+  uri: null,
   name: null,
   details: null,
-  path: null,
   open: false,
   onSave: null,
 };
 
-ResourceDialog.contextType = UserContext;
+ExternalAssetDialog.contextType = UserContext;
 
-export default ResourceDialog;
+export default ExternalAssetDialog;
