@@ -34,6 +34,11 @@ module.exports = {
   LOAD_PROJECT_LOG_REQUEST: 'statwrap-load-project-log-request',
   LOAD_PROJECT_LOG_RESPONSE: 'statwrap-load-project-log-response',
 
+  WRITE_PROJECT_CHECKLIST_REQUEST: 'statwrap-write-project-checklist-request',
+  WRITE_PROJECT_CHECKLIST_RESPONSE: 'statwrap-write-project-checklist-response',
+  LOAD_PROJECT_CHECKLIST_REQUEST: 'statwrap-load-project-checklist-request',
+  LOAD_PROJECT_CHECKLIST_RESPONSE: 'statwrap-load-project-checklist-response',
+
   // LOAD_PROJECT_CHANGES_REQUEST: 'statwrap-load-project-changes-request',
   // LOAD_PROJECT_CHANGES_RESPONSE: 'statwrap-load-project-changes-response',
 

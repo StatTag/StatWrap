@@ -149,8 +149,8 @@ function convertImageToBase64(filePath) {
 
 
 function ReproChecklist(props) {
-  const { project, reproChecklist, onUpdatedNote, onDeletedNote, onAddedNote, onSelectedAsset} = props;
-  const [checklistItems, setChecklistItems] = useState(reproducibilityChecklist);
+  const { project, checklist, error, onUpdatedNote, onDeletedNote, onAddedNote, onSelectedAsset} = props;
+  const [checklistItems, setChecklistItems] = useState(checklist);
   const [allImages, setAllImages] = useState([]);
   const [openExportDialog, setOpenExportDialog] = useState(false);
 
@@ -460,57 +460,16 @@ function ReproChecklist(props) {
 
 ReproChecklist.propTypes = {
   project: PropTypes.object.isRequired,
-  reproChecklist: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      statement: PropTypes.string.isRequired,
-      answer: PropTypes.bool.isRequired,
-      scanResult: PropTypes.objectOf(
-        PropTypes.arrayOf(PropTypes.string)
-      ),
-      userNotes: PropTypes.arrayOf(
-        PropTypes.shape({
-          id: PropTypes.string.isRequired,
-          author: PropTypes.string.isRequired,
-          updated: PropTypes.string.isRequired,
-          content: PropTypes.string.isRequired,
-        })
-      ),
-      attachedImages: PropTypes.arrayOf(
-        PropTypes.shape({
-          id: PropTypes.string.isRequired,
-          uri: PropTypes.string.isRequired,
-          title: PropTypes.string.isRequired,
-          description: PropTypes.string.isRequired,
-          updated: PropTypes.string.isRequired,
-        })
-      ),
-      attachedURLs: PropTypes.arrayOf(
-        PropTypes.shape({
-          id: PropTypes.string.isRequired,
-          hyperlink: PropTypes.string.isRequired,
-          title: PropTypes.string.isRequired,
-          description: PropTypes.string.isRequired,
-          updated: PropTypes.string.isRequired,
-        })
-      ),
-      subChecklist: PropTypes.arrayOf(
-        PropTypes.shape({
-          id: PropTypes.string.isRequired,
-          statement: PropTypes.string.isRequired,
-          answer: PropTypes.bool.isRequired,
-        })
-      ),
-    })
-  ).isRequired,
-  imageAssets: PropTypes.arrayOf(PropTypes.string),
+  checklist: PropTypes.arrayOf(PropTypes.object),
+  error: PropTypes.string,
   onUpdatedNote: PropTypes.func.isRequired,
   onDeletedNote: PropTypes.func.isRequired,
   onAddedNote: PropTypes.func.isRequired,
+  onSelectedAsset: PropTypes.func.isRequired,
 };
 
 ReproChecklist.defaultProps = {
-  reproChecklist: reproducibilityChecklist,
+  checklist: reproducibilityChecklist,
 };
 
 export default ReproChecklist;

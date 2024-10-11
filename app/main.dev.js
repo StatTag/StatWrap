@@ -34,6 +34,7 @@ import AssetsConfig from './constants/assets-config';
 import AssetUtil from './utils/asset';
 import ProjectUtil from './utils/project';
 import LogService from './services/log';
+import ChecklistService from './services/checklist';
 
 // Initialize @electron/remote
 initialize();
@@ -53,6 +54,7 @@ const projectService = new ProjectService();
 const projectListService = new ProjectListService();
 const sourceControlService = new SourceControlService();
 const logService = new LogService();
+const checklistService = new ChecklistService();
 
 // The LogWatcherService requires a window from which we can send messages, so we can't
 // construct it until the BrowserWindow is created.
@@ -660,6 +662,43 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
         );
         event.sender.send(Messages.LOAD_PROJECT_LOG_RESPONSE, response);
       }
+    })();
+  });
+});
+
+ipcMain.on(
+  Messages.WRITE_PROJECT_CHECKLIST_REQUEST,
+  async (event, projectPath, checklist) => {
+    checklistService.writeChecklist(projectPath, checklist);
+    event.sender.send(Messages.WRITE_PROJECT_CHECKLIST_RESPONSE);
+  },
+);
+
+ipcMain.on(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, async (event, project) => {
+  const response = {
+    projectId: project ? project.id : null,
+    checklist: null,
+    error: false,
+    errorMessage: '',
+  };
+  if (!project) {
+    response.error = true;
+    response.errorMessage = 'No project was selected';
+    event.sender.send(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, response);
+    return;
+  }
+
+  checklistService.loadChecklists(project.path, (error, checklist) =>{
+    if (error || !checklist) {
+      response.error = true;
+      response.errorMessage = `There was an error reading the project checklist ${error}`;
+      event.sender.send(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, response);
+      return;
+    }
+
+    (async () => {
+      response.checklist = checklist;
+      event.sender.send(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, response);
     })();
   });
 });

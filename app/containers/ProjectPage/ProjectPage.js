@@ -37,6 +37,8 @@ class ProjectPage extends Component {
       // The logs (aka Project Log) for the selected project
       selectedProjectLogs: null,
 
+      selectedProjectChecklist: null,
+
       // UI element to inform us what the popup project list menu is attached to
       projectListMenuAnchor: null,
 
@@ -66,6 +68,7 @@ class ProjectPage extends Component {
     this.handleUpdateProjectResponse = this.handleUpdateProjectResponse.bind(this);
     this.handleLoadProjectLogResponse = this.handleLoadProjectLogResponse.bind(this);
     this.handleRefreshProjectLog = this.handleRefreshProjectLog.bind(this);
+    this.handleLoadProjectChecklistResponse =this.handleLoadProjectChecklistResponse.bind(this);
     this.handleScanAssetDynamicDetailsResponse =
       this.handleScanAssetDynamicDetailsResponse.bind(this);
     this.handleAssetSelected = this.handleAssetSelected.bind(this);
@@ -87,6 +90,9 @@ class ProjectPage extends Component {
 
     ipcRenderer.on(Messages.LOAD_PROJECT_LOG_RESPONSE, this.handleLoadProjectLogResponse);
     ipcRenderer.on(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
+
+    ipcRenderer.on(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, this.handleLoadProjectChecklistResponse);
+    ipcRenderer.on(Messages.WRITE_PROJECT_CHECKLIST_RESPONSE, this.handleRefreshProjectLog);
 
     ipcRenderer.on(
       Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE,
@@ -123,6 +129,8 @@ class ProjectPage extends Component {
       this.handleLoadProjectLogResponse,
     );
     ipcRenderer.removeListener(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
+    ipcRenderer.removeListener(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, this.handleLoadProjectChecklistResponse);
+    ipcRenderer.removeListener(Messages.WRITE_PROJECT_CHECKLIST_RESPONSE, this.handleRefreshProjectLog);
     ipcRenderer.removeListener(
       Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE,
       this.handleScanAssetDynamicDetailsResponse,
@@ -160,6 +168,7 @@ class ProjectPage extends Component {
 
   handleRefreshProjectLog() {
     ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, this.state.selectedProject);
+    ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, this.state.selectedProject);
   }
 
   /**
@@ -191,6 +200,17 @@ class ProjectPage extends Component {
     }
   }
 
+  handleLoadProjectChecklistResponse(sender, response) {
+    if (!response || !response.projectId) {
+      return;
+    }
+
+    if (this.state.selectedProject && response.projectId === this.state.selectedProject.id) {
+      console.log('ProjectPage.handleLoadProjectChecklistResponse: ', response);
+      this.setState({ selectedProjectChecklist: response });
+    }
+  }
+
   refreshProjectsHandler() {
     this.setState({ loaded: false });
     ipcRenderer.send(Messages.LOAD_PROJECT_LIST_REQUEST);
@@ -203,6 +223,7 @@ class ProjectPage extends Component {
       const foundProject = this.state.projects.find((project) => project.id === response.projectId);
       if (foundProject) {
         ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, foundProject);
+        ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, foundProject);
       }
     }
   }
@@ -278,6 +299,7 @@ class ProjectPage extends Component {
     this.setState({ selectedProject: project });
     ipcRenderer.send(Messages.SCAN_PROJECT_REQUEST, project);
     ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, project);
+    ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, project);
   }
 
   handleProjectUpdate(project, actionType, entityType, entityKey, title, description, details) {
@@ -350,6 +372,7 @@ class ProjectPage extends Component {
           <Project
             project={this.state.selectedProject}
             logs={this.state.selectedProjectLogs}
+            checklist={this.state.selectedProjectChecklist}
             onUpdated={this.handleProjectUpdate}
             onAssetSelected={this.handleAssetSelected}
             configuration={{ assetAttributes: this.state.assetAttributes }}

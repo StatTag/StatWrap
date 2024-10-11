@@ -36,6 +36,7 @@ module.exports = {
   StatWrapFiles: {
     BASE_FOLDER: '.statwrap',
     LOG: '.statwrap.log',
+    CHECKLIST: '.statwrap.checklist',
   },
 
   ActionType: {
@@ -64,6 +65,7 @@ module.exports = {
     PROJECT: 'project',
     PERSON: 'person',
     ASSET: 'asset',
+    CHECKLIST: 'checklist',
   },
 
   DescriptionContentType: {

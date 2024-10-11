@@ -682,13 +682,18 @@ class Project extends Component<Props> {
           />
         ) : null;
 
-      const checklist = <ReproChecklist
-        project={this.props.project}
-        onAddedNote={this.projectUpsertNoteHandler}
-        onUpdatedNote={this.projectUpsertNoteHandler}
-        onDeletedNote={this.projectDeleteNoteHandler}
-        onSelectedAsset={this.assetSelectedHandler}
-      />
+      const checklist =
+        this.props.project && this.props.checklist ? (
+          <ReproChecklist
+            project={this.props.project}
+            checklist={this.props.checklist.checklist}
+            error={this.props.checklist.errorMessage}
+            onAddedNote={this.projectUpsertNoteHandler}
+            onUpdatedNote={this.projectUpsertNoteHandler}
+            onDeletedNote={this.projectDeleteNoteHandler}
+            onSelectedAsset={this.assetSelectedHandler}
+          />
+        ) : null;
 
       content = (
         <TabContext value={this.state.selectedTab}>
@@ -770,6 +775,7 @@ Project.propTypes = {
   // This object has the following structure:
   // {
   // }
+  checklist: PropTypes.object,
   configuration: PropTypes.object,
   assetDynamicDetails: PropTypes.object
 };
@@ -780,6 +786,7 @@ Project.defaultProps = {
   onUpdated: null,
   onAssetSelected: null,
   logs: null,
+  checklist: null,
   configuration: null,
   assetDynamicDetails: null
 };
