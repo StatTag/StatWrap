@@ -1,6 +1,7 @@
 import Constants from '../constants/constants';
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 export default class ChecklistService {
@@ -10,12 +11,12 @@ export default class ChecklistService {
     }
 
     const checklistFilePath = path.join(
-      projectPath,
+      projectPath.replace('~', os.homedir()),
       Constants.StatWrapFiles.BASE_FOLDER,
       Constants.StatWrapFiles.CHECKLIST,
     );
 
-    fs.writeFileSync(checklistFilePath, JSON.stringify(checklist, null, 2), 'utf-8');
+    fs.writeFileSync(checklistFilePath, JSON.stringify(checklist));
   }
 
   loadChecklists(projectPath, callback) {
@@ -25,7 +26,7 @@ export default class ChecklistService {
     }
 
     const checklistFilePath = path.join(
-      projectPath,
+      projectPath.replace('~', os.homedir()),
       Constants.StatWrapFiles.BASE_FOLDER,
       Constants.StatWrapFiles.CHECKLIST,
     );
@@ -36,7 +37,7 @@ export default class ChecklistService {
     }
 
     try {
-      const data = fs.readFileSync(checklistFilePath, 'utf-8');
+      const data = fs.readFileSync(checklistFilePath);
       const checklists = JSON.parse(data);
       callback(null, checklists);
     } catch (err) {

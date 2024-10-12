@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import styles from './ReproChecklist.css';
 import ChecklistItem from './ChecklistItem';
+import Error from '../Error/Error';
 import Constants from '../../constants/constants';
 import { Typography, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { SaveAlt } from '@mui/icons-material';
@@ -146,7 +147,7 @@ function ReproChecklist(props) {
   const [openExportDialog, setOpenExportDialog] = useState(false);
 
   useEffect(() => {
-    if (project) {
+    if (project && checklist && !error) {
       if(project.assets) {
         findAssetLanguagesAndDependencies(project.assets);
       }
@@ -396,7 +397,10 @@ function ReproChecklist(props) {
     setOpenExportDialog(false);
   };
 
-  return (
+  let content = <div className={styles.empty}>No checklists configured.</div>;
+
+  if (checklist) {
+    content =
     <div>
       <Typography variant='h5' align='center' marginTop='10px'>Reproducibility Checklist</Typography>
       <br />
@@ -441,9 +445,12 @@ function ReproChecklist(props) {
           </Button>
         </DialogActions>
       </Dialog>
-
     </div>
-  );
+  } else if (error) {
+    content = <Error>There was an error loading the project checklist: {error}</Error>;
+  }
+
+  return <div>{content}</div>;
 }
 
 ReproChecklist.propTypes = {

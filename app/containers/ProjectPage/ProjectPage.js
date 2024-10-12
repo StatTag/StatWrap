@@ -206,7 +206,6 @@ class ProjectPage extends Component {
     }
 
     if (this.state.selectedProject && response.projectId === this.state.selectedProject.id) {
-      console.log('ProjectPage.handleLoadProjectChecklistResponse: ', response);
       this.setState({ selectedProjectChecklist: response });
     }
   }
