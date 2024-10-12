@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import styles from './ReproChecklist.css';
-import ChecklistItem from './ChecklistItem';
+import ChecklistItem from './ChecklistItem/ChecklistItem';
 import Error from '../Error/Error';
 import Constants from '../../constants/constants';
 import { Typography, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';

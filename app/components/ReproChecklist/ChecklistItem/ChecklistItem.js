@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styles from './ChecklistItem.css';
-import NoteEditor from '../NoteEditor/NoteEditor';
+import NoteEditor from '../../NoteEditor/NoteEditor';
 import { AddBox, ContentCopy , Done, Delete} from '@mui/icons-material';
 import { IconButton, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { FaFolderOpen, FaFolderMinus, FaChevronUp, FaChevronDown } from 'react-icons/fa';
-import AssetTree from '../AssetTree/AssetTree';
-import AssetUtil from '../../utils/asset';
-import Constants from '../../constants/constants';
+import AssetTree from '../../AssetTree/AssetTree';
+import AssetUtil from '../../../utils/asset';
+import Constants from '../../../constants/constants';
 
 const { v4: uuidv4 } = require('uuid');
 
