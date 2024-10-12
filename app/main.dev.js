@@ -688,7 +688,7 @@ ipcMain.on(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, async (event, project) => {
     return;
   }
 
-  checklistService.loadChecklists(project.path, (error, checklist) =>{
+  checklistService.loadChecklist(project.path, (error, checklist) =>{
     if (error || !checklist) {
       response.error = true;
       response.errorMessage = `There was an error reading the project checklist ${error}`;
@@ -696,10 +696,8 @@ ipcMain.on(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, async (event, project) => {
       return;
     }
 
-    (async () => {
-      response.checklist = checklist;
-      event.sender.send(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, response);
-    })();
+    response.checklist = checklist;
+    event.sender.send(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, response);
   });
 });
 

@@ -19,7 +19,7 @@ export default class ChecklistService {
     fs.writeFileSync(checklistFilePath, JSON.stringify(checklist));
   }
 
-  loadChecklists(projectPath, callback) {
+  loadChecklist(projectPath, callback) {
     if (!projectPath) {
       callback('The project path must be specified', null);
       return;

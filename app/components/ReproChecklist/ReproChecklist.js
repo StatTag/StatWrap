@@ -399,12 +399,12 @@ function ReproChecklist(props) {
 
   let content = <div className={styles.empty}>Checklist not configured.</div>;
 
-  if (checklist) {
+  if (checklist && checklistItems) {
     content =
     <div>
       <Typography variant='h5' align='center' marginTop='10px'>Reproducibility Checklist</Typography>
       <br />
-      {checklistItems?.map(item => (
+      {checklistItems.map(item => (
         <ChecklistItem
           key={item.id}
           item={item}

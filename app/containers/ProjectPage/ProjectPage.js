@@ -68,6 +68,7 @@ class ProjectPage extends Component {
     this.handleUpdateProjectResponse = this.handleUpdateProjectResponse.bind(this);
     this.handleLoadProjectLogResponse = this.handleLoadProjectLogResponse.bind(this);
     this.handleRefreshProjectLog = this.handleRefreshProjectLog.bind(this);
+    this.handleRefreshProjectChecklist = this.handleRefreshProjectChecklist.bind(this);
     this.handleLoadProjectChecklistResponse =this.handleLoadProjectChecklistResponse.bind(this);
     this.handleScanAssetDynamicDetailsResponse =
       this.handleScanAssetDynamicDetailsResponse.bind(this);
@@ -92,7 +93,7 @@ class ProjectPage extends Component {
     ipcRenderer.on(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
 
     ipcRenderer.on(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, this.handleLoadProjectChecklistResponse);
-    ipcRenderer.on(Messages.WRITE_PROJECT_CHECKLIST_RESPONSE, this.handleRefreshProjectLog);
+    ipcRenderer.on(Messages.WRITE_PROJECT_CHECKLIST_RESPONSE, this.handleRefreshProjectChecklist);
 
     ipcRenderer.on(
       Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE,
@@ -130,7 +131,7 @@ class ProjectPage extends Component {
     );
     ipcRenderer.removeListener(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
     ipcRenderer.removeListener(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, this.handleLoadProjectChecklistResponse);
-    ipcRenderer.removeListener(Messages.WRITE_PROJECT_CHECKLIST_RESPONSE, this.handleRefreshProjectLog);
+    ipcRenderer.removeListener(Messages.WRITE_PROJECT_CHECKLIST_RESPONSE, this.handleRefreshProjectChecklist);
     ipcRenderer.removeListener(
       Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE,
       this.handleScanAssetDynamicDetailsResponse,
@@ -168,6 +169,9 @@ class ProjectPage extends Component {
 
   handleRefreshProjectLog() {
     ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, this.state.selectedProject);
+  }
+
+  handleRefreshProjectChecklist() {
     ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, this.state.selectedProject);
   }
 
