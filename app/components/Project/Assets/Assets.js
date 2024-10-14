@@ -3,6 +3,7 @@ import { IconButton } from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusSquare, faSave, faBan, faFolderOpen, faFolderMinus, faFileCirclePlus } from '@fortawesome/free-solid-svg-icons';
 import { cloneDeep } from 'lodash';
+import Constants from '../../../constants/constants';
 import AssetGroupDialog from '../../../containers/AssetGroupDialog/AssetGroupDialog';
 import ExternalAssetDialog from '../../../containers/ExternalAssetDialog/ExternalAssetDialog';
 import Error from '../../Error/Error';
@@ -82,6 +83,7 @@ const assetsComponent = (props) => {
   } = props;
   const [selectedAsset, setSelectedAsset] = useState();
   const treeRef = React.useRef(null);
+  const externalTreeRef = React.useRef(null);
   const [mode, setMode] = useState('default'); // 'default', 'paperclip'
   // This key is part of a trick to get React to throw out and recreate the Asset Group
   // dialog when we have disposed of it - either by creating a project or cancelling.  This
@@ -100,12 +102,16 @@ const assetsComponent = (props) => {
   // Object that represents the currently selected asset group - either to be displayed, or
   // the one currently being edited.
   const [currentAssetGroup, setCurrentAssetGroup] = useState(null);
+  // Object that represents the currently selected external asset.  Used for managing the
+  // state of the editing dialog.
+  const [currentExternalAsset, setCurrentExternalAsset] = useState(null);
   // If the asset list filter is enabled or disabled
   const [filterEnabled, setFilterEnabled] = useState(true);
   // The actual contents of the filter (no filter by default)
   const [filter, setFilter] = useState([]);
   const filteredProjectAssets = filterProjectAssets(project, null);
   const [assets, setAssets] = useState(filteredProjectAssets);
+  const [externalAssets, setExternalAssets] = useState(project && project.externalAssets ? project.externalAssets : []);
 
   const projectService = new ProjectService();
 
@@ -176,8 +182,8 @@ const assetsComponent = (props) => {
     setEditingGroup(false);
   };
 
-  const handleSavedExternalAsset = (asset) => {
-    if (asset.id === null || asset.id === undefined) {
+  const handleSavedExternalAsset = (asset, isNew) => {
+    if (isNew) {
       if (onAddedExternalAsset) {
         onAddedExternalAsset(asset);
       }
@@ -303,6 +309,12 @@ const assetsComponent = (props) => {
     }
   };
 
+  const handleEditExternalAsset = (asset) => {
+    console.log(asset);
+    setCurrentExternalAsset(cloneDeep(asset));
+    setEditingExternalAsset(true);
+  };
+
   const handlSelectAsset = (selAsset) => {
     let asset = selAsset;
     // When we are showing an asset group, the actual asset objects aren't the complete picture.
@@ -310,7 +322,10 @@ const assetsComponent = (props) => {
     // information.  The key thing we have right now is if it's missing the 'contentTypes' attribute.
     if (asset && (asset.contentTypes === null || asset.contentTypes === undefined)) {
       if (project && project.assets) {
-        asset = AssetUtil.findDescendantAssetByUri(project.assets, asset.uri);
+        const foundAsset = AssetUtil.findDescendantAssetByUri(project.assets, asset.uri);
+        if (foundAsset !== null) {
+          asset = foundAsset;
+        }
       }
     }
 
@@ -327,8 +342,6 @@ const assetsComponent = (props) => {
     setAssets(filterProjectAssets(project, filter));
     setCurrentAssetGroup(null);
     setGroupedAssets(null);
-    console.log(treeRef);
-    console.log(treeRef.current);
     treeRef.current.setPreCheckedNodes([]);
     setMode('paperclip');
   };
@@ -354,6 +367,8 @@ const assetsComponent = (props) => {
         assetAttributes={assetAttributes}
         sourceControlEnabled={project.sourceControlEnabled}
         dynamicDetails={dynamicDetails}
+        onEdit={handleEditExternalAsset}
+        onRemove={onDeletedExternalAsset}
       />
     ) : null;
     if (assets) {
@@ -377,6 +392,15 @@ const assetsComponent = (props) => {
             </IconButton>
           </div>
         );
+      }
+
+      let displayExternalAssets = {};
+      if (externalAssets) {
+        displayExternalAssets = {
+          uri: 'External Resources',
+          type: Constants.AssetType.FOLDER,
+          children: externalAssets
+        };
       }
 
       // Note that for the AssetFilter component, we always want that to be the original
@@ -446,6 +470,13 @@ const assetsComponent = (props) => {
               onSelectAsset={handlSelectAsset}
               selectedAsset={selectedAsset}
             />
+            <AssetTree
+              assets={displayExternalAssets}
+              ref={externalTreeRef}
+              onSelectAsset={handlSelectAsset}
+              selectedAsset={selectedAsset}
+              rootSelectable={false}
+            />
           </div>
           <div className={styles.details}>
             <ProjectEntryPoint
@@ -470,6 +501,8 @@ const assetsComponent = (props) => {
             open={editingExternalAsset}
             onClose={handleCloseExternalAssetDialog}
             onSave={handleSavedExternalAsset}
+            uri={currentExternalAsset ? currentExternalAsset.uri : ''}
+            name={currentExternalAsset ? currentExternalAsset.name : ''}
           />
         </>
       );

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import Draggable from 'react-draggable';
 import { Dialog, DialogActions, DialogTitle, Button, Paper } from '@mui/material';
 import Error from '../../components/Error/Error';
+import Constants from '../../constants/constants';
 import GeneralUtil from '../../utils/general';
 import UserContext from '../../contexts/User';
 import styles from './ExternalAssetDialog.css';
@@ -22,7 +23,8 @@ class ExternalAssetDialog extends Component {
       errorMessage: null,
       uri: props.uri ? props.uri : null,
       name: props.name ? props.name : '',
-      details: props.details ? props.details : '',
+      type: Constants.AssetType.URL,  // For now, always URL
+      isNew: props.isNew ? props.isNew : true,
       validPath: true
     };
 
@@ -35,7 +37,7 @@ class ExternalAssetDialog extends Component {
     const asset = {
       uri: this.state.uri,
       name: this.state.name,
-      details: this.state.details,
+      type: this.state.type
     };
 
     if (asset.name.trim() === '' || asset.uri.trim() === '') {
@@ -44,7 +46,7 @@ class ExternalAssetDialog extends Component {
     }
 
     if (this.props.onSave) {
-      this.props.onSave(asset);
+      this.props.onSave(asset, this.state.isNew);
     }
   }
 
@@ -73,7 +75,7 @@ class ExternalAssetDialog extends Component {
       pathError = <div className={styles.pathError}>Please check that your URL is valid</div>
     }
 
-    let dialogAction = (this.state.uri === null) ? 'Add' : 'Edit';
+    let dialogAction = this.state.isNew ? 'Add' : 'Edit';
 
     return (
       <Dialog
@@ -116,17 +118,6 @@ class ExternalAssetDialog extends Component {
               />
               {pathError}
             </div>
-            <div className={styles.formRow}>
-              <label className={styles.label}>Details:</label>
-              <textarea
-                id={styles.details}
-                name="details"
-                rows="4"
-                value={this.state.details}
-                placeholder="About my external resource (optional)..."
-                onChange={this.handleInputChange}
-              />
-            </div>
           </div>
         </form>
         {error}
@@ -145,8 +136,9 @@ class ExternalAssetDialog extends Component {
 
 ExternalAssetDialog.propTypes = {
   uri: PropTypes.string,
+  type: PropTypes.string,
   name: PropTypes.string,
-  details: PropTypes.string,
+  isNew: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
   open: PropTypes.bool,
   // Triggered on a successful save
@@ -155,8 +147,9 @@ ExternalAssetDialog.propTypes = {
 
 ExternalAssetDialog.defaultProps = {
   uri: null,
+  type: Constants.AssetType.URL,
   name: null,
-  details: null,
+  isNew: true,
   open: false,
   onSave: null,
 };

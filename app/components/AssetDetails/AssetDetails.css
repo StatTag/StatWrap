@@ -25,3 +25,18 @@
 .details {
   padding: 5px;
 }
+
+.action {
+  padding: 0;
+  padding-right: 15px;
+  font-size: 0.8rem;
+}
+
+.action>svg {
+  padding-right: 3px;
+}
+
+.actions {
+  font-size: 0.8rem;
+  padding-bottom: 10px;
+}

@@ -7,6 +7,7 @@ import {
   FaChevronRight,
   FaPaperclip,
   FaFilter,
+  FaGlobe
 } from 'react-icons/fa';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
@@ -104,6 +105,7 @@ function AssetNode(props) {
           {node.type === Constants.AssetType.DIRECTORY && !isOpen && <FaFolder />}
           {node.type === Constants.AssetType.ASSET_GROUP && <FaPaperclip />}
           {node.type === Constants.AssetType.FILTER && <FaFilter />}
+          {node.type === Constants.AssetType.URL && <FaGlobe />}
         </NodeIcon>
 
         <span role="button">{AssetUtil.getAssetNameFromUri(node)}</span>

@@ -1114,6 +1114,56 @@ describe('services', () => {
         expect(updatedProject.people.length).toBe(0);
       });
 
+      it('adds an external asset to a project', () => {
+        const service = new ProjectService();
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ externalAssets: [] });
+        const updatedProject = service.loadAndMergeProjectUpdates(
+          TEST_PROJECT_PATH,
+          Constants.ActionType.EXTERNAL_ASSET_ADDED,
+          Constants.EntityType.PROJECT,
+          '1',
+          { uri: 'http://test.com', type: 'url' },
+        );
+        expect(updatedProject).not.toBeNull();
+        expect(updatedProject.externalAssets).not.toBeNull();
+        expect(updatedProject.externalAssets[0].uri).toBe('http://test.com');
+        expect(updatedProject.externalAssets[0].type).toBe('url');
+      });
+
+      it('updates an external asset in a project', () => {
+        const service = new ProjectService();
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({
+          externalAssets: [{ uri: 'http://test.com', name: 'old value', type: 'old value' }],
+        });
+        const updatedProject = service.loadAndMergeProjectUpdates(
+          TEST_PROJECT_PATH,
+          Constants.ActionType.EXTERNAL_ASSET_UPDATED,
+          Constants.EntityType.PROJECT,
+          '1',
+          { uri: 'http://test.com', name: 'test asset', type: 'testing' },
+        );
+        expect(updatedProject).not.toBeNull();
+        expect(updatedProject.externalAssets).not.toBeNull();
+        expect(updatedProject.externalAssets[0].uri).toBe('http://test.com');
+        expect(updatedProject.externalAssets[0].name).toBe('test asset');
+        expect(updatedProject.externalAssets[0].type).toBe('testing');
+      });
+
+      it('deletes an external asset from a project', () => {
+        const service = new ProjectService();
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ externalAssets: [{ uri: 'http://test.com' }] });
+        const updatedProject = service.loadAndMergeProjectUpdates(
+          TEST_PROJECT_PATH,
+          Constants.ActionType.EXTERNAL_ASSET_DELETED,
+          Constants.EntityType.PROJECT,
+          '1',
+          { uri: 'http://test.com' },
+        );
+        expect(updatedProject).not.toBeNull();
+        expect(updatedProject.externalAssets).not.toBeNull();
+        expect(updatedProject.externalAssets.length).toBe(0);
+      });
+
       // Skipping unit tests for the ASSET_GROUP_* actions.  These are mostly wrappers to call a ProjectUtil
       // function, so the core pieces should be covered.  When we properly refactor we will add some more
       // tests here though.

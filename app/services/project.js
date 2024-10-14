@@ -484,9 +484,9 @@ export default class ProjectService {
       case Constants.ActionType.ASSET_GROUP_UPDATED:
         if (entityType === EntityType.PROJECT) {
           const oldAssetGroup = cloneDeep(
-            this.props.project.assetGroups.find((x) => x.id === details.id),
+            project.assetGroups.find((x) => x.id === details.id),
           );
-          ProjectUtil.upsertAssetGroup(project, oldAssetGroup);
+          ProjectUtil.upsertAssetGroup(project, details);
         } else {
           return null;
         }
@@ -498,6 +498,30 @@ export default class ProjectService {
           return null;
         }
         break;
+      case Constants.ActionType.EXTERNAL_ASSET_ADDED:
+          if (entityType === EntityType.PROJECT) {
+            ProjectUtil.upsertExternalAsset(project, details);
+          } else {
+            return null;
+          }
+          break;
+        case Constants.ActionType.EXTERNAL_ASSET_UPDATED:
+          if (entityType === EntityType.PROJECT) {
+            const oldAsset = cloneDeep(
+              project.externalAssets.find((x) => x.uri === details.uri),
+            );
+            ProjectUtil.upsertExternalAsset(project, details);
+          } else {
+            return null;
+          }
+          break;
+        case Constants.ActionType.EXTERNAL_ASSET_DELETED:
+          if (entityType === EntityType.PROJECT) {
+            ProjectUtil.removeExternalAsset(project, details);
+          } else {
+            return null;
+          }
+          break;
       default:
         return null;
     }

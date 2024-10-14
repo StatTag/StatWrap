@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { withStyles } from '@mui/styles';
+import { FaTrash, FaEdit } from 'react-icons/fa';
+import { IconButton } from '@mui/material';
+import Constants from '../../constants/constants';
 import Accordion from '@mui/material/Accordion';
 import MuiAccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -32,6 +35,8 @@ const AccordionSummary = withStyles({
 const assetDetails = (props) => {
   const {
     asset,
+    onEdit,
+    onRemove,
     onAddedNote,
     onUpdatedNote,
     onDeletedNote,
@@ -80,8 +85,22 @@ const assetDetails = (props) => {
     }
   };
 
+  const deleteHandler = () => {
+    if (onRemove) {
+      onRemove(asset);
+    }
+  }
+
+  const editHandler = () => {
+    if (onEdit) {
+      onEdit(asset);
+    }
+  }
+
+  const isExternalAsset = (asset && asset.type === Constants.AssetType.URL);
+
   let sourceControlAccordion = null;
-  if (sourceControlEnabled) {
+  if (!isExternalAsset && sourceControlEnabled) {
     let dynamicDetailsContainer = <Loading>Please wait while file history loads...</Loading>;
     if (dynamicDetails) {
       dynamicDetailsContainer = <SourceControlHistory history={dynamicDetails.sourceControl} />;
@@ -101,9 +120,47 @@ const assetDetails = (props) => {
     );
   }
 
+  let attributesAccordion = null;
+  if (!isExternalAsset) {
+    attributesAccordion = (
+      <Accordion defaultExpanded>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="attributes-content"
+            id="attributes-header"
+            className={styles.heading}
+          >
+            <Typography className={styles.headingTitle}>Attributes</Typography>
+          </AccordionSummary>
+          <AccordionDetails className={styles.details}>
+            <AssetAttributes
+              asset={asset}
+              configuration={assetAttributes}
+              onUpdateAttribute={updateAssetAttribute}
+            />
+          </AccordionDetails>
+        </Accordion>
+      );
+  }
+
+  let actions = null;
+  if (isExternalAsset) {
+    actions = (
+      <div className={styles.actions}>
+        <IconButton onClick={editHandler} aria-label="edit" className={styles.action}>
+          <FaEdit fontSize="small" /> Edit Resource
+        </IconButton>
+        <IconButton onClick={deleteHandler} aria-label="delete" className={styles.action}>
+          <FaTrash fontSize="small" /> Remove Resource
+        </IconButton>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.title}>{asset.uri}</div>
+      {actions}
       <Accordion expanded={expandNotes}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
@@ -122,23 +179,7 @@ const assetDetails = (props) => {
           />
         </AccordionDetails>
       </Accordion>
-      <Accordion defaultExpanded>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="attributes-content"
-          id="attributes-header"
-          className={styles.heading}
-        >
-          <Typography className={styles.headingTitle}>Attributes</Typography>
-        </AccordionSummary>
-        <AccordionDetails className={styles.details}>
-          <AssetAttributes
-            asset={asset}
-            configuration={assetAttributes}
-            onUpdateAttribute={updateAssetAttribute}
-          />
-        </AccordionDetails>
-      </Accordion>
+      {attributesAccordion}
       {sourceControlAccordion}
     </div>
   );
