@@ -32,7 +32,7 @@ export default class ChecklistService {
     );
 
     if (!fs.existsSync(checklistFilePath)) {
-      callback('Checklist file not found', null);
+      callback('Checklist file not found', []);
       return;
     }
 

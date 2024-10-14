@@ -688,6 +688,7 @@ class Project extends Component<Props> {
             project={this.props.project}
             checklist={this.props.checklist.checklist}
             error={this.props.checklist.errorMessage}
+            onUpdated={this.props.onChecklistUpdated}
             onAddedNote={this.projectUpsertNoteHandler}
             onUpdatedNote={this.projectUpsertNoteHandler}
             onDeletedNote={this.projectDeleteNoteHandler}
@@ -763,6 +764,7 @@ Project.propTypes = {
   classes: PropTypes.object,
   onUpdated: PropTypes.func,
   onAssetSelected: PropTypes.func,
+  onChecklistUpdated: PropTypes.func,
   // This object has the following structure:
   // {
   //   logs: array<string>   - the actual log data
@@ -785,6 +787,7 @@ Project.defaultProps = {
   classes: null,
   onUpdated: null,
   onAssetSelected: null,
+  onChecklistUpdated: null,
   logs: null,
   checklist: null,
   configuration: null,

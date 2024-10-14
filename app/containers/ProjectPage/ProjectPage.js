@@ -12,6 +12,7 @@ import styles from './ProjectPage.css';
 import UserContext from '../../contexts/User';
 
 import Messages from '../../constants/messages';
+import ChecklistUtil from '../../utils/checklist';
 
 class ProjectPage extends Component {
   constructor(props) {
@@ -175,6 +176,10 @@ class ProjectPage extends Component {
     ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, this.state.selectedProject);
   }
 
+  handleChecklistUpdate(project, checklist) {
+    ipcRenderer.send(Messages.WRITE_PROJECT_CHECKLIST_REQUEST, project.path, checklist);
+  }
+
   /**
    * Called when a project log is loaded.
    *
@@ -207,6 +212,14 @@ class ProjectPage extends Component {
   handleLoadProjectChecklistResponse(sender, response) {
     if (!response || !response.projectId) {
       return;
+    }
+
+    // Initialize the checklist file if it doesn't exist, for all the already existing projects
+    const projectChecklist = ChecklistUtil.initializeChecklist();
+    if (response.checklist && response.checklist.length === 0) {
+      // response only returns project id, we need to get the project path
+      const project = this.state.projects.find((p) => p.id === response.projectId);
+      ipcRenderer.send(Messages.WRITE_PROJECT_CHECKLIST_REQUEST, project.path, projectChecklist);
     }
 
     if (this.state.selectedProject && response.projectId === this.state.selectedProject.id) {
@@ -378,6 +391,7 @@ class ProjectPage extends Component {
             checklist={this.state.selectedProjectChecklist}
             onUpdated={this.handleProjectUpdate}
             onAssetSelected={this.handleAssetSelected}
+            onChecklistUpdated={this.handleChecklistUpdate}
             configuration={{ assetAttributes: this.state.assetAttributes }}
             assetDynamicDetails={this.state.assetDynamicDetails}
           />

@@ -689,7 +689,7 @@ ipcMain.on(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, async (event, project) => {
   }
 
   checklistService.loadChecklist(project.path, (error, checklist) =>{
-    if (error || !checklist) {
+    if (error && !checklist) {
       response.error = true;
       response.errorMessage = `There was an error reading the project checklist ${error}`;
       event.sender.send(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, response);

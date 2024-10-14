@@ -135,17 +135,23 @@ function ChecklistItem(props) {
           <button
             className={item.answer ? styles.yesset : styles.yes}
             onClick={() => {
-              const updatedItem = { ...item, answer: true };
-              onItemUpdate(updatedItem);
+              const oldAnswer = item.answer;
+              if (oldAnswer === false) {
+                const updatedItem = { ...item, answer: true };
+                onItemUpdate(updatedItem);
+              }
             }}
           >
             {'Yes'}
           </button>
           <button
-            className={item.answer  ? styles.no : styles.noset}
+            className={item.answer ? styles.no : styles.noset}
             onClick={() => {
-              const updatedItem = { ...item, answer: false };
-              onItemUpdate(updatedItem);
+              const oldAnswer = item.answer;
+              if (oldAnswer == true) {
+                const updatedItem = { ...item, answer: false };
+                onItemUpdate(updatedItem);
+              }
             }}
           >
             {'No'}
@@ -331,13 +337,17 @@ function ChecklistItem(props) {
                       <button
                         className={subCheck.answer ? styles.yesset : styles.yes}
                         onClick={() => {
+                          let oldAnswer = false;
                           const updatedItem = { ...item, subChecklist: item.subChecklist.map((sub) => {
                             if (sub.id === subCheck.id) {
+                              oldAnswer = sub.answer;
                               return { ...sub, answer: true };
                             }
                             return sub;
                           })};
-                          onItemUpdate(updatedItem);
+                          if (oldAnswer === false) {
+                            onItemUpdate(updatedItem);
+                          }
                         }}
                       >
                         {'Yes'}
@@ -345,13 +355,17 @@ function ChecklistItem(props) {
                       <button
                         className={subCheck.answer ? styles.no : styles.noset}
                         onClick={() => {
+                          let oldAnswer = true;
                           const updatedItem = { ...item, subChecklist: item.subChecklist.map((sub) => {
                             if (sub.id === subCheck.id) {
+                              oldAnswer = sub.answer;
                               return { ...sub, answer: false };
                             }
                             return sub;
                           })};
-                          onItemUpdate(updatedItem);
+                          if (oldAnswer === true) {
+                            onItemUpdate(updatedItem);
+                          }
                         }}
                       >
                         {'No'}
@@ -413,6 +427,8 @@ ChecklistItem.propTypes = {
   onUpdatedNote: PropTypes.func.isRequired,
   onDeletedNote: PropTypes.func.isRequired,
   onAddedNote: PropTypes.func.isRequired,
+  onItemUpdate: PropTypes.func.isRequired,
+  onSelectedAsset: PropTypes.func.isRequired,
 };
 
 export default ChecklistItem;

@@ -15,6 +15,7 @@ import NewDirectory from '../../components/NewDirectory/NewDirectory';
 import CloneDirectory from './CloneDirectory/CloneDirectory';
 import Error from '../../components/Error/Error';
 import UserContext from '../../contexts/User';
+import ChecklistUtil from '../../utils/checklist';
 
 import styles from './CreateProjectDialog.css';
 import Messages from '../../constants/messages';
@@ -26,50 +27,6 @@ function PaperComponent(props) {
     </Draggable>
   );
 }
-
-const reproducibilityChecklist = [
-  {
-    id: '1',
-    statement: 'First checklist item statement. Now, I am just trying to make this statement a bit longer to see how it looks in the UI, without making any sense.',
-    answer: true,
-    scanResult: {},
-    userNotes: [],
-    attachedImages: [],
-    attachedURLs: [],
-    subChecklist: [],
-  },
-  {
-    id: '2',
-    statement: 'Second checklist item statement.',
-    answer: false,
-    scanResult: {},
-    userNotes: [],
-    attachedImages: [],
-    attachedURLs: [],
-    subChecklist: [],
-  },
-  {
-    id: '3',
-    statement: 'List of all the languages used and the dependencies of the project.',
-    answer: true,
-    scanResult: {},
-    userNotes: [],
-    attachedImages: [],
-    attachedURLs: [],
-    subChecklist:[
-      {
-        id: '3.1',
-        statement: 'Are all the languages used in the project listed?',
-        answer: true,
-      },
-      {
-        id: '3.2',
-        statement: 'Are all the dependencies of the project listed?',
-        answer: false,
-      },
-    ],
-  }
-];
 
 class CreateProjectDialog extends Component {
   static validateProjectDirectory(step, directory, name) {
@@ -204,10 +161,11 @@ class CreateProjectDialog extends Component {
           'info',
           this.context,
         );
+        const projectChecklist = ChecklistUtil.initializeChecklist();
         ipcRenderer.send(
           Messages.WRITE_PROJECT_CHECKLIST_REQUEST,
           response.project.path,
-          reproducibilityChecklist,
+          projectChecklist,
         )
       }
       this.props.onClose(true);
