@@ -125,260 +125,264 @@ function ChecklistItem(props) {
   };
 
   return (
-    <div className={styles.item}>
-      <div className={styles.statementHeader}>
-        <button className={styles.expandButton}>
-          {expanded ? <FaChevronUp className={styles.chevron} onClick={() => setExpanded(false)} /> : <FaChevronDown  className={styles.chevron} onClick={() => setExpanded(true)} />}
-        </button>
-        <span className={styles.statement}>{item.id}. {item.statement}</span>
-        <div className={styles.buttonContainer}>
-          <button
-            className={item.answer ? styles.yesset : styles.yes}
-            onClick={() => {
-              const oldAnswer = item.answer;
-              if (oldAnswer === false) {
-                const updatedItem = { ...item, answer: true };
-                onItemUpdate(updatedItem);
-              }
-            }}
-          >
-            {'Yes'}
-          </button>
-          <button
-            className={item.answer ? styles.no : styles.noset}
-            onClick={() => {
-              const oldAnswer = item.answer;
-              if (oldAnswer == true) {
-                const updatedItem = { ...item, answer: false };
-                onItemUpdate(updatedItem);
-              }
-            }}
-          >
-            {'No'}
-          </button>
-        </div>
-      </div>
-      {expanded && <div className={styles.details}>
-        <div className={styles.scanResult}>
-          {item.scanResult &&
-            Object.keys(item.scanResult).map((key) => {
-              return (
-              <div key={key}>
-                <span className={styles.scanKey}>{key}</span>
-                <ul className={styles.scanList}>
-                  {item.scanResult[key].length ? (
-                    item.scanResult[key].map((answer) => (
-                      <li key={answer}>{answer}</li>
-                    ))
-                  ) : (
-                    <li>No answers available</li>
-                  )}
-                </ul>
-              </div>
-            )})}
-        </div>
-        <NoteEditor
-          notes={item.userNotes}
-          onEditingComplete={handleNoteUpdate}
-          onDelete={handleNoteDelete}
-        />
-        <div>
-          <button className={styles.addUrlsButton} onClick={() => setAddAsset(true)}>
-            Add Asset Reference
-          </button>
-        </div>
-        <Dialog open={addAsset} onClose={() => setAddAsset(false)}>
-          <DialogTitle className={styles.dialogTitle}>Add Asset Reference</DialogTitle>
-          <DialogContent className={styles.dialogContent}>
-            <div className={styles.tree}>
-              <div className={styles.toolbar}>
-                <IconButton
-                  onClick={() => treeRef.current.setExpandAll(true)}
-                  className={styles.toolbarButton}
-                  aria-label="expand all tree items"
-                  fontSize="small"
-                >
-                  <FaFolderOpen fontSize="small" /> &nbsp;Expand
-                </IconButton>
-                <IconButton
-                  className={styles.toolbarButton}
-                  aria-label="collapse all tree items"
-                  fontSize="small"
-                  onClick={() => treeRef.current.setExpandAll(false)}
-                >
-                  <FaFolderMinus fontSize="small" /> &nbsp;Collapse
-                </IconButton>
-              </div>
-              <AssetTree
-                assets={project.assets}
-                ref={treeRef}
-                onSelectAsset={handleSelectAsset}
-                selectedAsset={selectedAsset}
-              />
-            </div>
-            <div className={styles.form}>
-              <div className={styles.title}>
-                <label htmlFor="title">Title:</label>
-                <input
-                  type="text"
-                  id="title"
-                  name="title"
-                  value={assetTitle}
-                  onChange={(e) => setAssetTitle(e.target.value)}
-                  required
-                />
-              </div>
-              <div className={styles.description}>
-                <label htmlFor="description">Description:</label>
-                <input
-                  id="description"
-                  name="description"
-                  value={assetDescription}
-                  onChange={(e) => setAssetDescription(e.target.value)}
-                />
-              </div>
-            </div>
-          </DialogContent>
-          <DialogActions>
-            <button onClick={() => handleAddAsset()} className={styles.submitButton}>
-              Add
+    <div>
+      {item && (
+        <div className={styles.item}>
+          <div className={styles.statementHeader}>
+            <button className={styles.expandButton}>
+              {expanded ? <FaChevronUp className={styles.chevron} onClick={() => setExpanded(false)} /> : <FaChevronDown  className={styles.chevron} onClick={() => setExpanded(true)} />}
             </button>
-            <button onClick={() => setAddAsset(false)} className={styles.cancelButton} autoFocus>
-              Cancel
-            </button>
-          </DialogActions>
-        </Dialog>
-        {item.attachedURLs.length > 0 && (
-          <div className={styles.urls}>
-            <div className={styles.headerWithButton}>
-              <h4>Attached URLs:</h4>
-              <button className={styles.dropdownButton} onClick={() => setShowURLs(!showURLs)}>
-                {showURLs ? 'Hide' : 'Show'}
+            <span className={styles.statement}>{item.id}. {item.statement}</span>
+            <div className={styles.buttonContainer}>
+              <button
+                className={item.answer ? styles.yesset : styles.yes}
+                onClick={() => {
+                  const oldAnswer = item.answer;
+                  if (oldAnswer === false) {
+                    const updatedItem = { ...item, answer: true };
+                    onItemUpdate(updatedItem);
+                  }
+                }}
+              >
+                {'Yes'}
+              </button>
+              <button
+                className={item.answer ? styles.no : styles.noset}
+                onClick={() => {
+                  const oldAnswer = item.answer;
+                  if (oldAnswer == true) {
+                    const updatedItem = { ...item, answer: false };
+                    onItemUpdate(updatedItem);
+                  }
+                }}
+              >
+                {'No'}
               </button>
             </div>
-            <div className={`${styles.urlContent} ${showURLs ? styles.show : ''}`}>
-              <ul>
-                {item.attachedURLs.map((url) => (
-                  <div key={url.id}>
-                    <div>
-                      <li className={styles.url}>
-                        <div className={styles.urlHeader}>
-                          <span className={styles.urlText}>{url.title}</span>
-                          <div>
-                            {copiedUrlId === url.id ? (
-                              <Done className={styles.doneButton} />
-                            ) : (
-                              <ContentCopy
-                                className={styles.copyButton}
-                                onClick={() => handleCopy(url.id, url.hyperlink)}
-                              />
-                            )}
-                            <Delete
-                              className={styles.delButton}
-                              onClick={() => handleDeleteUrl(url.id)}
-                            />
-                          </div>
+          </div>
+          {expanded && <div className={styles.details}>
+            <div className={styles.scanResult}>
+              {item.scanResult &&
+                Object.keys(item.scanResult).map((key) => {
+                  return (
+                  <div key={key}>
+                    <span className={styles.scanKey}>{key}</span>
+                    <ul className={styles.scanList}>
+                      {item.scanResult[key].length ? (
+                        item.scanResult[key].map((answer) => (
+                          <li key={answer}>{answer}</li>
+                        ))
+                      ) : (
+                        <li>No answers available</li>
+                      )}
+                    </ul>
+                  </div>
+                )})}
+            </div>
+            <NoteEditor
+              notes={item.userNotes}
+              onEditingComplete={handleNoteUpdate}
+              onDelete={handleNoteDelete}
+            />
+            <div>
+              <button className={styles.addUrlsButton} onClick={() => setAddAsset(true)}>
+                Add Asset Reference
+              </button>
+            </div>
+            <Dialog open={addAsset} onClose={() => setAddAsset(false)}>
+              <DialogTitle className={styles.dialogTitle}>Add Asset Reference</DialogTitle>
+              <DialogContent className={styles.dialogContent}>
+                <div className={styles.tree}>
+                  <div className={styles.toolbar}>
+                    <IconButton
+                      onClick={() => treeRef.current.setExpandAll(true)}
+                      className={styles.toolbarButton}
+                      aria-label="expand all tree items"
+                      fontSize="small"
+                    >
+                      <FaFolderOpen fontSize="small" /> &nbsp;Expand
+                    </IconButton>
+                    <IconButton
+                      className={styles.toolbarButton}
+                      aria-label="collapse all tree items"
+                      fontSize="small"
+                      onClick={() => treeRef.current.setExpandAll(false)}
+                    >
+                      <FaFolderMinus fontSize="small" /> &nbsp;Collapse
+                    </IconButton>
+                  </div>
+                  <AssetTree
+                    assets={project.assets}
+                    ref={treeRef}
+                    onSelectAsset={handleSelectAsset}
+                    selectedAsset={selectedAsset}
+                  />
+                </div>
+                <div className={styles.form}>
+                  <div className={styles.title}>
+                    <label htmlFor="title">Title:</label>
+                    <input
+                      type="text"
+                      id="title"
+                      name="title"
+                      value={assetTitle}
+                      onChange={(e) => setAssetTitle(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className={styles.description}>
+                    <label htmlFor="description">Description:</label>
+                    <input
+                      id="description"
+                      name="description"
+                      value={assetDescription}
+                      onChange={(e) => setAssetDescription(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </DialogContent>
+              <DialogActions>
+                <button onClick={() => handleAddAsset()} className={styles.submitButton}>
+                  Add
+                </button>
+                <button onClick={() => setAddAsset(false)} className={styles.cancelButton} autoFocus>
+                  Cancel
+                </button>
+              </DialogActions>
+            </Dialog>
+            {item.attachedURLs.length > 0 && (
+              <div className={styles.urls}>
+                <div className={styles.headerWithButton}>
+                  <h4>Attached URLs:</h4>
+                  <button className={styles.dropdownButton} onClick={() => setShowURLs(!showURLs)}>
+                    {showURLs ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+                <div className={`${styles.urlContent} ${showURLs ? styles.show : ''}`}>
+                  <ul>
+                    {item.attachedURLs.map((url) => (
+                      <div key={url.id}>
+                        <div>
+                          <li className={styles.url}>
+                            <div className={styles.urlHeader}>
+                              <span className={styles.urlText}>{url.title}</span>
+                              <div>
+                                {copiedUrlId === url.id ? (
+                                  <Done className={styles.doneButton} />
+                                ) : (
+                                  <ContentCopy
+                                    className={styles.copyButton}
+                                    onClick={() => handleCopy(url.id, url.hyperlink)}
+                                  />
+                                )}
+                                <Delete
+                                  className={styles.delButton}
+                                  onClick={() => handleDeleteUrl(url.id)}
+                                />
+                              </div>
+                            </div>
+                            <a href={url.hyperlink} target="">
+                              {url.hyperlink}
+                            </a>
+                            <p>{url.description}</p>
+                          </li>
                         </div>
-                        <a href={url.hyperlink} target="">
-                          {url.hyperlink}
-                        </a>
-                        <p>{url.description}</p>
+                        <hr />
+                      </div>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+            {item.attachedImages.length > 0 && (
+              <div className={styles.images}>
+                <div className={styles.headerWithButton}>
+                  <h4>Attached Images:</h4>
+                  <button className={styles.dropdownButton} onClick={() => setShowImages(!showImages)}>
+                    {showImages ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+                <div className={`${styles.imageContent} ${showImages ? styles.show : ''}`}>
+                  <ul>
+                    {item.attachedImages.map((image) => (
+                      <li key={image} className={styles.image}>
+                        <div className={styles.imageHeader}>
+                          <span className={styles.imageText}>{image.title}</span>
+                          <Delete
+                            className={styles.delButton}
+                            onClick={() => handleDeleteImage(image.id)}
+                          />
+                        </div>
+                        <img src={image.uri} alt="attached"/>
+                        <p>{image.description}</p>
                       </li>
-                    </div>
-                    <hr />
-                  </div>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
-        {item.attachedImages.length > 0 && (
-          <div className={styles.images}>
-            <div className={styles.headerWithButton}>
-              <h4>Attached Images:</h4>
-              <button className={styles.dropdownButton} onClick={() => setShowImages(!showImages)}>
-                {showImages ? 'Hide' : 'Show'}
-              </button>
-            </div>
-            <div className={`${styles.imageContent} ${showImages ? styles.show : ''}`}>
-              <ul>
-                {item.attachedImages.map((image) => (
-                  <li key={image} className={styles.image}>
-                    <div className={styles.imageHeader}>
-                      <span className={styles.imageText}>{image.title}</span>
-                      <Delete
-                        className={styles.delButton}
-                        onClick={() => handleDeleteImage(image.id)}
-                      />
-                    </div>
-                    <img src={image.uri} alt="attached"/>
-                    <p>{image.description}</p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
-        {item.subChecklist.length > 0 && (
-          <div className={styles.subChecklist}>
-            <div className={styles.headerWithButton}>
-              <h4>Sub-Checklist:</h4>
-              <button className={styles.dropdownButton} onClick={() => setShowSubChecks(!showSubChecks)}>
-                {showSubChecks ? 'Hide' : 'Show'}
-              </button>
-            </div>
-            <div className={`${styles.subChecksContent} ${showSubChecks ? styles.show : ''}`}>
-              <ul>
-                {item.subChecklist.map((subCheck) => (
-                  <li key={subCheck.id}>
-                  <div className={styles.header}>
-                    <span>{subCheck.statement}</span>
-                    <div className={styles.buttonContainer}>
-                      <button
-                        className={subCheck.answer ? styles.yesset : styles.yes}
-                        onClick={() => {
-                          let oldAnswer = false;
-                          const updatedItem = { ...item, subChecklist: item.subChecklist.map((sub) => {
-                            if (sub.id === subCheck.id) {
-                              oldAnswer = sub.answer;
-                              return { ...sub, answer: true };
-                            }
-                            return sub;
-                          })};
-                          if (oldAnswer === false) {
-                            onItemUpdate(updatedItem);
-                          }
-                        }}
-                      >
-                        {'Yes'}
-                      </button>
-                      <button
-                        className={subCheck.answer ? styles.no : styles.noset}
-                        onClick={() => {
-                          let oldAnswer = true;
-                          const updatedItem = { ...item, subChecklist: item.subChecklist.map((sub) => {
-                            if (sub.id === subCheck.id) {
-                              oldAnswer = sub.answer;
-                              return { ...sub, answer: false };
-                            }
-                            return sub;
-                          })};
-                          if (oldAnswer === true) {
-                            onItemUpdate(updatedItem);
-                          }
-                        }}
-                      >
-                        {'No'}
-                      </button>
-                    </div>
-                  </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
-      </div>}
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+            {item.subChecklist.length > 0 && (
+              <div className={styles.subChecklist}>
+                <div className={styles.headerWithButton}>
+                  <h4>Sub-Checklist:</h4>
+                  <button className={styles.dropdownButton} onClick={() => setShowSubChecks(!showSubChecks)}>
+                    {showSubChecks ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+                <div className={`${styles.subChecksContent} ${showSubChecks ? styles.show : ''}`}>
+                  <ul>
+                    {item.subChecklist.map((subCheck) => (
+                      <li key={subCheck.id}>
+                      <div className={styles.header}>
+                        <span>{subCheck.statement}</span>
+                        <div className={styles.buttonContainer}>
+                          <button
+                            className={subCheck.answer ? styles.yesset : styles.yes}
+                            onClick={() => {
+                              let oldAnswer = false;
+                              const updatedItem = { ...item, subChecklist: item.subChecklist.map((sub) => {
+                                if (sub.id === subCheck.id) {
+                                  oldAnswer = sub.answer;
+                                  return { ...sub, answer: true };
+                                }
+                                return sub;
+                              })};
+                              if (oldAnswer === false) {
+                                onItemUpdate(updatedItem);
+                              }
+                            }}
+                          >
+                            {'Yes'}
+                          </button>
+                          <button
+                            className={subCheck.answer ? styles.no : styles.noset}
+                            onClick={() => {
+                              let oldAnswer = true;
+                              const updatedItem = { ...item, subChecklist: item.subChecklist.map((sub) => {
+                                if (sub.id === subCheck.id) {
+                                  oldAnswer = sub.answer;
+                                  return { ...sub, answer: false };
+                                }
+                                return sub;
+                              })};
+                              if (oldAnswer === true) {
+                                onItemUpdate(updatedItem);
+                              }
+                            }}
+                          >
+                            {'No'}
+                          </button>
+                        </div>
+                      </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+          </div>}
+        </div>
+      )}
     </div>
   );
 }
