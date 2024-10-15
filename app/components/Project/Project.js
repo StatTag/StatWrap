@@ -289,7 +289,7 @@ class Project extends Component<Props> {
       // TODO - fix bug here - should be failing
       assetsCopy.push(newAsset);
     } else {
-      this.upsertNoteHandler(existingAsset, 'asset', asset.uri, action, text, note);
+      this.upsertNoteHandler(existingAsset, EntityType.ASSET, asset.uri, action, text, note);
     }
     project.assets = assetsCopy;
     if (this.props.onUpdated) {
@@ -304,6 +304,35 @@ class Project extends Component<Props> {
       );
     }
   };
+
+  checklistUpsertNoteHandler = (checklistItem, text, note) => {
+    if (this.unchangedNote(note,text)) {
+      return;
+    }
+
+    const currentProject = { ...this.props.project };
+    const action = { type: '', title: '', description: '', details: null };
+    this.upsertNoteHandler(
+      checklistItem,
+      EntityType.CHECKLIST,
+      checklistItem.name,
+      action,
+      text,
+      note
+    );
+    const updatedChecklist = this.props.checklistResponse.checklist.map(x => {
+      if (x.id === checklistItem.id) {
+        return checklistItem;
+      }
+      return x;
+    });
+    if (this.props.onChecklistUpdated) {
+      this.props.onChecklistUpdated(
+        currentProject,
+        updatedChecklist
+      );
+    }
+  }
 
   /**
    * More generic handler to implement the common delete functions needed for asset and project notes
@@ -446,6 +475,28 @@ class Project extends Component<Props> {
       );
     }
   };
+
+  checklistDeleteNoteHandler = (checklistItem, note) => {
+    const currentProject = { ...this.props.project };
+    const actionDescription = this.deleteNoteHandler(
+      checklistItem,
+      EntityType.CHECKLIST,
+      checklistItem.name,
+      note
+    );
+    const updatedChecklist = this.props.checklistResponse.checklist.map(x => {
+      if (x.id === checklistItem.id) {
+        return checklistItem;
+      }
+      return x;
+    });
+    if (this.props.onChecklistUpdated) {
+      this.props.onChecklistUpdated(
+        currentProject,
+        updatedChecklist
+      );
+    }
+  }
 
   deletePersonHandler = person => {
     const currentProject = { ...this.props.project };
@@ -683,15 +734,15 @@ class Project extends Component<Props> {
         ) : null;
 
       const checklist =
-        this.props.project && this.props.checklist ? (
+        this.props.project && this.props.checklistResponse ? (
           <ReproChecklist
             project={this.props.project}
-            checklist={this.props.checklist.checklist}
-            error={this.props.checklist.errorMessage}
+            checklist={this.props.checklistResponse.checklist}
+            error={this.props.checklistResponse.errorMessage}
             onUpdated={this.props.onChecklistUpdated}
-            onAddedNote={this.projectUpsertNoteHandler}
-            onUpdatedNote={this.projectUpsertNoteHandler}
-            onDeletedNote={this.projectDeleteNoteHandler}
+            onAddedNote={this.checklistUpsertNoteHandler}
+            onUpdatedNote={this.checklistUpsertNoteHandler}
+            onDeletedNote={this.checklistDeleteNoteHandler}
             onSelectedAsset={this.assetSelectedHandler}
           />
         ) : null;
@@ -777,7 +828,7 @@ Project.propTypes = {
   // This object has the following structure:
   // {
   // }
-  checklist: PropTypes.object,
+  checklistResponse: PropTypes.object,
   configuration: PropTypes.object,
   assetDynamicDetails: PropTypes.object
 };
@@ -789,7 +840,7 @@ Project.defaultProps = {
   onAssetSelected: null,
   onChecklistUpdated: null,
   logs: null,
-  checklist: null,
+  checklistResponse: null,
   configuration: null,
   assetDynamicDetails: null
 };

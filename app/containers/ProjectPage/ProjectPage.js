@@ -388,7 +388,7 @@ class ProjectPage extends Component {
           <Project
             project={this.state.selectedProject}
             logs={this.state.selectedProjectLogs}
-            checklist={this.state.selectedProjectChecklist}
+            checklistResponse={this.state.selectedProjectChecklist}
             onUpdated={this.handleProjectUpdate}
             onAssetSelected={this.handleAssetSelected}
             onChecklistUpdated={this.handleChecklistUpdate}

@@ -63,16 +63,16 @@ function ChecklistItem(props) {
 
     if (selectedAsset.type === Constants.AssetType.FILE) {
       if(selectedAsset.contentTypes.includes(Constants.AssetContentType.IMAGE)) {
-        const updatedItem = { ...item, attachedImages: [...item.attachedImages, {id: uuidv4(), uri: selectedAsset.uri, title: assetTitle, description: assetDescription}] };
+        const updatedItem = { ...item, images: [...item.images, {id: uuidv4(), uri: selectedAsset.uri, title: assetTitle, description: assetDescription}] };
         onItemUpdate(updatedItem);
         setShowImages(true);
       } else {
-        const updatedItem = { ...item, attachedURLs: [...item.attachedURLs, {id: uuidv4(), hyperlink: AssetUtil.absoluteToRelativePath(project.path, selectedAsset), title: assetTitle, description: assetDescription}] };
+        const updatedItem = { ...item, urls: [...item.urls, {id: uuidv4(), hyperlink: AssetUtil.absoluteToRelativePath(project.path, selectedAsset), title: assetTitle, description: assetDescription}] };
         onItemUpdate(updatedItem);
         setShowURLs(true);
       }
     } else if (selectedAsset.type === Constants.AssetType.URL) {
-      const updatedItem = { ...item, attachedURLs: [...item.attachedURLs, {id: uuidv4(), hyperlink: selectedAsset.uri, title: assetTitle, description: assetDescription}] };
+      const updatedItem = { ...item, urls: [...item.urls, {id: uuidv4(), hyperlink: selectedAsset.uri, title: assetTitle, description: assetDescription}] };
       onItemUpdate(updatedItem);
       setShowURLs(true);
     }
@@ -90,12 +90,12 @@ function ChecklistItem(props) {
   };
 
   const handleDeleteUrl = (urlId) => {
-    const updatedItem = { ...item, attachedURLs: item.attachedURLs.filter((url) => url.id !== urlId) };
+    const updatedItem = { ...item, urls: item.urls.filter((url) => url.id !== urlId) };
     onItemUpdate(updatedItem);
   };
 
   const handleDeleteImage = (imageId) => {
-    const updatedItem = { ...item, attachedImages: item.attachedImages.filter((image) => image.id !== imageId) };
+    const updatedItem = { ...item, images: item.images.filter((image) => image.id !== imageId) };
     onItemUpdate(updatedItem);
   };
 
@@ -106,21 +106,21 @@ function ChecklistItem(props) {
     }
     if (note) {
       if (onUpdatedNote) {
-        onUpdatedNote(project, `Checklist ${item.id}: ` + text, note);
+        onUpdatedNote(item, text, note);
       }
     } else {
       if (onAddedNote) {
-        onAddedNote(project, `Checklist ${item.id}: ` + text);
+        onAddedNote(item, text);
       }
     }
   };
 
   const handleNoteDelete = (note) => {
     if (onDeletedNote) {
-      onDeletedNote(project, note);
+      onDeletedNote(item, note);
     }
 
-    const updatedItem = { ...item, userNotes: item.userNotes.filter((n) => n.id !== note.id) };
+    const updatedItem = { ...item, notes: item.notes.filter((n) => n.id !== note.id) };
     onItemUpdate(updatedItem);
   };
 
@@ -180,7 +180,7 @@ function ChecklistItem(props) {
                 )})}
             </div>
             <NoteEditor
-              notes={item.userNotes}
+              notes={item.notes}
               onEditingComplete={handleNoteUpdate}
               onDelete={handleNoteDelete}
             />
@@ -250,7 +250,7 @@ function ChecklistItem(props) {
                 </button>
               </DialogActions>
             </Dialog>
-            {item.attachedURLs.length > 0 && (
+            {item.urls.length > 0 && (
               <div className={styles.urls}>
                 <div className={styles.headerWithButton}>
                   <h4>Attached URLs:</h4>
@@ -260,7 +260,7 @@ function ChecklistItem(props) {
                 </div>
                 <div className={`${styles.urlContent} ${showURLs ? styles.show : ''}`}>
                   <ul>
-                    {item.attachedURLs.map((url) => (
+                    {item.urls.map((url) => (
                       <div key={url.id}>
                         <div>
                           <li className={styles.url}>
@@ -294,7 +294,7 @@ function ChecklistItem(props) {
                 </div>
               </div>
             )}
-            {item.attachedImages.length > 0 && (
+            {item.images.length > 0 && (
               <div className={styles.images}>
                 <div className={styles.headerWithButton}>
                   <h4>Attached Images:</h4>
@@ -304,7 +304,7 @@ function ChecklistItem(props) {
                 </div>
                 <div className={`${styles.imageContent} ${showImages ? styles.show : ''}`}>
                   <ul>
-                    {item.attachedImages.map((image) => (
+                    {item.images.map((image) => (
                       <li key={image} className={styles.image}>
                         <div className={styles.imageHeader}>
                           <span className={styles.imageText}>{image.title}</span>
@@ -390,12 +390,13 @@ function ChecklistItem(props) {
 ChecklistItem.propTypes = {
   item: PropTypes.shape({
     id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
     statement: PropTypes.string.isRequired,
     answer: PropTypes.bool.isRequired,
     scanResult: PropTypes.objectOf(
       PropTypes.arrayOf(PropTypes.string)
     ),
-    userNotes: PropTypes.arrayOf(
+    notes: PropTypes.arrayOf(
       PropTypes.shape({
         id: PropTypes.string.isRequired,
         author: PropTypes.string.isRequired,
@@ -403,7 +404,7 @@ ChecklistItem.propTypes = {
         content: PropTypes.string.isRequired,
       })
     ),
-    attachedImages: PropTypes.arrayOf(
+    images: PropTypes.arrayOf(
       PropTypes.shape({
         id: PropTypes.string.isRequired,
         uri: PropTypes.string.isRequired,
@@ -411,7 +412,7 @@ ChecklistItem.propTypes = {
         description: PropTypes.string.isRequired,
       })
     ),
-    attachedURLs: PropTypes.arrayOf(
+    urls: PropTypes.arrayOf(
       PropTypes.shape({
         id: PropTypes.string.isRequired,
         hyperlink: PropTypes.string.isRequired,

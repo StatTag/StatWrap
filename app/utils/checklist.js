@@ -6,12 +6,13 @@ export default class ChecklistUtil {
     Constants.CHECKLIST_STATEMENTS.forEach((statement, index) => {
       checklist.push({
         id: index + 1,
-        statement: statement,
+        name: statement[0],
+        statement: statement[1],
         answer: false,
         scanResult: {},
-        userNotes: [],
-        attachedImages: [],
-        attachedURLs: [],
+        notes: [],
+        images: [],
+        urls: [],
         subChecklist: [],
       });
     });
