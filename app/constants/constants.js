@@ -17,6 +17,7 @@ module.exports = {
     DIRECTORY: 'directory',
     FOLDER: 'directory', // 'DIRECTORY' is the preferred name, but we know we'll use this sometimes
     FILE: 'file',
+    URL: 'url',
     GENERIC: 'generic',
 
     // These are not a real asset types, but are used in our various controls
@@ -36,6 +37,7 @@ module.exports = {
   StatWrapFiles: {
     BASE_FOLDER: '.statwrap',
     LOG: '.statwrap.log',
+    CHECKLIST: '.statwrap-checklist.json',
   },
 
   ActionType: {
@@ -64,6 +66,7 @@ module.exports = {
     PROJECT: 'project',
     PERSON: 'person',
     ASSET: 'asset',
+    CHECKLIST: 'checklist',
   },
 
   DescriptionContentType: {
@@ -92,4 +95,13 @@ module.exports = {
   },
 
   MAX_GRAPH_LABEL_LENGTH: 31,
+
+  CHECKLIST_STATEMENTS: [
+    'All the software dependencies for the project are documented.',
+    'All the data file(s) used in the project are documented.',
+    'Clearly indicates which file(s) are used to run analysis.',
+    'Includes all necessary project documentation.',
+    'Are there multiple versions of a file? If yes, specify the versions.',
+    'Avoids using absolute paths in the code.',
+  ],
 };

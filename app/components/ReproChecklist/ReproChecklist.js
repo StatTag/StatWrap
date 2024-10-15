@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import styles from './ReproChecklist.css';
-import ChecklistItem from './ChecklistItem';
+import ChecklistItem from './ChecklistItem/ChecklistItem';
+import Error from '../Error/Error';
+import Constants from '../../constants/constants';
 import { Typography, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { SaveAlt } from '@mui/icons-material';
 import pdfMake from 'pdfmake/build/pdfmake';
@@ -13,56 +15,12 @@ const path = require('path');
 const fs = require('fs');
 const AssetsConfig = require('../../constants/assets-config');
 
-const reproducibilityChecklist = [
-  {
-    id: '1',
-    statement: 'First checklist item statement. Now, I am just trying to make this statement a bit longer to see how it looks in the UI, without making any sense.',
-    answer: true,
-    scanResult: {},
-    userNotes: [],
-    attachedImages: [],
-    attachedURLs: [],
-    subChecklist: [],
-  },
-  {
-    id: '2',
-    statement: 'Second checklist item statement.',
-    answer: false,
-    scanResult: {},
-    userNotes: [],
-    attachedImages: [],
-    attachedURLs: [],
-    subChecklist: [],
-  },
-  {
-    id: '3',
-    statement: 'List of all the languages used and the dependencies of the project.',
-    answer: true,
-    scanResult: {},
-    userNotes: [],
-    attachedImages: [],
-    attachedURLs: [],
-    subChecklist:[
-      {
-        id: '3.1',
-        statement: 'Are all the languages used in the project listed?',
-        answer: true,
-      },
-      {
-        id: '3.2',
-        statement: 'Are all the dependencies of the project listed?',
-        answer: false,
-      },
-    ],
-  }
-];
-
 const languages = {};
 const dependencies = {};
 const imageAssets = {};
 
 function findAssetLanguagesAndDependencies(asset) {
-  if (asset.type === 'file' && asset.contentTypes.includes('code') ) {
+  if (asset.type === Constants.AssetType.FILE && asset.contentTypes.includes(Constants.AssetContentType.CODE) ) {
     const lastSep = asset.uri.lastIndexOf(path.sep);
     const fileName = asset.uri.substring(lastSep + 1);
     const ext = fileName.split('.').pop();
@@ -79,20 +37,11 @@ function findAssetLanguagesAndDependencies(asset) {
     asset.children.forEach(findAssetLanguagesAndDependencies);
   }
 
-  reproducibilityChecklist[2].scanResult = {
+  return {
     languages: Object.keys(languages),
     dependencies: Object.keys(dependencies)
   };
 }
-
-function findImageAssets(asset) {
-  if (asset.type === 'file' && asset.contentTypes.includes('image')) {
-    imageAssets[asset.uri] = true;
-  }
-  if (asset.children) {
-    asset.children.forEach(findImageAssets);
-  }
-};
 
 function findChecklistNotes(notes) {
   const checklistNotes = {};
@@ -149,21 +98,18 @@ function convertImageToBase64(filePath) {
 
 
 function ReproChecklist(props) {
-  const { project, reproChecklist, onUpdatedNote, onDeletedNote, onAddedNote, onSelectedAsset} = props;
-  const [checklistItems, setChecklistItems] = useState(reproducibilityChecklist);
-  const [allImages, setAllImages] = useState([]);
+  const { project, checklist, error, onUpdated, onUpdatedNote, onDeletedNote, onAddedNote, onSelectedAsset} = props;
   const [openExportDialog, setOpenExportDialog] = useState(false);
 
   useEffect(() => {
-    if (project) {
+    if (project && checklist && !error) {
       if(project.assets) {
-        findAssetLanguagesAndDependencies(project.assets);
-        findImageAssets(project.assets);
-        setAllImages(Object.keys(imageAssets));
+        const scanResult1 = findAssetLanguagesAndDependencies(project.assets);
+        checklist[0].scanResult = scanResult1;
       }
       if(project.notes){
         const checklistNotes = findChecklistNotes(project.notes);
-        const updatedChecklistItems = checklistItems.map((item) => {
+        const updatedChecklist = checklist.map((item) => {
           if (checklistNotes[item.id]) {
             return {
               ...item,
@@ -172,16 +118,16 @@ function ReproChecklist(props) {
           }
           return item;
         });
-        setChecklistItems(updatedChecklistItems);
+        // tbd
       }
     }
   }, [project]);
 
   const handleItemUpdate = (updatedItem) => {
-    const updatedChecklistItems = checklistItems.map(item =>
+    const updatedChecklist = checklist.map(item =>
       item.id === updatedItem.id ? updatedItem : item
     );
-    setChecklistItems(updatedChecklistItems);
+    onUpdated(project, updatedChecklist);
   };
 
   const handleReportGeneration = (exportNotes) => {
@@ -241,7 +187,7 @@ function ReproChecklist(props) {
             },
           ],
         },
-        ...checklistItems.map((item, index) => {
+        ...checklist.map((item, index) => {
           const maxWidth = 450;
           let subChecklist = [];
           if (item.subChecklist && item.subChecklist.length > 0) {
@@ -407,16 +353,18 @@ function ReproChecklist(props) {
     setOpenExportDialog(false);
   };
 
-  return (
+  let content = <div className={styles.empty}>Checklist not configured.</div>;
+
+  if (checklist && checklist.length > 0) {
+    content =
     <div>
       <Typography variant='h5' align='center' marginTop='10px'>Reproducibility Checklist</Typography>
       <br />
-      {checklistItems.map(item => (
+      {checklist.map(item => (
         <ChecklistItem
           key={item.id}
           item={item}
           project={project}
-          imageAssets={allImages}
           onUpdatedNote={onUpdatedNote}
           onDeletedNote={onDeletedNote}
           onAddedNote={onAddedNote}
@@ -453,64 +401,34 @@ function ReproChecklist(props) {
           </Button>
         </DialogActions>
       </Dialog>
-
     </div>
-  );
+  } else if (error) {
+    content = <Error>There was an error loading the project checklist: {error}</Error>;
+  }
+
+  return <div>{content}</div>;
 }
 
 ReproChecklist.propTypes = {
   project: PropTypes.object.isRequired,
-  reproChecklist: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      statement: PropTypes.string.isRequired,
-      answer: PropTypes.bool.isRequired,
-      scanResult: PropTypes.objectOf(
-        PropTypes.arrayOf(PropTypes.string)
-      ),
-      userNotes: PropTypes.arrayOf(
-        PropTypes.shape({
-          id: PropTypes.string.isRequired,
-          author: PropTypes.string.isRequired,
-          updated: PropTypes.string.isRequired,
-          content: PropTypes.string.isRequired,
-        })
-      ),
-      attachedImages: PropTypes.arrayOf(
-        PropTypes.shape({
-          id: PropTypes.string.isRequired,
-          uri: PropTypes.string.isRequired,
-          title: PropTypes.string.isRequired,
-          description: PropTypes.string.isRequired,
-          updated: PropTypes.string.isRequired,
-        })
-      ),
-      attachedURLs: PropTypes.arrayOf(
-        PropTypes.shape({
-          id: PropTypes.string.isRequired,
-          hyperlink: PropTypes.string.isRequired,
-          title: PropTypes.string.isRequired,
-          description: PropTypes.string.isRequired,
-          updated: PropTypes.string.isRequired,
-        })
-      ),
-      subChecklist: PropTypes.arrayOf(
-        PropTypes.shape({
-          id: PropTypes.string.isRequired,
-          statement: PropTypes.string.isRequired,
-          answer: PropTypes.bool.isRequired,
-        })
-      ),
-    })
-  ).isRequired,
-  imageAssets: PropTypes.arrayOf(PropTypes.string),
+  checklist: PropTypes.arrayOf(PropTypes.object),
+  error: PropTypes.string,
+  onUpdated: PropTypes.func.isRequired,
   onUpdatedNote: PropTypes.func.isRequired,
   onDeletedNote: PropTypes.func.isRequired,
   onAddedNote: PropTypes.func.isRequired,
+  onSelectedAsset: PropTypes.func.isRequired,
 };
 
 ReproChecklist.defaultProps = {
-  reproChecklist: reproducibilityChecklist,
+  project: null,
+  checklist: null,
+  error: null,
+  onUpdated: null,
+  onUpdatedNote: null,
+  onDeletedNote: null,
+  onAddedNote: null,
+  onSelectedAsset: null,
 };
 
 export default ReproChecklist;
