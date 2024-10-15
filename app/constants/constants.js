@@ -96,7 +96,7 @@ module.exports = {
 
   MAX_GRAPH_LABEL_LENGTH: 31,
 
-  CHECKLIST_STATEMENTS: [
+  CHECKLIST: [
     ['Dependency', 'All the software dependencies for the project are documented.'],
     ['Data', 'All the data file(s) used in the project are documented.'],
     ['Entrypoint', 'Clearly indicates which file(s) are used to run analysis.'],
