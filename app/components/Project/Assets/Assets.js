@@ -142,6 +142,7 @@ const assetsComponent = (props) => {
     setCurrentAssetGroup(null);
     setGroupedAssets(null);
     setFilterEnabled(true);
+    setExternalAssets(project.externalAssets ? project.externalAssets : []);
   }, [project]);
 
   // Whenever the filter changes, update the list of assets to include only
@@ -310,7 +311,6 @@ const assetsComponent = (props) => {
   };
 
   const handleEditExternalAsset = (asset) => {
-    console.log(asset);
     setCurrentExternalAsset(cloneDeep(asset));
     setEditingExternalAsset(true);
   };
