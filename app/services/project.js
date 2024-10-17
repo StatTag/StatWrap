@@ -13,11 +13,10 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const DefaultProjectFile = '.statwrap-project.json';
 const ProjectFileFormatVersion = '1';
 const MaximumFolderNameLength = 255;
 
-export { DefaultProjectFile, ProjectFileFormatVersion };
+export { ProjectFileFormatVersion };
 
 export default class ProjectService {
   /**
@@ -89,9 +88,9 @@ export default class ProjectService {
 
   lockProjectFile(projectPath) {
     const filePath = path.join(
-      projectPath.replace('~', os.homedir),
+      projectPath.replace('~', os.homedir()),
       Constants.StatWrapFiles.BASE_FOLDER,
-      DefaultProjectFile,
+      Constants.StatWrapFiles.PROJECT,
     );
 
     lockfile.lockSync(filePath);
@@ -99,9 +98,9 @@ export default class ProjectService {
 
   unlockProjectFile(projectPath) {
     const filePath = path.join(
-      projectPath.replace('~', os.homedir),
+      projectPath.replace('~', os.homedir()),
       Constants.StatWrapFiles.BASE_FOLDER,
-      DefaultProjectFile,
+      Constants.StatWrapFiles.PROJECT,
     );
 
     lockfile.unlockSync(filePath);
@@ -112,9 +111,9 @@ export default class ProjectService {
   // name should not be specified as part of projectPath.
   loadProjectFile(projectPath) {
     const filePath = path.join(
-      projectPath.replace('~', os.homedir),
+      projectPath.replace('~', os.homedir()),
       Constants.StatWrapFiles.BASE_FOLDER,
-      DefaultProjectFile,
+      Constants.StatWrapFiles.PROJECT,
     );
 
     try {
@@ -174,7 +173,7 @@ export default class ProjectService {
     // This will handle if someone is trying to configure what they think is a new project,
     // but it actually already exists
     const configFolderPath = path.join(
-      projectPath.replace('~', os.homedir),
+      projectPath.replace('~', os.homedir()),
       Constants.StatWrapFiles.BASE_FOLDER,
     );
     try {
@@ -183,7 +182,7 @@ export default class ProjectService {
       fs.mkdirSync(configFolderPath, { recursive: true });
     }
 
-    const filePath = path.join(configFolderPath, DefaultProjectFile);
+    const filePath = path.join(configFolderPath, Constants.StatWrapFiles.PROJECT);
     fs.writeFileSync(filePath, JSON.stringify(this.stripExtraProjectData(project)));
   }
 
@@ -233,7 +232,7 @@ export default class ProjectService {
         // appended to the root folder.
         const sanitizedName = this.sanitizeFolderName(project.name);
         const projectDirectory = path.join(
-          project.directory.replace('~', os.homedir),
+          project.directory.replace('~', os.homedir()),
           sanitizedName,
         );
         validationReport.project.name = project.name;

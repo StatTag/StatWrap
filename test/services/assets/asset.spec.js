@@ -4,7 +4,6 @@ import path from 'path';
 import AssetService from '../../../app/services/assets/asset';
 
 jest.mock('fs');
-jest.mock('os');
 
 class DummyHandler {
   _id = 'Dummy';

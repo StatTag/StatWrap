@@ -2,7 +2,7 @@
 import WorkflowUtil from '../../app/utils/workflow';
 import Constants from '../../app/constants/constants';
 
-describe('services', () => {
+describe('utils', () => {
   describe('WorkwlowUtil', () => {
     describe('getAllDependencies', () => {
       it('should handle empty/invalid inputs', () => {

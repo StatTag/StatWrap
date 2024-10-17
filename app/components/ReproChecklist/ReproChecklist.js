@@ -3,78 +3,16 @@ import PropTypes from 'prop-types';
 import styles from './ReproChecklist.css';
 import ChecklistItem from './ChecklistItem/ChecklistItem';
 import Error from '../Error/Error';
-import Constants from '../../constants/constants';
 import { Typography, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { SaveAlt } from '@mui/icons-material';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
+import GeneralUtil from '../../utils/general';
+import ChecklistUtil from '../../utils/checklist';
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 const path = require('path');
-const fs = require('fs');
-const AssetsConfig = require('../../constants/assets-config');
-
-const languages = {};
-const dependencies = {};
-const imageAssets = {};
-
-function findAssetLanguagesAndDependencies(asset) {
-  if (asset.type === Constants.AssetType.FILE && asset.contentTypes.includes(Constants.AssetContentType.CODE) ) {
-    const lastSep = asset.uri.lastIndexOf(path.sep);
-    const fileName = asset.uri.substring(lastSep + 1);
-    const ext = fileName.split('.').pop();
-    if(ext){
-      AssetsConfig.contentTypes.forEach((contentType) => {
-        if(contentType.extensions.includes(ext)) {
-          languages[contentType.name] = true;
-        }
-      });
-    }
-  }
-
-  if(asset.children){
-    asset.children.forEach(findAssetLanguagesAndDependencies);
-  }
-
-  return {
-    languages: Object.keys(languages),
-    dependencies: Object.keys(dependencies)
-  };
-}
-
-function convertImageToBase64(filePath) {
-  try {
-    const file = fs.readFileSync(filePath);
-    const ext = path.extname(filePath).toLowerCase();
-    let mimeType;
-    switch (ext) {
-      case '.jpg':
-      case '.jpeg':
-        mimeType = 'image/jpeg';
-        break;
-      case '.png':
-        mimeType = 'image/png';
-        break;
-      case '.gif':
-        mimeType = 'image/gif';
-        break;
-      case '.webp':
-        mimeType = 'image/webp';
-        break;
-      case '.svg':
-        mimeType = 'image/svg+xml';
-        break;
-      default:
-        mimeType = 'application/octet-stream';
-    }
-    return `data:${mimeType};base64,${file.toString('base64')}`;
-  } catch (error) {
-    console.error('Error converting image to Base64:', error);
-    return null;
-  }
-};
-
 
 function ReproChecklist(props) {
   const { project, checklist, error, onUpdated, onAddedNote, onUpdatedNote, onDeletedNote, onSelectedAsset} = props;
@@ -83,7 +21,7 @@ function ReproChecklist(props) {
   useEffect(() => {
     if (project && checklist && !error) {
       if(project.assets) {
-        const scanResult1 = findAssetLanguagesAndDependencies(project.assets);
+        const scanResult1 = ChecklistUtil.findAssetLanguagesAndDependencies(project.assets);
         checklist[0].scanResult = scanResult1;
       }
     }
@@ -97,8 +35,8 @@ function ReproChecklist(props) {
   };
 
   const handleReportGeneration = (exportNotes) => {
-    const checkedIcon = convertImageToBase64(path.join(__dirname, 'images/yes.png'));
-    const statWrapLogo = convertImageToBase64(path.join(__dirname, 'images/banner.png'));
+    const checkedIcon = GeneralUtil.convertImageToBase64(path.join(__dirname, 'images/yes.png'));
+    const statWrapLogo = GeneralUtil.convertImageToBase64(path.join(__dirname, 'images/banner.png'));
 
     const documentDefinition = {
       content: [

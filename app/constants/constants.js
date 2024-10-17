@@ -36,6 +36,7 @@ module.exports = {
 
   StatWrapFiles: {
     BASE_FOLDER: '.statwrap',
+    PROJECT: '.statwrap-project.json',
     LOG: '.statwrap.log',
     CHECKLIST: '.statwrap-checklist.json',
   },
