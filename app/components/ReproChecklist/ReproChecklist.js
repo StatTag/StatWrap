@@ -43,27 +43,6 @@ function findAssetLanguagesAndDependencies(asset) {
   };
 }
 
-function findChecklistNotes(notes) {
-  const checklistNotes = {};
-  notes.forEach((note) => {
-    if (note.content.startsWith('Checklist') && note.content.includes(':')) {
-      const id = note.content.split(':')[0].split(' ')[1];
-      if (!checklistNotes[id]) {
-        checklistNotes[id] = [];
-      }
-      const checklistNote = {
-        id: note.id,
-        author: note.author,
-        updated: note.updated,
-        content: note.content.split(':')[1].trim(),
-      };
-      checklistNotes[id].push(checklistNote);
-    }
-  });
-  return checklistNotes;
-}
-
-
 function convertImageToBase64(filePath) {
   try {
     const file = fs.readFileSync(filePath);
@@ -98,7 +77,7 @@ function convertImageToBase64(filePath) {
 
 
 function ReproChecklist(props) {
-  const { project, checklist, error, onUpdated, onUpdatedNote, onDeletedNote, onAddedNote, onSelectedAsset} = props;
+  const { project, checklist, error, onUpdated, onAddedNote, onUpdatedNote, onDeletedNote, onSelectedAsset} = props;
   const [openExportDialog, setOpenExportDialog] = useState(false);
 
   useEffect(() => {
@@ -106,19 +85,6 @@ function ReproChecklist(props) {
       if(project.assets) {
         const scanResult1 = findAssetLanguagesAndDependencies(project.assets);
         checklist[0].scanResult = scanResult1;
-      }
-      if(project.notes){
-        const checklistNotes = findChecklistNotes(project.notes);
-        const updatedChecklist = checklist.map((item) => {
-          if (checklistNotes[item.id]) {
-            return {
-              ...item,
-              userNotes: checklistNotes[item.id],
-            };
-          }
-          return item;
-        });
-        // tbd
       }
     }
   }, [project]);
@@ -216,8 +182,8 @@ function ReproChecklist(props) {
           }
 
           let notes = [];
-          if (exportNotes && item.userNotes && item.userNotes.length > 0) {
-            notes = item.userNotes.map((note, noteIndex) => ({
+          if (exportNotes && item.notes && item.notes.length > 0) {
+            notes = item.notes.map((note, noteIndex) => ({
               text: `${noteIndex + 1}. ${note.content}`,
               margin: [20, 2],
               width: maxWidth,
@@ -226,8 +192,8 @@ function ReproChecklist(props) {
 
           let images = [];
           const imageWidth = 135;
-          if(item.attachedImages && item.attachedImages.length > 0){
-            images = item.attachedImages.map((image) => {
+          if(item.images && item.images.length > 0){
+            images = item.images.map((image) => {
               const base64Image = convertImageToBase64(image.uri);
               if (base64Image) {
                 return {
@@ -256,8 +222,8 @@ function ReproChecklist(props) {
           }
 
           let urls = [];
-          if(item.attachedURLs && item.attachedURLs.length > 0){
-            urls = item.attachedURLs.map((url, urlIndex) => {
+          if(item.urls && item.urls.length > 0){
+            urls = item.urls.map((url, urlIndex) => {
               return {
                 unbreakable: true,
                 columns: [
@@ -414,9 +380,9 @@ ReproChecklist.propTypes = {
   checklist: PropTypes.arrayOf(PropTypes.object),
   error: PropTypes.string,
   onUpdated: PropTypes.func.isRequired,
+  onAddedNote: PropTypes.func.isRequired,
   onUpdatedNote: PropTypes.func.isRequired,
   onDeletedNote: PropTypes.func.isRequired,
-  onAddedNote: PropTypes.func.isRequired,
   onSelectedAsset: PropTypes.func.isRequired,
 };
 
@@ -425,9 +391,9 @@ ReproChecklist.defaultProps = {
   checklist: null,
   error: null,
   onUpdated: null,
+  onAddedNote: null,
   onUpdatedNote: null,
   onDeletedNote: null,
-  onAddedNote: null,
   onSelectedAsset: null,
 };
 
