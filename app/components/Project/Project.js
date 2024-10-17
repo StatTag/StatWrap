@@ -320,12 +320,15 @@ class Project extends Component<Props> {
       text,
       note
     );
+    // Once the checklist item is updated, we must also update the entire checklist linked to the project.
     const updatedChecklist = this.props.checklistResponse.checklist.map(x => {
       if (x.id === checklistItem.id) {
         return checklistItem;
       }
       return x;
     });
+    // Updates the checklist linked to the current project and saves the changes to the checklist file.
+    // Note that the checklist object is not directly attached to the project object, as opposed to the asset and person objects.
     if (this.props.onChecklistUpdated) {
       this.props.onChecklistUpdated(
         currentProject,
@@ -484,12 +487,15 @@ class Project extends Component<Props> {
       checklistItem.name,
       note
     );
+    // Once the checklist item is updated, we must also update the entire checklist linked to the project.
     const updatedChecklist = this.props.checklistResponse.checklist.map(x => {
       if (x.id === checklistItem.id) {
         return checklistItem;
       }
       return x;
     });
+    // Updates the checklist linked to the current project and saves the changes to the checklist file.
+    // Note that the checklist object is not directly attached to the project object, as opposed to the asset and person objects.
     if (this.props.onChecklistUpdated) {
       this.props.onChecklistUpdated(
         currentProject,
