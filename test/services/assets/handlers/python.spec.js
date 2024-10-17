@@ -1,5 +1,6 @@
 import fs from 'fs';
 import PythonHandler from '../../../../app/services/assets/handlers/python';
+import Constants from '../../../../app/constants/constants';
 
 jest.mock('fs');
 jest.mock('os');
@@ -30,7 +31,7 @@ describe('services', () => {
         const handler = new PythonHandler();
         expect(handler.includeFile('/User/test/Project/python')).toBeFalsy();
         expect(handler.includeFile('C:/test/Project/Thumbs.db')).toBeFalsy();
-        expect(handler.includeFile('.statwrap-project.json')).toBeFalsy();
+        expect(handler.includeFile(Constants.StatWrapFiles.PROJECT)).toBeFalsy();
       });
 
       it('should exclude where Python extension exists but is not the last', () => {

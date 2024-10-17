@@ -1,5 +1,6 @@
 import fs from 'fs';
 import FileHandler from '../../../../app/services/assets/handlers/file';
+import Constants from '../../../../app/constants/constants';
 
 jest.mock('fs');
 jest.mock('os');
@@ -30,7 +31,7 @@ describe('services', () => {
         const handler = new FileHandler();
         expect(handler.includeFile('/User/test/Project/.DS_Store')).toBeFalsy();
         expect(handler.includeFile('C:/test/Project/Thumbs.db')).toBeFalsy();
-        expect(handler.includeFile('.statwrap-project.json')).toBeFalsy();
+        expect(handler.includeFile(Constants.StatWrapFiles.PROJECT)).toBeFalsy();
       });
 
       it('should include allowable files and folders', () => {

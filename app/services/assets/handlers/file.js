@@ -13,7 +13,7 @@ const FILE_IGNORE_LIST = [
   '.DS_Store',
   'Thumbs.db',
   '.keep', // We use these within our template projects
-  '.statwrap-project.json', // ProjectService DefaultProjectFile -- circular dependency, so we need to use literal
+  Constants.StatWrapFiles.PROJECT,
   StatWrapFiles.LOG,
   StatWrapFiles.BASE_FOLDER,
   '.git',
