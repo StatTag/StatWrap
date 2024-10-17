@@ -13,7 +13,7 @@ const FILE_IGNORE_LIST = [
   '.DS_Store',
   'Thumbs.db',
   '.keep', // We use these within our template projects
-  Constants.StatWrapFiles.PROJECT,
+  StatWrapFiles.PROJECT,
   StatWrapFiles.LOG,
   StatWrapFiles.BASE_FOLDER,
   '.git',

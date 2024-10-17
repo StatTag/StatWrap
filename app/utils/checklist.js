@@ -22,6 +22,12 @@ export default class ChecklistUtil {
   }
 
   static findAssetLanguagesAndDependencies(asset, languages = {}, dependencies = {}) {
+    if (!asset) {
+      return {
+        languages: [],
+        dependencies: []
+      };
+    }
     if (asset.type === Constants.AssetType.FILE && asset.contentTypes.includes(Constants.AssetContentType.CODE) ) {
       const lastSep = asset.uri.lastIndexOf(path.sep);
       const fileName = asset.uri.substring(lastSep + 1);

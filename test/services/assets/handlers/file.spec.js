@@ -3,7 +3,6 @@ import FileHandler from '../../../../app/services/assets/handlers/file';
 import Constants from '../../../../app/constants/constants';
 
 jest.mock('fs');
-jest.mock('os');
 
 describe('services', () => {
   describe('FileHandler', () => {

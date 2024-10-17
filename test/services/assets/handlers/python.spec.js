@@ -3,7 +3,6 @@ import PythonHandler from '../../../../app/services/assets/handlers/python';
 import Constants from '../../../../app/constants/constants';
 
 jest.mock('fs');
-jest.mock('os');
 
 describe('services', () => {
   describe('PythonHandler', () => {
