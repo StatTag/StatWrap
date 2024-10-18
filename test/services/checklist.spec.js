@@ -11,7 +11,7 @@ jest.mock('os');
 
 const TEST_USER_HOME_PATH = process.platform === 'win32' ? 'C:\\Users\\test' : '/User/test';
 os.homedir.mockReturnValue(TEST_USER_HOME_PATH);
-const TEST_PROJECT_PATH = process.platform === 'win32' ? 'C:\\testProject' : '~/testProject';
+const TEST_PROJECT_PATH = process.platform === 'win32' ? `${TEST_USER_HOME_PATH}\\testProject` : '~/testProject';
 
 describe('services', () => {
   describe('ChecklistService', () => {
@@ -61,8 +61,12 @@ describe('services', () => {
         checklistService.loadChecklist(null, (err, result) => {
           expect(err).toBe('The project path must be specified');
           expect(result).toBeNull();
-          done();
         });
+        checklistService.loadChecklist(undefined, (err, result) => {
+          expect(err).toBe('The project path must be specified');
+          expect(result).toBeNull();
+        });
+        done();
       });
 
       it('should return an error if checklist file does not exist', (done) => {

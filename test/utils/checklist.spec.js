@@ -42,6 +42,26 @@ describe('utils', () => {
         });
       });
 
+      it('should return empty result for unmatching content type and asset type', () => {
+        expect(ChecklistUtil.findAssetLanguagesAndDependencies({
+          type: Constants.AssetType.FILE,
+          contentTypes: [Constants.AssetContentType.DATA],
+          uri: 'path/to/file.py',
+        })).toEqual({
+          languages: [],
+          dependencies: [],
+        });
+
+        expect(ChecklistUtil.findAssetLanguagesAndDependencies({
+          type: Constants.AssetType.FILE,
+          contentTypes: [Constants.AssetContentType.CODE],
+          uri: 'path/to/file.csv',
+        })).toEqual({
+          languages: [],
+          dependencies: [],
+        });
+      });
+
       it('should return empty result for directory/folder type assets', () => {
         expect(ChecklistUtil.findAssetLanguagesAndDependencies({
           type: Constants.AssetType.DIRECTORY,

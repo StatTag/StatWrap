@@ -35,7 +35,7 @@ export default class ChecklistUtil {
 
       if(ext){
         AssetsConfig.contentTypes.forEach((contentType) => {
-          if(contentType.extensions.includes(ext)) {
+          if(contentType.categories.includes(Constants.AssetContentType.CODE) && contentType.extensions.includes(ext)) {
             languages[contentType.name] = true;
           }
         });
