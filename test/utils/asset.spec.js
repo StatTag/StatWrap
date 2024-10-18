@@ -1,7 +1,7 @@
 import AssetUtil from '../../app/utils/asset';
 import Constants from '../../app/constants/constants';
 
-describe('services', () => {
+describe('utils', () => {
   describe('AssetUtil', () => {
     describe('getHandlerMetadata', () => {
       it('should return null when there is no metadata', () => {

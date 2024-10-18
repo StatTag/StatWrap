@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import GeneralUtil from '../../app/utils/general';
 
-describe('services', () => {
+describe('utils', () => {
   describe('GeneralUtil', () => {
     describe('formatDateTime', () => {
       it('returns an empty string for an empty date parameter', () => {

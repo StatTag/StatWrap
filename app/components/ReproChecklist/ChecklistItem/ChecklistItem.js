@@ -78,6 +78,9 @@ function ChecklistItem(props) {
     }
 
     setAddAsset(false);
+    setAssetTitle('');
+    setAssetDescription('');
+    setSelectedAsset(null);
   }
 
   const handleCopy = (urlId, hyperlink) => {
@@ -245,7 +248,12 @@ function ChecklistItem(props) {
                 <button onClick={() => handleAddAsset()} className={styles.submitButton}>
                   Add
                 </button>
-                <button onClick={() => setAddAsset(false)} className={styles.cancelButton} autoFocus>
+                <button onClick={() => {
+                  setAddAsset(false);
+                  setAssetTitle('');
+                  setAssetDescription('');
+                  setSelectedAsset(null);
+                }} className={styles.cancelButton} autoFocus>
                   Cancel
                 </button>
               </DialogActions>
@@ -305,7 +313,7 @@ function ChecklistItem(props) {
                 <div className={`${styles.imageContent} ${showImages ? styles.show : ''}`}>
                   <ul>
                     {item.images.map((image) => (
-                      <li key={image} className={styles.image}>
+                      <li key={image.id} className={styles.image}>
                         <div className={styles.imageHeader}>
                           <span className={styles.imageText}>{image.title}</span>
                           <Delete
@@ -389,7 +397,7 @@ function ChecklistItem(props) {
 
 ChecklistItem.propTypes = {
   item: PropTypes.shape({
-    id: PropTypes.string.isRequired,
+    id: PropTypes.number.isRequired,
     name: PropTypes.string.isRequired,
     statement: PropTypes.string.isRequired,
     answer: PropTypes.bool.isRequired,

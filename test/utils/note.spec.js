@@ -1,6 +1,6 @@
 import AssetUtil from '../../app/utils/note';
 
-describe('services', () => {
+describe('utils', () => {
   describe('NoteUtil', () => {
     describe('createNote', () => {
       it('creates the note', () => {

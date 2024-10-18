@@ -56,7 +56,7 @@ describe('services', () => {
         const project = new ProjectService().loadProjectFile('~/Test/Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith(
-          `${TEST_USER_HOME_PATH}Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
+          `${TEST_USER_HOME_PATH}Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/${Constants.StatWrapFiles.PROJECT}`,
         );
       });
       it.onWindows('should resolve the ~ home path', () => {
@@ -64,7 +64,7 @@ describe('services', () => {
         const project = new ProjectService().loadProjectFile('~\\Test\\Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith(
-          `${TEST_USER_HOME_PATH}Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
+          `${TEST_USER_HOME_PATH}Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\${Constants.StatWrapFiles.PROJECT}`,
         );
       });
       it.onMac('should return the project details', () => {
@@ -72,7 +72,7 @@ describe('services', () => {
         const project = new ProjectService().loadProjectFile('/Test/Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith(
-          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
+          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/${Constants.StatWrapFiles.PROJECT}`,
         );
       });
       it.onWindows('should return the project details', () => {
@@ -80,7 +80,7 @@ describe('services', () => {
         const project = new ProjectService().loadProjectFile('C:\\Test\\Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith(
-          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
+          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\${Constants.StatWrapFiles.PROJECT}`,
         );
       });
       it('should throw an exception if the JSON is invalid', () => {
@@ -127,28 +127,28 @@ describe('services', () => {
       it.onMac('should resolve the ~ home path', () => {
         new ProjectService().saveProjectFile('~/Test/Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
-          `${TEST_USER_HOME_PATH}Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
+          `${TEST_USER_HOME_PATH}Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/${Constants.StatWrapFiles.PROJECT}`,
           '{"id":"1"}',
         );
       });
       it.onWindows('should resolve the ~ home path', () => {
         new ProjectService().saveProjectFile('~\\Test\\Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
-          `${TEST_USER_HOME_PATH}Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
+          `${TEST_USER_HOME_PATH}Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\${Constants.StatWrapFiles.PROJECT}`,
           '{"id":"1"}',
         );
       });
       it.onMac('should save the project details', () => {
         new ProjectService().saveProjectFile('/Test/Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
-          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
+          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/${Constants.StatWrapFiles.PROJECT}`,
           '{"id":"1"}',
         );
       });
       it.onWindows('should save the project details', () => {
         new ProjectService().saveProjectFile('C:\\Test\\Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
-          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
+          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\${Constants.StatWrapFiles.PROJECT}`,
           '{"id":"1"}',
         );
       });
@@ -166,7 +166,7 @@ describe('services', () => {
           { recursive: true },
         );
         expect(fs.writeFileSync).toHaveBeenCalledWith(
-          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
+          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/${Constants.StatWrapFiles.PROJECT}`,
           '{"id":"1"}',
         );
       });
@@ -184,7 +184,7 @@ describe('services', () => {
           { recursive: true },
         );
         expect(fs.writeFileSync).toHaveBeenCalledWith(
-          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
+          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\${Constants.StatWrapFiles.PROJECT}`,
           '{"id":"1"}',
         );
       });
