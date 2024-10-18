@@ -155,6 +155,11 @@ export default class GeneralUtil {
     }, []);
   }
 
+  /**
+   * This function converts an image file to it's Base64 string
+   * @param {string} filePath The path to the image file
+   * @returns {string} The Base64 string of the image
+   */
   static convertImageToBase64(filePath) {
     try {
       const file = fs.readFileSync(filePath);

@@ -37,7 +37,7 @@ class ProjectPage extends Component {
       selectedProject: null,
       // The logs (aka Project Log) for the selected project
       selectedProjectLogs: null,
-
+      // The checklist for the selected project
       selectedProjectChecklist: null,
 
       // UI element to inform us what the popup project list menu is attached to
@@ -176,6 +176,7 @@ class ProjectPage extends Component {
     ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, this.state.selectedProject);
   }
 
+  // This handler writes the updated checklist to the checklist file.
   handleChecklistUpdate(project, checklist) {
     ipcRenderer.send(Messages.WRITE_PROJECT_CHECKLIST_REQUEST, project.path, checklist);
   }
@@ -209,6 +210,11 @@ class ProjectPage extends Component {
     }
   }
 
+  /**
+   * Called when a project checklist is loaded.
+   * @param {object} sender The sender of the message
+   * @param {object} response Response containing a project ID and the checklist (if loaded)
+   */
   handleLoadProjectChecklistResponse(sender, response) {
     if (!response || !response.projectId) {
       return;
@@ -217,7 +223,7 @@ class ProjectPage extends Component {
     // Initialize the checklist file if it doesn't exist, for all the already existing projects
     const projectChecklist = ChecklistUtil.initializeChecklist();
     if (response.checklist && response.checklist.length === 0) {
-      // response only returns project id, we need to get the project path
+      // response only returns project id, we need to find the project path
       const project = this.state.projects.find((p) => p.id === response.projectId);
       ipcRenderer.send(Messages.WRITE_PROJECT_CHECKLIST_REQUEST, project.path, projectChecklist);
     }
@@ -234,7 +240,7 @@ class ProjectPage extends Component {
 
   handleProjectExternallyChangedResponse(sender, response) {
     // If any project externally changes - even if it's not the one we currently have selected - we want
-    // to reload the project log so we can detect changes and notify (if needed);
+    // to reload the project log and checklist, so we can detect changes and notify (if needed);
     if (response && response.projectId && this.state.projects) {
       const foundProject = this.state.projects.find((project) => project.id === response.projectId);
       if (foundProject) {

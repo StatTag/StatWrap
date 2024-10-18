@@ -305,6 +305,14 @@ class Project extends Component<Props> {
     }
   };
 
+  /**
+   * General handler to either insert a new note for a checklist item or update an existing note for
+   * a checklist item.  It figures out the appropriate action to take depending on if the note parameter
+   * is provided or not. It also updates the entire checklist linked to the project.
+   * @param {object} checklistItem The checklist item for which the note should be added/updated
+   * @param {string} text The note text
+   * @param {object} note Optional parameter if there is an existing note being updated.  If not provided, a new note is assumed.
+   */
   checklistUpsertNoteHandler = (checklistItem, text, note) => {
     if (this.unchangedNote(note,text)) {
       return;
@@ -424,12 +432,6 @@ class Project extends Component<Props> {
     }
   };
 
-  assetSelectedHandler = asset => {
-    if (this.props.onAssetSelected) {
-      this.props.onAssetSelected(asset);
-    }
-  };
-
   projectDeleteNoteHandler = (project, note) => {
     const currentProject = { ...this.props.project };
     if (currentProject.id !== project.id) {
@@ -479,6 +481,11 @@ class Project extends Component<Props> {
     }
   };
 
+  /**
+   * General handler to delete a note for a checklist item. It also updates the entire checklist linked to the project.
+   * @param {object} checklistItem The checklist item for which the note should be deleted
+   * @param {object} note The note to delete
+   */
   checklistDeleteNoteHandler = (checklistItem, note) => {
     const currentProject = { ...this.props.project };
     const actionDescription = this.deleteNoteHandler(
@@ -749,7 +756,7 @@ class Project extends Component<Props> {
             onAddedNote={this.checklistUpsertNoteHandler}
             onUpdatedNote={this.checklistUpsertNoteHandler}
             onDeletedNote={this.checklistDeleteNoteHandler}
-            onSelectedAsset={this.assetSelectedHandler}
+            onSelectedAsset={this.props.onAssetSelected}
           />
         ) : null;
 

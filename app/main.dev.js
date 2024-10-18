@@ -666,6 +666,9 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
   });
 });
 
+/**
+ * Write the project checklist to the checklist file.
+ */
 ipcMain.on(
   Messages.WRITE_PROJECT_CHECKLIST_REQUEST,
   async (event, projectPath, checklist) => {
@@ -674,6 +677,10 @@ ipcMain.on(
   },
 );
 
+/**
+ * Load the project checklist from the checklist file.
+ * Returns response with checklist data and error message if any.
+ */
 ipcMain.on(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, async (event, project) => {
   const response = {
     projectId: project ? project.id : null,
@@ -688,7 +695,9 @@ ipcMain.on(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, async (event, project) => {
     return;
   }
 
-  checklistService.loadChecklist(project.path, (error, checklist) =>{
+  checklistService.loadChecklist(project.path, (error, checklist) => {
+    // This checks for error when there is issue reading the checklist file,
+    // not when the checklist file is not found. For the latter, we return an empty array.
     if (error && !checklist) {
       response.error = true;
       response.errorMessage = `There was an error reading the project checklist ${error}`;
