@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styles from './ChecklistItem.css';
 import NoteEditor from '../../NoteEditor/NoteEditor';
-import { AddBox, ContentCopy , Done, Delete} from '@mui/icons-material';
-import { IconButton, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { ContentCopy , Done, Delete} from '@mui/icons-material';
+import { IconButton, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { FaFolderOpen, FaFolderMinus, FaChevronUp, FaChevronDown } from 'react-icons/fa';
 import AssetTree from '../../AssetTree/AssetTree';
 import AssetUtil from '../../../utils/asset';
@@ -17,14 +17,24 @@ function ChecklistItem(props) {
   const treeRef = React.useRef(null);
 
   const [expanded, setExpanded] = useState(false);
+
+  const [copiedUrlId, setCopiedUrlId] = useState(null);
+
   const [showImages, setShowImages] = useState(false);
   const [showURLs, setShowURLs] = useState(false);
   const [showSubChecks, setShowSubChecks] = useState(false);
-  const [copiedUrlId, setCopiedUrlId] = useState(null);
-  const [selectedAsset, setSelectedAsset] = useState();
+
+  const [selectedAsset, setSelectedAsset] = useState(null);
   const [addAsset, setAddAsset] = useState(false);
   const [assetTitle, setAssetTitle] = useState('');
   const [assetDescription, setAssetDescription] = useState('');
+
+  const resetAssetDialog = () => {
+    setAddAsset(false);
+    setAssetTitle('');
+    setAssetDescription('');
+    setSelectedAsset(null);
+  };
 
   const handleSelectAsset = (selAsset) => {
     let asset = selAsset;
@@ -38,6 +48,8 @@ function ChecklistItem(props) {
       if (asset.type === Constants.AssetType.FILE) {
         const fileName = AssetUtil.getAssetNameFromUri(asset.uri);
         setAssetTitle(fileName);
+      // Handles case for URL assets
+      // TODO: Title is currently the same as URI, some way to get a better title?
       } else if (asset.type === Constants.AssetType.URL) {
         setAssetTitle(asset.uri);
       } else {
@@ -62,10 +74,12 @@ function ChecklistItem(props) {
     }
 
     if (selectedAsset.type === Constants.AssetType.FILE) {
+      // Adds image files to checklist images
       if(selectedAsset.contentTypes.includes(Constants.AssetContentType.IMAGE)) {
         const updatedItem = { ...item, images: [...item.images, {id: uuidv4(), uri: selectedAsset.uri, title: assetTitle, description: assetDescription}] };
         onItemUpdate(updatedItem);
         setShowImages(true);
+      // Adds file as URL
       } else {
         const updatedItem = { ...item, urls: [...item.urls, {id: uuidv4(), hyperlink: AssetUtil.absoluteToRelativePath(project.path, selectedAsset), title: assetTitle, description: assetDescription}] };
         onItemUpdate(updatedItem);
@@ -77,13 +91,11 @@ function ChecklistItem(props) {
       setShowURLs(true);
     }
 
-    setAddAsset(false);
-    setAssetTitle('');
-    setAssetDescription('');
-    setSelectedAsset(null);
+    resetAssetDialog();
   }
 
   const handleCopy = (urlId, hyperlink) => {
+    // Copy the URL to the clipboard
     navigator.clipboard.writeText(hyperlink).then(() => {
       setCopiedUrlId(urlId);
       setTimeout(() => {
@@ -103,10 +115,6 @@ function ChecklistItem(props) {
   };
 
   const handleNoteUpdate = (note, text) => {
-    if (!text) {
-      console.log("Detected an empty new note - this will not be created");
-      return;
-    }
     if (note) {
       if (onUpdatedNote) {
         onUpdatedNote(item, text, note);
@@ -122,9 +130,6 @@ function ChecklistItem(props) {
     if (onDeletedNote) {
       onDeletedNote(item, note);
     }
-
-    const updatedItem = { ...item, notes: item.notes.filter((n) => n.id !== note.id) };
-    onItemUpdate(updatedItem);
   };
 
   return (
@@ -248,12 +253,7 @@ function ChecklistItem(props) {
                 <button onClick={() => handleAddAsset()} className={styles.submitButton}>
                   Add
                 </button>
-                <button onClick={() => {
-                  setAddAsset(false);
-                  setAssetTitle('');
-                  setAssetDescription('');
-                  setSelectedAsset(null);
-                }} className={styles.cancelButton} autoFocus>
+                <button onClick={() => resetAssetDialog()} className={styles.cancelButton} autoFocus>
                   Cancel
                 </button>
               </DialogActions>
