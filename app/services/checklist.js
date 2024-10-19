@@ -53,8 +53,8 @@ export default class ChecklistService {
 
     try {
       const data = fs.readFileSync(checklistFilePath);
-      const checklists = JSON.parse(data);
-      callback(null, checklists);
+      const checklist = JSON.parse(data);
+      callback(null, checklist);
     } catch (err) {
       callback('Error reading or parsing checklist file', null);
     }
