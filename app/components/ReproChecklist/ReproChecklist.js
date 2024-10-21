@@ -18,15 +18,18 @@ function ReproChecklist(props) {
   const { project, checklist, error, onUpdated, onAddedNote, onUpdatedNote, onDeletedNote, onSelectedAsset} = props;
   const [openExportDialog, setOpenExportDialog] = useState(false);
 
+  // this useEffect hook is here to load the scan results for all the checklist statements
   useEffect(() => {
     if (project && checklist && !error) {
       if(project.assets) {
+        // scan result for the first checklist statement
         const scanResult1 = ChecklistUtil.findAssetLanguagesAndDependencies(project.assets);
         checklist[0].scanResult = scanResult1;
       }
     }
   }, [project]);
 
+  // Handles the update of checklist for changes in the checklist items
   const handleItemUpdate = (updatedItem) => {
     const updatedChecklist = checklist.map(item =>
       item.id === updatedItem.id ? updatedItem : item
@@ -34,7 +37,9 @@ function ReproChecklist(props) {
     onUpdated(project, updatedChecklist);
   };
 
+  // Handles the generation of the reproducibility checklist report in PDF format
   const handleReportGeneration = (exportNotes) => {
+    // pdfMake requires base64 encoded images
     const checkedIcon = GeneralUtil.convertImageToBase64(path.join(__dirname, 'images/yes.png'));
     const statWrapLogo = GeneralUtil.convertImageToBase64(path.join(__dirname, 'images/banner.png'));
 
@@ -132,7 +137,7 @@ function ReproChecklist(props) {
           const imageWidth = 135;
           if(item.images && item.images.length > 0){
             images = item.images.map((image) => {
-              const base64Image = convertImageToBase64(image.uri);
+              const base64Image = GeneralUtil.convertImageToBase64(image.uri);
               if (base64Image) {
                 return {
                   image: base64Image,
@@ -145,6 +150,8 @@ function ReproChecklist(props) {
             });
           }
 
+          // Rendering images by rows, as rendering in columns overflows the page and we can't wrap columns under each other,
+          // math for 3 images per row is as follows:
           // imageWidth*n + calumnGap*(n-1) <= maxWidth - leftMargin - rightMargin
           // 135*n + 10*(n-1) <= 450 - 20 - 0;
           // n <= 440/145 --> n = 3
@@ -297,6 +304,7 @@ function ReproChecklist(props) {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
+          {/* selective export of notes */}
           <Button onClick={() => handleReportGeneration(true)} color="primary">
             Yes
           </Button>

@@ -161,6 +161,7 @@ class CreateProjectDialog extends Component {
           'info',
           this.context,
         );
+        // Seed the project checklist with the null or falsey values
         const projectChecklist = ChecklistUtil.initializeChecklist();
         ipcRenderer.send(
           Messages.WRITE_PROJECT_CHECKLIST_REQUEST,
