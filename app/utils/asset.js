@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 import path from 'path';
 import last from 'lodash/last';
-import constants from '../constants/constants';
+import Constants from '../constants/constants';
 
 // We do have a dependency cycle here, but it is just to grab a constant value.
 // No circular functions exist (and we need to make sure it stays that way).
@@ -173,9 +173,9 @@ export default class AssetUtil {
 
     // We only do this for files and directories
     return (
-      asset.type === constants.AssetType.FILE ||
-      asset.type === constants.AssetType.DIRECTORY ||
-      asset.type === constants.AssetType.FOLDER
+      asset.type === Constants.AssetType.FILE ||
+      asset.type === Constants.AssetType.DIRECTORY ||
+      asset.type === Constants.AssetType.FOLDER
     );
   }
 
@@ -367,5 +367,19 @@ export default class AssetUtil {
     }
 
     return basename.slice(pos + 1); // extract extension ignoring `.`
+  }
+
+  /**
+   * Create an empty externalAssets structure that is consistent with the structure
+   * of the project assets object.
+   *
+   * @returns an object structured for holding external assets.
+   */
+  static createEmptyExternalAssets() {
+    return {
+      uri: 'External Resources',
+      type: Constants.AssetType.FOLDER,
+      children: []
+    };
   }
 }

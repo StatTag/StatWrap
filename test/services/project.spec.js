@@ -3,6 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import process from 'process';
 import ProjectService, { ProjectFileFormatVersion } from '../../app/services/project';
+import AssetUtil from '../../app/utils/asset';
 import Constants from '../../app/constants/constants';
 
 jest.mock('fs');
@@ -1116,7 +1117,7 @@ describe('services', () => {
 
       it('adds an external asset to a project', () => {
         const service = new ProjectService();
-        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ externalAssets: [] });
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ externalAssets: AssetUtil.createEmptyExternalAssets() });
         const updatedProject = service.loadAndMergeProjectUpdates(
           TEST_PROJECT_PATH,
           Constants.ActionType.EXTERNAL_ASSET_ADDED,
@@ -1126,14 +1127,17 @@ describe('services', () => {
         );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.externalAssets).not.toBeNull();
-        expect(updatedProject.externalAssets[0].uri).toBe('http://test.com');
-        expect(updatedProject.externalAssets[0].type).toBe('url');
+        expect(updatedProject.externalAssets.children).not.toBeNull();
+        expect(updatedProject.externalAssets.children[0].uri).toBe('http://test.com');
+        expect(updatedProject.externalAssets.children[0].type).toBe('url');
       });
 
       it('updates an external asset in a project', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({
-          externalAssets: [{ uri: 'http://test.com', name: 'old value', type: 'old value' }],
+          externalAssets: {
+            children: [{ uri: 'http://test.com', name: 'old value', type: 'old value' }]
+          },
         });
         const updatedProject = service.loadAndMergeProjectUpdates(
           TEST_PROJECT_PATH,
@@ -1144,14 +1148,18 @@ describe('services', () => {
         );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.externalAssets).not.toBeNull();
-        expect(updatedProject.externalAssets[0].uri).toBe('http://test.com');
-        expect(updatedProject.externalAssets[0].name).toBe('test asset');
-        expect(updatedProject.externalAssets[0].type).toBe('testing');
+        expect(updatedProject.externalAssets.children).not.toBeNull();
+        expect(updatedProject.externalAssets.children[0].uri).toBe('http://test.com');
+        expect(updatedProject.externalAssets.children[0].name).toBe('test asset');
+        expect(updatedProject.externalAssets.children[0].type).toBe('testing');
       });
 
       it('deletes an external asset from a project', () => {
         const service = new ProjectService();
-        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ externalAssets: [{ uri: 'http://test.com' }] });
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ externalAssets: {
+            children: [{ uri: 'http://test.com' }]
+          }
+        });
         const updatedProject = service.loadAndMergeProjectUpdates(
           TEST_PROJECT_PATH,
           Constants.ActionType.EXTERNAL_ASSET_DELETED,
@@ -1161,7 +1169,8 @@ describe('services', () => {
         );
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.externalAssets).not.toBeNull();
-        expect(updatedProject.externalAssets.length).toBe(0);
+        expect(updatedProject.externalAssets.children).not.toBeNull();
+        expect(updatedProject.externalAssets.children.length).toBe(0);
       });
 
       // Skipping unit tests for the ASSET_GROUP_* actions.  These are mostly wrappers to call a ProjectUtil

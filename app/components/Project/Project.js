@@ -273,9 +273,7 @@ class Project extends Component<Props> {
     // the code will work the same.
     const isExternalAsset = (asset.type === AssetType.URL);
     if (isExternalAsset) {
-      // externalAssets is an array, not an object, so we need to do a little structure change when
-      // we copy it so the rest of the code will work without modification.
-      assetsCopy = { children: cloneDeep(project.externalAssets) };
+      assetsCopy = { ...project.externalAssets };
     } else {
       assetsCopy = { ...project.assets };
     }
@@ -304,7 +302,7 @@ class Project extends Component<Props> {
     // Now at the end, make sure we're updating the correct container depending on the type
     // of asset we received
     if (isExternalAsset) {
-      project.externalAssets = assetsCopy.children;
+      project.externalAssets = assetsCopy;
     } else {
       project.assets = assetsCopy;
     }
@@ -382,9 +380,26 @@ class Project extends Component<Props> {
     }
   };
 
+  /**
+   * Handler when an asset (either the main assets or the externalAssets in a project) has
+   * a note removed.
+   *
+   * @param {object} asset The asset whose note was removed
+   * @param {object} note The note to remove
+   */
   assetDeleteNoteHandler = (asset, note) => {
     const project = { ...this.props.project };
-    const assetsCopy = { ...project.assets };
+
+    // Depending on if this is an external asset or a main asset, determine the right collection
+    // of assets to use.
+    let assetsCopy = null;
+    const isExternalAsset = (asset.type === AssetType.URL);
+    if (isExternalAsset) {
+      assetsCopy = { ...project.externalAssets };
+    } else {
+      assetsCopy = { ...project.assets };
+    }
+
     // When searching for the existing asset, remember that assets is an object and the top-level item is
     // in the root of the object.  Start there before looking at the children.
     const existingAsset = AssetUtil.findDescendantAssetByUri(assetsCopy, asset.uri);
@@ -395,12 +410,18 @@ class Project extends Component<Props> {
       actionDescription = this.deleteNoteHandler(asset, 'asset', asset.uri, note);
     }
 
-    project.assets = assetsCopy;
+    // Assign back to the right collection
+    if (isExternalAsset) {
+      project.externalAssets = assetsCopy;
+    } else {
+      project.assets = assetsCopy;
+    }
+
     if (this.props.onUpdated) {
       this.props.onUpdated(
         project,
         ActionType.NOTE_DELETED,
-        EntityType.ASSET,
+        isExternalAsset ? EntityType.EXTERNAL_ASSET : EntityType.ASSET,
         asset.uri,
         `Asset ${ActionType.NOTE_DELETED}`,
         actionDescription,
@@ -666,8 +687,8 @@ class Project extends Component<Props> {
   externalAssetUpdatedHandler = asset => {
     const user = this.context;
     const currentProject = { ...this.props.project };
-
-    const oldExternalAsset = cloneDeep(this.props.project.externalAssets.find(x => x.uri === asset.uri));
+    const oldExternalAsset = cloneDeep(this.props.project.externalAssets.children ?
+        this.props.project.externalAssets.children.find(x => x.uri === asset.uri) : null);
     const action = {
       type: ActionType.EXTERNAL_ASSET_UPDATED,
       title: ActionType.EXTERNAL_ASSET_UPDATED,

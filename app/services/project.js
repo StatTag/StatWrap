@@ -519,9 +519,11 @@ export default class ProjectService {
           break;
       case Constants.ActionType.EXTERNAL_ASSET_UPDATED:
         if (entityType === EntityType.PROJECT) {
-          const oldAsset = cloneDeep(
-            project.externalAssets.find((x) => x.uri === details.uri),
-          );
+          // const oldAsset = cloneDeep(
+          //   project.externalAssets ?
+          //     project.externalAssets.find((x) => x.uri === details.uri)
+          //     : null,
+          // );
           ProjectUtil.upsertExternalAsset(project, details);
         } else {
           return null;

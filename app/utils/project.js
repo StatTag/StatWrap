@@ -480,15 +480,17 @@ export default class ProjectUtil {
   static upsertExternalAsset(project, asset) {
     ProjectUtil._validateProjectAndAsset(project, asset);
 
-    // Initialize the externalAssets array if it doesn't exist already in the object
+    // Initialize the externalAssets object if it doesn't exist already in the object
     if (!project.externalAssets || project.externalAssets === undefined) {
-      project.externalAssets = [];
+      project.externalAssets = AssetUtil.createEmptyExternalAssets();
+    } else if (!project.externalAssets.children || project.externalAssets.children == null) {
+      project.externalAssets.children = [];
     }
 
     // If we have a URI for the asset, we need to see if it already exists.  Note that our
     // earlier check confirms the URI is set, so we proceed without any other checks.
     let addAssetToArray = false;
-    const existingAsset = project.externalAssets.find((p) => p.uri === asset.uri);
+    const existingAsset = project.externalAssets.children.find((p) => p.uri === asset.uri);
     if (existingAsset) {
       // Copy over only what attributes need to be saved in the directory.
       existingAsset.uri = asset.uri;
@@ -499,7 +501,7 @@ export default class ProjectUtil {
     }
 
     if (addAssetToArray) {
-      project.externalAssets.push(asset);
+      project.externalAssets.children.push(asset);
     }
 
     return asset;
@@ -513,15 +515,17 @@ export default class ProjectUtil {
   static removeExternalAsset(project, asset) {
     ProjectUtil._validateProjectAndAsset(project, asset);
 
-    // If there is no asset group collection, we're done - there's nothing to remove.
+    // If there is no external asset collection, we're done - there's nothing to remove.
     if (!project.externalAssets || project.externalAssets === undefined) {
+      return;
+    } else if (!project.externalAssets.children || project.externalAssets.children === undefined) {
       return;
     }
 
     // If we don't find the asset group, we're going to let it slide silently for now.
-    const existingAssetIndex = project.externalAssets.findIndex((p) => p.uri === asset.uri);
+    const existingAssetIndex = project.externalAssets.children.findIndex((p) => p.uri === asset.uri);
     if (existingAssetIndex > -1) {
-      project.externalAssets.splice(existingAssetIndex, 1);
+      project.externalAssets.children.splice(existingAssetIndex, 1);
     }
   }
 

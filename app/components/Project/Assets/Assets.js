@@ -113,7 +113,8 @@ const assetsComponent = (props) => {
   const [filter, setFilter] = useState([]);
   const filteredProjectAssets = filterProjectAssets(project, null);
   const [assets, setAssets] = useState(filteredProjectAssets);
-  const [externalAssets, setExternalAssets] = useState(project && project.externalAssets ? project.externalAssets : []);
+  const [externalAssets, setExternalAssets] = useState(project && project.externalAssets ?
+    project.externalAssets : AssetUtil.createEmptyExternalAssets());
 
   const projectService = new ProjectService();
 
@@ -144,7 +145,7 @@ const assetsComponent = (props) => {
     setCurrentAssetGroup(null);
     setGroupedAssets(null);
     setFilterEnabled(true);
-    setExternalAssets(project.externalAssets ? project.externalAssets : []);
+    setExternalAssets(project.externalAssets ? project.externalAssets : AssetUtil.createEmptyExternalAssets());
   }, [project]);
 
   // Whenever the filter changes, update the list of assets to include only
@@ -398,15 +399,6 @@ const assetsComponent = (props) => {
         );
       }
 
-      let displayExternalAssets = {};
-      if (externalAssets) {
-        displayExternalAssets = {
-          uri: 'External Resources',
-          type: Constants.AssetType.FOLDER,
-          children: externalAssets
-        };
-      }
-
       // Note that for the AssetFilter component, we always want that to be the original
       // full list of assets.  That's why we use project.assets for that component's
       // propery, and the assets state variable for the AssetTree.
@@ -475,7 +467,7 @@ const assetsComponent = (props) => {
               selectedAsset={selectedAsset}
             />
             <AssetTree
-              assets={displayExternalAssets}
+              assets={externalAssets}
               ref={externalTreeRef}
               onSelectAsset={handlSelectAsset}
               selectedAsset={selectedAsset}

@@ -1433,17 +1433,19 @@ describe('utils', () => {
         type: 'Test',
       };
       expect(ProjectUtil.upsertExternalAsset(project, externalAsset)).not.toBeNull();
-      expect(project.externalAssets[0].uri).toEqual('1-2-3');
-      expect(project.externalAssets[0].type).toEqual(externalAsset.type);
+      expect(project.externalAssets.children[0].uri).toEqual('1-2-3');
+      expect(project.externalAssets.children[0].type).toEqual(externalAsset.type);
     });
     it('should add a new external asset when the URIs differs in case', () => {
       const project = {
-        externalAssets: [
-          {
-            uri: 'a-b-c',
-            type: 'Test',
-          },
-        ],
+        externalAssets: {
+          children: [
+            {
+              uri: 'a-b-c',
+              type: 'Test',
+            },
+          ]
+        },
       };
       expect(
         ProjectUtil.upsertExternalAsset(project, {
@@ -1451,7 +1453,7 @@ describe('utils', () => {
           type: 'Other',
         }),
       ).not.toBeNull();
-      expect(project.externalAssets[1].uri).toEqual('A-b-c');
+      expect(project.externalAssets.children[1].uri).toEqual('A-b-c');
     });
     it('should add a new external asset when the URI is not in the list', () => {
       const project = {};
@@ -1461,20 +1463,22 @@ describe('utils', () => {
           type: 'Test'
         }),
       ).not.toBeNull();
-      expect(project.externalAssets[0]).toEqual({
+      expect(project.externalAssets.children[0]).toEqual({
         uri: '1-2-3',
         type: 'Test',
       });
     });
     it('should update an existing external asset', () => {
       const project = {
-        externalAssets: [
-          {
-            uri: '1-2-3',
-            name: 'Test',
-            type: 'Testing'
-          },
-        ],
+        externalAssets: {
+          children: [
+            {
+              uri: '1-2-3',
+              name: 'Test',
+              type: 'Testing'
+            },
+          ]
+        },
       };
       const updatedAsset = {
         uri: '1-2-3',
@@ -1482,17 +1486,19 @@ describe('utils', () => {
         type: 'Testing'
       };
       expect(ProjectUtil.upsertExternalAsset(project, updatedAsset)).not.toBeNull();
-      expect(project.externalAssets[0]).toEqual(updatedAsset);
+      expect(project.externalAssets.children[0]).toEqual(updatedAsset);
     });
     it('should fail to update an existing asset if the update asset is invalid', () => {
       const project = {
-        externalAssets: [
-          {
-            uri: '1-2-3',
-            name: 'Test',
-            type: 'Testing'
-          },
-        ],
+        externalAssets: {
+          children: [
+            {
+              uri: '1-2-3',
+              name: 'Test',
+              type: 'Testing'
+            },
+          ]
+        },
       };
       const updatedAsset = {
         name: 'Missing URI'
@@ -1524,23 +1530,23 @@ describe('utils', () => {
       ProjectUtil.removeExternalAsset(project, asset);
       expect(project.externalAssets).toBeNull();
     });
-    it('should remove an existing asset group', () => {
-      const project = { externalAssets: [{ uri: '1-2-3', name: 'Test' }] };
+    it('should remove an existing external asset', () => {
+      const project = { externalAssets: { children: [{ uri: '1-2-3', name: 'Test' }]} };
       const asset = {
         uri: '1-2-3',
         name: 'Test',
       };
       ProjectUtil.removeExternalAsset(project, asset);
-      expect(project.externalAssets.length).toEqual(0);
+      expect(project.externalAssets.children.length).toEqual(0);
     });
-    it('should not remove anything if there is no matching asset group ID', () => {
-      const project = { externalAssets: [{ uri: '1-2-3', name: 'Test' }] };
+    it('should not remove anything if there is no matching external asset URI', () => {
+      const project = { externalAssets: { children: [{ uri: '1-2-3', name: 'Test' }]} };
       const asset = {
         uri: '1-2-4',
         name: 'Test',
       };
       ProjectUtil.removeExternalAsset(project, asset);
-      expect(project.externalAssets.length).toEqual(1);
+      expect(project.externalAssets.children.length).toEqual(1);
     });
   });
 });
