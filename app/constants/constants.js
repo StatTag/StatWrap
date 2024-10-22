@@ -68,6 +68,7 @@ module.exports = {
     PROJECT: 'project',
     PERSON: 'person',
     ASSET: 'asset',
+    EXTERNAL_ASSET: 'external asset',  // Slightly different from 'asset' in that it lives outside the project folder
   },
 
   DescriptionContentType: {

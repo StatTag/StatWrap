@@ -102,9 +102,11 @@ const assetsComponent = (props) => {
   // Object that represents the currently selected asset group - either to be displayed, or
   // the one currently being edited.
   const [currentAssetGroup, setCurrentAssetGroup] = useState(null);
-  // Object that represents the currently selected external asset.  Used for managing the
-  // state of the editing dialog.
+  // Object that represents the currently selected external asset.
   const [currentExternalAsset, setCurrentExternalAsset] = useState(null);
+  // Object that represents the external asset that should be used for editing.  This is
+  // separate from the currentExternalAsset because that tracks the current selection.
+  const [editableExternalAsset, setEditableExternalAsset] = useState(null);
   // If the asset list filter is enabled or disabled
   const [filterEnabled, setFilterEnabled] = useState(true);
   // The actual contents of the filter (no filter by default)
@@ -311,7 +313,8 @@ const assetsComponent = (props) => {
   };
 
   const handleEditExternalAsset = (asset) => {
-    setCurrentExternalAsset(cloneDeep(asset));
+    setEditableExternalAsset(cloneDeep(asset));
+    setExternalAssetDialogKey(externalAssetDialogKey + 1);
     setEditingExternalAsset(true);
   };
 
@@ -350,6 +353,7 @@ const assetsComponent = (props) => {
  * Prepare the state/UI for creating a new external asset
  */
   const handleNewExternalAsset = () => {
+    setEditableExternalAsset(null);
     setExternalAssetDialogKey(externalAssetDialogKey + 1);
     setEditingExternalAsset(true);
   };
@@ -501,8 +505,8 @@ const assetsComponent = (props) => {
             open={editingExternalAsset}
             onClose={handleCloseExternalAssetDialog}
             onSave={handleSavedExternalAsset}
-            uri={currentExternalAsset ? currentExternalAsset.uri : ''}
-            name={currentExternalAsset ? currentExternalAsset.name : ''}
+            uri={editableExternalAsset ? editableExternalAsset.uri : ''}
+            name={editableExternalAsset ? editableExternalAsset.name : ''}
           />
         </>
       );

@@ -384,6 +384,12 @@ export default class ProjectService {
             asset.notes = [];
           }
           asset.notes.push(details);
+        } else if (entityType === EntityType.EXTERNAL_ASSET) {
+          const asset = AssetUtil.findDescendantAssetByUri(project.externalAssets, entityKey);
+          if (!asset.notes) {
+            asset.notes = [];
+          }
+          asset.notes.push(details);
         } else if (entityType === EntityType.PERSON) {
           const person = project.people.find((p) => p.id === entityKey);
           if (!person.notes) {
@@ -402,6 +408,9 @@ export default class ProjectService {
         } else if (entityType === EntityType.ASSET) {
           const asset = AssetUtil.findDescendantAssetByUri(project.assets, entityKey);
           this._updateNote(asset, details);
+        } else if (entityType === EntityType.EXTERNAL_ASSET) {
+          const asset = AssetUtil.findDescendantAssetByUri(project.externalAssets, entityKey);
+          this._updateNote(asset, details);
         } else if (entityType === EntityType.PERSON) {
           const person = project.people.find((p) => p.id === entityKey);
           this._updateNote(person, details);
@@ -416,6 +425,9 @@ export default class ProjectService {
           this._deleteNote(project, details);
         } else if (entityType === EntityType.ASSET) {
           const asset = AssetUtil.findDescendantAssetByUri(project.assets, entityKey);
+          this._deleteNote(asset, details);
+        } else if (entityType === EntityType.EXTERNAL_ASSET) {
+          const asset = AssetUtil.findDescendantAssetByUri(project.externalAssets, entityKey);
           this._deleteNote(asset, details);
         } else if (entityType === EntityType.PERSON) {
           const person = project.people.find((p) => p.id === entityKey);
@@ -505,23 +517,23 @@ export default class ProjectService {
             return null;
           }
           break;
-        case Constants.ActionType.EXTERNAL_ASSET_UPDATED:
-          if (entityType === EntityType.PROJECT) {
-            const oldAsset = cloneDeep(
-              project.externalAssets.find((x) => x.uri === details.uri),
-            );
-            ProjectUtil.upsertExternalAsset(project, details);
-          } else {
-            return null;
-          }
-          break;
-        case Constants.ActionType.EXTERNAL_ASSET_DELETED:
-          if (entityType === EntityType.PROJECT) {
-            ProjectUtil.removeExternalAsset(project, details);
-          } else {
-            return null;
-          }
-          break;
+      case Constants.ActionType.EXTERNAL_ASSET_UPDATED:
+        if (entityType === EntityType.PROJECT) {
+          const oldAsset = cloneDeep(
+            project.externalAssets.find((x) => x.uri === details.uri),
+          );
+          ProjectUtil.upsertExternalAsset(project, details);
+        } else {
+          return null;
+        }
+        break;
+      case Constants.ActionType.EXTERNAL_ASSET_DELETED:
+        if (entityType === EntityType.PROJECT) {
+          ProjectUtil.removeExternalAsset(project, details);
+        } else {
+          return null;
+        }
+        break;
       default:
         return null;
     }

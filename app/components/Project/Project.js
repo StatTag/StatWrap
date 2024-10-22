@@ -14,7 +14,7 @@ import Workflow from '../Workflow/Workflow';
 import People from '../People/People';
 import ProjectLog from '../ProjectLog/ProjectLog';
 import ProjectNotes from '../ProjectNotes/ProjectNotes';
-import { ActionType, EntityType, DescriptionContentType } from '../../constants/constants';
+import { ActionType, EntityType, DescriptionContentType, AssetType } from '../../constants/constants';
 import AssetUtil from '../../utils/asset';
 import NoteUtil from '../../utils/note';
 import ProjectUtil from '../../utils/project';
@@ -268,7 +268,17 @@ class Project extends Component<Props> {
     }
 
     const project = { ...this.props.project };
-    const assetsCopy = { ...project.assets };
+    let assetsCopy = null;
+    // Depending on if this is a core asset or an external asset, we need to select the correct container.  The rest of
+    // the code will work the same.
+    const isExternalAsset = (asset.type === AssetType.URL);
+    if (isExternalAsset) {
+      // externalAssets is an array, not an object, so we need to do a little structure change when
+      // we copy it so the rest of the code will work without modification.
+      assetsCopy = { children: cloneDeep(project.externalAssets) };
+    } else {
+      assetsCopy = { ...project.assets };
+    }
 
     // When searching for the existing asset, remember that assets is an object and the top-level item is
     // in the root of the object.  Start there before looking at the children.
@@ -290,12 +300,20 @@ class Project extends Component<Props> {
     } else {
       this.upsertNoteHandler(existingAsset, 'asset', asset.uri, action, text, note);
     }
-    project.assets = assetsCopy;
+
+    // Now at the end, make sure we're updating the correct container depending on the type
+    // of asset we received
+    if (isExternalAsset) {
+      project.externalAssets = assetsCopy.children;
+    } else {
+      project.assets = assetsCopy;
+    }
+
     if (this.props.onUpdated) {
       this.props.onUpdated(
         project,
         action.type,
-        EntityType.ASSET,
+        isExternalAsset ? EntityType.EXTERNAL_ASSET : EntityType.ASSET,
         asset.uri,
         action.title,
         action.description,

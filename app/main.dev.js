@@ -702,16 +702,17 @@ ipcMain.on(
       );
       if (!updatedProject) {
         response.error = true;
-        response.error = 'There was an error updating the project';
+        response.errorMessage = 'There was an error updating the project';
       } else {
         response = saveProject(updatedProject);
         if (response && !response.error) {
           logService.writeLog(projectPath, actionType, title, description, details, level, user);
         }
       }
-    } catch {
+    } catch (e) {
       response.error = true;
-      response.error = 'There was an error updating the project';
+      response.errorMessage = 'There was an error updating the project';
+      console.log(e);
     } finally {
       projectService.unlockProjectFile(projectPath);
     }
