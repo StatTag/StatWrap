@@ -25,7 +25,7 @@ module.exports = {
       details: 'Does this asset contain sensitive information (PHI, PII, passwords, secrets)',
       type: 'bool',
       default: false,
-      appliesTo: ['code', 'data', 'documentation'],
+      appliesTo: ['code', 'data', 'documentation', 'image'],
     },
   ],
   contentTypes: [
@@ -103,6 +103,11 @@ module.exports = {
       name: 'Text',
       extensions: ['txt'],
       categories: ['documentation'],
+    },
+    {
+      name: 'Image',
+      extensions: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'],
+      categories: ['image'],
     },
     // In the patterns, don't use /g. TIL (after hours of debugging), global state preserves
     // where it's checking between calls, so you can call .test() multiple times on the same

@@ -1,8 +1,8 @@
 import fs from 'fs';
 import StataHandler from '../../../../app/services/assets/handlers/stata';
+import Constants from '../../../../app/constants/constants';
 
 jest.mock('fs');
-jest.mock('os');
 
 describe('services', () => {
   describe('StataHandler', () => {
@@ -30,7 +30,7 @@ describe('services', () => {
         const handler = new StataHandler();
         expect(handler.includeFile('/User/test/Project/stata')).toBeFalsy();
         expect(handler.includeFile('C:/test/Project/Thumbs.db')).toBeFalsy();
-        expect(handler.includeFile('.statwrap-project.json')).toBeFalsy();
+        expect(handler.includeFile(Constants.StatWrapFiles.PROJECT)).toBeFalsy();
       });
 
       it('should exclude where Stata extension exists but is not the last', () => {

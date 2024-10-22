@@ -1,0 +1,44 @@
+.empty {
+  padding: 8px;
+  border-radius: 6px;
+  background-color: #eee;
+  border: solid 1px gray;
+  font-style: italic;
+  margin-top: 15px;
+}
+
+.downloadContainer {
+  position: fixed;
+  bottom: 10px;
+  right: 20px;
+}
+
+.downloadButton {
+  background-color: #639;
+  padding-right: 4px;
+  padding-left: 5px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+
+.downloadButton:hover {
+  opacity: 0.9;
+}
+
+.buttonContent {
+  display: flex;
+  color: white;
+  font-size: 16px;
+}
+
+.buttonText {
+  margin-top: 3px;
+  margin-right: 2px;
+}
+
+.dialogTitle {
+  color: white;
+}
+
+.dialogContent {
+  padding-bottom: 5px;
+}

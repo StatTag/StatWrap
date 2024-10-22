@@ -1,0 +1,409 @@
+.item {
+  padding: 10px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.header span {
+  max-width: 83%;
+}
+
+.statementHeader {
+  display:flex;
+  justify-content: center;
+  border: 1px solid #e5e5e5;
+  border-radius: 7px;
+  background-color: #f1f1f1;
+  padding: 10px 10px 0;
+}
+
+.expandButton {
+  background: none;
+  padding-left: 0px;
+  margin-right: 0px;
+  align-items: center;
+  display: flex;
+}
+
+.chevron {
+  padding: 10px;
+  font-size: 1.2rem;
+}
+
+.header {
+  display:flex;
+  justify-content: center;
+}
+
+.statement {
+  font-size: 18px;
+  font-weight: bold;
+  margin-right: 5px;
+  margin-bottom: 10px;
+}
+
+.buttonContainer {
+  display: flex;
+  margin-left: auto;
+  margin-right: 0;
+  margin-bottom: 10px;
+}
+
+.scanResult {
+  font-size: medium;
+  font-family:'Courier New', Courier, monospace;
+}
+
+.scanKey {
+}
+
+.scanList {
+  margin-top: 4px;
+}
+
+.details {
+  padding-left: 20px;
+  margin-top: 10px;
+}
+
+.images,
+.subChecklist {
+  margin-top: 10px;
+}
+
+.urls {
+}
+
+.images ul{
+  list-style-type: none;
+  padding-left: 0;
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.urls ul {
+  list-style-type: none;
+  padding-left: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: nowrap;
+}
+
+.images li{
+  margin-right: 10px;
+  margin-bottom: 5px;
+  padding-right: 5px;
+  position: relative;
+}
+
+.urls li{
+  margin-right: 10px;
+  margin-bottom: 5px;
+  padding-bottom: 5px;
+  position: relative;
+}
+
+.images li:not(:last-child) {
+  border-right: 1px solid #ccc;
+}
+
+.urls li:not(:last-child) {
+  border-bottom: 1px solid #ccc;
+}
+
+.timestamp {
+  display: block;
+  font-size: 12px;
+  color: #888;
+}
+
+.images img {
+  height: auto;
+  max-height: 150px;
+  transition: max-height 0.3s ease;
+  display: block;
+  margin-top: 5px;
+}
+
+.imageContent,
+.urlContent {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.imageContent.show,
+.urlContent.show {
+  max-height: 500px;
+}
+
+.subChecksContent {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease;
+}
+
+.subChecksContent.show {
+  max-height: 1000px;
+}
+
+.image {
+  text-wrap: wrap;
+}
+
+.url {
+  background-color:#f2ebff;
+  border:1px solid rebeccapurple;
+  padding: 7px;
+  padding-right: 0;
+  border-radius: 5px;
+  text-wrap: wrap;
+  word-wrap: break-word;
+}
+
+.selectedImage {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 10px;
+}
+
+.hyperlink {
+  display: flex;
+  justify-content: space-evenly;
+  margin-bottom: 10px;
+}
+
+.urlHeader, .imageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.doneButton {
+  background-color: transparent;
+  color: #2bc621;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.doneButton:hover {
+  background-color: #dfd2f7;
+}
+
+.copyButton {
+  background-color: transparent;
+  color: rebeccapurple;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.copyButton:hover {
+  background-color: #dfd2f7;
+}
+
+.delButton {
+  background-color: transparent;
+  color: rebeccapurple;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-left: 5px;
+  margin-right: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.delButton:hover {
+  background-color: #dfd2f7;
+}
+
+.urls a {
+  text-decoration: none;
+  color: #007bff;
+  display: block;
+  margin-top: 5px;
+}
+
+.urls a:hover {
+  color: darkblue;
+}
+
+.images p,
+.urls p {
+  margin-top: 8px;
+  font-size: 15px;
+}
+
+.item button {
+  min-width: 50px;
+  height: 32px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.item button.yes {
+  background-color: #aa94d1;
+  color: white;
+}
+
+.item button.yesset {
+  background-color: rebeccapurple;
+  color: white;
+}
+
+.item button.no {
+  background-color: silver;
+  color: white;
+}
+
+.item button.noset {
+  background-color: grey;
+  color: white;
+}
+
+.item button:hover {
+  opacity: 0.9;
+}
+
+.addImagesButton, .addUrlsButton {
+  background-color: #aa94d1;
+  color: #fff;
+  cursor: pointer;
+  padding: 5px 10px;
+  margin-top: 5px;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.addImagesButton:hover, .addUrlsButton:hover {
+  background-color: #8b6fb3;
+}
+
+.addIcon {
+  height: 28px;
+  width: 28px;
+  color: rebeccapurple;
+  cursor: pointer;
+  transition: color 0.5s ease;
+}
+
+.addIcon:hover {
+  opacity: 0.8;
+}
+
+.headerWithButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dropdownButton {
+  background-color: #f8f9fa;
+  color: #333;
+  border: none;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.dropdownButton:hover {
+  background-color: #e9ecef;
+}
+
+.dropdownContent {
+  display: none;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-top: 5px;
+  transition: max-height 0.3s ease;
+}
+
+.dropdownContent.show {
+  display: block;
+  max-height: 500px;
+}
+
+.urlText, .imageText {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.tree {
+  width: 50%;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.toolbar {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.toolbarButton {
+  font-size: 0.8rem !important;
+}
+
+.submitButton {
+  background-color: #aa94d1;
+  color: #000;
+  border: none;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.submitButton:hover {
+  opacity: 0.9;
+}
+
+.cancelButton {
+  background-color: #ccc;
+  color: #000;
+  border: none;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.cancelButton:hover {
+  opacity: 0.9;
+}
+
+.dialogTitle {
+  color: white;
+  display: flex;
+  justify-content: center;
+}
+
+.dialogContent {
+  padding-bottom: 5px;
+  display: flex;
+  justify-content: center;
+}
+
+.title {
+  display: flex;
+  justify-content: flex-end;
+}
+.description {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.form {
+  margin-top: 20px;
+}

@@ -13,6 +13,7 @@ import Assets from './Assets/Assets';
 import Workflow from '../Workflow/Workflow';
 import People from '../People/People';
 import ProjectLog from '../ProjectLog/ProjectLog';
+import ReproChecklist from '../ReproChecklist/ReproChecklist';
 import ProjectNotes from '../ProjectNotes/ProjectNotes';
 import { ActionType, EntityType, DescriptionContentType, AssetType } from '../../constants/constants';
 import AssetUtil from '../../utils/asset';
@@ -296,7 +297,7 @@ class Project extends Component<Props> {
       // TODO - fix bug here - should be failing
       assetsCopy.push(newAsset);
     } else {
-      this.upsertNoteHandler(existingAsset, 'asset', asset.uri, action, text, note);
+      this.upsertNoteHandler(existingAsset, EntityType.ASSET, asset.uri, action, text, note);
     }
 
     // Now at the end, make sure we're updating the correct container depending on the type
@@ -319,6 +320,46 @@ class Project extends Component<Props> {
       );
     }
   };
+
+  /**
+   * General handler to either insert a new note for a checklist item or update an existing note for
+   * a checklist item.  It figures out the appropriate action to take depending on if the note parameter
+   * is provided or not. It also updates the entire checklist linked to the project.
+   * @param {object} checklistItem The checklist item for which the note should be added/updated
+   * @param {string} text The note text
+   * @param {object} note Optional parameter if there is an existing note being updated.  If not provided, a new note is assumed.
+   */
+  checklistUpsertNoteHandler = (checklistItem, text, note) => {
+    if (this.unchangedNote(note,text)) {
+      return;
+    }
+
+    const currentProject = { ...this.props.project };
+    const action = { type: '', title: '', description: '', details: null };
+    this.upsertNoteHandler(
+      checklistItem,
+      EntityType.CHECKLIST,
+      checklistItem.name,
+      action,
+      text,
+      note
+    );
+    // Once the checklist item is updated, we must also update the entire checklist linked to the project.
+    const updatedChecklist = this.props.checklistResponse.checklist.map(x => {
+      if (x.id === checklistItem.id) {
+        return checklistItem;
+      }
+      return x;
+    });
+    // Updates the checklist linked to the current project and saves the changes to the checklist file.
+    // Note that the checklist object is not directly attached to the project object, as opposed to the asset and person objects.
+    if (this.props.onChecklistUpdated) {
+      this.props.onChecklistUpdated(
+        currentProject,
+        updatedChecklist
+      );
+    }
+  }
 
   /**
    * More generic handler to implement the common delete functions needed for asset and project notes
@@ -430,12 +471,6 @@ class Project extends Component<Props> {
     }
   };
 
-  assetSelectedHandler = asset => {
-    if (this.props.onAssetSelected) {
-      this.props.onAssetSelected(asset);
-    }
-  };
-
   projectDeleteNoteHandler = (project, note) => {
     const currentProject = { ...this.props.project };
     if (currentProject.id !== project.id) {
@@ -484,6 +519,36 @@ class Project extends Component<Props> {
       );
     }
   };
+
+  /**
+   * General handler to delete a note for a checklist item. It also updates the entire checklist linked to the project.
+   * @param {object} checklistItem The checklist item for which the note should be deleted
+   * @param {object} note The note to delete
+   */
+  checklistDeleteNoteHandler = (checklistItem, note) => {
+    const currentProject = { ...this.props.project };
+    const actionDescription = this.deleteNoteHandler(
+      checklistItem,
+      EntityType.CHECKLIST,
+      checklistItem.name,
+      note
+    );
+    // Once the checklist item is updated, we must also update the entire checklist linked to the project.
+    const updatedChecklist = this.props.checklistResponse.checklist.map(x => {
+      if (x.id === checklistItem.id) {
+        return checklistItem;
+      }
+      return x;
+    });
+    // Updates the checklist linked to the current project and saves the changes to the checklist file.
+    // Note that the checklist object is not directly attached to the project object, as opposed to the asset and person objects.
+    if (this.props.onChecklistUpdated) {
+      this.props.onChecklistUpdated(
+        currentProject,
+        updatedChecklist
+      );
+    }
+  }
 
   deletePersonHandler = person => {
     const currentProject = { ...this.props.project };
@@ -798,6 +863,20 @@ class Project extends Component<Props> {
           />
         ) : null;
 
+      const checklist =
+        this.props.project && this.props.checklistResponse ? (
+          <ReproChecklist
+            project={this.props.project}
+            checklist={this.props.checklistResponse.checklist}
+            error={this.props.checklistResponse.errorMessage}
+            onUpdated={this.props.onChecklistUpdated}
+            onAddedNote={this.checklistUpsertNoteHandler}
+            onUpdatedNote={this.checklistUpsertNoteHandler}
+            onDeletedNote={this.checklistDeleteNoteHandler}
+            onSelectedAsset={this.props.onAssetSelected}
+          />
+        ) : null;
+
       content = (
         <TabContext value={this.state.selectedTab}>
           <div className={styles.header}>
@@ -826,6 +905,7 @@ class Project extends Component<Props> {
               <Tab label="People" value="people" classes={tabStyle} />
               <Tab label="Notes" value="projectNotes" classes={tabStyle} />
               <Tab label="Project Log" value="projectLog" classes={tabStyle} />
+              <Tab label="Checklist" value="checklist" classes={tabStyle} />
             </Tabs>
           </div>
           <TabPanel value="about" classes={tabPanelStyle}>
@@ -846,6 +926,9 @@ class Project extends Component<Props> {
           <TabPanel value="projectLog" classes={tabPanelStyle}>
             {projectLog}
           </TabPanel>
+          <TabPanel value="checklist" classes={tabPanelStyle}>
+            {checklist}
+          </TabPanel>
         </TabContext>
       );
     }
@@ -862,6 +945,7 @@ Project.propTypes = {
   classes: PropTypes.object,
   onUpdated: PropTypes.func,
   onAssetSelected: PropTypes.func,
+  onChecklistUpdated: PropTypes.func,
   // This object has the following structure:
   // {
   //   logs: array<string>   - the actual log data
@@ -874,6 +958,7 @@ Project.propTypes = {
   // This object has the following structure:
   // {
   // }
+  checklistResponse: PropTypes.object,
   configuration: PropTypes.object,
   assetDynamicDetails: PropTypes.object
 };
@@ -883,7 +968,9 @@ Project.defaultProps = {
   classes: null,
   onUpdated: null,
   onAssetSelected: null,
+  onChecklistUpdated: null,
   logs: null,
+  checklistResponse: null,
   configuration: null,
   assetDynamicDetails: null
 };

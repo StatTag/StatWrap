@@ -1,5 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 const DefaultDisplayName = '(empty)';
+const path = require('path');
+const fs = require('fs');
 const AllowedUrlProtocols = ['http:', 'https:', 'ftp:', 'ssh:', 'file:', 'ws:', 'wss:', 'smb:', 's3:']
 
 export default class GeneralUtil {
@@ -177,4 +179,41 @@ export default class GeneralUtil {
     let lowerProtocol = givenURL.protocol.toLowerCase();
     return AllowedUrlProtocols.includes(lowerProtocol);
   }
+
+  /**
+   * This function converts an image file to it's Base64 string
+   * @param {string} filePath The path to the image file
+   * @returns {string} The Base64 string of the image
+   */
+  static convertImageToBase64(filePath) {
+    try {
+      const file = fs.readFileSync(filePath);
+      const ext = path.extname(filePath).toLowerCase();
+      let mimeType;
+      switch (ext) {
+        case '.jpg':
+        case '.jpeg':
+          mimeType = 'image/jpeg';
+          break;
+        case '.png':
+          mimeType = 'image/png';
+          break;
+        case '.gif':
+          mimeType = 'image/gif';
+          break;
+        case '.webp':
+          mimeType = 'image/webp';
+          break;
+        case '.svg':
+          mimeType = 'image/svg+xml';
+          break;
+        default:
+          mimeType = 'application/octet-stream';
+      }
+      return `data:${mimeType};base64,${file.toString('base64')}`;
+    } catch (error) {
+      console.error('Error converting image to Base64:', error);
+      return null;
+    }
+  };
 }
