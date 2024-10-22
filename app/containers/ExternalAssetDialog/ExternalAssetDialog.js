@@ -21,7 +21,7 @@ class ExternalAssetDialog extends Component {
     super(props);
     this.state = {
       errorMessage: null,
-      uri: props.uri ? props.uri : null,
+      uri: props.uri ? props.uri : '',
       name: props.name ? props.name : '',
       type: Constants.AssetType.URL,  // For now, always URL
       isNew: props.isNew ? props.isNew : true,

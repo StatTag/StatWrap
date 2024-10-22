@@ -341,6 +341,29 @@ export default class AssetUtil {
   }
 
   /**
+   * Given an asset, format the name for displaying in the tree control
+   *
+   * @param {object} asset The asset to get the display name for
+   * @returns A string contianing the correct display text
+   */
+  static getAssetNameForTree(asset) {
+    if (!asset) {
+      return '';
+    }
+
+    if (this.isExternalAsset(asset)) {
+      // If there is no name provided, send back the URL
+      if (!asset.name || asset.name === undefined || asset.name.trim() === '') {
+        return asset.uri;
+      }
+      // If we have a name, format the URL
+      return `${asset.name} (${asset.uri})`
+    } else {
+      return this.getAssetNameFromUri(asset);
+    }
+  }
+
+  /**
    * Given a URI, return the extension of the asset
    * From: https://stackoverflow.com/a/12900504
    *
@@ -381,5 +404,18 @@ export default class AssetUtil {
       type: Constants.AssetType.FOLDER,
       children: []
     };
+  }
+
+  /**
+   * Determine if the asset provided as a parameter is an external asset or a primary asset.
+   * @param {object} asset The asset to check
+   * @returns true if the object is confirmed as an external asset, and false otherwise
+   */
+  static isExternalAsset(asset) {
+    if (!asset || asset === undefined || !asset.type || asset.type === undefined) {
+      return false;
+    }
+
+    return asset.type === Constants.AssetType.URL;
   }
 }

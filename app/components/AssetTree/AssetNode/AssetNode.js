@@ -39,6 +39,11 @@ const StyledInput = styled.input`
   margin-right: 5px;
 `;
 
+const StyledLabel = styled.span`
+  overflow: hidden;
+    text-overflow: ellipsis;
+`;
+
 function AssetNode(props) {
   const {
     node,
@@ -108,7 +113,7 @@ function AssetNode(props) {
           {node.type === Constants.AssetType.URL && <FaGlobe />}
         </NodeIcon>
 
-        <span role="button">{AssetUtil.getAssetNameFromUri(node)}</span>
+        <StyledLabel role="button">{AssetUtil.getAssetNameForTree(node)}</StyledLabel>
       </StyledTreeNode>
 
       {isOpen &&
