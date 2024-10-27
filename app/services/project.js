@@ -13,11 +13,10 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const DefaultProjectFile = '.statwrap-project.json';
 const ProjectFileFormatVersion = '1';
 const MaximumFolderNameLength = 255;
 
-export { DefaultProjectFile, ProjectFileFormatVersion };
+export { ProjectFileFormatVersion };
 
 export default class ProjectService {
   /**
@@ -89,9 +88,9 @@ export default class ProjectService {
 
   lockProjectFile(projectPath) {
     const filePath = path.join(
-      projectPath.replace('~', os.homedir),
+      projectPath.replace('~', os.homedir()),
       Constants.StatWrapFiles.BASE_FOLDER,
-      DefaultProjectFile,
+      Constants.StatWrapFiles.PROJECT,
     );
 
     lockfile.lockSync(filePath);
@@ -99,9 +98,9 @@ export default class ProjectService {
 
   unlockProjectFile(projectPath) {
     const filePath = path.join(
-      projectPath.replace('~', os.homedir),
+      projectPath.replace('~', os.homedir()),
       Constants.StatWrapFiles.BASE_FOLDER,
-      DefaultProjectFile,
+      Constants.StatWrapFiles.PROJECT,
     );
 
     lockfile.unlockSync(filePath);
@@ -112,9 +111,9 @@ export default class ProjectService {
   // name should not be specified as part of projectPath.
   loadProjectFile(projectPath) {
     const filePath = path.join(
-      projectPath.replace('~', os.homedir),
+      projectPath.replace('~', os.homedir()),
       Constants.StatWrapFiles.BASE_FOLDER,
-      DefaultProjectFile,
+      Constants.StatWrapFiles.PROJECT,
     );
 
     try {
@@ -174,7 +173,7 @@ export default class ProjectService {
     // This will handle if someone is trying to configure what they think is a new project,
     // but it actually already exists
     const configFolderPath = path.join(
-      projectPath.replace('~', os.homedir),
+      projectPath.replace('~', os.homedir()),
       Constants.StatWrapFiles.BASE_FOLDER,
     );
     try {
@@ -183,7 +182,7 @@ export default class ProjectService {
       fs.mkdirSync(configFolderPath, { recursive: true });
     }
 
-    const filePath = path.join(configFolderPath, DefaultProjectFile);
+    const filePath = path.join(configFolderPath, Constants.StatWrapFiles.PROJECT);
     fs.writeFileSync(filePath, JSON.stringify(this.stripExtraProjectData(project)));
   }
 
@@ -233,7 +232,7 @@ export default class ProjectService {
         // appended to the root folder.
         const sanitizedName = this.sanitizeFolderName(project.name);
         const projectDirectory = path.join(
-          project.directory.replace('~', os.homedir),
+          project.directory.replace('~', os.homedir()),
           sanitizedName,
         );
         validationReport.project.name = project.name;
@@ -384,6 +383,12 @@ export default class ProjectService {
             asset.notes = [];
           }
           asset.notes.push(details);
+        } else if (entityType === EntityType.EXTERNAL_ASSET) {
+          const asset = AssetUtil.findDescendantAssetByUri(project.externalAssets, entityKey);
+          if (!asset.notes) {
+            asset.notes = [];
+          }
+          asset.notes.push(details);
         } else if (entityType === EntityType.PERSON) {
           const person = project.people.find((p) => p.id === entityKey);
           if (!person.notes) {
@@ -402,6 +407,9 @@ export default class ProjectService {
         } else if (entityType === EntityType.ASSET) {
           const asset = AssetUtil.findDescendantAssetByUri(project.assets, entityKey);
           this._updateNote(asset, details);
+        } else if (entityType === EntityType.EXTERNAL_ASSET) {
+          const asset = AssetUtil.findDescendantAssetByUri(project.externalAssets, entityKey);
+          this._updateNote(asset, details);
         } else if (entityType === EntityType.PERSON) {
           const person = project.people.find((p) => p.id === entityKey);
           this._updateNote(person, details);
@@ -416,6 +424,9 @@ export default class ProjectService {
           this._deleteNote(project, details);
         } else if (entityType === EntityType.ASSET) {
           const asset = AssetUtil.findDescendantAssetByUri(project.assets, entityKey);
+          this._deleteNote(asset, details);
+        } else if (entityType === EntityType.EXTERNAL_ASSET) {
+          const asset = AssetUtil.findDescendantAssetByUri(project.externalAssets, entityKey);
           this._deleteNote(asset, details);
         } else if (entityType === EntityType.PERSON) {
           const person = project.people.find((p) => p.id === entityKey);
@@ -484,9 +495,9 @@ export default class ProjectService {
       case Constants.ActionType.ASSET_GROUP_UPDATED:
         if (entityType === EntityType.PROJECT) {
           const oldAssetGroup = cloneDeep(
-            this.props.project.assetGroups.find((x) => x.id === details.id),
+            project.assetGroups.find((x) => x.id === details.id),
           );
-          ProjectUtil.upsertAssetGroup(project, oldAssetGroup);
+          ProjectUtil.upsertAssetGroup(project, details);
         } else {
           return null;
         }
@@ -494,6 +505,32 @@ export default class ProjectService {
       case Constants.ActionType.ASSET_GROUP_DELETED:
         if (entityType === EntityType.PROJECT) {
           ProjectUtil.removeAssetGroup(project, details);
+        } else {
+          return null;
+        }
+        break;
+      case Constants.ActionType.EXTERNAL_ASSET_ADDED:
+          if (entityType === EntityType.PROJECT) {
+            ProjectUtil.upsertExternalAsset(project, details);
+          } else {
+            return null;
+          }
+          break;
+      case Constants.ActionType.EXTERNAL_ASSET_UPDATED:
+        if (entityType === EntityType.PROJECT) {
+          // const oldAsset = cloneDeep(
+          //   project.externalAssets ?
+          //     project.externalAssets.find((x) => x.uri === details.uri)
+          //     : null,
+          // );
+          ProjectUtil.upsertExternalAsset(project, details);
+        } else {
+          return null;
+        }
+        break;
+      case Constants.ActionType.EXTERNAL_ASSET_DELETED:
+        if (entityType === EntityType.PROJECT) {
+          ProjectUtil.removeExternalAsset(project, details);
         } else {
           return null;
         }

@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import GeneralUtil from '../../app/utils/general';
 
-describe('services', () => {
+describe('utils', () => {
   describe('GeneralUtil', () => {
     describe('formatDateTime', () => {
       it('returns an empty string for an empty date parameter', () => {
@@ -195,6 +195,59 @@ describe('services', () => {
           ],
           '2': [{ category: ['1', '2'], value: 'b' }],
         });
+      });
+    });
+
+    describe('isValidResourceUrl', () => {
+      it('handles a null or undefined input string', () => {
+        expect(GeneralUtil.isValidResourceUrl(null)).toBe(false);
+        expect(GeneralUtil.isValidResourceUrl(undefined)).toBe(false);
+      });
+
+      it('handles an empty or whitespace input string', () => {
+        expect(GeneralUtil.isValidResourceUrl('')).toBe(false);
+        expect(GeneralUtil.isValidResourceUrl('      ')).toBe(false);
+      });
+
+      it('approves of a valid web URL', () => {
+        expect(GeneralUtil.isValidResourceUrl('http://test')).toBe(true);
+        expect(GeneralUtil.isValidResourceUrl('https://test.com')).toBe(true);
+        expect(GeneralUtil.isValidResourceUrl('https://www.test.com')).toBe(true);
+      });
+
+      it('does not allow https when only later in string', () => {
+        expect(GeneralUtil.isValidResourceUrl('this is not okay https://test')).toBe(false);
+      });
+
+      it('does not allow unknown protocols', () => {
+        expect(GeneralUtil.isValidResourceUrl('blah://not-okay')).toBe(false);
+        expect(GeneralUtil.isValidResourceUrl('javascript:alert(1234)')).toBe(false);
+      });
+
+      it('requires a protocol', () => {
+        expect(GeneralUtil.isValidResourceUrl('www.stattag.org')).toBe(false);
+      });
+
+      it('does not allow unknown protocols that partially match valid ones', () => {
+        expect(GeneralUtil.isValidResourceUrl('httpsx://not-okay')).toBe(false);
+        expect(GeneralUtil.isValidResourceUrl('sftp://hostname')).toBe(false);
+      });
+
+      it('does not allow just protocol names', () => {
+        expect(GeneralUtil.isValidResourceUrl('ftp')).toBe(false);
+        expect(GeneralUtil.isValidResourceUrl('ssh')).toBe(false);
+      });
+
+      it('does not allow a protocol with just a colon or slashes', () => {
+        expect(GeneralUtil.isValidResourceUrl('ftp:')).toBe(false);
+        expect(GeneralUtil.isValidResourceUrl('ftp://')).toBe(false);
+        expect(GeneralUtil.isValidResourceUrl('http: ')).toBe(false);
+        expect(GeneralUtil.isValidResourceUrl('http:// ')).toBe(false);
+      });
+
+      it('allows file paths', () => {
+        expect(GeneralUtil.isValidResourceUrl('file://C:/test/test.csv')).toBe(true);
+        expect(GeneralUtil.isValidResourceUrl('file:///Users/me/test.csv')).toBe(true);
       });
     });
   });

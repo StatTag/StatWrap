@@ -34,6 +34,7 @@ import AssetsConfig from './constants/assets-config';
 import AssetUtil from './utils/asset';
 import ProjectUtil from './utils/project';
 import LogService from './services/log';
+import ChecklistService from './services/checklist';
 
 // Initialize @electron/remote
 initialize();
@@ -53,6 +54,7 @@ const projectService = new ProjectService();
 const projectListService = new ProjectListService();
 const sourceControlService = new SourceControlService();
 const logService = new LogService();
+const checklistService = new ChecklistService();
 
 // The LogWatcherService requires a window from which we can send messages, so we can't
 // construct it until the BrowserWindow is created.
@@ -188,6 +190,7 @@ const saveProject = (project) => {
         project.path,
         projectConfig.assetGroups,
       );
+      projectConfig.externalAssets = cloneDeep(project.externalAssets);
       projectService.saveProjectFile(project.path, projectConfig);
 
       // Reload the project configuration.  Depending on what's changed, we may need to re-load it
@@ -262,6 +265,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
           project.path,
           metadata.assetGroups,
         );
+        fullProject.externalAssets = metadata.externalAssets;
         fullProject.loadError = false;
       }
       return fullProject;
@@ -543,6 +547,7 @@ ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
         project.path,
         projectConfig.assetGroups,
       );
+      response.project.externalAssets = projectConfig.externalAssets;
 
       const saveResponse = saveProject(response.project);
       response.project = saveResponse.project; // Pick up any enrichment from saveProject
@@ -665,6 +670,50 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
 });
 
 /**
+ * Write the project checklist to the checklist file.
+ */
+ipcMain.on(
+  Messages.WRITE_PROJECT_CHECKLIST_REQUEST,
+  async (event, projectPath, checklist) => {
+    checklistService.writeChecklist(projectPath, checklist);
+    event.sender.send(Messages.WRITE_PROJECT_CHECKLIST_RESPONSE);
+  },
+);
+
+/**
+ * Load the project checklist from the checklist file.
+ * Returns response with checklist data and error message if any.
+ */
+ipcMain.on(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, async (event, project) => {
+  const response = {
+    projectId: project ? project.id : null,
+    checklist: null,
+    error: false,
+    errorMessage: '',
+  };
+  if (!project) {
+    response.error = true;
+    response.errorMessage = 'No project was selected';
+    event.sender.send(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, response);
+    return;
+  }
+
+  checklistService.loadChecklist(project.path, (error, checklist) => {
+    // This checks for error when there is issue reading the checklist file,
+    // not when the checklist file is not found. For the latter, we return an empty array.
+    if (error && !checklist) {
+      response.error = true;
+      response.errorMessage = `There was an error reading the project checklist ${error}`;
+      event.sender.send(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, response);
+      return;
+    }
+
+    response.checklist = checklist;
+    event.sender.send(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, response);
+  });
+});
+
+/**
  * Given a project, update its information and save that information to the project
  * configuration file.
  */
@@ -699,16 +748,17 @@ ipcMain.on(
       );
       if (!updatedProject) {
         response.error = true;
-        response.error = 'There was an error updating the project';
+        response.errorMessage = 'There was an error updating the project';
       } else {
         response = saveProject(updatedProject);
         if (response && !response.error) {
           logService.writeLog(projectPath, actionType, title, description, details, level, user);
         }
       }
-    } catch {
+    } catch (e) {
       response.error = true;
-      response.error = 'There was an error updating the project';
+      response.errorMessage = 'There was an error updating the project';
+      console.log(e);
     } finally {
       projectService.unlockProjectFile(projectPath);
     }

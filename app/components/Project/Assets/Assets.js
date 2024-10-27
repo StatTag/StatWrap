@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { IconButton } from '@mui/material';
-import { FaPlusSquare, FaSave, FaBan, FaFolderOpen, FaFolderMinus } from 'react-icons/fa';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlusSquare, faSave, faBan, faFolderOpen, faFolderMinus, faFileCirclePlus } from '@fortawesome/free-solid-svg-icons';
 import { cloneDeep } from 'lodash';
+import Constants from '../../../constants/constants';
 import AssetGroupDialog from '../../../containers/AssetGroupDialog/AssetGroupDialog';
+import ExternalAssetDialog from '../../../containers/ExternalAssetDialog/ExternalAssetDialog';
 import Error from '../../Error/Error';
 import AssetTree from '../../AssetTree/AssetTree';
 import AssetDetails from '../../AssetDetails/AssetDetails';
@@ -72,31 +75,46 @@ const assetsComponent = (props) => {
     onAddedAssetGroup,
     onUpdatedAssetGroup,
     onDeletedAssetGroup,
+    onAddedExternalAsset,
+    onUpdatedExternalAsset,
+    onDeletedExternalAsset,
     assetAttributes,
     dynamicDetails,
   } = props;
   const [selectedAsset, setSelectedAsset] = useState();
   const treeRef = React.useRef(null);
+  const externalTreeRef = React.useRef(null);
   const [mode, setMode] = useState('default'); // 'default', 'paperclip'
   // This key is part of a trick to get React to throw out and recreate the Asset Group
   // dialog when we have disposed of it - either by creating a project or cancelling.  This
   // tracks a sequential number that, when changed, signals React that the dialog can be
   // recreated. We don't care what this key is, it just has to change.
-  const [dialogKey, setDialogKey] = useState(0);
+  const [assetDialogKey, setAssetDialogKey] = useState(0);
+  // Offset the key to avoid overlap.
+  const [externalAssetDialogKey, setExternalAssetDialogKey] = useState(1000);
   // UI state flag to let us know when we're in the process of adding/editing a group
   const [editingGroup, setEditingGroup] = useState(false);
+  // UI state flag to let us know when we're in the process of adding/editing a group
+  const [editingExternalAsset, setEditingExternalAsset] = useState(false);
   // Array of currently selected assets that are either for an existing asset group, or
   // that could be added to a new asset group.
   const [groupedAssets, setGroupedAssets] = useState([]);
   // Object that represents the currently selected asset group - either to be displayed, or
   // the one currently being edited.
   const [currentAssetGroup, setCurrentAssetGroup] = useState(null);
+  // Object that represents the currently selected external asset.
+  const [currentExternalAsset, setCurrentExternalAsset] = useState(null);
+  // Object that represents the external asset that should be used for editing.  This is
+  // separate from the currentExternalAsset because that tracks the current selection.
+  const [editableExternalAsset, setEditableExternalAsset] = useState(null);
   // If the asset list filter is enabled or disabled
   const [filterEnabled, setFilterEnabled] = useState(true);
   // The actual contents of the filter (no filter by default)
   const [filter, setFilter] = useState([]);
   const filteredProjectAssets = filterProjectAssets(project, null);
   const [assets, setAssets] = useState(filteredProjectAssets);
+  const [externalAssets, setExternalAssets] = useState(project && project.externalAssets ?
+    project.externalAssets : AssetUtil.createEmptyExternalAssets());
 
   const projectService = new ProjectService();
 
@@ -127,6 +145,7 @@ const assetsComponent = (props) => {
     setCurrentAssetGroup(null);
     setGroupedAssets(null);
     setFilterEnabled(true);
+    setExternalAssets(project.externalAssets ? project.externalAssets : AssetUtil.createEmptyExternalAssets());
   }, [project]);
 
   // Whenever the filter changes, update the list of assets to include only
@@ -144,12 +163,16 @@ const assetsComponent = (props) => {
   // When the user triggers saving an Asset Group, update the UI so the dialog
   // appears to enter the asset group details.
   const handleStartSaveAssetGroup = () => {
-    setDialogKey(dialogKey + 1);
+    setAssetDialogKey(assetDialogKey + 1);
     setEditingGroup(true);
   };
 
   const handleCloseAssetGroupDialog = () => {
     setEditingGroup(false);
+  };
+
+  const handleCloseExternalAssetDialog = () => {
+    setEditingExternalAsset(false);
   };
 
   const handleSavedAssetGroup = (group) => {
@@ -161,6 +184,17 @@ const assetsComponent = (props) => {
       onUpdatedAssetGroup(group);
     }
     setEditingGroup(false);
+  };
+
+  const handleSavedExternalAsset = (asset, isNew) => {
+    if (isNew) {
+      if (onAddedExternalAsset) {
+        onAddedExternalAsset(asset);
+      }
+    } else if (onUpdatedExternalAsset) {
+      onUpdatedExternalAsset(asset);
+    }
+    setEditingExternalAsset(false);
   };
 
   // When the user selects a checkbox next to an asset - initially used just for building
@@ -279,6 +313,12 @@ const assetsComponent = (props) => {
     }
   };
 
+  const handleEditExternalAsset = (asset) => {
+    setEditableExternalAsset(cloneDeep(asset));
+    setExternalAssetDialogKey(externalAssetDialogKey + 1);
+    setEditingExternalAsset(true);
+  };
+
   const handlSelectAsset = (selAsset) => {
     let asset = selAsset;
     // When we are showing an asset group, the actual asset objects aren't the complete picture.
@@ -286,7 +326,10 @@ const assetsComponent = (props) => {
     // information.  The key thing we have right now is if it's missing the 'contentTypes' attribute.
     if (asset && (asset.contentTypes === null || asset.contentTypes === undefined)) {
       if (project && project.assets) {
-        asset = AssetUtil.findDescendantAssetByUri(project.assets, asset.uri);
+        const foundAsset = AssetUtil.findDescendantAssetByUri(project.assets, asset.uri);
+        if (foundAsset !== null) {
+          asset = foundAsset;
+        }
       }
     }
 
@@ -307,6 +350,15 @@ const assetsComponent = (props) => {
     setMode('paperclip');
   };
 
+  /**
+ * Prepare the state/UI for creating a new external asset
+ */
+  const handleNewExternalAsset = () => {
+    setEditableExternalAsset(null);
+    setExternalAssetDialogKey(externalAssetDialogKey + 1);
+    setEditingExternalAsset(true);
+  };
+
   let assetDisplay = null;
   if (project) {
     assetDisplay = <Loading>Please wait for the list of assets to finish loading...</Loading>;
@@ -320,6 +372,8 @@ const assetsComponent = (props) => {
         assetAttributes={assetAttributes}
         sourceControlEnabled={project.sourceControlEnabled}
         dynamicDetails={dynamicDetails}
+        onEdit={handleEditExternalAsset}
+        onRemove={onDeletedExternalAsset}
       />
     ) : null;
     if (assets) {
@@ -332,14 +386,14 @@ const assetsComponent = (props) => {
               aria-label="save asset group"
               onClick={handleStartSaveAssetGroup}
             >
-              <FaSave fontSize="small" /> &nbsp; Save Asset Group
+              <FontAwesomeIcon icon={faSave} /> &nbsp;Save Asset Group
             </IconButton>
             <IconButton
               className={styles.toolbarButton}
               aria-label="cancel creating asset group"
               onClick={handleCancelEditAssetGroup}
             >
-              <FaBan fontSize="small" /> &nbsp; Cancel
+              <FontAwesomeIcon icon={faBan} /> &nbsp;Cancel
             </IconButton>
           </div>
         );
@@ -367,7 +421,7 @@ const assetsComponent = (props) => {
                 aria-label="expand all tree items"
                 fontSize="small"
               >
-                <FaFolderOpen fontSize="small" /> &nbsp;Expand
+                <FontAwesomeIcon icon={faFolderOpen} /> &nbsp;Expand
               </IconButton>
               <IconButton
                 onClick={() => treeRef.current.setExpandAll(false)}
@@ -375,7 +429,15 @@ const assetsComponent = (props) => {
                 aria-label="collapse all tree items"
                 fontSize="small"
               >
-                <FaFolderMinus fontSize="small" /> &nbsp;Collapse
+                <FontAwesomeIcon icon={faFolderMinus} /> &nbsp;Collapse
+              </IconButton>
+              <IconButton
+                onClick={handleNewExternalAsset}
+                className={styles.toolbarButton}
+                aria-label="add an external asset as a project resource"
+                fontSize="small"
+              >
+                <FontAwesomeIcon icon={faFileCirclePlus} /> &nbsp;Add Resource
               </IconButton>
               <IconButton
                 onClick={handleNewAssetGroup}
@@ -383,7 +445,7 @@ const assetsComponent = (props) => {
                 disabled={mode === 'paperclip'}
                 aria-label="group assets together"
               >
-                <FaPlusSquare fontSize="small" /> &nbsp;New Group
+                <FontAwesomeIcon icon={faPlusSquare} /> &nbsp;New Group
               </IconButton>
               <EditableSelect
                 title="Select group"
@@ -404,6 +466,13 @@ const assetsComponent = (props) => {
               onSelectAsset={handlSelectAsset}
               selectedAsset={selectedAsset}
             />
+            <AssetTree
+              assets={externalAssets}
+              ref={externalTreeRef}
+              onSelectAsset={handlSelectAsset}
+              selectedAsset={selectedAsset}
+              rootSelectable={false}
+            />
           </div>
           <div className={styles.details}>
             <ProjectEntryPoint
@@ -414,7 +483,7 @@ const assetsComponent = (props) => {
             {assetDetails}
           </div>
           <AssetGroupDialog
-            key={dialogKey}
+            key={assetDialogKey}
             open={editingGroup}
             onClose={handleCloseAssetGroupDialog}
             onSave={handleSavedAssetGroup}
@@ -422,6 +491,14 @@ const assetsComponent = (props) => {
             id={currentAssetGroup ? currentAssetGroup.id : ''}
             name={currentAssetGroup ? currentAssetGroup.name : ''}
             details={currentAssetGroup ? currentAssetGroup.details : ''}
+          />
+          <ExternalAssetDialog
+            key={externalAssetDialogKey}
+            open={editingExternalAsset}
+            onClose={handleCloseExternalAssetDialog}
+            onSave={handleSavedExternalAsset}
+            uri={editableExternalAsset ? editableExternalAsset.uri : ''}
+            name={editableExternalAsset ? editableExternalAsset.name : ''}
           />
         </>
       );

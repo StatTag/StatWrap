@@ -16,6 +16,20 @@ class AssetTree extends Component {
   }
 
   handleClick = (node) => {
+    // Determine if this is selectable.  We don't consider a selection if:
+    // 1. The asset collection is null
+    // 2. The selected node is null
+    // 3. Root selection is disabled and this is the root item
+    //
+    // To handle unselectable items, we trigger to clear the active selection.
+    if (this.props.assets === null || node === null) {
+      this.props.onSelectAsset(null);
+      return;
+    } else if (!this.props.rootSelectable && (node.uri === this.props.assets.uri)) {
+      this.props.onSelectAsset(null);
+      return;
+    }
+
     this.props.onSelectAsset(node);
   };
 
@@ -109,12 +123,14 @@ AssetTree.propTypes = {
   onCheckAsset: PropTypes.func,
   selectedAsset: PropTypes.object,
   checkboxes: PropTypes.bool,
+  rootSelectable: PropTypes.bool
 };
 
 AssetTree.defaultProps = {
   selectedAsset: null,
   checkboxes: false,
   onCheckAsset: null,
+  rootSelectable: true
 };
 
 export default AssetTree;

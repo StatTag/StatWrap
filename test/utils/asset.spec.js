@@ -1,7 +1,7 @@
 import AssetUtil from '../../app/utils/asset';
 import Constants from '../../app/constants/constants';
 
-describe('services', () => {
+describe('utils', () => {
   describe('AssetUtil', () => {
     describe('getHandlerMetadata', () => {
       it('should return null when there is no metadata', () => {
@@ -1437,6 +1437,45 @@ describe('services', () => {
         expect(AssetUtil.getExtensionFromUri({ uri: 'C:\\test.txt' })).toBe('txt');
         expect(AssetUtil.getExtensionFromUri({ uri: '/dev/test.txt' })).toBe('txt');
         expect(AssetUtil.getExtensionFromUri({ uri: 'https://www.test.com/test.txt' })).toBe('txt');
+      });
+    });
+
+    describe('isExternalAsset', () => {
+      it('should return false for a null/undefined object', () => {
+        expect(AssetUtil.isExternalAsset(null)).toBeFalse();
+        expect(AssetUtil.isExternalAsset(undefined)).toBeFalse();
+      });
+      it('should return false for a null/undefined type', () => {
+        expect(AssetUtil.isExternalAsset({type: null})).toBeFalse();
+        expect(AssetUtil.isExternalAsset({type: undefined})).toBeFalse();
+        expect(AssetUtil.isExternalAsset({})).toBeFalse();
+      });
+      it('should return true for a URL', () => {
+        expect(AssetUtil.isExternalAsset({type: Constants.AssetType.URL})).toBeTrue();
+      });
+      it('should return false for other types', () => {
+        expect(AssetUtil.isExternalAsset({type: Constants.AssetType.FILE})).toBeFalse();
+        expect(AssetUtil.isExternalAsset({type: 'not a url'})).toBeFalse();
+        expect(AssetUtil.isExternalAsset({type: ''})).toBeFalse();
+      });
+    });
+
+    describe('getAssetNameForTree', () => {
+      it('should return an empty string for a null asset', () => {
+        expect(AssetUtil.getAssetNameForTree(null)).toBe('');
+      });
+      it('should return a name normally for a regular asset', () => {
+        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.FOLDER, uri: 'Test'})).toBe('Test');
+      });
+      it('should return the URL for an external asset with no name parameter', () => {
+        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com'})).toBe('http://test.com');
+        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com', name: null})).toBe('http://test.com');
+        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com', name: undefined})).toBe('http://test.com');
+        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com', name: ''})).toBe('http://test.com');
+        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com', name: '    '})).toBe('http://test.com');
+      });
+      it('should return a formatted name for a URL with a name', () => {
+        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com', name: 'Test'})).toBe('Test (http://test.com)');
       });
     });
   });

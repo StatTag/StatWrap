@@ -7,6 +7,7 @@ import {
   FaChevronRight,
   FaPaperclip,
   FaFilter,
+  FaGlobe
 } from 'react-icons/fa';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
@@ -36,6 +37,11 @@ const NodeIcon = styled.div`
 
 const StyledInput = styled.input`
   margin-right: 5px;
+`;
+
+const StyledLabel = styled.span`
+  overflow: hidden;
+    text-overflow: ellipsis;
 `;
 
 function AssetNode(props) {
@@ -104,9 +110,10 @@ function AssetNode(props) {
           {node.type === Constants.AssetType.DIRECTORY && !isOpen && <FaFolder />}
           {node.type === Constants.AssetType.ASSET_GROUP && <FaPaperclip />}
           {node.type === Constants.AssetType.FILTER && <FaFilter />}
+          {node.type === Constants.AssetType.URL && <FaGlobe />}
         </NodeIcon>
 
-        <span role="button">{AssetUtil.getAssetNameFromUri(node)}</span>
+        <StyledLabel role="button">{AssetUtil.getAssetNameForTree(node)}</StyledLabel>
       </StyledTreeNode>
 
       {isOpen &&

@@ -15,6 +15,7 @@ import NewDirectory from '../../components/NewDirectory/NewDirectory';
 import CloneDirectory from './CloneDirectory/CloneDirectory';
 import Error from '../../components/Error/Error';
 import UserContext from '../../contexts/User';
+import ChecklistUtil from '../../utils/checklist';
 
 import styles from './CreateProjectDialog.css';
 import Messages from '../../constants/messages';
@@ -160,6 +161,13 @@ class CreateProjectDialog extends Component {
           'info',
           this.context,
         );
+        // Seed the project checklist with the null or falsey values
+        const projectChecklist = ChecklistUtil.initializeChecklist();
+        ipcRenderer.send(
+          Messages.WRITE_PROJECT_CHECKLIST_REQUEST,
+          response.project.path,
+          projectChecklist,
+        )
       }
       this.props.onClose(true);
     } else {

@@ -17,7 +17,9 @@ module.exports = {
     DIRECTORY: 'directory',
     FOLDER: 'directory', // 'DIRECTORY' is the preferred name, but we know we'll use this sometimes
     FILE: 'file',
+    URL: 'url',
     GENERIC: 'generic',
+    URL: 'url',
 
     // These are not a real asset types, but are used in our various controls
     ASSET_GROUP: 'asset-group',
@@ -29,12 +31,15 @@ module.exports = {
     CODE: 'code',
     DATA: 'data',
     DOCUMENTATION: 'documentation',
+    IMAGE: 'image',
     OTHER: 'other',
   },
 
   StatWrapFiles: {
     BASE_FOLDER: '.statwrap',
+    PROJECT: '.statwrap-project.json',
     LOG: '.statwrap.log',
+    CHECKLIST: '.statwrap-checklist.json',
   },
 
   ActionType: {
@@ -57,12 +62,18 @@ module.exports = {
     ASSET_GROUP_DELETED: 'Asset Group Deleted',
 
     VERSION_CONTROL_COMMIT: 'Version Control Commit',
+
+    EXTERNAL_ASSET_ADDED: 'External Asset Added',
+    EXTERNAL_ASSET_UPDATED: 'External Asset Updated',
+    EXTERNAL_ASSET_DELETED: 'External Asset Deleted',
   },
 
   EntityType: {
     PROJECT: 'project',
     PERSON: 'person',
     ASSET: 'asset',
+    EXTERNAL_ASSET: 'external asset',  // Slightly different from 'asset' in that it lives outside the project folder
+    CHECKLIST: 'checklist',
   },
 
   DescriptionContentType: {
@@ -91,4 +102,13 @@ module.exports = {
   },
 
   MAX_GRAPH_LABEL_LENGTH: 31,
+
+  CHECKLIST: [
+    ['Dependency', 'All the software dependencies for the project are documented.'],
+    ['Data', 'All the data file(s) used in the project are documented.'],
+    ['Entrypoint', 'Clearly indicates which file(s) are used to run analysis.'],
+    ['Documentation', 'Includes all necessary project documentation.'],
+    ['Organization', 'Are there multiple versions of a file? If yes, specify the versions.'],
+    ['Portability', 'Avoids using absolute paths in the code.'],
+  ],
 };

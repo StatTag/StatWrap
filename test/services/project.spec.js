@@ -3,6 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import process from 'process';
 import ProjectService, { ProjectFileFormatVersion } from '../../app/services/project';
+import AssetUtil from '../../app/utils/asset';
 import Constants from '../../app/constants/constants';
 
 jest.mock('fs');
@@ -56,7 +57,7 @@ describe('services', () => {
         const project = new ProjectService().loadProjectFile('~/Test/Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith(
-          `${TEST_USER_HOME_PATH}Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
+          `${TEST_USER_HOME_PATH}Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/${Constants.StatWrapFiles.PROJECT}`,
         );
       });
       it.onWindows('should resolve the ~ home path', () => {
@@ -64,7 +65,7 @@ describe('services', () => {
         const project = new ProjectService().loadProjectFile('~\\Test\\Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith(
-          `${TEST_USER_HOME_PATH}Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
+          `${TEST_USER_HOME_PATH}Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\${Constants.StatWrapFiles.PROJECT}`,
         );
       });
       it.onMac('should return the project details', () => {
@@ -72,7 +73,7 @@ describe('services', () => {
         const project = new ProjectService().loadProjectFile('/Test/Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith(
-          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
+          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/${Constants.StatWrapFiles.PROJECT}`,
         );
       });
       it.onWindows('should return the project details', () => {
@@ -80,7 +81,7 @@ describe('services', () => {
         const project = new ProjectService().loadProjectFile('C:\\Test\\Path');
         expect(project).not.toBeNull();
         expect(fs.readFileSync).toHaveBeenCalledWith(
-          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
+          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\${Constants.StatWrapFiles.PROJECT}`,
         );
       });
       it('should throw an exception if the JSON is invalid', () => {
@@ -127,28 +128,28 @@ describe('services', () => {
       it.onMac('should resolve the ~ home path', () => {
         new ProjectService().saveProjectFile('~/Test/Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
-          `${TEST_USER_HOME_PATH}Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
+          `${TEST_USER_HOME_PATH}Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/${Constants.StatWrapFiles.PROJECT}`,
           '{"id":"1"}',
         );
       });
       it.onWindows('should resolve the ~ home path', () => {
         new ProjectService().saveProjectFile('~\\Test\\Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
-          `${TEST_USER_HOME_PATH}Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
+          `${TEST_USER_HOME_PATH}Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\${Constants.StatWrapFiles.PROJECT}`,
           '{"id":"1"}',
         );
       });
       it.onMac('should save the project details', () => {
         new ProjectService().saveProjectFile('/Test/Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
-          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
+          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/${Constants.StatWrapFiles.PROJECT}`,
           '{"id":"1"}',
         );
       });
       it.onWindows('should save the project details', () => {
         new ProjectService().saveProjectFile('C:\\Test\\Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
-          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
+          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\${Constants.StatWrapFiles.PROJECT}`,
           '{"id":"1"}',
         );
       });
@@ -166,7 +167,7 @@ describe('services', () => {
           { recursive: true },
         );
         expect(fs.writeFileSync).toHaveBeenCalledWith(
-          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/.statwrap-project.json`,
+          `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/${Constants.StatWrapFiles.PROJECT}`,
           '{"id":"1"}',
         );
       });
@@ -184,7 +185,7 @@ describe('services', () => {
           { recursive: true },
         );
         expect(fs.writeFileSync).toHaveBeenCalledWith(
-          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\.statwrap-project.json`,
+          `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\${Constants.StatWrapFiles.PROJECT}`,
           '{"id":"1"}',
         );
       });
@@ -1112,6 +1113,64 @@ describe('services', () => {
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.people).not.toBeNull();
         expect(updatedProject.people.length).toBe(0);
+      });
+
+      it('adds an external asset to a project', () => {
+        const service = new ProjectService();
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ externalAssets: AssetUtil.createEmptyExternalAssets() });
+        const updatedProject = service.loadAndMergeProjectUpdates(
+          TEST_PROJECT_PATH,
+          Constants.ActionType.EXTERNAL_ASSET_ADDED,
+          Constants.EntityType.PROJECT,
+          '1',
+          { uri: 'http://test.com', type: 'url' },
+        );
+        expect(updatedProject).not.toBeNull();
+        expect(updatedProject.externalAssets).not.toBeNull();
+        expect(updatedProject.externalAssets.children).not.toBeNull();
+        expect(updatedProject.externalAssets.children[0].uri).toBe('http://test.com');
+        expect(updatedProject.externalAssets.children[0].type).toBe('url');
+      });
+
+      it('updates an external asset in a project', () => {
+        const service = new ProjectService();
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({
+          externalAssets: {
+            children: [{ uri: 'http://test.com', name: 'old value', type: 'old value' }]
+          },
+        });
+        const updatedProject = service.loadAndMergeProjectUpdates(
+          TEST_PROJECT_PATH,
+          Constants.ActionType.EXTERNAL_ASSET_UPDATED,
+          Constants.EntityType.PROJECT,
+          '1',
+          { uri: 'http://test.com', name: 'test asset', type: 'testing' },
+        );
+        expect(updatedProject).not.toBeNull();
+        expect(updatedProject.externalAssets).not.toBeNull();
+        expect(updatedProject.externalAssets.children).not.toBeNull();
+        expect(updatedProject.externalAssets.children[0].uri).toBe('http://test.com');
+        expect(updatedProject.externalAssets.children[0].name).toBe('test asset');
+        expect(updatedProject.externalAssets.children[0].type).toBe('testing');
+      });
+
+      it('deletes an external asset from a project', () => {
+        const service = new ProjectService();
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ externalAssets: {
+            children: [{ uri: 'http://test.com' }]
+          }
+        });
+        const updatedProject = service.loadAndMergeProjectUpdates(
+          TEST_PROJECT_PATH,
+          Constants.ActionType.EXTERNAL_ASSET_DELETED,
+          Constants.EntityType.PROJECT,
+          '1',
+          { uri: 'http://test.com' },
+        );
+        expect(updatedProject).not.toBeNull();
+        expect(updatedProject.externalAssets).not.toBeNull();
+        expect(updatedProject.externalAssets.children).not.toBeNull();
+        expect(updatedProject.externalAssets.children.length).toBe(0);
       });
 
       // Skipping unit tests for the ASSET_GROUP_* actions.  These are mostly wrappers to call a ProjectUtil
