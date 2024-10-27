@@ -23,6 +23,13 @@ pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 const path = require('path');
 
+const scanFunctions = [
+  ChecklistUtil.findAssetLanguagesAndDependencies,
+  ChecklistUtil.findDataFiles,
+  ChecklistUtil.findEntryPointFiles,
+  ChecklistUtil.findDocumentationFiles,
+];
+
 function ReproChecklist(props) {
   const {
     project,
@@ -40,17 +47,11 @@ function ReproChecklist(props) {
   useEffect(() => {
     if (project && checklist && !error) {
       if (project.assets) {
-        // scan result for the first checklist statement
-        const scanResult1 = ChecklistUtil.findAssetLanguagesAndDependencies(project.assets);
-        const scanResult2 = ChecklistUtil.findDataFiles(project.assets);
-        const scanResult3 = ChecklistUtil.findEntryPointFiles(
-          AssetUtil.findEntryPointAssets(project.assets),
-        );
-        const scanResult4 = ChecklistUtil.findDocumentationFiles(project.assets);
-        checklist[0].scanResult = scanResult1;
-        checklist[1].scanResult = scanResult2;
-        checklist[2].scanResult = scanResult3;
-        checklist[3].scanResult = scanResult4;
+        // scan the project assets for each checklist statement
+        scanFunctions.forEach((scanFunction, index) => {
+          const scanResult = scanFunction(project.assets);
+          checklist[index].scanResult = scanResult;
+        });
       }
     }
   }, [project]);

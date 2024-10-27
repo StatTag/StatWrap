@@ -132,10 +132,11 @@ export default class ChecklistUtil {
 
   /**
    * This function gets the entry point file names from the entryPoints assets array
-   * @param {array} entryPoints Array containing the entry point assets
+   * @param {object} asset The asset to find the entry point files within
    * @returns {object} An object containing the entry point file names found
    */
-  static findEntryPointFiles(entryPoints) {
+  static findEntryPointFiles(asset) {
+    const entryPoints = AssetUtil.findEntryPointAssets(asset);
     const entryPointFiles = [];
     entryPoints?.forEach((entryPoint) => {
       const fileName = AssetUtil.getAssetNameFromUri(entryPoint.uri);
