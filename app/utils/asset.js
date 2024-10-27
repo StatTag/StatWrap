@@ -141,6 +141,30 @@ export default class AssetUtil {
   }
 
   /**
+   * Finds all the assets marked as entry points in the asset tree
+   * @param {object} asset The asset to search for entry points
+   * @param {array} entryPointList The list of entry points found so far
+   * @returns {array} The list of entry points found
+   */
+  static findEntryPointAssets(asset, entryPointList = []) {
+    if (!asset) {
+      return entryPointList;
+    }
+
+    if (asset.attributes && asset.attributes.entrypoint) {
+      entryPointList.push(asset);
+    }
+
+    if (asset.children) {
+      asset.children.forEach((child) => {
+        AssetUtil.findEntryPointAssets(child, entryPointList);
+      });
+    }
+
+    return entryPointList;
+  }
+
+  /**
    * Recursively collect and flatten all asset notes into an array
    * @param {object} asset The asset to find all notes for
    */
