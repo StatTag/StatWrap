@@ -3,36 +3,68 @@ import PropTypes from 'prop-types';
 import styles from './ReproChecklist.css';
 import ChecklistItem from './ChecklistItem/ChecklistItem';
 import Error from '../Error/Error';
-import { Typography, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import {
+  Typography,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from '@mui/material';
 import { SaveAlt } from '@mui/icons-material';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import GeneralUtil from '../../utils/general';
 import ChecklistUtil from '../../utils/checklist';
+import AssetUtil from '../../utils/asset';
+import Constants from '../../constants/constants';
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 const path = require('path');
 
+// These functions are mapped using the statement type to the corresponding scan function
+const scanFunctions = {
+  Dependency: ChecklistUtil.findAssetLanguagesAndDependencies,
+  Data: ChecklistUtil.findDataFiles,
+  Entrypoint: ChecklistUtil.findEntryPointFiles,
+  Documentation: ChecklistUtil.findDocumentationFiles,
+};
+
 function ReproChecklist(props) {
-  const { project, checklist, error, onUpdated, onAddedNote, onUpdatedNote, onDeletedNote, onSelectedAsset} = props;
+  const {
+    project,
+    checklist,
+    error,
+    onUpdated,
+    onAddedNote,
+    onUpdatedNote,
+    onDeletedNote,
+    onSelectedAsset,
+  } = props;
   const [openExportDialog, setOpenExportDialog] = useState(false);
 
   // this useEffect hook is here to load the scan results for all the checklist statements
   useEffect(() => {
     if (project && checklist && !error) {
-      if(project.assets) {
-        // scan result for the first checklist statement
-        const scanResult1 = ChecklistUtil.findAssetLanguagesAndDependencies(project.assets);
-        checklist[0].scanResult = scanResult1;
+      if (project.assets) {
+        // scan the project assets for each checklist statement
+        Constants.CHECKLIST.forEach((statement, index) => {
+          // if used here as there might be a statement that doesn't have a corresponding scan function
+          if (scanFunctions[statement[0]]) {
+            const scanResult = scanFunctions[statement[0]](project.assets);
+            checklist[index].scanResult = scanResult;
+          }
+        });
       }
     }
   }, [project]);
 
   // Handles the update of checklist for changes in the checklist items
   const handleItemUpdate = (updatedItem) => {
-    const updatedChecklist = checklist.map(item =>
-      item.id === updatedItem.id ? updatedItem : item
+    const updatedChecklist = checklist.map((item) =>
+      item.id === updatedItem.id ? updatedItem : item,
     );
     onUpdated(project, updatedChecklist);
   };
@@ -41,7 +73,9 @@ function ReproChecklist(props) {
   const handleReportGeneration = (exportNotes) => {
     // pdfMake requires base64 encoded images
     const checkedIcon = GeneralUtil.convertImageToBase64(path.join(__dirname, 'images/yes.png'));
-    const statWrapLogo = GeneralUtil.convertImageToBase64(path.join(__dirname, 'images/banner.png'));
+    const statWrapLogo = GeneralUtil.convertImageToBase64(
+      path.join(__dirname, 'images/banner.png'),
+    );
 
     const documentDefinition = {
       content: [
@@ -96,151 +130,157 @@ function ReproChecklist(props) {
             },
           ],
         },
-        ...checklist.map((item, index) => {
-          const maxWidth = 450;
-          let subChecklist = [];
-          if (item.subChecklist && item.subChecklist.length > 0) {
-            subChecklist = item.subChecklist.map((subItem, subIndex) => ({
-              columns: [
-                {
-                  text: `${index + 1}.${subIndex + 1} ${subItem.statement}`,
-                  margin: [15, 5],
-                  width: '*',
-                  alignment: 'left',
-                },
-                subItem.answer ? {
-                  image: checkedIcon,
-                  width: 15,
-                  alignment: 'right',
-                  margin: [0, 5, 25, 0],
-                } : {
-                  image: checkedIcon,
-                  width: 15,
-                  alignment: 'right',
-                  margin: [0, 5, 1, 0],
-                },
-              ],
-              columnGap: 0,
-            }));
-          }
-
-          let notes = [];
-          if (exportNotes && item.notes && item.notes.length > 0) {
-            notes = item.notes.map((note, noteIndex) => ({
-              text: `${noteIndex + 1}. ${note.content}`,
-              margin: [20, 2],
-              width: maxWidth,
-            }));
-          }
-
-          let images = [];
-          const imageWidth = 135;
-          if(item.images && item.images.length > 0){
-            images = item.images.map((image) => {
-              const base64Image = GeneralUtil.convertImageToBase64(image.uri);
-              if (base64Image) {
-                return {
-                  image: base64Image,
-                  width: imageWidth,
-                  margin: [0, 5],
-                  alignment: 'center',
-                };
-              }
-              return { text: `Failed to load image: ${image.uri}`, color: 'red' };
-            });
-          }
-
-          // Rendering images by rows, as rendering in columns overflows the page and we can't wrap columns under each other,
-          // math for 3 images per row is as follows:
-          // imageWidth*n + calumnGap*(n-1) <= maxWidth - leftMargin - rightMargin
-          // 135*n + 10*(n-1) <= 450 - 20 - 0;
-          // n <= 440/145 --> n = 3
-          const imagesPerRow = Math.floor((maxWidth - 20 + 10) / (imageWidth + 10));
-
-          let imageRows = [];
-          for (let i = 0; i < images.length; i += imagesPerRow) {
-            imageRows.push({
-              columns: images.slice(i, i + imagesPerRow),
-              columnGap: 10,
-              margin: [20, 5],
-            });
-          }
-
-          let urls = [];
-          if(item.urls && item.urls.length > 0){
-            urls = item.urls.map((url, urlIndex) => {
-              return {
-                unbreakable: true,
+        ...checklist
+          .map((item, index) => {
+            const maxWidth = 450;
+            let subChecklist = [];
+            if (item.subChecklist && item.subChecklist.length > 0) {
+              subChecklist = item.subChecklist.map((subItem, subIndex) => ({
                 columns: [
                   {
-                    text: `${urlIndex + 1}. `,
-                    width: 25,
-                    margin: [20, 1 , 0, 0],
+                    text: `${index + 1}.${subIndex + 1} ${subItem.statement}`,
+                    margin: [15, 5],
+                    width: '*',
                     alignment: 'left',
-                    noWrap: true,
+                  },
+                  subItem.answer
+                    ? {
+                        image: checkedIcon,
+                        width: 15,
+                        alignment: 'right',
+                        margin: [0, 5, 25, 0],
+                      }
+                    : {
+                        image: checkedIcon,
+                        width: 15,
+                        alignment: 'right',
+                        margin: [0, 5, 1, 0],
+                      },
+                ],
+                columnGap: 0,
+              }));
+            }
+
+            let notes = [];
+            if (exportNotes && item.notes && item.notes.length > 0) {
+              notes = item.notes.map((note, noteIndex) => ({
+                text: `${noteIndex + 1}. ${note.content}`,
+                margin: [20, 2],
+                width: maxWidth,
+              }));
+            }
+
+            let images = [];
+            const imageWidth = 135;
+            if (item.images && item.images.length > 0) {
+              images = item.images.map((image) => {
+                const base64Image = GeneralUtil.convertImageToBase64(image.uri);
+                if (base64Image) {
+                  return {
+                    image: base64Image,
+                    width: imageWidth,
+                    margin: [0, 5],
+                    alignment: 'center',
+                  };
+                }
+                return { text: `Failed to load image: ${image.uri}`, color: 'red' };
+              });
+            }
+
+            // Rendering images by rows, as rendering in columns overflows the page and we can't wrap columns under each other,
+            // math for 3 images per row is as follows:
+            // imageWidth*n + calumnGap*(n-1) <= maxWidth - leftMargin - rightMargin
+            // 135*n + 10*(n-1) <= 450 - 20 - 0;
+            // n <= 440/145 --> n = 3
+            const imagesPerRow = Math.floor((maxWidth - 20 + 10) / (imageWidth + 10));
+
+            let imageRows = [];
+            for (let i = 0; i < images.length; i += imagesPerRow) {
+              imageRows.push({
+                columns: images.slice(i, i + imagesPerRow),
+                columnGap: 10,
+                margin: [20, 5],
+              });
+            }
+
+            let urls = [];
+            if (item.urls && item.urls.length > 0) {
+              urls = item.urls.map((url, urlIndex) => {
+                return {
+                  unbreakable: true,
+                  columns: [
+                    {
+                      text: `${urlIndex + 1}. `,
+                      width: 25,
+                      margin: [20, 1, 0, 0],
+                      alignment: 'left',
+                      noWrap: true,
+                    },
+                    {
+                      stack: [
+                        {
+                          text: url.title,
+                          margin: [7, 1],
+                          alignment: 'left',
+                          style: 'hyperlink',
+                          link: url.hyperlink,
+                        },
+                        {
+                          text: url.description,
+                          margin: [7, 3],
+                          alignment: 'left',
+                        },
+                      ],
+                      width: maxWidth,
+                    },
+                  ],
+                };
+              });
+            }
+
+            return [
+              {
+                columns: [
+                  {
+                    text: `${index + 1}. `,
+                    width: 10,
+                    margin: [0, 10],
+                    alignment: 'left',
                   },
                   {
-                    stack: [
-                      {
-                        text: url.title,
-                        margin: [7, 1],
-                        alignment: 'left',
-                        style: 'hyperlink',
-                        link: url.hyperlink,
-                      },
-                      {
-                        text: url.description,
-                        margin: [7, 3],
-                        alignment: 'left',
-                      },
-                    ],
+                    text: `${item.statement}`,
+                    margin: [0, 10, 25, 0],
                     width: maxWidth,
+                    alignment: 'left',
+                    bold: true,
                   },
+                  item.answer
+                    ? {
+                        image: checkedIcon,
+                        width: 15,
+                        alignment: 'right',
+                        marginRight: 10,
+                        marginTop: 12,
+                      }
+                    : {
+                        image: checkedIcon,
+                        width: 15,
+                        marginLeft: 28,
+                        marginTop: 12,
+                      },
                 ],
-              };
-            });
-          }
-
-          return [
-            {
-              columns: [
-                {
-                  text: `${index + 1}. `,
-                  width: 10,
-                  margin: [0, 10],
-                  alignment: 'left',
-                },
-                {
-                  text: `${item.statement}`,
-                  margin: [0, 10, 25, 0],
-                  width: maxWidth,
-                  alignment: 'left',
-                  bold: true,
-                },
-                item.answer ? {
-                  image: checkedIcon,
-                  width: 15,
-                  alignment: 'right',
-                  marginRight: 10,
-                  marginTop: 12,
-                } : {
-                  image: checkedIcon,
-                  width: 15,
-                  marginLeft: 28,
-                  marginTop: 12,
-                },
-              ],
-              columnGap: 5,
-            },
-            ...subChecklist,
-            notes.length > 0 ? { text: 'Notes:', margin: [15, 5] } : '',
-            ...notes,
-            images.length > 0 ? { text: 'Related Images:', margin: [15, 10] } : '',
-            ...imageRows,
-            urls.length > 0 ? { text: 'Related URLs:', margin: [15, 10] } : '',
-            ...urls,
-          ];
-        }).flat(),
+                columnGap: 5,
+              },
+              ...subChecklist,
+              notes.length > 0 ? { text: 'Notes:', margin: [15, 5] } : '',
+              ...notes,
+              images.length > 0 ? { text: 'Related Images:', margin: [15, 10] } : '',
+              ...imageRows,
+              urls.length > 0 ? { text: 'Related URLs:', margin: [15, 10] } : '',
+              ...urls,
+            ];
+          })
+          .flat(),
       ],
       styles: {
         mainHeader: { fontSize: 22, bold: true, color: '#663399' },
@@ -267,53 +307,53 @@ function ReproChecklist(props) {
   let content = <div className={styles.empty}>Checklist not configured.</div>;
 
   if (checklist && checklist.length > 0) {
-    content =
-    <div>
-      <Typography variant='h5' align='center' marginTop='10px'>Reproducibility Checklist</Typography>
-      <br />
-      {checklist.map(item => (
-        <ChecklistItem
-          key={item.id}
-          item={item}
-          project={project}
-          onUpdatedNote={onUpdatedNote}
-          onDeletedNote={onDeletedNote}
-          onAddedNote={onAddedNote}
-          onItemUpdate={handleItemUpdate}
-          onSelectedAsset={onSelectedAsset}
-        />
-      ))}
-      <br />
-      <div className={styles.downloadContainer}>
-        <button
-          onClick={() => setOpenExportDialog(true)}
-          className={styles.downloadButton}
-        >
-          <div className={styles.buttonContent}>
-            <span className={styles.buttonText}>Report</span>
-            <SaveAlt />
-          </div>
-        </button>
-      </div>
+    content = (
+      <div>
+        <Typography variant="h5" align="center" marginTop="10px">
+          Reproducibility Checklist
+        </Typography>
+        <br />
+        {checklist.map((item) => (
+          <ChecklistItem
+            key={item.id}
+            item={item}
+            project={project}
+            onUpdatedNote={onUpdatedNote}
+            onDeletedNote={onDeletedNote}
+            onAddedNote={onAddedNote}
+            onItemUpdate={handleItemUpdate}
+            onSelectedAsset={onSelectedAsset}
+          />
+        ))}
+        <br />
+        <div className={styles.downloadContainer}>
+          <button onClick={() => setOpenExportDialog(true)} className={styles.downloadButton}>
+            <div className={styles.buttonContent}>
+              <span className={styles.buttonText}>Report</span>
+              <SaveAlt />
+            </div>
+          </button>
+        </div>
 
-      <Dialog open={openExportDialog} onClose={() => setOpenExportDialog(false)}>
-        <DialogTitle className={styles.dialogTitle}>Export Report</DialogTitle>
-        <DialogContent className={styles.dialogContent}>
-          <DialogContentText>
-            Do you want to include the checklist notes in the exported reproducibility checklist?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          {/* selective export of notes */}
-          <Button onClick={() => handleReportGeneration(true)} color="primary">
-            Yes
-          </Button>
-          <Button onClick={() => handleReportGeneration(false)} color="primary" autoFocus>
-            No
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </div>
+        <Dialog open={openExportDialog} onClose={() => setOpenExportDialog(false)}>
+          <DialogTitle className={styles.dialogTitle}>Export Report</DialogTitle>
+          <DialogContent className={styles.dialogContent}>
+            <DialogContentText>
+              Do you want to include the checklist notes in the exported reproducibility checklist?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            {/* selective export of notes */}
+            <Button onClick={() => handleReportGeneration(true)} color="primary">
+              Yes
+            </Button>
+            <Button onClick={() => handleReportGeneration(false)} color="primary" autoFocus>
+              No
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </div>
+    );
   } else if (error) {
     content = <Error>There was an error loading the project checklist: {error}</Error>;
   }

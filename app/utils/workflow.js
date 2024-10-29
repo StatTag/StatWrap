@@ -45,10 +45,8 @@ export default class WorkflowUtil {
     // approximating it.  So we roughly cut the max length in half, but it may not be exact, and
     // we don't count the 3 periods towards the max length (meaning, our resulting label will
     // technically go over the max length we detect).
-    // eslint-disable-next-line prettier/prettier
-    const beginningPart = name.substring(0, (Constants.MAX_GRAPH_LABEL_LENGTH / 2));
-    // eslint-disable-next-line prettier/prettier
-    const endPart = name.substring(name.length - (Constants.MAX_GRAPH_LABEL_LENGTH / 2) + 1);
+    const beginningPart = name.substring(0, Constants.MAX_GRAPH_LABEL_LENGTH / 2);
+    const endPart = name.substring(name.length - Constants.MAX_GRAPH_LABEL_LENGTH / 2 + 1);
 
     return `${beginningPart}...${endPart}`;
   }
@@ -309,5 +307,48 @@ export default class WorkflowUtil {
       dependencies.push(WorkflowUtil.getAllDependencies(asset.children[index], rootUri));
     }
     return dependencies.flat();
+  }
+
+  /**
+   * Given an asset, get the list of library dependencies
+   * @param {object} asset The asset to find library dependencies for
+   * @returns Array of library dependencies
+   */
+  static getLibraryDependencies(asset) {
+    if (!asset) {
+      return [];
+    }
+
+    const libraries = [];
+    WorkflowUtil._getMetadataDependencies(asset, PythonHandler.id, libraries, [], []);
+    WorkflowUtil._getMetadataDependencies(asset, RHandler.id, libraries, [], []);
+    WorkflowUtil._getMetadataDependencies(asset, SASHandler.id, libraries, [], []);
+    WorkflowUtil._getMetadataDependencies(asset, StataHandler.id, libraries, [], []);
+
+    return libraries;
+  }
+
+  /**
+   * This function finds all library dependencies of an asset and its children recursively, that can be used to find overall project dependencies with `project.assets` as input
+   * @param {object} asset The asset to find the library dependencies of
+   * @returns {array} An array containing the library dependencies found
+   */
+  static getAllLibraryDependencies(asset) {
+    const libraries = asset
+      ? [
+          {
+            asset: asset.uri,
+            assetType: WorkflowUtil.getAssetType(asset),
+            dependencies: WorkflowUtil.getLibraryDependencies(asset),
+          },
+        ]
+      : [];
+    if (!asset || !asset.children) {
+      return libraries.flat();
+    }
+    for (let index = 0; index < asset.children.length; index++) {
+      libraries.push(WorkflowUtil.getAllLibraryDependencies(asset.children[index]));
+    }
+    return libraries.flat();
   }
 }

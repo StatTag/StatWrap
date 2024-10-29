@@ -7,17 +7,6 @@ import { faFileImport, faShareFromSquare } from '@fortawesome/free-solid-svg-ico
 import styles from './ProjectEntryPoint.css';
 import AssetUtil from '../../utils/asset';
 
-function findEntryPoints(asset, entryPointsList) {
-  if (asset.attributes && asset.attributes.entrypoint === true) {
-    entryPointsList.push(asset);
-  }
-  if (asset.children) {
-    asset.children.forEach((child) => {
-      findEntryPoints(child, entryPointsList);
-    });
-  }
-}
-
 const projectEntryPoint = (props) => {
   const { assets, rootUri, onSelect } = props;
 
@@ -31,10 +20,7 @@ const projectEntryPoint = (props) => {
     }
   };
 
-  const entryPointsList = [];
-  if (assets) {
-    findEntryPoints(assets, entryPointsList);
-  }
+  const entryPointsList = AssetUtil.findEntryPointAssets(assets);
 
   if (entryPointsList && entryPointsList.length > 0) {
     return (
