@@ -111,7 +111,7 @@ export default class ChecklistUtil {
    */
   static findDataFiles(asset, dataFiles = []) {
     if (!asset) {
-      return { datafiles: dataFiles };
+      return { dataFiles: dataFiles };
     }
     if (
       asset.type === Constants.AssetType.FILE &&
@@ -127,7 +127,7 @@ export default class ChecklistUtil {
       });
     }
 
-    return { datafiles: dataFiles };
+    return { dataFiles: dataFiles };
   }
 
   /**
@@ -142,7 +142,7 @@ export default class ChecklistUtil {
       const fileName = AssetUtil.getAssetNameFromUri(entryPoint.uri);
       entryPointFiles.push(fileName);
     });
-    return { entrypoints: entryPointFiles };
+    return { entryPoints: entryPointFiles };
   }
 
   /**
@@ -153,7 +153,7 @@ export default class ChecklistUtil {
    */
   static findDocumentationFiles(asset, documentationFiles = []) {
     if (!asset) {
-      return { documentationfiles: documentationFiles };
+      return { documentationFiles: documentationFiles };
     }
     if (
       asset.type === Constants.AssetType.FILE &&
@@ -169,6 +169,6 @@ export default class ChecklistUtil {
       });
     }
 
-    return { documentationfiles: documentationFiles };
+    return { documentationFiles: documentationFiles };
   }
 }

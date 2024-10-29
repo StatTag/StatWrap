@@ -18,17 +18,19 @@ import pdfFonts from 'pdfmake/build/vfs_fonts';
 import GeneralUtil from '../../utils/general';
 import ChecklistUtil from '../../utils/checklist';
 import AssetUtil from '../../utils/asset';
+import Constants from '../../constants/constants';
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 const path = require('path');
 
-const scanFunctions = [
-  ChecklistUtil.findAssetLanguagesAndDependencies,
-  ChecklistUtil.findDataFiles,
-  ChecklistUtil.findEntryPointFiles,
-  ChecklistUtil.findDocumentationFiles,
-];
+// These functions are mapped using the statement type to the corresponding scan function
+const scanFunctions = {
+  Dependency: ChecklistUtil.findAssetLanguagesAndDependencies,
+  Data: ChecklistUtil.findDataFiles,
+  Entrypoint: ChecklistUtil.findEntryPointFiles,
+  Documentation: ChecklistUtil.findDocumentationFiles,
+};
 
 function ReproChecklist(props) {
   const {
@@ -48,9 +50,12 @@ function ReproChecklist(props) {
     if (project && checklist && !error) {
       if (project.assets) {
         // scan the project assets for each checklist statement
-        scanFunctions.forEach((scanFunction, index) => {
-          const scanResult = scanFunction(project.assets);
-          checklist[index].scanResult = scanResult;
+        Constants.CHECKLIST.forEach((statement, index) => {
+          // if used here as there might be a statement that doesn't have a corresponding scan function
+          if (scanFunctions[statement[0]]) {
+            const scanResult = scanFunctions[statement[0]](project.assets);
+            checklist[index].scanResult = scanResult;
+          }
         });
       }
     }

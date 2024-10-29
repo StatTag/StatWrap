@@ -156,8 +156,8 @@ describe('utils', () => {
 
     describe('findDataFiles', () => {
       it('should return empty result when asset is null or undefined', () => {
-        expect(ChecklistUtil.findDataFiles(null)).toEqual({ datafiles: [] });
-        expect(ChecklistUtil.findDataFiles(undefined)).toEqual({ datafiles: [] });
+        expect(ChecklistUtil.findDataFiles(null)).toEqual({ dataFiles: [] });
+        expect(ChecklistUtil.findDataFiles(undefined)).toEqual({ dataFiles: [] });
       });
 
       it('should return empty result when asset is not a data file', () => {
@@ -167,7 +167,7 @@ describe('utils', () => {
             contentTypes: [Constants.AssetContentType.CODE],
             uri: 'path/to/file.py',
           }),
-        ).toEqual({ datafiles: [] });
+        ).toEqual({ dataFiles: [] });
       });
 
       it('should return data file name when asset is a data file', () => {
@@ -177,7 +177,7 @@ describe('utils', () => {
             contentTypes: [Constants.AssetContentType.DATA],
             uri: 'path/to/file.csv',
           }),
-        ).toEqual({ datafiles: ['file.csv'] });
+        ).toEqual({ dataFiles: ['file.csv'] });
       });
 
       it('should return data file names for nested data files', () => {
@@ -199,34 +199,48 @@ describe('utils', () => {
               },
             ],
           }),
-        ).toEqual({ datafiles: ['file1.csv', 'file2.csv'] });
+        ).toEqual({ dataFiles: ['file1.csv', 'file2.csv'] });
       });
     });
 
     describe('findEntryPointFiles', () => {
       it('should return empty result when entryPoints is null or undefined', () => {
-        expect(ChecklistUtil.findEntryPointFiles(null)).toEqual({ entrypoints: [] });
-        expect(ChecklistUtil.findEntryPointFiles(undefined)).toEqual({ entrypoints: [] });
+        expect(ChecklistUtil.findEntryPointFiles(null)).toEqual({ entryPoints: [] });
+        expect(ChecklistUtil.findEntryPointFiles(undefined)).toEqual({ entryPoints: [] });
       });
 
       it('should return entry point file names for given entrypoint assets', () => {
         expect(
-          ChecklistUtil.findEntryPointFiles([
-            {
-              uri: 'path/to/file1.py',
-            },
-            {
-              uri: 'path/to/file2.py',
-            },
-          ]),
-        ).toEqual({ entrypoints: ['file1.py', 'file2.py'] });
+          ChecklistUtil.findEntryPointFiles({
+            type: Constants.AssetType.FOLDER,
+            uri: 'path/to/folder',
+            children: [
+              {
+                type: Constants.AssetType.FILE,
+                contentTypes: [Constants.AssetContentType.CODE],
+                uri: 'path/to/folder/file1.py',
+                attributes: {
+                  entrypoint: true,
+                },
+              },
+              {
+                type: Constants.AssetType.FILE,
+                contentTypes: [Constants.AssetContentType.CODE],
+                uri: 'path/to/folder/file2.py',
+                attributes: {
+                  entrypoint: false,
+                },
+              },
+            ],
+          }),
+        ).toEqual({ entryPoints: ['file1.py'] });
       });
     });
 
     describe('findDocumentationFiles', () => {
       it('should return empty result when asset is null or undefined', () => {
-        expect(ChecklistUtil.findDocumentationFiles(null)).toEqual({ documentationfiles: [] });
-        expect(ChecklistUtil.findDocumentationFiles(undefined)).toEqual({ documentationfiles: [] });
+        expect(ChecklistUtil.findDocumentationFiles(null)).toEqual({ documentationFiles: [] });
+        expect(ChecklistUtil.findDocumentationFiles(undefined)).toEqual({ documentationFiles: [] });
       });
 
       it('should return empty result when asset is not a documentation file', () => {
@@ -236,7 +250,7 @@ describe('utils', () => {
             contentTypes: [Constants.AssetContentType.CODE],
             uri: 'path/to/file.py',
           }),
-        ).toEqual({ documentationfiles: [] });
+        ).toEqual({ documentationFiles: [] });
       });
 
       it('should return documentation file name when asset is a documentation file', () => {
@@ -246,7 +260,7 @@ describe('utils', () => {
             contentTypes: [Constants.AssetContentType.DOCUMENTATION],
             uri: 'path/to/file.md',
           }),
-        ).toEqual({ documentationfiles: ['file.md'] });
+        ).toEqual({ documentationFiles: ['file.md'] });
       });
 
       it('should return documentation file names for nested documentation files', () => {
@@ -266,9 +280,14 @@ describe('utils', () => {
                 contentTypes: [Constants.AssetContentType.DOCUMENTATION],
                 uri: 'path/to/folder/file2.md',
               },
+              {
+                type: Constants.AssetType.FILE,
+                contentTypes: [Constants.AssetContentType.CODE],
+                uri: 'path/to/folder/file3.py',
+              },
             ],
           }),
-        ).toEqual({ documentationfiles: ['file1.md', 'file2.md'] });
+        ).toEqual({ documentationFiles: ['file1.md', 'file2.md'] });
       });
     });
   });
