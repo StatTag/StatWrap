@@ -30,6 +30,14 @@ function ChecklistItem(props) {
   } = props;
 
   const treeRef = React.useRef(null);
+  const externalTreeRef = React.useRef(null);
+
+  const [assets, setAssets] = useState(project && project.assets);
+  const [externalAssets, setExternalAssets] = useState(
+    project && project.externalAssets
+      ? project.externalAssets
+      : AssetUtil.createEmptyExternalAssets(),
+  );
 
   const [expanded, setExpanded] = useState(false);
 
@@ -54,7 +62,7 @@ function ChecklistItem(props) {
   const handleSelectAsset = (selAsset) => {
     let asset = selAsset;
     if (asset && (asset.contentTypes === null || asset.contentTypes === undefined)) {
-      if (project && project.assets) {
+      if (project && project.assets && asset.type === Constants.AssetType.FILE) {
         asset = AssetUtil.findDescendantAssetByUri(project.assets, asset.uri);
       }
     }
@@ -66,7 +74,7 @@ function ChecklistItem(props) {
         // Handles case for URL assets
         // TODO: Title is currently the same as URI, some way to get a better title?
       } else if (asset.type === Constants.AssetType.URL) {
-        setAssetTitle(asset.uri);
+        setAssetTitle(asset.name);
       } else {
         setAssetTitle('');
       }
@@ -276,8 +284,14 @@ function ChecklistItem(props) {
                       </IconButton>
                     </div>
                     <AssetTree
-                      assets={project.assets}
+                      assets={assets}
                       ref={treeRef}
+                      onSelectAsset={handleSelectAsset}
+                      selectedAsset={selectedAsset}
+                    />
+                    <AssetTree
+                      assets={externalAssets}
+                      ref={externalTreeRef}
                       onSelectAsset={handleSelectAsset}
                       selectedAsset={selectedAsset}
                     />
