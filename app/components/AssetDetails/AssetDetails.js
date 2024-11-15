@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { withStyles } from '@mui/styles';
 import { FaTrash, FaEdit } from 'react-icons/fa';
 import { IconButton } from '@mui/material';
+import OverflowDiv from '../OverflowDiv/OverflowDiv';
 import Constants from '../../constants/constants';
 import Accordion from '@mui/material/Accordion';
 import MuiAccordionSummary from '@mui/material/AccordionSummary';
@@ -159,7 +160,7 @@ const assetDetails = (props) => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.title}>{asset.uri}</div>
+      <OverflowDiv>{asset.uri}</OverflowDiv>
       {actions}
       <Accordion expanded={expandNotes}>
         <AccordionSummary

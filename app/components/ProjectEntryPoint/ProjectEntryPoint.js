@@ -6,6 +6,7 @@ import MuiAccordionSummary from '@mui/material/AccordionSummary';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileImport, faShareFromSquare } from '@fortawesome/free-solid-svg-icons';
+import OverflowDiv from '../OverflowDiv/OverflowDiv';
 import styles from './ProjectEntryPoint.css';
 import AssetUtil from '../../utils/asset';
 
@@ -46,7 +47,7 @@ const projectEntryPoint = (props) => {
     return (
       // eslint-disable-next-line react/jsx-filename-extension
       <div className={styles.container}>
-        <div className={styles.title}>{rootUri}</div>
+        <OverflowDiv>{rootUri}</OverflowDiv>
         <Accordion defaultExpanded>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
