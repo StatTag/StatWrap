@@ -7,7 +7,8 @@ import {
   FaChevronRight,
   FaPaperclip,
   FaFilter,
-  FaGlobe
+  FaGlobe,
+  FaFileImport
 } from 'react-icons/fa';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
@@ -21,6 +22,22 @@ const getPaddingLeft = (level) => {
   return level * 20;
 };
 
+const getNodeColor = (node) => {
+  if (!node || !node.attributes) {
+    return '#000';
+  }
+}
+
+const getNodeFontWeight = (node) => {
+  if (!node || !node.attributes) {
+    return 'normal';
+  }
+
+  if (node.attributes.entrypoint) {
+    return '600';
+  }
+}
+
 const StyledTreeNode = styled.div`
   display: flex;
   flex-direction: row;
@@ -28,6 +45,8 @@ const StyledTreeNode = styled.div`
   padding: 5px 8px;
   padding-left: ${(props) => getPaddingLeft(props.$level)}px;
   ${(props) => (props.selected ? 'background-color: #eee;' : null)}
+  color: ${(props) => getNodeColor(props.node)};
+  font-weight: ${(props) => getNodeFontWeight(props.node)};
 `;
 
 const NodeIcon = styled.div`
@@ -41,7 +60,7 @@ const StyledInput = styled.input`
 
 const StyledLabel = styled.span`
   overflow: hidden;
-    text-overflow: ellipsis;
+  text-overflow: ellipsis;
 `;
 
 function AssetNode(props) {
@@ -86,6 +105,7 @@ function AssetNode(props) {
       <StyledTreeNode
         $level={level}
         type={node.type}
+        node={node}
         selected={node && selectedAsset && node.uri === selectedAsset.uri}
         onContextMenu={(e) => {
           if (onRightClick) {
@@ -105,7 +125,8 @@ function AssetNode(props) {
         </NodeIcon>
         {checkbox}
         <NodeIcon $marginright={10}>
-          {node.type === Constants.AssetType.FILE && <FaFile />}
+          {node.type === Constants.AssetType.FILE && (!node.attributes || !node.attributes.entrypoint) && <FaFile />}
+          {node.type === Constants.AssetType.FILE && node.attributes && node.attributes.entrypoint && <FaFileImport />}
           {node.type === Constants.AssetType.DIRECTORY && isOpen === true && <FaFolderOpen />}
           {node.type === Constants.AssetType.DIRECTORY && !isOpen && <FaFolder />}
           {node.type === Constants.AssetType.ASSET_GROUP && <FaPaperclip />}
