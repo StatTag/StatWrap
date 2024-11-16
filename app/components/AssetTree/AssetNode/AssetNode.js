@@ -26,6 +26,10 @@ const getNodeColor = (node) => {
   if (!node || !node.attributes) {
     return '#000';
   }
+
+  if (node.attributes.archived) {
+    return "#777";
+  }
 }
 
 const getNodeFontWeight = (node) => {
