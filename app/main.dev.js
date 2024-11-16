@@ -9,9 +9,10 @@
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  *
  */
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, shell, BrowserWindow, ipcMain } from 'electron';
 // import { autoUpdater } from 'electron-updater';
 import path from 'path';
+import { URL } from 'url';
 // import log from 'electron-log';
 import { cloneDeep, orderBy } from 'lodash';
 import { initialize, enable as enableRemote } from '@electron/remote/main';
@@ -96,6 +97,42 @@ const createWindow = async () => {
       contextIsolation: false,
     },
   });
+
+  // Capture the typical click on an anchor link and determine if we want to
+  // send this to the user's browser.
+  mainWindow.webContents.on('will-navigate', (e, redirectUrl) => {
+    if (handleUrl(redirectUrl)) {
+      e.preventDefault();
+    }
+  });
+
+  // This handler is separately used when a new window is requested because
+  // a link uses _blank.  The above event will not be triggered in those
+  // instances.
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (handleUrl(url)) {
+      return { action: 'deny' };
+    }
+    return { action: 'allow' };
+  });
+
+  // Shared handler to take a URL and determine if we should open it in the user's
+  // browser (returns true), or if we let electron handle it normally (false).
+  async function handleUrl(url: string) {
+    try {
+      const parsedUrl = new URL(url);
+      const { protocol } = parsedUrl;
+      if (protocol === "http:" || protocol === "https:") {
+        shell.openExternal(url); // Open in external browser
+        return true;
+      }
+    } catch (err) {
+      console.log('ERROR ' + err);
+      // Errors are ignored, as we only want to check if the value is a valid url
+    }
+
+    return false;
+  }
 
   // Enable electron remote
   enableRemote(mainWindow.webContents);
