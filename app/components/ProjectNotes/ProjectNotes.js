@@ -174,15 +174,29 @@ function projectNotes(props) {
         });
       }
 
+      let mappedExternalAssetNotes = [];
+      if (props.project.externalAssets) {
+        mappedExternalAssetNotes = AssetUtil.getAllNotes(props.project.externalAssets).map((n) => {
+          return {
+            type: 'Asset',
+            uri: n.uri,
+            updated: n.updated,
+            author: n.author,
+            content: n.content,
+          };
+        });
+      }
+
       // If any of our notes collections are set, build up a combined collection
       // of the notes.  Otherwise set the feed explicitly to null so we know to
       // render it as empty.
       if (
         mappedAssetNotes.length > 0 ||
         mappedProjectNotes.length > 0 ||
-        mappedPersonNotes.length > 0
+        mappedPersonNotes.length > 0 ||
+        mappedExternalAssetNotes.length > 0
       ) {
-        setFeed([...mappedProjectNotes, ...mappedAssetNotes, ...mappedPersonNotes]);
+        setFeed([...mappedProjectNotes, ...mappedAssetNotes, ...mappedPersonNotes, ...mappedExternalAssetNotes]);
       } else {
         setFeed(null);
       }
