@@ -14,6 +14,7 @@ import {
 import { FaFolderOpen, FaFolderMinus, FaChevronUp, FaChevronDown } from 'react-icons/fa';
 import AssetTree from '../../AssetTree/AssetTree';
 import AssetUtil from '../../../utils/asset';
+import ProjectUtil from '../../../utils/project';
 import Constants from '../../../constants/constants';
 
 const { v4: uuidv4 } = require('uuid');
@@ -32,7 +33,8 @@ function ChecklistItem(props) {
   const treeRef = React.useRef(null);
   const externalTreeRef = React.useRef(null);
 
-  const [assets, setAssets] = useState(project && project.assets);
+  const filteredProjectAssets = ProjectUtil.filterProjectAssets(project, null);
+  const [assets, setAssets] = useState(filteredProjectAssets);
   const [externalAssets, setExternalAssets] = useState(
     project && project.externalAssets
       ? project.externalAssets

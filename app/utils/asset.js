@@ -476,4 +476,36 @@ export default class AssetUtil {
     }
     return !FILE_IGNORE_LIST.includes(fileName);
   }
+
+  /**
+   * Given an asset, filter and return all remaining items that should be displayed
+   * @param {The assets to filter} assets
+   * @param {The attribute/facet filter to use, or null} filter
+   * @returns A collection of filtered assets
+   */
+  static filterAssets(assets, filter) {
+    if (!assets || assets === undefined) {
+      return {};
+    }
+
+    let filteredAssetList = AssetUtil.filterIncludedFileAssets(assets);
+
+    if (filter && filter !== undefined) {
+      filteredAssetList = ProjectUtil.getFilteredAssets(filteredAssetList, filter);
+      if (ProjectUtil.isDirectoryFilteredOut(filter)) {
+        filteredAssetList = ProjectUtil.flattenFilteredAssets(filteredAssetList);
+        if (filteredAssetList) {
+          filteredAssetList.type = constants.AssetType.FILTER;
+        }
+      }
+    }
+
+    // If filteredAssets ends up becoming null, we are going to set it to an
+    // empty object so our UI still displays.
+    if (!filteredAssetList) {
+      filteredAssetList = {};
+    }
+
+    return filteredAssetList;
+  }
 }

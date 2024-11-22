@@ -705,4 +705,18 @@ export default class ProjectUtil {
       true,
     )}`;
   }
+
+  /**
+   * Given a project, filter the assets that should be displayed
+   * @param {Project to filter assets for} project
+   * @param {The attribute/facet filter to use, or null} filter
+   * @returns
+   */
+  static filterProjectAssets(project, filter) {
+    if (!project || project === undefined || !project.assets || project.assets === undefined) {
+      return {};
+    }
+
+    return AssetUtil.filterAssets(project.assets, filter);
+  }
 }

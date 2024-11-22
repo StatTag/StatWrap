@@ -19,40 +19,6 @@ import ProjectService from '../../../services/project';
 import styles from './Assets.css';
 import constants from '../../../constants/constants';
 
-function filterAssets(assets, filter) {
-  if (!assets || assets === undefined) {
-    return {};
-  }
-
-  let filteredAssetList = AssetUtil.filterIncludedFileAssets(assets);
-
-  if (filter && filter !== undefined) {
-    filteredAssetList = ProjectUtil.getFilteredAssets(filteredAssetList, filter);
-    if (ProjectUtil.isDirectoryFilteredOut(filter)) {
-      filteredAssetList = ProjectUtil.flattenFilteredAssets(filteredAssetList);
-      if (filteredAssetList) {
-        filteredAssetList.type = constants.AssetType.FILTER;
-      }
-    }
-  }
-
-  // If filteredAssets ends up becoming null, we are going to set it to an
-  // empty object so our UI still displays.
-  if (!filteredAssetList) {
-    filteredAssetList = {};
-  }
-
-  return filteredAssetList;
-}
-
-function filterProjectAssets(project, filter) {
-  if (!project || project === undefined || !project.assets || project.assets === undefined) {
-    return {};
-  }
-
-  return filterAssets(project.assets, filter);
-}
-
 /**
  * Utility function to safely reset available filters for a project's assets
  *
@@ -111,7 +77,7 @@ const assetsComponent = (props) => {
   const [filterEnabled, setFilterEnabled] = useState(true);
   // The actual contents of the filter (no filter by default)
   const [filter, setFilter] = useState([]);
-  const filteredProjectAssets = filterProjectAssets(project, null);
+  const filteredProjectAssets = ProjectUtil.filterProjectAssets(project, null);
   const [assets, setAssets] = useState(filteredProjectAssets);
   const [externalAssets, setExternalAssets] = useState(project && project.externalAssets ?
     project.externalAssets : AssetUtil.createEmptyExternalAssets());
