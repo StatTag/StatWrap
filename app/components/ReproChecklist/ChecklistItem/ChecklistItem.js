@@ -11,7 +11,7 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material';
-import { FaFolderOpen, FaFolderMinus, FaChevronUp, FaChevronDown } from 'react-icons/fa';
+import { FaFolderOpen, FaFolderMinus, FaChevronRight, FaChevronDown } from 'react-icons/fa';
 import AssetTree from '../../AssetTree/AssetTree';
 import AssetUtil from '../../../utils/asset';
 import ProjectUtil from '../../../utils/project';
@@ -197,9 +197,9 @@ function ChecklistItem(props) {
           <div className={styles.statementHeader}>
             <button className={styles.expandButton}>
               {expanded ? (
-                <FaChevronUp className={styles.chevron} onClick={() => setExpanded(false)} />
+                <FaChevronDown className={styles.chevron} onClick={() => setExpanded(false)} />
               ) : (
-                <FaChevronDown className={styles.chevron} onClick={() => setExpanded(true)} />
+                <FaChevronRight className={styles.chevron} onClick={() => setExpanded(true)} />
               )}
             </button>
             <span className={styles.statement}>
