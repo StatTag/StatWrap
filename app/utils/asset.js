@@ -8,6 +8,24 @@ import Constants from '../constants/constants';
 // eslint-disable-next-line import/no-cycle
 import FileHandler from '../services/assets/handlers/file';
 
+// All file and folder names (exact match - currently not supporting regex patterns)
+// that we want to hide from view.
+const FILE_IGNORE_LIST = [
+  '.DS_Store',
+  'Thumbs.db',
+  '.keep', // We use these within our template projects
+  Constants.StatWrapFiles.PROJECT,
+  Constants.StatWrapFiles.LOG,
+  Constants.StatWrapFiles.BASE_FOLDER,
+  '.git',
+  '.gitignore',
+  '.vs',
+  '.pytest_cache',
+  '.ipynb_checkpoints',
+  '.Rhistory',
+  '.Rproj.user',
+];
+
 export default class AssetUtil {
   static getHandlerMetadata(handler, metadata) {
     if (!metadata || metadata.length === 0) {
@@ -441,5 +459,21 @@ export default class AssetUtil {
     }
 
     return asset.type === Constants.AssetType.URL;
+  }
+
+  /**
+   * Determine if a file represented by a URI is one that we want to typically include.
+   * @param {string} uri - A string containing the URI of the asset we want to consider for inclusion
+   */
+  static includeAsset(uri) {
+    if (!uri || uri === undefined) {
+      return false;
+    }
+
+    const fileName = path.basename(uri.trim());
+    if (fileName === '') {
+      return false;
+    }
+    return !FILE_IGNORE_LIST.includes(fileName);
   }
 }

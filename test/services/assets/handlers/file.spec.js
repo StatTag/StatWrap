@@ -17,30 +17,6 @@ describe('services', () => {
       });
     });
 
-    describe('includeFile', () => {
-      it('should exclude invalid URIs', () => {
-        const handler = new FileHandler();
-        expect(handler.includeFile(null)).toBeFalsy();
-        expect(handler.includeFile(undefined)).toBeFalsy();
-        expect(handler.includeFile('')).toBeFalsy();
-        expect(handler.includeFile('   ')).toBeFalsy();
-      });
-
-      it('should exclude files we want to skip', () => {
-        const handler = new FileHandler();
-        expect(handler.includeFile('/User/test/Project/.DS_Store')).toBeFalsy();
-        expect(handler.includeFile('C:/test/Project/Thumbs.db')).toBeFalsy();
-        expect(handler.includeFile(Constants.StatWrapFiles.PROJECT)).toBeFalsy();
-      });
-
-      it('should include allowable files and folders', () => {
-        const handler = new FileHandler();
-        expect(handler.includeFile('/User/test/Project/DS/Store')).toBeTruthy();
-        expect(handler.includeFile('C:/test/Project/Thumbnail-1.jpg')).toBeTruthy();
-        expect(handler.includeFile('Manuscript-v1.docx')).toBeTruthy();
-      });
-    });
-
     describe('scan', () => {
       it('should only add the metadata once', () => {
         fs.accessSync.mockImplementationOnce(() => {

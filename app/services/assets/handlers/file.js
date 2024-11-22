@@ -7,24 +7,6 @@ import { StatWrapFiles } from '../../../constants/constants';
 const fs = require('fs');
 const path = require('path');
 
-// All file and folder names (exact match - currently not supporting regex patterns)
-// that we want to hide from view.
-const FILE_IGNORE_LIST = [
-  '.DS_Store',
-  'Thumbs.db',
-  '.keep', // We use these within our template projects
-  StatWrapFiles.PROJECT,
-  StatWrapFiles.LOG,
-  StatWrapFiles.BASE_FOLDER,
-  '.git',
-  '.gitignore',
-  '.vs',
-  '.pytest_cache',
-  '.ipynb_checkpoints',
-  '.Rhistory',
-  '.Rproj.user',
-];
-
 /**
  * Metadata:
  * {
@@ -49,15 +31,7 @@ export default class FileHandler {
    * @param {string} uri - A string containing the URI of the asset we want to consider for inclusion
    */
   includeFile(uri) {
-    if (!uri || uri === undefined) {
-      return false;
-    }
-
-    const fileName = path.basename(uri.trim());
-    if (fileName === '') {
-      return false;
-    }
-    return !FILE_IGNORE_LIST.includes(fileName);
+    return AssetUtil.includeAsset(uri);
   }
 
   /**

@@ -1479,4 +1479,25 @@ describe('utils', () => {
       });
     });
   });
+
+  describe('includeAsset', () => {
+    it('should exclude invalid URIs', () => {
+      expect(AssetUtil.includeAsset(null)).toBeFalsy();
+      expect(AssetUtil.includeAsset(undefined)).toBeFalsy();
+      expect(AssetUtil.includeAsset('')).toBeFalsy();
+      expect(AssetUtil.includeAsset('   ')).toBeFalsy();
+    });
+
+    it('should exclude files we want to skip', () => {
+      expect(AssetUtil.includeAsset('/User/test/Project/.DS_Store')).toBeFalsy();
+      expect(AssetUtil.includeAsset('C:/test/Project/Thumbs.db')).toBeFalsy();
+      expect(AssetUtil.includeAsset(Constants.StatWrapFiles.PROJECT)).toBeFalsy();
+    });
+
+    it('should include allowable files and folders', () => {
+      expect(AssetUtil.includeAsset('/User/test/Project/DS/Store')).toBeTruthy();
+      expect(AssetUtil.includeAsset('C:/test/Project/Thumbnail-1.jpg')).toBeTruthy();
+      expect(AssetUtil.includeAsset('Manuscript-v1.docx')).toBeTruthy();
+    });
+  });
 });
