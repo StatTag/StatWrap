@@ -107,7 +107,7 @@ const assetsComponent = (props) => {
     // When the project changes, reset our interface, filters, etc.
     setMode('default');
     setFilter(resetFilter(project));
-    setAssets(filterProjectAssets(project, null));
+    setAssets(ProjectUtil.filterProjectAssets(project, null));
     setCurrentAssetGroup(null);
     setGroupedAssets(null);
     setFilterEnabled(true);
@@ -118,12 +118,12 @@ const assetsComponent = (props) => {
   // those that should be displayed.
   const handleFilterChanged = (updatedFilter) => {
     setFilter(updatedFilter);
-    setAssets(filterProjectAssets(project, updatedFilter));
+    setAssets(ProjectUtil.filterProjectAssets(project, updatedFilter));
   };
 
   const handleFilterReset = () => {
     setFilter(resetFilter(project));
-    setAssets(filterProjectAssets(project, null));
+    setAssets(ProjectUtil.filterProjectAssets(project, null));
   };
 
   // When the user triggers saving an Asset Group, update the UI so the dialog
@@ -216,7 +216,7 @@ const assetsComponent = (props) => {
     if (group === null) {
       setCurrentAssetGroup(null);
       setGroupedAssets(null);
-      setAssets(filterProjectAssets(project, filter));
+      setAssets(ProjectUtil.filterProjectAssets(project, filter));
       setFilterEnabled(true);
     } else {
       const clonedGroup = cloneDeep(group);
@@ -252,7 +252,7 @@ const assetsComponent = (props) => {
    */
   const handleEditAssetGroup = (group) => {
     const clonedGroup = cloneDeep(group);
-    setAssets(filterProjectAssets(project, filter));
+    setAssets(ProjectUtil.filterProjectAssets(project, filter));
     setCurrentAssetGroup(clonedGroup);
     setGroupedAssets(clonedGroup.assets);
     treeRef.current.setPreCheckedNodes(clonedGroup.assets.map((x) => x.uri));
@@ -309,7 +309,7 @@ const assetsComponent = (props) => {
    * Prepare the state/UI for creating a new asset group
    */
   const handleNewAssetGroup = () => {
-    setAssets(filterProjectAssets(project, filter));
+    setAssets(ProjectUtil.filterProjectAssets(project, filter));
     setCurrentAssetGroup(null);
     setGroupedAssets(null);
     treeRef.current.setPreCheckedNodes([]);
