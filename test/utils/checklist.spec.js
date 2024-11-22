@@ -52,6 +52,26 @@ describe('utils', () => {
         });
       });
 
+      it('should return empty result for assets in an ignored folder', () => {
+        expect(
+          ChecklistUtil.findAssetLanguagesAndDependencies({
+            type: Constants.AssetType.FOLDER,
+            contentTypes: [Constants.AssetContentType.CODE],
+            uri: '.git',
+            children: [
+              {
+                type: Constants.AssetType.FILE,
+                contentTypes: [Constants.AssetContentType.CODE],
+                uri: '.git/file1.py',
+              }
+            ],
+          }),
+        ).toEqual({
+          languages: [],
+          dependencies: [],
+        });
+      });
+
       it('should return empty result for unmatching content type and extension', () => {
         expect(
           ChecklistUtil.findAssetLanguagesAndDependencies({
@@ -170,6 +190,28 @@ describe('utils', () => {
         ).toEqual({ dataFiles: [] });
       });
 
+      it('should empty result when asset is in an ignored folder', () => {
+        expect(
+          ChecklistUtil.findDataFiles({
+            type: Constants.AssetType.FOLDER,
+            contentTypes: [Constants.AssetContentType.DATA],
+            uri: '.statwrap',
+            children: [
+              {
+                type: Constants.AssetType.FILE,
+                contentTypes: [Constants.AssetContentType.DATA],
+                uri: '.statwrap/file1.csv',
+              },
+              {
+                type: Constants.AssetType.FILE,
+                contentTypes: [Constants.AssetContentType.DATA],
+                uri: '.statwrap/file2.json',
+              },
+            ],
+          }),
+        ).toEqual({ dataFiles: [] });
+      });
+
       it('should return data file name when asset is a data file', () => {
         expect(
           ChecklistUtil.findDataFiles({
@@ -249,6 +291,23 @@ describe('utils', () => {
             type: Constants.AssetType.FILE,
             contentTypes: [Constants.AssetContentType.CODE],
             uri: 'path/to/file.py',
+          }),
+        ).toEqual({ documentationFiles: [] });
+      });
+
+      it('should return empty result when asset is ignored', () => {
+        expect(
+          ChecklistUtil.findDocumentationFiles({
+            type: Constants.AssetType.FOLDER,
+            contentTypes: [Constants.AssetContentType.DOCUMENTATION],
+            uri: '.statwrap',
+            children: [
+              {
+                type: Constants.AssetType.FILE,
+                contentTypes: [Constants.AssetContentType.DOCUMENTATION],
+                uri: '.statwrap/file1.md',
+              },
+            ],
           }),
         ).toEqual({ documentationFiles: [] });
       });

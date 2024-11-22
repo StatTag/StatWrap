@@ -53,9 +53,11 @@ export default class ChecklistUtil {
    * @returns {array} An array containing the languages found
    */
   static findAssetLanguages(asset, languages = {}) {
+    const includeAsset =  AssetUtil.includeAsset(asset.uri);
     if (
       asset.type === Constants.AssetType.FILE &&
-      asset.contentTypes.includes(Constants.AssetContentType.CODE)
+      asset.contentTypes.includes(Constants.AssetContentType.CODE) &&
+      includeAsset
     ) {
       const lastSep = asset.uri.lastIndexOf(path.sep);
       const fileName = asset.uri.substring(lastSep + 1);
@@ -74,7 +76,7 @@ export default class ChecklistUtil {
       }
     }
 
-    if (asset.children) {
+    if (asset.children && includeAsset) {
       asset.children.forEach((child) => {
         ChecklistUtil.findAssetLanguages(child, languages);
       });
@@ -110,9 +112,10 @@ export default class ChecklistUtil {
    * @returns {object} An object containing the data files found
    */
   static findDataFiles(asset, dataFiles = []) {
-    if (!asset) {
+    if (!asset || !AssetUtil.includeAsset(asset.uri)) {
       return { dataFiles: dataFiles };
     }
+
     if (
       asset.type === Constants.AssetType.FILE &&
       asset.contentTypes.includes(Constants.AssetContentType.DATA)
@@ -152,7 +155,7 @@ export default class ChecklistUtil {
    * @returns {object} An object containing the documentation files found
    */
   static findDocumentationFiles(asset, documentationFiles = []) {
-    if (!asset) {
+    if (!asset || !AssetUtil.includeAsset(asset.uri)) {
       return { documentationFiles: documentationFiles };
     }
     if (
