@@ -3,6 +3,8 @@ const path = require('path');
 import last from 'lodash/last';
 import Constants from '../constants/constants';
 
+import ProjectUtil from './project';
+
 // We do have a dependency cycle here, but it is just to grab a constant value.
 // No circular functions exist (and we need to make sure it stays that way).
 // eslint-disable-next-line import/no-cycle
