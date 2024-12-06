@@ -8,12 +8,14 @@
 }
 
 .statementHeader {
-  display:flex;
-  justify-content: center;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
   border: 1px solid #e5e5e5;
   border-radius: 7px;
   background-color: #f1f1f1;
-  padding: 10px 10px 0;
+  padding: 5px 10px 0 5px;
 }
 
 .expandButton {
@@ -30,31 +32,27 @@
 }
 
 .header {
-  display:flex;
-  justify-content: center;
+  flex-grow: 8;
 }
 
 .statement {
   font-size: 18px;
   font-weight: bold;
   margin-right: 5px;
-  margin-bottom: 10px;
 }
 
 .buttonContainer {
-  display: flex;
   margin-left: auto;
   margin-right: 0;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
 }
 
 .scanResult {
   font-size: medium;
-  font-family:'Courier New', Courier, monospace;
+  font-family: 'Courier New', Courier, monospace;
 }
 
-.scanKey {
-}
+.scanKey {}
 
 .scanList {
   margin-top: 4px;
@@ -70,10 +68,9 @@
   margin-top: 10px;
 }
 
-.urls {
-}
+.urls {}
 
-.images ul{
+.images ul {
   list-style-type: none;
   padding-left: 0;
   display: flex;
@@ -89,14 +86,14 @@
   white-space: nowrap;
 }
 
-.images li{
+.images li {
   margin-right: 10px;
   margin-bottom: 5px;
   padding-right: 5px;
   position: relative;
 }
 
-.urls li{
+.urls li {
   margin-right: 10px;
   margin-bottom: 5px;
   padding-bottom: 5px;
@@ -152,8 +149,8 @@
 }
 
 .url {
-  background-color:#f2ebff;
-  border:1px solid rebeccapurple;
+  background-color: #f2ebff;
+  border: 1px solid rebeccapurple;
   padding: 7px;
   padding-right: 0;
   border-radius: 5px;
@@ -174,7 +171,8 @@
   margin-bottom: 10px;
 }
 
-.urlHeader, .imageHeader {
+.urlHeader,
+.imageHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -268,7 +266,8 @@
   opacity: 0.9;
 }
 
-.addImagesButton, .addUrlsButton {
+.addImagesButton,
+.addUrlsButton {
   background-color: #aa94d1;
   color: #fff;
   cursor: pointer;
@@ -279,7 +278,8 @@
   transition: background-color 0.3s ease;
 }
 
-.addImagesButton:hover, .addUrlsButton:hover {
+.addImagesButton:hover,
+.addUrlsButton:hover {
   background-color: #8b6fb3;
 }
 
@@ -331,7 +331,8 @@
   max-height: 500px;
 }
 
-.urlText, .imageText {
+.urlText,
+.imageText {
   font-size: 16px;
   font-weight: 600;
 }
@@ -398,6 +399,7 @@
   display: flex;
   justify-content: flex-end;
 }
+
 .description {
   display: flex;
   justify-content: flex-end;

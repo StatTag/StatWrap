@@ -5,6 +5,7 @@ import NoteEditor from '../../NoteEditor/NoteEditor';
 import { ContentCopy, Done, Delete } from '@mui/icons-material';
 import {
   IconButton,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
@@ -71,6 +72,64 @@ function ChecklistItem(props) {
       details
     );
   }
+
+  const formatYesNo = (val) => {
+    return val ? "Yes" : "No";
+  }
+
+  /**
+   * Handler when this checklist item has its value updated.
+   *
+   * @param {object} event The checkbox event
+   */
+  const handleItemChecked = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = event.target.checked;
+
+    // If it didn't change, no action is needed.
+    if (newValue === item.value) {
+      return;
+    }
+
+    const updatedItem = { ...item, answer: newValue };
+    handleItemUpdate(updatedItem,
+      Constants.ActionType.CHECKLIST_UPDATED,
+      Constants.ActionType.CHECKLIST_UPDATED,
+      `Set "${updatedItem.statement}" to "${formatYesNo(newValue)}"`,
+      {oldValue: formatYesNo(item.Value), newValue: formatYesNo(newValue)}
+    );
+  };
+
+  /**
+   * Handler when a sub-checklist item has its value updated.
+   *
+   * This is slightly different from the main checklist item update because we need
+   * to update the data object differently, and customize the logging message.
+   *
+   * @param {object} event The checkbox event
+   * @param {object} subCheck The sub-checklist item that was updated
+   */
+  const handleSubItemChecked = (event: React.ChangeEvent<HTMLInputElement>, subCheck) => {
+    // TODO: This works in theory... we don't currently have a sub-checklist item, so when we
+    // implement one we will need this to be tested more thoroughly.
+    const newValue = event.target.checked;
+    const updatedItem = {
+      ...item,
+      subChecklist: item.subChecklist.map((sub) => {
+        if (sub.id === subCheck.id) {
+          oldAnswer = sub.answer;
+          return { ...sub, answer: true };
+        }
+        return sub;
+      }),
+    };
+
+    handleItemUpdate(updatedItem,
+      Constants.ActionType.CHECKLIST_UPDATED,
+      Constants.ActionType.CHECKLIST_UPDATED,
+      `Set sub-item ${subCheck.id} of ${updatedItem.statement} to "Yes"`,
+      {oldValue: 'No', newValue: 'Yes'}
+    );
+  };
 
   const handleSelectAsset = (selAsset) => {
     let asset = selAsset;
@@ -258,40 +317,14 @@ function ChecklistItem(props) {
               {item.id}. {item.statement}
             </span>
             <div className={styles.buttonContainer}>
-              <button
-                className={item.answer ? styles.yesset : styles.yes}
-                onClick={() => {
-                  const oldAnswer = item.answer;
-                  if (oldAnswer === false) {
-                    const updatedItem = { ...item, answer: true };
-                    handleItemUpdate(updatedItem,
-                      Constants.ActionType.CHECKLIST_UPDATED,
-                      Constants.ActionType.CHECKLIST_UPDATED,
-                      `Set "${updatedItem.statement}" to "Yes"`,
-                      {oldValue: 'No', newValue: 'Yes'}
-                    );
-                  }
+              <Checkbox
+                checked={item.answer}
+                onChange={handleItemChecked}
+                sx={{
+                  color: '#639',
+                  '&.Mui-checked': { color: '#639' },
                 }}
-              >
-                {'Yes'}
-              </button>
-              <button
-                className={item.answer ? styles.no : styles.noset}
-                onClick={() => {
-                  const oldAnswer = item.answer;
-                  if (oldAnswer == true) {
-                    const updatedItem = { ...item, answer: false };
-                    handleItemUpdate(updatedItem,
-                      Constants.ActionType.CHECKLIST_UPDATED,
-                      Constants.ActionType.CHECKLIST_UPDATED,
-                      `Set "${updatedItem.statement}" to "No"`,
-                      {oldValue: 'Yes', newValue: 'No'}
-                    );
-                  }
-                }}
-              >
-                {'No'}
-              </button>
+              />
             </div>
           </div>
           {expanded && (
@@ -491,58 +524,11 @@ function ChecklistItem(props) {
                           <div className={styles.header}>
                             <span>{subCheck.statement}</span>
                             <div className={styles.buttonContainer}>
-                              <button
-                                className={subCheck.answer ? styles.yesset : styles.yes}
-                                onClick={() => {
-                                  let oldAnswer = false;
-                                  const updatedItem = {
-                                    ...item,
-                                    subChecklist: item.subChecklist.map((sub) => {
-                                      if (sub.id === subCheck.id) {
-                                        oldAnswer = sub.answer;
-                                        return { ...sub, answer: true };
-                                      }
-                                      return sub;
-                                    }),
-                                  };
-                                  if (oldAnswer === false) {
-                                    handleItemUpdate(updatedItem,
-                                      Constants.ActionType.CHECKLIST_UPDATED,
-                                      Constants.ActionType.CHECKLIST_UPDATED,
-                                      `Set sub-item ${subCheck.id} of ${updatedItem.statement} to "Yes"`,
-                                      {oldValue: 'No', newValue: 'Yes'}
-                                    );
-                                  }
-                                }}
-                              >
-                                {'Yes'}
-                              </button>
-                              <button
-                                className={subCheck.answer ? styles.no : styles.noset}
-                                onClick={() => {
-                                  let oldAnswer = true;
-                                  const updatedItem = {
-                                    ...item,
-                                    subChecklist: item.subChecklist.map((sub) => {
-                                      if (sub.id === subCheck.id) {
-                                        oldAnswer = sub.answer;
-                                        return { ...sub, answer: false };
-                                      }
-                                      return sub;
-                                    }),
-                                  };
-                                  if (oldAnswer === true) {
-                                    handleItemUpdate(updatedItem,
-                                      Constants.ActionType.CHECKLIST_UPDATED,
-                                      Constants.ActionType.CHECKLIST_UPDATED,
-                                      `Set sub-item ${subCheck.id} of ${updatedItem.statement} to "No"`,
-                                      {oldValue: 'Yes', newValue: 'No'}
-                                    );
-                                  }
-                                }}
-                              >
-                                {'No'}
-                              </button>
+                              <Checkbox
+                                checked={subCheck.answer}
+                                onChange={(e) => handleSubItemChecked(e, subCheck)}
+                                sx={{ color: '#639', '&.Mui-checked': { color: '#639' } }}
+                              />
                             </div>
                           </div>
                         </li>
