@@ -3,8 +3,6 @@ const path = require('path');
 import last from 'lodash/last';
 import Constants from '../constants/constants';
 
-import ProjectUtil from './project';
-
 // We do have a dependency cycle here, but it is just to grab a constant value.
 // No circular functions exist (and we need to make sure it stays that way).
 // eslint-disable-next-line import/no-cycle
@@ -477,37 +475,5 @@ export default class AssetUtil {
       return false;
     }
     return !FILE_IGNORE_LIST.includes(fileName);
-  }
-
-  /**
-   * Given an asset, filter and return all remaining items that should be displayed
-   * @param {The assets to filter} assets
-   * @param {The attribute/facet filter to use, or null} filter
-   * @returns A collection of filtered assets
-   */
-  static filterAssets(assets, filter) {
-    if (!assets || assets === undefined) {
-      return {};
-    }
-
-    let filteredAssetList = AssetUtil.filterIncludedFileAssets(assets);
-
-    if (filter && filter !== undefined) {
-      filteredAssetList = ProjectUtil.getFilteredAssets(filteredAssetList, filter);
-      if (ProjectUtil.isDirectoryFilteredOut(filter)) {
-        filteredAssetList = ProjectUtil.flattenFilteredAssets(filteredAssetList);
-        if (filteredAssetList) {
-          filteredAssetList.type = constants.AssetType.FILTER;
-        }
-      }
-    }
-
-    // If filteredAssets ends up becoming null, we are going to set it to an
-    // empty object so our UI still displays.
-    if (!filteredAssetList) {
-      filteredAssetList = {};
-    }
-
-    return filteredAssetList;
   }
 }
