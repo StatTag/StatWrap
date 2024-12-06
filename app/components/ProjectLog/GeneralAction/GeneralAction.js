@@ -19,6 +19,12 @@ const generateRow = (key, value) => {
 
 function generalAction(props) {
   const { data } = props;
+
+  // If the data or the underlying details aren't set, we are unable to render the
+  // action details so provide a placeholder message.
+  if (data === null || data === undefined || data.details === null || data.details === undefined) {
+    return <div>No data</div>
+  }
   const rows = Object.keys(data.details).map((k) => generateRow(k, data.details[k]));
   return <div className={styles.container}>{rows}</div>;
 }

@@ -62,11 +62,11 @@ function ReproChecklist(props) {
   }, [project]);
 
   // Handles the update of checklist for changes in the checklist items
-  const handleItemUpdate = (updatedItem) => {
+  const handleItemUpdate = (updatedItem, actionType, entityType, entityKey, title, description, details) => {
     const updatedChecklist = checklist.map((item) =>
       item.id === updatedItem.id ? updatedItem : item,
     );
-    onUpdated(project, updatedChecklist);
+    onUpdated(project, updatedChecklist, actionType, entityType, entityKey, title, description, details);
   };
 
   // Handles the generation of the reproducibility checklist report in PDF format

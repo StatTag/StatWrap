@@ -61,6 +61,17 @@ function ChecklistItem(props) {
     setSelectedAsset(null);
   };
 
+  const handleItemUpdate = (updatedItem, actionType, title, description, details) => {
+    onItemUpdate(updatedItem,
+      actionType,
+      Constants.EntityType.CHECKLIST,
+      updatedItem.id,
+      title,
+      description,
+      details
+    );
+  }
+
   const handleSelectAsset = (selAsset) => {
     let asset = selAsset;
     if (asset && (asset.contentTypes === null || asset.contentTypes === undefined)) {
@@ -101,51 +112,70 @@ function ChecklistItem(props) {
     if (selectedAsset.type === Constants.AssetType.FILE) {
       // Adds image files to checklist images
       if (selectedAsset.contentTypes.includes(Constants.AssetContentType.IMAGE)) {
+        const associatedAsset = {
+          id: uuidv4(),
+          uri: selectedAsset.uri,
+          title: assetTitle,
+          description: assetDescription,
+        };
         const updatedItem = {
           ...item,
           images: [
             ...item.images,
-            {
-              id: uuidv4(),
-              uri: selectedAsset.uri,
-              title: assetTitle,
-              description: assetDescription,
-            },
+            associatedAsset,
           ],
         };
-        onItemUpdate(updatedItem);
+        handleItemUpdate(updatedItem,
+          Constants.ActionType.ASSET_ADDED,
+          `Checklist Item ${Constants.ActionType.ASSET_ADDED}`,
+          `Added a related image ${associatedAsset.uri} to checklist item "${updatedItem.statement}"`,
+          associatedAsset
+        );
         setShowImages(true);
         // Adds file as URL
       } else {
+        const associatedAsset = {
+          id: uuidv4(),
+          hyperlink: AssetUtil.absoluteToRelativePath(project.path, selectedAsset),
+          title: assetTitle,
+          description: assetDescription,
+        };
         const updatedItem = {
           ...item,
           urls: [
             ...item.urls,
-            {
-              id: uuidv4(),
-              hyperlink: AssetUtil.absoluteToRelativePath(project.path, selectedAsset),
-              title: assetTitle,
-              description: assetDescription,
-            },
+            associatedAsset,
           ],
         };
-        onItemUpdate(updatedItem);
+        handleItemUpdate(updatedItem,
+          Constants.ActionType.ASSET_ADDED,
+          `Checklist Item ${Constants.ActionType.ASSET_ADDED}`,
+          `Added a related asset ${associatedAsset.uri} to checklist item "${updatedItem.statement}"`,
+          associatedAsset
+        );
         setShowURLs(true);
       }
     } else if (selectedAsset.type === Constants.AssetType.URL) {
+      const associatedAsset = {
+        id: uuidv4(),
+        //TODO: hyperlink should be uri for consistency
+        hyperlink: selectedAsset.uri,
+        title: assetTitle,
+        description: assetDescription,
+      };
       const updatedItem = {
         ...item,
         urls: [
           ...item.urls,
-          {
-            id: uuidv4(),
-            hyperlink: selectedAsset.uri,
-            title: assetTitle,
-            description: assetDescription,
-          },
+          associatedAsset,
         ],
       };
-      onItemUpdate(updatedItem);
+      handleItemUpdate(updatedItem,
+        Constants.ActionType.ASSET_ADDED,
+        `Checklist Item ${Constants.ActionType.ASSET_ADDED}`,
+        `Added a related asset ${associatedAsset.hyperlink} to checklist item "${updatedItem.statement}"`,
+        associatedAsset
+      );
       setShowURLs(true);
     }
 
@@ -163,13 +193,35 @@ function ChecklistItem(props) {
   };
 
   const handleDeleteUrl = (urlId) => {
+    const deletedItem = item.urls.find((url) => url.id === urlId);
+    if (deletedItem === null || deletedItem === undefined) {
+      console.warn(`Unable to delete URL ${urlId} - it does not exist in the URL list`);
+      return;
+    }
+
     const updatedItem = { ...item, urls: item.urls.filter((url) => url.id !== urlId) };
-    onItemUpdate(updatedItem);
+    handleItemUpdate(updatedItem,
+      Constants.ActionType.ASSET_DELETED,
+      `Checklist Item ${Constants.ActionType.ASSET_DELETED}`,
+      `Removed related asset ${deletedItem.hyperlink} from checklist item "${updatedItem.statement}"`,
+      deletedItem
+    );
   };
 
   const handleDeleteImage = (imageId) => {
+    const deletedItem = item.images.find((image) => image.id === imageId);
+    if (deletedItem === null || deletedItem === undefined) {
+      console.warn(`Unable to delete image ${imageId} - it does not exist in the images list`);
+      return;
+    }
+
     const updatedItem = { ...item, images: item.images.filter((image) => image.id !== imageId) };
-    onItemUpdate(updatedItem);
+    handleItemUpdate(updatedItem,
+      Constants.ActionType.ASSET_DELETED,
+      `Checklist Item ${Constants.ActionType.ASSET_DELETED}`,
+      `Removed related image ${deletedItem.uri} from checklist item "${updatedItem.statement}"`,
+      deletedItem
+    );
   };
 
   const handleNoteUpdate = (note, text) => {
@@ -212,7 +264,12 @@ function ChecklistItem(props) {
                   const oldAnswer = item.answer;
                   if (oldAnswer === false) {
                     const updatedItem = { ...item, answer: true };
-                    onItemUpdate(updatedItem);
+                    handleItemUpdate(updatedItem,
+                      Constants.ActionType.CHECKLIST_UPDATED,
+                      Constants.ActionType.CHECKLIST_UPDATED,
+                      `Set "${updatedItem.statement}" to "Yes"`,
+                      {oldValue: 'No', newValue: 'Yes'}
+                    );
                   }
                 }}
               >
@@ -224,7 +281,12 @@ function ChecklistItem(props) {
                   const oldAnswer = item.answer;
                   if (oldAnswer == true) {
                     const updatedItem = { ...item, answer: false };
-                    onItemUpdate(updatedItem);
+                    handleItemUpdate(updatedItem,
+                      Constants.ActionType.CHECKLIST_UPDATED,
+                      Constants.ActionType.CHECKLIST_UPDATED,
+                      `Set "${updatedItem.statement}" to "No"`,
+                      {oldValue: 'Yes', newValue: 'No'}
+                    );
                   }
                 }}
               >
@@ -444,7 +506,12 @@ function ChecklistItem(props) {
                                     }),
                                   };
                                   if (oldAnswer === false) {
-                                    onItemUpdate(updatedItem);
+                                    handleItemUpdate(updatedItem,
+                                      Constants.ActionType.CHECKLIST_UPDATED,
+                                      Constants.ActionType.CHECKLIST_UPDATED,
+                                      `Set sub-item ${subCheck.id} of ${updatedItem.statement} to "Yes"`,
+                                      {oldValue: 'No', newValue: 'Yes'}
+                                    );
                                   }
                                 }}
                               >
@@ -465,7 +532,12 @@ function ChecklistItem(props) {
                                     }),
                                   };
                                   if (oldAnswer === true) {
-                                    onItemUpdate(updatedItem);
+                                    handleItemUpdate(updatedItem,
+                                      Constants.ActionType.CHECKLIST_UPDATED,
+                                      Constants.ActionType.CHECKLIST_UPDATED,
+                                      `Set sub-item ${subCheck.id} of ${updatedItem.statement} to "No"`,
+                                      {oldValue: 'Yes', newValue: 'No'}
+                                    );
                                   }
                                 }}
                               >

@@ -66,6 +66,7 @@ class ProjectPage extends Component {
     this.handleSelectProjectListItem = this.handleSelectProjectListItem.bind(this);
     this.handleScanProjectResponse = this.handleScanProjectResponse.bind(this);
     this.handleProjectUpdate = this.handleProjectUpdate.bind(this);
+    this.handleChecklistUpdate = this.handleChecklistUpdate.bind(this);
     this.handleUpdateProjectResponse = this.handleUpdateProjectResponse.bind(this);
     this.handleLoadProjectLogResponse = this.handleLoadProjectLogResponse.bind(this);
     this.handleRefreshProjectLog = this.handleRefreshProjectLog.bind(this);
@@ -176,9 +177,23 @@ class ProjectPage extends Component {
     ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, this.state.selectedProject);
   }
 
-  // This handler writes the updated checklist to the checklist file.
-  handleChecklistUpdate(project, checklist) {
-    ipcRenderer.send(Messages.WRITE_PROJECT_CHECKLIST_REQUEST, project.path, checklist);
+  // This handler writes the updated checklist to the checklist file, and also handles writing updates
+  // to the log (if it succeeds).
+  handleChecklistUpdate(project, checklist, actionType, entityType, entityKey, title, description, details) {
+    const user = this.context;
+    ipcRenderer.send(
+      Messages.WRITE_PROJECT_CHECKLIST_REQUEST,
+      project.path,
+      checklist,
+      actionType,
+      entityType,
+      entityKey,
+      title,
+      description,
+      details,
+      'info',
+      user,
+    );
   }
 
   /**

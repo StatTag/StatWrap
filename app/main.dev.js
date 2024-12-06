@@ -711,9 +711,33 @@ ipcMain.on(Messages.LOAD_PROJECT_LOG_REQUEST, async (event, project) => {
  */
 ipcMain.on(
   Messages.WRITE_PROJECT_CHECKLIST_REQUEST,
-  async (event, projectPath, checklist) => {
-    checklistService.writeChecklist(projectPath, checklist);
-    event.sender.send(Messages.WRITE_PROJECT_CHECKLIST_RESPONSE);
+  async (event,
+    projectPath,
+    checklist,
+    actionType,
+    entityType,
+    entityKey,
+    title,
+    description,
+    details,
+    level,
+    user,) => {
+
+    let response = {
+      error: false,
+      errorMessage: '',
+    };
+
+    try {
+      checklistService.writeChecklist(projectPath, checklist);
+      logService.writeLog(projectPath, actionType, title, description, details, level, user);
+    } catch (e) {
+      response.error = true;
+      response.errorMessage = 'There was an error updating the project';
+      console.log(e);
+    }
+
+    event.sender.send(Messages.WRITE_PROJECT_CHECKLIST_RESPONSE, response);
   },
 );
 

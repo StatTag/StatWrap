@@ -66,6 +66,11 @@ module.exports = {
     EXTERNAL_ASSET_ADDED: 'External Asset Added',
     EXTERNAL_ASSET_UPDATED: 'External Asset Updated',
     EXTERNAL_ASSET_DELETED: 'External Asset Deleted',
+
+    CHECKLIST_UPDATED: 'Checklist Updated',
+
+    ASSET_ADDED: 'Asset Added',
+    ASSET_DELETED: 'Asset Deleted'
   },
 
   EntityType: {

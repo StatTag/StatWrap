@@ -41,7 +41,6 @@ const dependencyGraphD3 = (props) => {
   // those that should be displayed.
   const handleFilterChanged = (updatedFilter) => {
     if (assets) {
-      console.log(updatedFilter);
       setFilter(updatedFilter);
       setGraphData(WorkflowUtil.getAllDependenciesAsGraph(assets, updatedFilter));
     } else {

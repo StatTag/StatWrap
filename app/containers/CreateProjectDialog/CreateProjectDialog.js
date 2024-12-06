@@ -146,7 +146,6 @@ class CreateProjectDialog extends Component {
   }
 
   handleProjectCreated(sender, response) {
-    console.log(response);
     if (response && !response.error) {
       // If the user connected to an existing project, and there was already a StatWrap config entry
       // we aren't going to log anything else since the project is assumed to already be created.
@@ -180,12 +179,10 @@ class CreateProjectDialog extends Component {
       ...this.state.project,
       template: this.state.selectedTemplate,
     };
-    console.log(project);
     ipcRenderer.send(Messages.CREATE_PROJECT_REQUEST, project);
   }
 
   handleSelectProjectTemplate(templateId, templateVersion) {
-    console.log(`${templateId} - ${templateVersion}`);
     this.setState({
       selectedTemplate: { id: templateId, version: templateVersion },
       canProgress: true,

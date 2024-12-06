@@ -36,7 +36,6 @@ function linkedDescription(props) {
   if (validationErrorMessage) {
     validation = <Error style={{ marginTop: '15px' }}>{validationErrorMessage}</Error>;
   }
-  console.log(linkedUri);
   const uriDescription =
     linkedUri === '' ? (
       <div>Please select the file that contains the project description</div>

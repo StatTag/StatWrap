@@ -356,7 +356,13 @@ class Project extends Component<Props> {
     if (this.props.onChecklistUpdated) {
       this.props.onChecklistUpdated(
         currentProject,
-        updatedChecklist
+        updatedChecklist,
+        action.type,
+        EntityType.CHECKLIST,
+        checklistItem.id,
+        action.title,
+        action.description,
+        action.details
       );
     }
   }
@@ -545,7 +551,13 @@ class Project extends Component<Props> {
     if (this.props.onChecklistUpdated) {
       this.props.onChecklistUpdated(
         currentProject,
-        updatedChecklist
+        updatedChecklist,
+        ActionType.NOTE_DELETED,
+        EntityType.CHECKLIST,
+        checklistItem.id,
+        `Checklist ${ActionType.NOTE_DELETED}`,
+        actionDescription,
+        note
       );
     }
   }
