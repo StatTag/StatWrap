@@ -109,11 +109,11 @@ module.exports = {
   MAX_GRAPH_LABEL_LENGTH: 31,
 
   CHECKLIST: [
-    ['Dependency', 'All the software dependencies for the project are documented.'],
-    ['Data', 'All the data file(s) used in the project are documented.'],
-    ['Entrypoint', 'Clearly indicates which file(s) are used to run analysis.'],
-    ['Documentation', 'Includes all necessary project documentation.'],
-    ['Organization', 'Are there multiple versions of a file? If yes, specify the versions.'],
-    ['Portability', 'Avoids using absolute paths in the code.'],
+    ['Dependency', 'Software dependencies for the project are documented.'],
+    ['Data', 'Data file(s) used in the project are documented.'],
+    ['Entrypoint', 'Indication of file(s) that are used to run the analysis (e.g., wrapper/entry script).'],
+    ['Documentation', 'Includes project documentation.'],
+    ['VersionControl', 'Version control of some kind is in place.'],
+    ['AbsolutePaths', 'Avoids using absolute paths in the code.'],
   ],
 };
