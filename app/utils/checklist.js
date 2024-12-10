@@ -19,8 +19,7 @@ export default class ChecklistUtil {
         answer: false,
         scanResult: {},
         notes: [],
-        images: [],
-        urls: [],
+        assets: [],
         subChecklist: [],
       });
     });

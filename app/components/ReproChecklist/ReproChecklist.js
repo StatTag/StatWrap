@@ -274,10 +274,8 @@ function ReproChecklist(props) {
               ...subChecklist,
               notes.length > 0 ? { text: 'Notes:', margin: [15, 5] } : '',
               ...notes,
-              images.length > 0 ? { text: 'Related Images:', margin: [15, 10] } : '',
+              assets.length > 0 ? { text: 'Related Assets:', margin: [15, 10] } : '',
               ...imageRows,
-              urls.length > 0 ? { text: 'Related URLs:', margin: [15, 10] } : '',
-              ...urls,
             ];
           })
           .flat(),

@@ -2,7 +2,7 @@
 
 ### About
 
-The **Checklist Object** represents a single checklist item within the reproducibility checklist. It encompasses various attributes and sub-objects to capture different aspects such as statement, type, answer, user notes, attached images, attached URLs, and sub-checklist.
+The **Checklist Object** represents a single checklist item within the reproducibility checklist. It encompasses various attributes and sub-objects to capture different aspects such as statement, type, answer, user notes, attached assets (files, images, URLs), and sub-checklist.
 
 ### Attributes
 
@@ -13,9 +13,8 @@ The **Checklist Object** represents a single checklist item within the reproduci
 | `statement`    | String                  | The statement or question associated with the checklist item.           |
 | `answer`       | Bool                    | Stores the user's response to the checklist item.                       |
 | `notes`        | Array ([]Note)          | An array containing user notes attached to the checklist item.          |
-| `images`       | Array ([]Image)         | An array containing data of image files attached to the checklist item. |
-| `urls`         | Array ([]URL)           | An array containing URLs attached to the checklist item.                |
-| `subChecklist` | Array ([]Sub_checklist) | An array containing sub-checklist associated with the checklist item.   |
+| `assets`       | Array ([]Asset)         | An array containing a project asset attached to the checklist item.     |
+| `subChecklist` | Array ([]SubChecklist)  | An array containing sub-checklist associated with the checklist item.   |
 
 ### Sub-Checklist Object
 
@@ -47,20 +46,23 @@ This follows the same structure as the existing [notes data type](https://github
 | `updated` | String | The timestamp indicating when the note was last updated.             |
 | `content` | String | The text content of the note.                                        |
 
-### Image Object
+### Asset Object
 
 #### About
 
-The **Image Object** stores data of the image files attached to checklist items.
+The **Asset Object** stores data of the asset attached to checklist items.
 
 #### Attributes
 
-| Attribute     | Type   | Description                                  |
-| ------------- | ------ | -------------------------------------------- |
-| `id`          | UUID   | A generated unique identifier for the image. |
-| `uri`         | String | The URI of the image file.                   |
-| `title`       | String | The title of the image.                      |
-| `description` | String | A brief description of the image.            |
+| Attribute     | Type   | Description                                                     |
+| ------------- | ------ | --------------------------------------------------------------- |
+| `uri`         | String | The URI of the asset.                                           |
+| `name`        | String | The title of the asset to display.                              |
+| `isImage`     | Bool   | Flag to indicate if this is an image (and therefore should be rendered differently) |
+| `description` | String | A brief description of the asset and why it's added to the checklist.  Similar to a note, but is associated directly with the image so the explanation is in the context of the asset. |
+
+
+
 
 ### URL Object
 

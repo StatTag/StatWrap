@@ -44,10 +44,8 @@ function ChecklistItem(props) {
 
   const [expanded, setExpanded] = useState(false);
 
-  const [copiedUrlId, setCopiedUrlId] = useState(null);
+  const [copiedAsset, setCopiedAsset] = useState(null);
 
-  const [showImages, setShowImages] = useState(false);
-  const [showURLs, setShowURLs] = useState(false);
   const [showSubChecks, setShowSubChecks] = useState(false);
 
   const [selectedAsset, setSelectedAsset] = useState(null);
@@ -168,117 +166,53 @@ function ChecklistItem(props) {
       return;
     }
 
-    if (selectedAsset.type === Constants.AssetType.FILE) {
-      // Adds image files to checklist images
-      if (selectedAsset.contentTypes.includes(Constants.AssetContentType.IMAGE)) {
-        const associatedAsset = {
-          id: uuidv4(),
-          uri: selectedAsset.uri,
-          title: assetTitle,
-          description: assetDescription,
-        };
-        const updatedItem = {
-          ...item,
-          images: [
-            ...item.images,
-            associatedAsset,
-          ],
-        };
-        handleItemUpdate(updatedItem,
-          Constants.ActionType.ASSET_ADDED,
-          `Checklist Item ${Constants.ActionType.ASSET_ADDED}`,
-          `Added a related image ${associatedAsset.uri} to checklist item "${updatedItem.statement}"`,
-          associatedAsset
-        );
-        setShowImages(true);
-        // Adds file as URL
-      } else {
-        const associatedAsset = {
-          id: uuidv4(),
-          hyperlink: AssetUtil.absoluteToRelativePath(project.path, selectedAsset),
-          title: assetTitle,
-          description: assetDescription,
-        };
-        const updatedItem = {
-          ...item,
-          urls: [
-            ...item.urls,
-            associatedAsset,
-          ],
-        };
-        handleItemUpdate(updatedItem,
-          Constants.ActionType.ASSET_ADDED,
-          `Checklist Item ${Constants.ActionType.ASSET_ADDED}`,
-          `Added a related asset ${associatedAsset.uri} to checklist item "${updatedItem.statement}"`,
-          associatedAsset
-        );
-        setShowURLs(true);
-      }
-    } else if (selectedAsset.type === Constants.AssetType.URL) {
-      const associatedAsset = {
-        id: uuidv4(),
-        //TODO: hyperlink should be uri for consistency
-        hyperlink: selectedAsset.uri,
-        title: assetTitle,
-        description: assetDescription,
-      };
-      const updatedItem = {
-        ...item,
-        urls: [
-          ...item.urls,
-          associatedAsset,
-        ],
-      };
-      handleItemUpdate(updatedItem,
-        Constants.ActionType.ASSET_ADDED,
-        `Checklist Item ${Constants.ActionType.ASSET_ADDED}`,
-        `Added a related asset ${associatedAsset.hyperlink} to checklist item "${updatedItem.statement}"`,
-        associatedAsset
-      );
-      setShowURLs(true);
-    }
+    // Adds image asset to checklist documentation
+    const isImage = (selectedAsset.type === Constants.AssetType.FILE && selectedAsset.contentTypes.includes(Constants.AssetContentType.IMAGE));
+    const associatedAsset = {
+      uri: selectedAsset.uri,
+      name: assetTitle,
+      isImage: isImage,
+      description: assetDescription,
+    };
+    const updatedItem = {
+      ...item,
+      assets: [
+        ...item.assets,
+        associatedAsset,
+      ],
+    };
+    handleItemUpdate(updatedItem,
+      Constants.ActionType.ASSET_ADDED,
+      `Checklist Item ${Constants.ActionType.ASSET_ADDED}`,
+      `Added a related ${isImage ? 'image' : 'asset'} ${associatedAsset.uri} to checklist item "${updatedItem.statement}"`,
+      associatedAsset
+    );
 
     resetAssetDialog();
   };
 
-  const handleCopy = (urlId, hyperlink) => {
+  const handleCopy = (uri) => {
     // Copy the URL to the clipboard
-    navigator.clipboard.writeText(hyperlink).then(() => {
-      setCopiedUrlId(urlId);
+    navigator.clipboard.writeText(uri).then(() => {
+      setCopiedAsset(uri);
       setTimeout(() => {
-        setCopiedUrlId(null);
+        setCopiedAsset(null);
       }, 3000);
     });
   };
 
-  const handleDeleteUrl = (urlId) => {
-    const deletedItem = item.urls.find((url) => url.id === urlId);
+  const handleDeleteAsset = (uri) => {
+    const deletedItem = item.assets.find((asset) => asset.uri === uri);
     if (deletedItem === null || deletedItem === undefined) {
-      console.warn(`Unable to delete URL ${urlId} - it does not exist in the URL list`);
+      console.warn(`Unable to delete asset ${uri} - it does not exist in the asset list`);
       return;
     }
 
-    const updatedItem = { ...item, urls: item.urls.filter((url) => url.id !== urlId) };
+    const updatedItem = { ...item, assets: item.assets.filter((asset) => asset.uri !== uri) };
     handleItemUpdate(updatedItem,
       Constants.ActionType.ASSET_DELETED,
       `Checklist Item ${Constants.ActionType.ASSET_DELETED}`,
-      `Removed related asset ${deletedItem.hyperlink} from checklist item "${updatedItem.statement}"`,
-      deletedItem
-    );
-  };
-
-  const handleDeleteImage = (imageId) => {
-    const deletedItem = item.images.find((image) => image.id === imageId);
-    if (deletedItem === null || deletedItem === undefined) {
-      console.warn(`Unable to delete image ${imageId} - it does not exist in the images list`);
-      return;
-    }
-
-    const updatedItem = { ...item, images: item.images.filter((image) => image.id !== imageId) };
-    handleItemUpdate(updatedItem,
-      Constants.ActionType.ASSET_DELETED,
-      `Checklist Item ${Constants.ActionType.ASSET_DELETED}`,
-      `Removed related image ${deletedItem.uri} from checklist item "${updatedItem.statement}"`,
+      `Removed related asset ${deletedItem.uri} from checklist item "${updatedItem.statement}"`,
       deletedItem
     );
   };
@@ -354,7 +288,7 @@ function ChecklistItem(props) {
                 onDelete={handleNoteDelete}
               />
               <div>
-                <button className={styles.addUrlsButton} onClick={() => setAddAsset(true)}>
+                <button className={styles.addAssetButton} onClick={() => setAddAsset(true)}>
                   Add Asset Reference
                 </button>
               </div>
@@ -429,80 +363,47 @@ function ChecklistItem(props) {
                   </button>
                 </DialogActions>
               </Dialog>
-              {item.urls.length > 0 && (
-                <div className={styles.urls}>
-                  <div className={styles.headerWithButton}>
-                    <h4>Attached URLs:</h4>
-                    <button
-                      className={styles.dropdownButton}
-                      onClick={() => setShowURLs(!showURLs)}
-                    >
-                      {showURLs ? 'Hide' : 'Show'}
-                    </button>
-                  </div>
-                  <div className={`${styles.urlContent} ${showURLs ? styles.show : ''}`}>
-                    <ul>
-                      {item.urls.map((url) => (
-                        <div key={url.id}>
-                          <div>
-                            <li className={styles.url}>
-                              <div className={styles.urlHeader}>
-                                <span className={styles.urlText}>{url.title}</span>
-                                <div>
-                                  {copiedUrlId === url.id ? (
-                                    <Done className={styles.doneButton} />
-                                  ) : (
-                                    <ContentCopy
-                                      className={styles.copyButton}
-                                      onClick={() => handleCopy(url.id, url.hyperlink)}
-                                    />
-                                  )}
-                                  <Delete
-                                    className={styles.delButton}
-                                    onClick={() => handleDeleteUrl(url.id)}
-                                  />
-                                </div>
-                              </div>
-                              <a href={url.hyperlink} target="">
-                                {url.hyperlink}
+              {item.assets && item.assets.length > 0 && (
+                <div className={styles.assets}>
+                  <div className={styles.assetContent}>
+                    <table className={styles.assets}>
+                      <tbody>
+                      {item.assets.map((asset) => (
+                        <tr key={asset.uri}>
+                          <td className={styles.detailsCol}>
+                            <div className={styles.assetName}>{asset.name}</div>
+                            <div className={styles.assetDescription}><b>Description: </b>{asset.description}</div>
+                            <div className={styles.assetLink}>
+                              <b>Link: </b>
+                              <a href={asset.uri} target="">
+                                {asset.uri}
                               </a>
-                              <p>{url.description}</p>
-                            </li>
-                          </div>
-                          <hr />
-                        </div>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              )}
-              {item.images.length > 0 && (
-                <div className={styles.images}>
-                  <div className={styles.headerWithButton}>
-                    <h4>Attached Images:</h4>
-                    <button
-                      className={styles.dropdownButton}
-                      onClick={() => setShowImages(!showImages)}
-                    >
-                      {showImages ? 'Hide' : 'Show'}
-                    </button>
-                  </div>
-                  <div className={`${styles.imageContent} ${showImages ? styles.show : ''}`}>
-                    <ul>
-                      {item.images.map((image) => (
-                        <li key={image.id} className={styles.image}>
-                          <div className={styles.imageHeader}>
-                            <span className={styles.imageText}>{image.title}</span>
+                            </div>
+                          </td>
+                          <td className={styles.imageCol}>
+                            {asset.isImage ? (
+                            <img src={asset.uri} alt="attached" />
+                            ) : (<div/>)
+                            }
+                          </td>
+                          <td className={styles.actionCol}>
+                            {copiedAsset === asset.uri ? (
+                              <Done className={styles.doneButton} />
+                            ) : (
+                              <ContentCopy
+                                className={styles.copyButton}
+                                onClick={() => handleCopy(asset.uri)}
+                              />
+                            )}
                             <Delete
                               className={styles.delButton}
-                              onClick={() => handleDeleteImage(image.id)}
+                              onClick={() => handleDeleteAsset(asset.uri)}
                             />
-                          </div>
-                          <img src={image.uri} alt="attached" />
-                          <p>{image.description}</p>
-                        </li>
+                          </td>
+                        </tr>
                       ))}
-                    </ul>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               )}
@@ -560,19 +461,11 @@ ChecklistItem.propTypes = {
         content: PropTypes.string.isRequired,
       }),
     ),
-    images: PropTypes.arrayOf(
+    asssets: PropTypes.arrayOf(
       PropTypes.shape({
-        id: PropTypes.string.isRequired,
         uri: PropTypes.string.isRequired,
-        title: PropTypes.string.isRequired,
-        description: PropTypes.string.isRequired,
-      }),
-    ),
-    urls: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.string.isRequired,
-        hyperlink: PropTypes.string.isRequired,
-        title: PropTypes.string.isRequired,
+        name: PropTypes.string.isRequired,
+        isImage: PropTypes.bool.isRequired,
         description: PropTypes.string.isRequired,
       }),
     ),

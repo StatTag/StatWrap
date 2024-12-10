@@ -1,6 +1,7 @@
 .item {
   padding: 10px;
   border-bottom: 1px solid #e5e5e5;
+  padding-bottom: 20px;
 }
 
 .header span {
@@ -68,44 +69,41 @@
   margin-top: 10px;
 }
 
-.urls {}
-
-.images ul {
-  list-style-type: none;
-  padding-left: 0;
-  display: flex;
-  overflow-x: auto;
-  white-space: nowrap;
+.assets {
+  width: 100%;
+  font-size: 0.9rem;
+  border-collapse: collapse;
+  margin-bottom: 10px;
 }
 
-.urls ul {
-  list-style-type: none;
-  padding-left: 0;
-  max-height: 200px;
-  overflow-y: auto;
-  white-space: nowrap;
+.assets th {
+  background-color: rgba(0, 0, 0, .05);
+  padding: 5px;
+  text-align: left;
 }
 
-.images li {
-  margin-right: 10px;
-  margin-bottom: 5px;
-  padding-right: 5px;
-  position: relative;
+.assets .nameCol {
+  width: 20%;
 }
 
-.urls li {
-  margin-right: 10px;
-  margin-bottom: 5px;
-  padding-bottom: 5px;
-  position: relative;
+.assets .pathCol {
+  vertical-align: top;
+  width: 75%;
 }
 
-.images li:not(:last-child) {
-  border-right: 1px solid #ccc;
+.assets .descriptionCol {
+  width: 25%;
 }
 
-.urls li:not(:last-child) {
-  border-bottom: 1px solid #ccc;
+.assets .actionCol {
+  width: 1%;
+  text-wrap: nowrap;
+}
+
+.assets tr td {
+  border: none;
+  border-bottom: solid 1px rgba(0, 0, 0, .12);
+  padding: 5px;
 }
 
 .timestamp {
@@ -114,24 +112,27 @@
   color: #888;
 }
 
-.images img {
+.assets img {
   height: auto;
-  max-height: 150px;
+  max-width: 128px;
+  max-height: 128px;
   transition: max-height 0.3s ease;
   display: block;
   margin-top: 5px;
 }
 
-.imageContent,
-.urlContent {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease;
+.assets .assetName {
+  font-weight: bold;
+  padding-bottom: 3px;
 }
 
-.imageContent.show,
-.urlContent.show {
-  max-height: 500px;
+.assetDescription,
+.assetLink {
+  font-size: 0.85rem;
+}
+
+.assetContent {
+  transition: max-height 0.3s ease;
 }
 
 .subChecksContent {
@@ -144,38 +145,11 @@
   max-height: 1000px;
 }
 
-.image {
-  text-wrap: wrap;
-}
-
-.url {
-  background-color: #f2ebff;
-  border: 1px solid rebeccapurple;
-  padding: 7px;
-  padding-right: 0;
-  border-radius: 5px;
-  text-wrap: wrap;
-  word-wrap: break-word;
-}
-
 .selectedImage {
   display: block;
   width: 100%;
   max-width: 300px;
   margin-bottom: 10px;
-}
-
-.hyperlink {
-  display: flex;
-  justify-content: space-evenly;
-  margin-bottom: 10px;
-}
-
-.urlHeader,
-.imageHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .doneButton {
@@ -266,20 +240,20 @@
   opacity: 0.9;
 }
 
-.addImagesButton,
-.addUrlsButton {
+button.addAssetButton {
   background-color: #aa94d1;
   color: #fff;
   cursor: pointer;
   padding: 5px 10px;
-  margin-top: 5px;
+  margin-top: 10px;
+  margin-bottom: 5px;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 0.9rem;
+  height: 24px;
   transition: background-color 0.3s ease;
 }
 
-.addImagesButton:hover,
-.addUrlsButton:hover {
+.addAssetButton:hover {
   background-color: #8b6fb3;
 }
 
