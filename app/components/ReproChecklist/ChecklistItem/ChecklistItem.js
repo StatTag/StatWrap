@@ -11,6 +11,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Tooltip,
 } from '@mui/material';
 import { FaFolderOpen, FaFolderMinus, FaChevronRight, FaChevronDown } from 'react-icons/fa';
 import AssetTree from '../../AssetTree/AssetTree';
@@ -138,15 +139,11 @@ function ChecklistItem(props) {
     }
 
     if (asset && asset.uri) {
-      if (asset.type === Constants.AssetType.FILE) {
-        const fileName = AssetUtil.getAssetNameFromUri(asset.uri);
-        setAssetTitle(fileName);
-        // Handles case for URL assets
-        // TODO: Title is currently the same as URI, some way to get a better title?
-      } else if (asset.type === Constants.AssetType.URL) {
+      if (asset.type === Constants.AssetType.URL) {
         setAssetTitle(asset.name);
       } else {
-        setAssetTitle('');
+        const fileName = AssetUtil.getAssetNameFromUri(asset.uri);
+        setAssetTitle(fileName);
       }
     }
 
@@ -167,11 +164,11 @@ function ChecklistItem(props) {
     }
 
     // Adds image asset to checklist documentation
-    const isImage = (selectedAsset.type === Constants.AssetType.FILE && selectedAsset.contentTypes.includes(Constants.AssetContentType.IMAGE));
+    const isExternalAsset = AssetUtil.isExternalAsset(selectedAsset);
     const associatedAsset = {
       uri: selectedAsset.uri,
       name: assetTitle,
-      isImage: isImage,
+      isExternalAsset: isExternalAsset,
       description: assetDescription,
     };
     const updatedItem = {
@@ -184,11 +181,19 @@ function ChecklistItem(props) {
     handleItemUpdate(updatedItem,
       Constants.ActionType.ASSET_ADDED,
       `Checklist Item ${Constants.ActionType.ASSET_ADDED}`,
-      `Added a related ${isImage ? 'image' : 'asset'} ${associatedAsset.uri} to checklist item "${updatedItem.statement}"`,
+      `Added a related asset ${associatedAsset.uri} to checklist item "${updatedItem.statement}"`,
       associatedAsset
     );
 
     resetAssetDialog();
+  };
+
+  const formatDisplayLink = (asset) => {
+    if (asset.isExternalAsset) {
+      return(<a href={asset.uri} target="">{asset.uri}</a>);
+    }
+    //return (<div>{AssetUtil.absoluteToRelativePath(project.path, asset)}</div>);
+    return(<a href={`file://${asset.uri}`} target="">{AssetUtil.absoluteToRelativePath(project.path, asset)}</a>);
   };
 
   const handleCopy = (uri) => {
@@ -263,6 +268,7 @@ function ChecklistItem(props) {
           </div>
           {expanded && (
             <div className={styles.details}>
+              <div className={styles.itemSubHeading}>StatWrap Defined Documentation</div>
               <div className={styles.scanResult}>
                 {item.scanResult &&
                   Object.keys(item.scanResult).map((key) => {
@@ -282,131 +288,55 @@ function ChecklistItem(props) {
                     );
                   })}
               </div>
-              <NoteEditor
-                notes={item.notes}
-                onEditingComplete={handleNoteUpdate}
-                onDelete={handleNoteDelete}
-              />
-              <div>
+              <div className={styles.itemSubHeading}>Additional Documentation
                 <button className={styles.addAssetButton} onClick={() => setAddAsset(true)}>
-                  Add Asset Reference
+                  + Add Reference
                 </button>
               </div>
-              <Dialog open={addAsset} onClose={() => setAddAsset(false)}>
-                <DialogTitle className={styles.dialogTitle}>Add Asset Reference</DialogTitle>
-                <DialogContent className={styles.dialogContent}>
-                  <div className={styles.tree}>
-                    <div className={styles.toolbar}>
-                      <IconButton
-                        onClick={() => treeRef.current.setExpandAll(true)}
-                        className={styles.toolbarButton}
-                        aria-label="expand all tree items"
-                        fontSize="small"
-                      >
-                        <FaFolderOpen fontSize="small" /> &nbsp;Expand
-                      </IconButton>
-                      <IconButton
-                        className={styles.toolbarButton}
-                        aria-label="collapse all tree items"
-                        fontSize="small"
-                        onClick={() => treeRef.current.setExpandAll(false)}
-                      >
-                        <FaFolderMinus fontSize="small" /> &nbsp;Collapse
-                      </IconButton>
-                    </div>
-                    <AssetTree
-                      assets={assets}
-                      ref={treeRef}
-                      onSelectAsset={handleSelectAsset}
-                      selectedAsset={selectedAsset}
-                    />
-                    <AssetTree
-                      assets={externalAssets}
-                      ref={externalTreeRef}
-                      onSelectAsset={handleSelectAsset}
-                      selectedAsset={selectedAsset}
-                    />
-                  </div>
-                  <div className={styles.form}>
-                    <div className={styles.title}>
-                      <label htmlFor="title">Title:</label>
-                      <input
-                        type="text"
-                        id="title"
-                        name="title"
-                        value={assetTitle}
-                        onChange={(e) => setAssetTitle(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className={styles.description}>
-                      <label htmlFor="description">Description:</label>
-                      <input
-                        id="description"
-                        name="description"
-                        value={assetDescription}
-                        onChange={(e) => setAssetDescription(e.target.value)}
-                      />
+              <div className={styles.userDocumentation}>
+                <NoteEditor
+                  notes={item.notes}
+                  onEditingComplete={handleNoteUpdate}
+                  onDelete={handleNoteDelete}
+                />
+                {item.assets && item.assets.length > 0 && (
+                  <div className={styles.assets}>
+                    <div className={styles.assetContent}>
+                      <table className={styles.assets}>
+                        <tbody>
+                        {item.assets.map((asset) => (
+                          <tr key={asset.uri}>
+                            <td className={styles.detailsCol}>
+                              <div className={styles.assetName}>{asset.name}</div>
+                              <div className={styles.assetLink}>{formatDisplayLink(asset)}</div>
+                              <div className={styles.assetDescription}>{asset.description}</div>
+                            </td>
+                            <td className={styles.actionCol}>
+                              {copiedAsset === asset.uri ? (
+                                <Done className={styles.doneButton} />
+                              ) : (
+                                <Tooltip title="Copy asset link/URL" enterDelay={300}>
+                                  <ContentCopy
+                                    className={styles.copyButton}
+                                    onClick={() => handleCopy(asset.uri)}
+                                  />
+                                </Tooltip>
+                              )}
+                              <Tooltip title="Remove asset reference" enterDelay={300}>
+                                <Delete
+                                  className={styles.delButton}
+                                  onClick={() => handleDeleteAsset(asset.uri)}
+                                />
+                              </Tooltip>
+                            </td>
+                          </tr>
+                        ))}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
-                </DialogContent>
-                <DialogActions>
-                  <button onClick={() => handleAddAsset()} className={styles.submitButton}>
-                    Add
-                  </button>
-                  <button
-                    onClick={() => resetAssetDialog()}
-                    className={styles.cancelButton}
-                    autoFocus
-                  >
-                    Cancel
-                  </button>
-                </DialogActions>
-              </Dialog>
-              {item.assets && item.assets.length > 0 && (
-                <div className={styles.assets}>
-                  <div className={styles.assetContent}>
-                    <table className={styles.assets}>
-                      <tbody>
-                      {item.assets.map((asset) => (
-                        <tr key={asset.uri}>
-                          <td className={styles.detailsCol}>
-                            <div className={styles.assetName}>{asset.name}</div>
-                            <div className={styles.assetDescription}><b>Description: </b>{asset.description}</div>
-                            <div className={styles.assetLink}>
-                              <b>Link: </b>
-                              <a href={asset.uri} target="">
-                                {asset.uri}
-                              </a>
-                            </div>
-                          </td>
-                          <td className={styles.imageCol}>
-                            {asset.isImage ? (
-                            <img src={asset.uri} alt="attached" />
-                            ) : (<div/>)
-                            }
-                          </td>
-                          <td className={styles.actionCol}>
-                            {copiedAsset === asset.uri ? (
-                              <Done className={styles.doneButton} />
-                            ) : (
-                              <ContentCopy
-                                className={styles.copyButton}
-                                onClick={() => handleCopy(asset.uri)}
-                              />
-                            )}
-                            <Delete
-                              className={styles.delButton}
-                              onClick={() => handleDeleteAsset(asset.uri)}
-                            />
-                          </td>
-                        </tr>
-                      ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
               {item.subChecklist.length > 0 && (
                 <div className={styles.subChecklist}>
                   <div className={styles.headerWithButton}>
@@ -442,6 +372,78 @@ function ChecklistItem(props) {
           )}
         </div>
       )}
+
+      <Dialog
+        open={addAsset}
+        onClose={() => setAddAsset(false)}
+        fullWidth
+        maxWidth="md">
+        <DialogTitle className={styles.dialogTitle}>Add Asset Reference</DialogTitle>
+        <DialogContent className={styles.dialogContent}>
+          <div className={styles.tree}>
+            <div className={styles.subHeading}>Select Asset</div>
+            <div className={styles.toolbar}>
+              <IconButton
+                onClick={() => treeRef.current.setExpandAll(true)}
+                className={styles.toolbarButton}
+                aria-label="expand all tree items"
+                fontSize="small"
+              >
+                <FaFolderOpen fontSize="small" /> &nbsp;Expand
+              </IconButton>
+              <IconButton
+                className={styles.toolbarButton}
+                aria-label="collapse all tree items"
+                fontSize="small"
+                onClick={() => treeRef.current.setExpandAll(false)}
+              >
+                <FaFolderMinus fontSize="small" /> &nbsp;Collapse
+              </IconButton>
+            </div>
+            <AssetTree
+              assets={assets}
+              ref={treeRef}
+              onSelectAsset={handleSelectAsset}
+              selectedAsset={selectedAsset}
+            />
+            <AssetTree
+              assets={externalAssets}
+              ref={externalTreeRef}
+              onSelectAsset={handleSelectAsset}
+              selectedAsset={selectedAsset}
+            />
+          </div>
+          <div className={styles.form}>
+            <div className={styles.subHeading}>Asset Details</div>
+            <div className={styles.title}>
+              <label htmlFor="title">Title:</label>
+              <span id="title">{assetTitle}</span>
+            </div>
+            <div className={styles.description}>
+              <label htmlFor="description">Description:</label>
+              <textarea
+                id="description"
+                name="description"
+                rows="5"
+                value={assetDescription}
+                onChange={(e) => setAssetDescription(e.target.value)}
+              />
+            </div>
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <button onClick={() => handleAddAsset()} className={styles.submitButton}>
+            Add
+          </button>
+          <button
+            onClick={() => resetAssetDialog()}
+            className={styles.cancelButton}
+            autoFocus
+          >
+            Cancel
+          </button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
@@ -465,7 +467,7 @@ ChecklistItem.propTypes = {
       PropTypes.shape({
         uri: PropTypes.string.isRequired,
         name: PropTypes.string.isRequired,
-        isImage: PropTypes.bool.isRequired,
+        isExternalAsset: PropTypes.bool.isRequired,
         description: PropTypes.string.isRequired,
       }),
     ),

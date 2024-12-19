@@ -58,7 +58,7 @@ The **Asset Object** stores data of the asset attached to checklist items.
 | ------------- | ------ | --------------------------------------------------------------- |
 | `uri`         | String | The URI of the asset.                                           |
 | `name`        | String | The title of the asset to display.                              |
-| `isImage`     | Bool   | Flag to indicate if this is an image (and therefore should be rendered differently) |
+| `isExternalAsset`     | Bool   | Flag to indicate if this is an external asset |
 | `description` | String | A brief description of the asset and why it's added to the checklist.  Similar to a note, but is associated directly with the image so the explanation is in the context of the asset. |
 
 
