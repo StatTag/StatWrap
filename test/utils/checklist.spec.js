@@ -3,16 +3,10 @@ import Constants from '../../app/constants/constants';
 
 describe('utils', () => {
   describe('ChecklistUtil', () => {
-    describe('findAssetLanguagesAndDependencies', () => {
+    describe('findProjectLanguagesAndDependencies', () => {
       it('should return empty result when asset is null or undefined', () => {
-        expect(ChecklistUtil.findAssetLanguagesAndDependencies(null)).toEqual({
-          languages: [],
-          dependencies: [],
-        });
-        expect(ChecklistUtil.findAssetLanguagesAndDependencies(undefined)).toEqual({
-          languages: [],
-          dependencies: [],
-        });
+        expect(ChecklistUtil.findProjectLanguagesAndDependencies(null)).toEqual({});
+        expect(ChecklistUtil.findProjectLanguagesAndDependencies(undefined)).toEqual({});
       });
 
       it('should return correct languages and dependencies for valid code assets', () => {
@@ -26,14 +20,13 @@ describe('utils', () => {
         Object.keys(languages).forEach((lang) => {
           languages[lang].forEach((ext) => {
             expect(
-              ChecklistUtil.findAssetLanguagesAndDependencies({
+              ChecklistUtil.findProjectLanguagesAndDependencies({
                 type: Constants.AssetType.FILE,
                 contentTypes: [Constants.AssetContentType.CODE],
                 uri: `path/to/file.${ext}`,
               }),
             ).toEqual({
-              languages: [lang],
-              dependencies: [],
+              [lang]: []
             });
           });
         });
@@ -41,20 +34,17 @@ describe('utils', () => {
 
       it('should return empty result for non-code assets (data, documentation)', () => {
         expect(
-          ChecklistUtil.findAssetLanguagesAndDependencies({
+          ChecklistUtil.findProjectLanguagesAndDependencies({
             type: Constants.AssetType.FILE,
             contentTypes: [Constants.AssetContentType.DATA],
             uri: 'path/to/file.csv',
           }),
-        ).toEqual({
-          languages: [],
-          dependencies: [],
-        });
+        ).toEqual({});
       });
 
       it('should return empty result for assets in an ignored folder', () => {
         expect(
-          ChecklistUtil.findAssetLanguagesAndDependencies({
+          ChecklistUtil.findProjectLanguagesAndDependencies({
             type: Constants.AssetType.FOLDER,
             contentTypes: [Constants.AssetContentType.CODE],
             uri: '.git',
@@ -66,78 +56,60 @@ describe('utils', () => {
               }
             ],
           }),
-        ).toEqual({
-          languages: [],
-          dependencies: [],
-        });
+        ).toEqual({});
       });
 
       it('should return empty result for unmatching content type and extension', () => {
         expect(
-          ChecklistUtil.findAssetLanguagesAndDependencies({
+          ChecklistUtil.findProjectLanguagesAndDependencies({
             type: Constants.AssetType.FILE,
             contentTypes: [Constants.AssetContentType.DATA],
             uri: 'path/to/file.py',
           }),
-        ).toEqual({
-          languages: [],
-          dependencies: [],
-        });
+        ).toEqual({});
 
         expect(
-          ChecklistUtil.findAssetLanguagesAndDependencies({
+          ChecklistUtil.findProjectLanguagesAndDependencies({
             type: Constants.AssetType.FILE,
             contentTypes: [Constants.AssetContentType.CODE],
             uri: 'path/to/file.csv',
           }),
-        ).toEqual({
-          languages: [],
-          dependencies: [],
-        });
+        ).toEqual({});
       });
 
       it('should return empty result for directory/folder type assets', () => {
         expect(
-          ChecklistUtil.findAssetLanguagesAndDependencies({
+          ChecklistUtil.findProjectLanguagesAndDependencies({
             type: Constants.AssetType.DIRECTORY,
             contentTypes: [Constants.AssetContentType.CODE],
             uri: 'path/to/directory/',
           }),
-        ).toEqual({
-          languages: [],
-          dependencies: [],
-        });
+        ).toEqual({});
       });
 
       it('should not identify malformed URIs', () => {
         expect(
-          ChecklistUtil.findAssetLanguagesAndDependencies({
+          ChecklistUtil.findProjectLanguagesAndDependencies({
             type: Constants.AssetType.FILE,
             contentTypes: [Constants.AssetContentType.CODE],
             uri: 'path/to/malformed-uri.',
           }),
-        ).toEqual({
-          languages: [],
-          dependencies: [],
-        });
+        ).toEqual({});
       });
 
       it('should ignore random/unknown extensions that are not in the content types', () => {
         expect(
-          ChecklistUtil.findAssetLanguagesAndDependencies({
+          ChecklistUtil.findProjectLanguagesAndDependencies({
             type: Constants.AssetType.FILE,
             contentTypes: [Constants.AssetContentType.CODE],
             uri: 'path/to/file.cmd',
           }),
-        ).toEqual({
-          languages: [],
-          dependencies: [],
-        });
+        ).toEqual({});
       });
 
       it('should handle nested assets and recurse properly', () => {
         expect(
-          ChecklistUtil.findAssetLanguagesAndDependencies({
+          ChecklistUtil.findProjectLanguagesAndDependencies({
             type: Constants.AssetType.FOLDER,
             contentTypes: [Constants.AssetContentType.CODE],
             uri: 'path/to/folder',
@@ -155,22 +127,18 @@ describe('utils', () => {
             ],
           }),
         ).toEqual({
-          languages: ['Python', 'R'], // don't change the languages ordering in this array
-          dependencies: [],
+          'Python': [], 'R': [], // don't change the languages ordering in this array
         });
       });
 
       it('should not crash when asset has no extension in its URI', () => {
         expect(
-          ChecklistUtil.findAssetLanguagesAndDependencies({
+          ChecklistUtil.findProjectLanguagesAndDependencies({
             type: Constants.AssetType.FILE,
             contentTypes: [Constants.AssetContentType.CODE],
             uri: 'path/to/file',
           }),
-        ).toEqual({
-          languages: [],
-          dependencies: [],
-        });
+        ).toEqual({});
       });
     });
 

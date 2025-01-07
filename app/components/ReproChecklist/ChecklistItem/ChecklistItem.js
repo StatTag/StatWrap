@@ -281,7 +281,7 @@ function ChecklistItem(props) {
                               <li key={index}>{answer}</li>
                             ))
                           ) : (
-                            <li>No answers available</li>
+                            <li>No results</li>
                           )}
                         </ul>
                       </div>

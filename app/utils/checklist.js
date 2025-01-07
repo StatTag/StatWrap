@@ -1,3 +1,4 @@
+import { union } from 'lodash';
 import Constants from '../constants/constants';
 import AssetsConfig from '../constants/assets-config';
 import AssetUtil from './asset';
@@ -27,36 +28,36 @@ export default class ChecklistUtil {
   }
 
   /**
-   * This function returns the languages and dependencies of the asset
-   * @param {object} asset The asset to find the languages and dependencies of
+   * This function returns the languages and dependencies of the project
+   * @param {object} asset The root project asset to find the languages and dependencies of
    * @returns {object} An object containing the languages and dependencies found as arrays
    */
-  static findAssetLanguagesAndDependencies(asset) {
+  static findProjectLanguagesAndDependencies(asset) {
+    // Will be structured as:
+    // {
+    //    'language': [ 'dependency 1', 'dependency 2']
+    //    ...
+    // }
+    const dependencies = {};
     if (!asset) {
-      return {
-        languages: [],
-        dependencies: [],
-      };
+      return dependencies;
     }
 
-    return {
-      languages: ChecklistUtil.findAssetLanguages(asset),
-      dependencies: ChecklistUtil.findAssetDependencies(asset),
-    };
+    ChecklistUtil.findAssetLanguageAndDependencies(asset, dependencies);
+    return dependencies;
   }
 
   /**
-   * This function returns the languages of an asset and its children recursively
+   * This function returns the language and dependencies of an asset and its children recursively
    * @param {object} asset The asset to find the languages of
-   * @param {object} languages Empty object that acts like a map to store the languages found as keys
-   * @returns {array} An array containing the languages found
+   * @param {object} dependencies Tracks discovered languages and dependencies
    */
-  static findAssetLanguages(asset, languages = {}) {
+  static findAssetLanguageAndDependencies(asset, dependencies) {
     const includeAsset =  AssetUtil.includeAsset(asset.uri);
     if (
+      includeAsset &&
       asset.type === Constants.AssetType.FILE &&
-      asset.contentTypes.includes(Constants.AssetContentType.CODE) &&
-      includeAsset
+      asset.contentTypes.includes(Constants.AssetContentType.CODE)
     ) {
       const lastSep = asset.uri.lastIndexOf(path.sep);
       const fileName = asset.uri.substring(lastSep + 1);
@@ -69,7 +70,15 @@ export default class ChecklistUtil {
             contentType.categories.includes(Constants.AssetContentType.CODE) &&
             contentType.extensions.includes(ext)
           ) {
-            languages[contentType.name] = true;
+            // Initialize the language in the object if it doesn't already exist
+            if (!dependencies.hasOwnProperty(contentType.name)) {
+              dependencies[contentType.name] = [];
+            }
+
+            // Find and add all dependencies, keeping only the unique ones
+            dependencies[contentType.name] = union(
+              dependencies[contentType.name],
+              ChecklistUtil.findAssetDependencies(asset));
           }
         });
       }
@@ -77,11 +86,11 @@ export default class ChecklistUtil {
 
     if (asset.children && includeAsset) {
       asset.children.forEach((child) => {
-        ChecklistUtil.findAssetLanguages(child, languages);
+        ChecklistUtil.findAssetLanguageAndDependencies(child, dependencies);
       });
     }
 
-    return Object.keys(languages);
+    return dependencies;
   }
 
   /**
