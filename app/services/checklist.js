@@ -301,15 +301,16 @@ export default class ChecklistService {
                   },
                   {
                     text: `${item.statement}`,
-                    margin: [0, 10, 25, 0],
-                    width: maxWidth,
+                    margin: [0, 10, 5, 0],
+                    width: 'auto',
                     alignment: 'left',
                     bold: true
                   },
                   {
-                    text: item.answer ? 'Yes' : 'No',
-                    margin: [0, 10, 25, 0],
-                    alignment: 'right',
+                    text: `(${item.answer ? 'Yes' : 'No'})`,
+                    margin: [0, 10, 0, 0],
+                    alignment: 'left',
+                    bold: true,
                     color: item.answer ? 'green' : 'red'
                   }
                 ],
