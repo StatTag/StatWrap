@@ -106,7 +106,7 @@ export default class ChecklistUtil {
       if (x.assetType && x.assetType !== Constants.AssetType.GENERIC) {
         x.dependencies.forEach((dep) => {
           if (dependencies.findIndex((i) => i === dep.id) === -1) {
-            dependencies.push(WorkflowUtil.getShortDependencyName(dep.id));
+            dependencies.push(WorkflowUtil.getDependencyName(dep.id));
           }
         });
       }

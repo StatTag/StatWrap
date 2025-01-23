@@ -794,6 +794,27 @@ describe('utils', () => {
       });
     });
 
+    describe('getDependencyName', () => {
+      it('should handle empty/invalid input', () => {
+        expect(WorkflowUtil.getDependencyName(null)).toEqual('(unknown)');
+        expect(WorkflowUtil.getDependencyName(undefined)).toEqual('(unknown)');
+        expect(WorkflowUtil.getDependencyName('')).toEqual('(unknown)');
+        expect(WorkflowUtil.getDependencyName('  ')).toEqual('(unknown)');
+      });
+
+      it('displays the provided name', () => {
+        expect(WorkflowUtil.getDependencyName('dplyr')).toEqual('dplyr');
+      });
+
+      it('does not trim whitespace', () => {
+        expect(WorkflowUtil.getDependencyName(' dplyr ')).toEqual(' dplyr ');
+      });
+
+      it('does not truncate long names', () => {
+        expect(WorkflowUtil.getDependencyName('R:\\extra\\long\\path\\name\\to\\a\\file\\somewhere.txt')).toEqual('R:\\extra\\long\\path\\name\\to\\a\\file\\somewhere.txt');
+      });
+    });
+
     describe('getShortDependencyName', () => {
       it('should handle empty/invalid input', () => {
         expect(WorkflowUtil.getShortDependencyName(null)).toEqual(null);
@@ -806,7 +827,6 @@ describe('utils', () => {
         expect(WorkflowUtil.getShortDependencyName(maxLengthLabel)).toEqual(maxLengthLabel);
       });
       it('should shorten long names just over the max limit', () => {
-        // eslint-disable-next-line prettier/prettier
         const maxLengthLabel = `${'a'.repeat(Constants.MAX_GRAPH_LABEL_LENGTH / 2)}...${'a'.repeat(Constants.MAX_GRAPH_LABEL_LENGTH / 2)}`;
         const longLabel = 'a'.repeat(Constants.MAX_GRAPH_LABEL_LENGTH + 1);
         expect(WorkflowUtil.getShortDependencyName(longLabel)).toEqual(`${maxLengthLabel}`);

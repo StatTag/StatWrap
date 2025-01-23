@@ -28,6 +28,20 @@ export default class WorkflowUtil {
   }
 
   /**
+   * Return a consistent dependency name (label)
+   * @param {string} name The dependency name
+   * @returns A string that can be displayed
+   */
+  static getDependencyName(name) {
+    // If the name isn't set return a placeholder string
+    if (name === null || name === undefined || name.trim() === '') {
+      return "(unknown)";
+    }
+
+    return name;
+  }
+
+  /**
    * Ensure a dependency name (label) is within the maximum length that we want
    * to allow for it based on our configuration.
    * @param {string} name The dependency name to shorten
