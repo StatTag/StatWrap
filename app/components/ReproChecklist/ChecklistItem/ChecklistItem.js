@@ -35,13 +35,28 @@ function ChecklistItem(props) {
   const treeRef = React.useRef(null);
   const externalTreeRef = React.useRef(null);
 
+  const initializeExternalAssets = (project) => {
+    return (project && project.externalAssets)
+      ? project.externalAssets
+      : AssetUtil.createEmptyExternalAssets();
+  };
+
   const filteredProjectAssets = ProjectUtil.filterProjectAssets(project, null);
   const [assets, setAssets] = useState(filteredProjectAssets);
-  const [externalAssets, setExternalAssets] = useState(
-    project && project.externalAssets
-      ? project.externalAssets
-      : AssetUtil.createEmptyExternalAssets(),
-  );
+  const [externalAssets, setExternalAssets] = useState(initializeExternalAssets(project));
+
+  // When the project changes, we need to update our internal lists of assets so
+  // the "Select Asset" dialog has the correct information.
+  useEffect(() => {
+    if (project && project !== undefined) {
+      const filteredProjectAssets = ProjectUtil.filterProjectAssets(project, null);
+      setAssets(filteredProjectAssets);
+      setExternalAssets(initializeExternalAssets(project));
+    } else {
+      setAssets([]);
+      setExternalAssets([]);
+    }
+  }, [project]);
 
   const [expanded, setExpanded] = useState(false);
 
@@ -171,10 +186,12 @@ function ChecklistItem(props) {
       isExternalAsset: isExternalAsset,
       description: assetDescription,
     };
+
     const updatedItem = {
       ...item,
       assets: [
-        ...item.assets,
+        // Note, item.assets can be null or undefind
+        ...(item.assets ? item.assets : []),
         associatedAsset,
       ],
     };
