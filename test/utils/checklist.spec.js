@@ -180,7 +180,7 @@ describe('utils', () => {
         ).toEqual({ dataFiles: [] });
       });
 
-      it('should return data file name when asset is a data file', () => {
+      it.onMac('should return data file name when asset is a data file', () => {
         expect(
           ChecklistUtil.findDataFiles({
             type: Constants.AssetType.FILE,
@@ -189,8 +189,17 @@ describe('utils', () => {
           }),
         ).toEqual({ dataFiles: ['file.csv'] });
       });
+      it.onWindows('should return data file name when asset is a data file', () => {
+        expect(
+          ChecklistUtil.findDataFiles({
+            type: Constants.AssetType.FILE,
+            contentTypes: [Constants.AssetContentType.DATA],
+            uri: 'path\\to\\file.csv',
+          }),
+        ).toEqual({ dataFiles: ['file.csv'] });
+      });
 
-      it('should return data file names for nested data files', () => {
+      it.onMac('should return data file names for nested data files', () => {
         expect(
           ChecklistUtil.findDataFiles({
             type: Constants.AssetType.FOLDER,
@@ -211,6 +220,27 @@ describe('utils', () => {
           }),
         ).toEqual({ dataFiles: ['file1.csv', 'file2.csv'] });
       });
+      it.onWindows('should return data file names for nested data files', () => {
+        expect(
+          ChecklistUtil.findDataFiles({
+            type: Constants.AssetType.FOLDER,
+            contentTypes: [Constants.AssetContentType.DATA],
+            uri: 'path\\to\\folder',
+            children: [
+              {
+                type: Constants.AssetType.FILE,
+                contentTypes: [Constants.AssetContentType.DATA],
+                uri: 'path\\to\\folder\\file1.csv',
+              },
+              {
+                type: Constants.AssetType.FILE,
+                contentTypes: [Constants.AssetContentType.DATA],
+                uri: 'path\\to\\folder\\file2.csv',
+              },
+            ],
+          }),
+        ).toEqual({ dataFiles: ['file1.csv', 'file2.csv'] });
+      });
     });
 
     describe('findEntryPointFiles', () => {
@@ -219,7 +249,7 @@ describe('utils', () => {
         expect(ChecklistUtil.findEntryPointFiles(undefined)).toEqual({ entryPoints: [] });
       });
 
-      it('should return entry point file names for given entrypoint assets', () => {
+      it.onMac('should return entry point file names for given entrypoint assets', () => {
         expect(
           ChecklistUtil.findEntryPointFiles({
             type: Constants.AssetType.FOLDER,
@@ -237,6 +267,32 @@ describe('utils', () => {
                 type: Constants.AssetType.FILE,
                 contentTypes: [Constants.AssetContentType.CODE],
                 uri: 'path/to/folder/file2.py',
+                attributes: {
+                  entrypoint: false,
+                },
+              },
+            ],
+          }),
+        ).toEqual({ entryPoints: ['file1.py'] });
+      });
+      it.onWindows('should return entry point file names for given entrypoint assets', () => {
+        expect(
+          ChecklistUtil.findEntryPointFiles({
+            type: Constants.AssetType.FOLDER,
+            uri: 'path\\to\\folder',
+            children: [
+              {
+                type: Constants.AssetType.FILE,
+                contentTypes: [Constants.AssetContentType.CODE],
+                uri: 'path\\to\\folder\\file1.py',
+                attributes: {
+                  entrypoint: true,
+                },
+              },
+              {
+                type: Constants.AssetType.FILE,
+                contentTypes: [Constants.AssetContentType.CODE],
+                uri: 'path\\to\\folder\\file2.py',
                 attributes: {
                   entrypoint: false,
                 },
@@ -280,7 +336,7 @@ describe('utils', () => {
         ).toEqual({ documentationFiles: [] });
       });
 
-      it('should return documentation file name when asset is a documentation file', () => {
+      it.onMac('should return documentation file name when asset is a documentation file', () => {
         expect(
           ChecklistUtil.findDocumentationFiles({
             type: Constants.AssetType.FILE,
@@ -289,8 +345,17 @@ describe('utils', () => {
           }),
         ).toEqual({ documentationFiles: ['file.md'] });
       });
+      it.onWindows('should return documentation file name when asset is a documentation file', () => {
+        expect(
+          ChecklistUtil.findDocumentationFiles({
+            type: Constants.AssetType.FILE,
+            contentTypes: [Constants.AssetContentType.DOCUMENTATION],
+            uri: 'path\\to\\file.md',
+          }),
+        ).toEqual({ documentationFiles: ['file.md'] });
+      });
 
-      it('should return documentation file names for nested documentation files', () => {
+      it.onMac('should return documentation file names for nested documentation files', () => {
         expect(
           ChecklistUtil.findDocumentationFiles({
             type: Constants.AssetType.FOLDER,
@@ -311,6 +376,32 @@ describe('utils', () => {
                 type: Constants.AssetType.FILE,
                 contentTypes: [Constants.AssetContentType.CODE],
                 uri: 'path/to/folder/file3.py',
+              },
+            ],
+          }),
+        ).toEqual({ documentationFiles: ['file1.md', 'file2.md'] });
+      });
+      it.onWindows('should return documentation file names for nested documentation files', () => {
+        expect(
+          ChecklistUtil.findDocumentationFiles({
+            type: Constants.AssetType.FOLDER,
+            contentTypes: [Constants.AssetContentType.DOCUMENTATION],
+            uri: 'path\\to\\folder',
+            children: [
+              {
+                type: Constants.AssetType.FILE,
+                contentTypes: [Constants.AssetContentType.DOCUMENTATION],
+                uri: 'path\\to\\folder\\file1.md',
+              },
+              {
+                type: Constants.AssetType.FILE,
+                contentTypes: [Constants.AssetContentType.DOCUMENTATION],
+                uri: 'path\\to\\folder\\file2.md',
+              },
+              {
+                type: Constants.AssetType.FILE,
+                contentTypes: [Constants.AssetContentType.CODE],
+                uri: 'path\\to\\folder\\file3.py',
               },
             ],
           }),
