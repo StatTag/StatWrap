@@ -1,8 +1,8 @@
 {
   "name": "statwrap",
   "productName": "StatWrap",
-  "version": "0.0.14",
-  "description": "Supporting reproducible research",
+  "version": "0.0.15",
+  "description": "Reproducible research made easy",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\"",
     "build-dll": "cross-env NODE_ENV=development webpack --config ./configs/webpack.config.renderer.dev.dll.babel.js --no-color",
@@ -104,7 +104,7 @@
   "author": {
     "name": "Northwestern University",
     "email": "stattag@northwestern.edu",
-    "url": "http://stattag.org"
+    "url": "http://statwrap.org"
   },
   "license": "MIT",
   "bugs": {
