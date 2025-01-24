@@ -1,13 +1,13 @@
 {
   "name": "statwrap",
   "productName": "StatWrap",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "Reproducible research made easy",
   "main": "./main.prod.js",
   "author": {
-    "name": "StatWrap Maintainers",
+    "name": "Northwestern University",
     "email": "stattag@northwestern.edu",
-    "url": "https://github.com/stattag/statwrap"
+    "url": "http://statwrap.org"
   },
   "scripts": {
     "electron-rebuild": "node -r ../internals/scripts/BabelRegister.js ../internals/scripts/ElectronRebuild.js",
