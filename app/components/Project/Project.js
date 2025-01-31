@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useEffect } from 'react';
 import { Tab, Tabs } from '@mui/material';
 import { TabPanel, TabContext } from '@mui/lab';
 import { withStyles } from '@mui/styles/';
@@ -79,6 +79,17 @@ class Project extends Component<Props> {
   changeHandler = (event, id) => {
     this.setState({ selectedTab: id });
   };
+
+  componentDidUpdate(prevProps) {
+    // Safely get and check the previous project ID and the current project ID from
+    // the properties.  If the project selection changes, we want the Dashboard tab
+    // to be selected.  This is the component-class response to useEffect().
+    var previousId = (prevProps && prevProps.project ) ? prevProps.project.id : null;
+    var currentId = (this.props && this.props.project) ? this.props.project.id : null;
+    if (previousId != currentId) {
+      this.setState({ selectedTab: 'about' });
+    }
+  }
 
   aboutDetailsUpdateHandler = (descriptionText, descriptionUri, categories) => {
     const project = { ...this.props.project, categories };
