@@ -9,7 +9,7 @@
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  *
  */
-import { app, shell, BrowserWindow, ipcMain } from 'electron';
+import { app, shell, BrowserWindow, ipcMain, screen } from 'electron';
 // import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import { URL } from 'url';
@@ -87,10 +87,18 @@ const createWindow = async () => {
     await installExtensions();
   }
 
+  // Determine what we want the starting application window size to be, based on the user's primary
+  // display dimensions.  We will default to 70% of the height and width, with a minimum of 1024x768.
+  const screenSize = screen.getPrimaryDisplay().workAreaSize;
+  // Important note - you must do Math.floor.  If you use a decimal value for width or height, the value
+  // will just be ignored and the default used.
+  const defaultWidth = Math.max(Math.floor(screenSize.width * 0.7), 1024);
+  const defaultHeight = Math.max(Math.floor(screenSize.height * 0.7), 768);
+
   mainWindow = new BrowserWindow({
     show: true, // Default was false, but setting to true.  We have a sporadic issue where the window wasn't displaying.  Let's see if this fixes it.
-    width: 1024,
-    height: 728,
+    width: defaultWidth,
+    height: defaultHeight,
     webPreferences: {
       nodeIntegration: true,
       enableRemoteModule: true,
