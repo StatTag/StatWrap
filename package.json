@@ -63,7 +63,13 @@
     "mac": {
       "hardenedRuntime": true,
       "notarize": false,
-      "entitlements": "./node_modules/electron-builder-notarize/entitlements.mac.inherit.plist"
+      "entitlements": "./node_modules/electron-builder-notarize/entitlements.mac.inherit.plist",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ]
     },
     "dmg": {
       "contents": [
