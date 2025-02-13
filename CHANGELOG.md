@@ -15,11 +15,6 @@ Many thanks to numerous contributions from the community, including our [OSRE24 
 
 **Full Changelog**: https://github.com/StatTag/StatWrap/compare/0.0.14...0.0.15
 
-### New Contributors
-
-- @jayantpranjal0 made their first contribution in https://github.com/StatTag/StatWrap/pull/178
-- @AdiAkhileshSingh15 made their first contribution in https://github.com/StatTag/StatWrap/pull/181
-
 ## 0.0.14 - February 12, 2024
 
 - Dependency updates
