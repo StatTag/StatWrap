@@ -5,3 +5,11 @@
 .childContainer {
   margin-top: 15px;
 }
+
+.sm {
+  font-size: 0.8em;
+}
+
+.sm .childContainer {
+  margin-top: 5px;
+}

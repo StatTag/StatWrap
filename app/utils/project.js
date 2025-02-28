@@ -3,8 +3,7 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable func-names */
 import { v4 as uuid } from 'uuid';
-// import winston from 'winston';
-// import path from 'path';
+import { cloneDeep } from 'lodash';
 import Pluralize from 'pluralize';
 import WorkflowUtil from './workflow';
 import AssetUtil from './asset';
@@ -750,5 +749,61 @@ export default class ProjectUtil {
     }
 
     return filteredAssetList;
+  }
+
+  /**
+   * Utility function to save a project's configuration details.
+   *
+   * This function assumes that the project's assets are absolute and need
+   * to be convered to relative.
+   * @param {object} project The project object that needs to be saved
+   * @param {object} projectService an instance of ProjectService to be used for saving
+   * @returns
+   */
+  static saveProject(project, projectService) {
+    const response = {
+      project,
+      error: false,
+      errorMessage: '',
+    };
+
+    try {
+      if (project && project.id && project.path) {
+        let projectConfig = projectService.loadProjectFile(project.path);
+        if (!projectConfig) {
+          projectConfig = projectService.createProjectConfig(project.id, project.name);
+        }
+        projectConfig.description = project.description;
+        projectConfig.categories = project.categories;
+        projectConfig.assets = AssetUtil.recursiveAbsoluteToRelativePath(
+          project.path,
+          project.assets,
+        );
+        projectConfig.notes = project.notes;
+        projectConfig.people = project.people;
+        projectConfig.assetGroups = cloneDeep(project.assetGroups);
+        projectConfig.assetGroups = ProjectUtil.absoluteToRelativePathForAssetGroups(
+          project.path,
+          projectConfig.assetGroups,
+        );
+        projectConfig.externalAssets = cloneDeep(project.externalAssets);
+        projectService.saveProjectFile(project.path, projectConfig);
+
+        // Reload the project configuration.  Depending on what's changed, we may need to re-load it
+        // to reinstantiate certain data elements, like linked description files.
+        const updatedProjectConfig = projectService.loadProjectFile(project.path);
+        response.project.description = updatedProjectConfig.description;
+      } else {
+        response.error = true;
+        response.errorMessage =
+          'No project was specified to be saved - this is an unexpected internal error.';
+      }
+    } catch (e) {
+      response.error = true;
+      response.errorMessage = 'There was an unexpected error when trying to save the project';
+      console.log(e);
+    }
+
+    return response;
   }
 }

@@ -4,7 +4,7 @@ import styles from './Loading.css';
 
 const loading = (props) => {
   return (
-    <div className={styles.container}>
+    <div className={[styles.container, (props.size && props.size === 'sm' ? styles.sm : "")].join(' ')}>
       <LinearProgress />
       <div className={styles.childContainer}>{props.children}</div>
     </div>

@@ -1,6 +1,3 @@
-/* eslint-disable prettier/prettier */
-/* eslint-disable object-shorthand */
-/* eslint-disable class-methods-use-this */
 import React, { Component } from 'react';
 import { ipcRenderer } from 'electron';
 import ResizablePanels from 'resizable-panels-react';
@@ -52,6 +49,10 @@ class ProjectPage extends Component {
       // tracks a sequential number that, when changed, signals React that the dialog can be
       // recreated. We don't care what this key is, it just has to change.
       createProjectDialogKey: 0,
+
+      // Show progress on scanning details about the project.  Allows the user to access what information
+      // is available, yet be aware that more information may be arriving later.
+      projectScanStatus: '',
     };
 
     this.handleLoadProjectListResponse = this.handleLoadProjectListResponse.bind(this);
@@ -65,6 +66,7 @@ class ProjectPage extends Component {
     this.handleClickProjectListMenu = this.handleClickProjectListMenu.bind(this);
     this.handleSelectProjectListItem = this.handleSelectProjectListItem.bind(this);
     this.handleScanProjectResponse = this.handleScanProjectResponse.bind(this);
+    this.handleScanProjectResultsResponse = this.handleScanProjectResultsResponse.bind(this);
     this.handleProjectUpdate = this.handleProjectUpdate.bind(this);
     this.handleChecklistUpdate = this.handleChecklistUpdate.bind(this);
     this.handleUpdateProjectResponse = this.handleUpdateProjectResponse.bind(this);
@@ -89,6 +91,7 @@ class ProjectPage extends Component {
     ipcRenderer.on(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.on(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.on(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
+    ipcRenderer.on(Messages.SCAN_PROJECT_RESULTS_RESPONSE, this.handleScanProjectResultsResponse);
     ipcRenderer.on(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
 
     ipcRenderer.on(Messages.LOAD_PROJECT_LOG_RESPONSE, this.handleLoadProjectLogResponse);
@@ -126,6 +129,7 @@ class ProjectPage extends Component {
       this.refreshProjectsHandler,
     );
     ipcRenderer.removeListener(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
+    ipcRenderer.removeListener(Messages.SCAN_PROJECT_RESULTS_RESPONSE, this.handleScanProjectResultsResponse);
     ipcRenderer.removeListener(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
     ipcRenderer.removeListener(
       Messages.LOAD_PROJECT_LOG_RESPONSE,
@@ -235,6 +239,12 @@ class ProjectPage extends Component {
       return;
     }
 
+    // If there is an error, we need to exit since there's nothing we can do for updates.
+    if (response.error) {
+      console.warn(response.errorMessage);
+      return;
+    }
+
     // Initialize the checklist file if it doesn't exist, for all the already existing projects
     const projectChecklist = ChecklistUtil.initializeChecklist();
     if (response.checklist && response.checklist.length === 0) {
@@ -266,7 +276,17 @@ class ProjectPage extends Component {
   }
 
   handleScanProjectResponse(sender, response) {
+    if (response === null || response === undefined || response.error) {
+      this.setState({ projectScanStatus: 'error' });
+    } else {
+      this.setState({ projectScanStatus: 'started'});
+    }
+  }
+
+  handleScanProjectResultsResponse(sender, response) {
     if (!response || !response.project) {
+      console.warn('Received an invalid response from the project asset scan.');
+      this.setState({ projectScanStatus: 'error' });
       return;
     }
 
@@ -287,7 +307,7 @@ class ProjectPage extends Component {
           ? { error: response.error, errorMessage: response.errorMessage }
           : response.assets,
       };
-      return { selectedProject: projectWithAssets };
+      return { selectedProject: projectWithAssets, projectScanStatus: null };
     });
   }
 
@@ -415,6 +435,7 @@ class ProjectPage extends Component {
             onChecklistUpdated={this.handleChecklistUpdate}
             configuration={{ assetAttributes: this.state.assetAttributes }}
             assetDynamicDetails={this.state.assetDynamicDetails}
+            scanStatus={this.state.projectScanStatus}
           />
         </ResizablePanels>
         <CreateProjectDialog

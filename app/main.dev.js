@@ -12,9 +12,9 @@
 import { app, shell, BrowserWindow, ipcMain, screen } from 'electron';
 // import { autoUpdater } from 'electron-updater';
 import path from 'path';
+import fs from 'fs';
 import { URL } from 'url';
-// import log from 'electron-log';
-import { cloneDeep, orderBy } from 'lodash';
+import { orderBy } from 'lodash';
 import { initialize, enable as enableRemote } from '@electron/remote/main';
 import MenuBuilder from './menu';
 import LogWatcherService from './services/logWatcher';
@@ -24,11 +24,6 @@ import SourceControlService from './services/sourceControl';
 import ProjectTemplateService from './services/projectTemplate';
 import AssetService from './services/assets/asset';
 import UserService, { DefaultSettingsFile } from './services/user';
-import FileHandler from './services/assets/handlers/file';
-import PythonHandler from './services/assets/handlers/python';
-import RHandler from './services/assets/handlers/r';
-import SASHandler from './services/assets/handlers/sas';
-import StataHandler from './services/assets/handlers/stata';
 import Messages from './constants/messages';
 import Constants from './constants/constants';
 import AssetsConfig from './constants/assets-config';
@@ -48,7 +43,7 @@ export default class AppUpdater {
   // }
 }
 
-let mainWindow = null;
+let mainWindow, workerWindow = null;
 
 const projectTemplateService = new ProjectTemplateService();
 const projectService = new ProjectService();
@@ -81,6 +76,11 @@ const installExtensions = async () => {
     extensions.map((name) => installer.default(installer[name], forceDownload)),
   ).catch(console.log);
 };
+
+const sleep = milliseconds => {
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
+};
+
 
 const createWindow = async () => {
   if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true') {
@@ -170,8 +170,26 @@ const createWindow = async () => {
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
 
+  // Create the background worker window
+  workerWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    show: false,  // Only enable if needed for debugging
+    webPreferences: {
+      preload: path.join(__dirname, 'dist', 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: true,
+      sandbox: false
+    }
+  });
+
+  workerWindow.loadURL(`file://${__dirname}/worker.html`);
+
+  workerWindow.on('closed', () => {
+    workerWindow = null;
+  });
+
   // Remove this for now because we don't have auto-updates.
-  // eslint-disable-next-line
   //new AppUpdater();
 };
 
@@ -200,61 +218,6 @@ app.on('before-quit', () => {
     logWatcherService.stop();
   }
 });
-
-/**
- * Utility function to save a project's configuration details.
- *
- * This function assumes that the project's assets are absolute and need
- * to be convered to relative.
- * @param {object} project The project object that needs to be saved
- * @returns
- */
-const saveProject = (project) => {
-  const response = {
-    project,
-    error: false,
-    errorMessage: '',
-  };
-
-  try {
-    if (project && project.id && project.path) {
-      let projectConfig = projectService.loadProjectFile(project.path);
-      if (!projectConfig) {
-        projectConfig = projectService.createProjectConfig(project.id, project.name);
-      }
-      projectConfig.description = project.description;
-      projectConfig.categories = project.categories;
-      projectConfig.assets = AssetUtil.recursiveAbsoluteToRelativePath(
-        project.path,
-        project.assets,
-      );
-      projectConfig.notes = project.notes;
-      projectConfig.people = project.people;
-      projectConfig.assetGroups = cloneDeep(project.assetGroups);
-      projectConfig.assetGroups = ProjectUtil.absoluteToRelativePathForAssetGroups(
-        project.path,
-        projectConfig.assetGroups,
-      );
-      projectConfig.externalAssets = cloneDeep(project.externalAssets);
-      projectService.saveProjectFile(project.path, projectConfig);
-
-      // Reload the project configuration.  Depending on what's changed, we may need to re-load it
-      // to reinstantiate certain data elements, like linked description files.
-      const updatedProjectConfig = projectService.loadProjectFile(project.path);
-      response.project.description = updatedProjectConfig.description;
-    } else {
-      response.error = true;
-      response.errorMessage =
-        'No project was specified to be saved - this is an unexpected internal error.';
-    }
-  } catch (e) {
-    response.error = true;
-    response.errorMessage = 'There was an unexpected error when trying to save the project';
-    console.log(e);
-  }
-
-  return response;
-};
 
 /**
  * Load the user's project list.  This is specific to the user, and the path to the root
@@ -516,107 +479,35 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
   event.sender.send(Messages.CREATE_PROJECT_RESPONSE, response);
 });
 
-// const sleep = milliseconds => {
-//   return new Promise(resolve => setTimeout(resolve, milliseconds));
-// };
 
 /**
- * Given a project, scan the details of that project, which includes scanning all assets registered
- * with the project for information.
- *
- * Internally this will handle converting the relative paths that are stored for assets (if they are
- * files or directories) into absolute paths.  This will allow all other code to assume that they
- * will be given absolute paths and not need to perform any path conversion.
+ * Receives the reuqest from the main UI that a project needs to be scanned for additional details.
+ * This dispatches the request to the worker to handle the actual processing, and lets the UI
+ * know that the work has been started.
  */
 ipcMain.on(Messages.SCAN_PROJECT_REQUEST, async (event, project) => {
   const response = {
-    project,
-    assets: null,
     error: false,
     errorMessage: '',
   };
 
-  // If the project is null, it means nothing was selected in the list and we just want to reset.
-  // This is not an error, so the error fields remain cleared.
-  if (project === null) {
-    event.sender.send(Messages.SCAN_PROJECT_RESPONSE, response);
-    return;
+  try {
+    workerWindow.webContents.send(Messages.SCAN_PROJECT_WORKER_REQUEST, project, app.getPath('userData'));
+  } catch (error) {
+    console.log(error);
+    response.error = true;
+    response.message = error;
   }
 
-  (async () => {
-    try {
-      const service = new AssetService([
-        new FileHandler(),
-        new PythonHandler(),
-        new RHandler(),
-        new SASHandler(),
-        new StataHandler(),
-      ]);
-      response.assets = service.scan(project.path); // Returns absolute paths
+  event.sender.send(Messages.SCAN_PROJECT_RESPONSE, response);
+});
 
-      // We have decided (for now) to keep notes separate from other asset metadata.  Notes will be
-      // considered first-class attributes instead of being embedded in metadata.  Because of this
-      // decision, we are adding in the notes after the regular asset scanning & processing.
-      let projectConfig = projectService.loadProjectFile(project.path);
-      if (!projectConfig) {
-        projectConfig = projectService.createProjectConfig(project.id, project.name);
-      }
-
-      if (!projectConfig.assets) {
-        console.log(
-          'No assets registered with the project - assuming this is a newly added project',
-        );
-      } else {
-        // Convert relative to absolute paths, otherwise the note URIs won't match
-        projectConfig.assets = AssetUtil.recursiveRelativeToAbsolutePath(
-          project.path,
-          projectConfig.assets,
-        );
-        projectService.addNotesAndAttributesToAssets(response.assets, projectConfig.assets);
-      }
-
-      // When we scan a project, we need to detect all possible changes that could exist from the existing
-      // project entry that gets sent.  Otherwise the UI can get out of sync.  We need to make sure we merge
-      // in additional properties here for the project that's going back.  Keep in mind that the project
-      // object we get is structured differently from the stored project config, which is why we need to
-      // add parts instead of just using the whole object.
-      response.project.categories = projectConfig.categories;
-      response.project.description = projectConfig.description;
-      response.project.notes = projectConfig.notes;
-      response.project.people = projectConfig.people;
-      response.project.assets = response.assets;
-      response.project.sourceControlEnabled = await sourceControlService.hasSourceControlEnabled(
-        project.path,
-      );
-      response.project.assetGroups = ProjectUtil.relativeToAbsolutePathForAssetGroups(
-        project.path,
-        projectConfig.assetGroups,
-      );
-      response.project.externalAssets = projectConfig.externalAssets;
-
-      const saveResponse = saveProject(response.project);
-      response.project = saveResponse.project; // Pick up any enrichment from saveProject
-      if (saveResponse.error) {
-        response.error = saveResponse.error;
-        response.errorMessage = saveResponse.errorMessage;
-      }
-
-      const userDataPath = app.getPath('userData');
-      projectListService.setProjectLastAccessed(
-        response.project.id,
-        path.join(userDataPath, DefaultProjectListFile),
-      );
-    } catch (e) {
-      response.error = true;
-      response.errorMessage =
-        'There was an unexpected error when scanning the project for additional information';
-      console.log(e);
-    }
-
-    // console.log(response);
-    // await sleep(5000);
-    event.sender.send(Messages.SCAN_PROJECT_RESPONSE, response);
-  })();
+/**
+ * Response from the worker when the scan of a project is fully completed.  This just needs to
+ * send the response to the main UI to display the results.
+ */
+ipcMain.on(Messages.SCAN_PROJECT_WORKER_RESPONSE, async (event, response) => {
+  mainWindow.webContents.send(Messages.SCAN_PROJECT_RESULTS_RESPONSE, response);
 });
 
 /**
@@ -767,6 +658,15 @@ ipcMain.on(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, async (event, project) => {
     return;
   }
 
+  // Is the project path accessible?  If not, we want to return an error without trying
+  // to access the checklist configuration.
+  if (!fs.existsSync(project.path)) {
+    response.error = true;
+    response.errorMessage = 'The selected project is not currently available';
+    event.sender.send(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, response);
+    return;
+  }
+
   checklistService.loadChecklist(project.path, (error, checklist) => {
     // This checks for error when there is issue reading the checklist file,
     // not when the checklist file is not found. For the latter, we return an empty array.
@@ -819,7 +719,7 @@ ipcMain.on(
         response.error = true;
         response.errorMessage = 'There was an error updating the project';
       } else {
-        response = saveProject(updatedProject);
+        response = ProjectUtil.saveProject(updatedProject, projectService);
         if (response && !response.error) {
           logService.writeLog(projectPath, actionType, title, description, details, level, user);
         }
@@ -832,7 +732,7 @@ ipcMain.on(
       projectService.unlockProjectFile(projectPath);
     }
 
-    // const response = saveProject(project);
+    // const response = saveProject(project, projectService);
     // console.log(response);
     // await sleep(5000);  // Use to test delays.  Leave disabled in production.
     event.sender.send(Messages.UPDATE_PROJECT_RESPONSE, response);
