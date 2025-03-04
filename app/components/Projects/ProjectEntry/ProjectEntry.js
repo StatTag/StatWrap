@@ -1,7 +1,5 @@
-/* eslint-disable jsx-a11y/click-events-have-key-events */
-/* eslint-disable jsx-a11y/no-static-element-interactions */
-/* eslint-disable react/destructuring-assignment */
-import React from 'react';
+
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@mui/styles';
 import { Tooltip } from '@mui/material';
@@ -20,6 +18,8 @@ const HtmlTooltip = withStyles((theme) => ({
 }))(Tooltip);
 
 function projectEntry(props) {
+  const [isTooltipOpen, setTooltipOpen] = useState(false);
+
   const iconClasses = [styles.favoriteIicon];
   if (!props.project.favorite) {
     iconClasses.push(styles.placeholder);
@@ -43,40 +43,47 @@ function projectEntry(props) {
   }
 
   return (
-    <HtmlTooltip
-      arrow
-      enterDelay={500}
-      title={
-        <>
-          <div className={styles.name}>{props.project.name}</div>
-          {offlineMessage}
-          <div className={styles.tooltipPath}>{props.project.path}</div>
-        </>
-      }
+    <div
+      onMouseEnter={() => setTooltipOpen(true)}
+      onMouseLeave={() => setTooltipOpen(false)}
     >
-      <div className={divClasses.join(' ')} data-tid="container" onClick={props.onSelect}>
-        <div className={styles.name}>
-          <span>
-            {props.project.name}
-            {offlineIndicator}
-            {updateIcon}
-          </span>
+      <HtmlTooltip
+        arrow
+        open={isTooltipOpen}
+        disableInteractive 
+        enterDelay={500}
+        title={
+          <>
+            <div className={styles.name}>{props.project.name}</div>
+            {offlineMessage}
+            <div className={styles.tooltipPath}>{props.project.path}</div>
+          </>
+        }
+      >
+        <div className={divClasses.join(' ')} data-tid="container" onClick={props.onSelect}>
+          <div className={styles.name}>
+            <span>
+              {props.project.name}
+              {offlineIndicator}
+              {updateIcon}
+            </span>
+          </div>
+          <div className={styles.path}>{props.project.path}</div>
+          <FontAwesomeIcon
+            className={iconClasses.join(' ')}
+            icon="thumbtack"
+            size="xs"
+            onClick={props.onFavoriteClick}
+          />
+          <FontAwesomeIcon
+            className={[styles.placeholder, styles.menuIcon].join(' ')}
+            icon="ellipsis-h"
+            size="xs"
+            onClick={props.onMenuClick}
+          />
         </div>
-        <div className={styles.path}>{props.project.path}</div>
-        <FontAwesomeIcon
-          className={iconClasses.join(' ')}
-          icon="thumbtack"
-          size="xs"
-          onClick={props.onFavoriteClick}
-        />
-        <FontAwesomeIcon
-          className={[styles.placeholder, styles.menuIcon].join(' ')}
-          icon="ellipsis-h"
-          size="xs"
-          onClick={props.onMenuClick}
-        />
-      </div>
-    </HtmlTooltip>
+      </HtmlTooltip>
+    </div>
   );
 }
 
