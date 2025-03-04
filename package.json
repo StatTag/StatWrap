@@ -58,6 +58,8 @@
       "templates/",
       "images/",
       "app.html",
+      "worker.html",
+      "worker.js",
       "main.prod.js",
       "main.prod.js.map",
       "preload.prod.js",
