@@ -1,6 +1,6 @@
 # StatWrap Changelog
 
-## 0.0.15 - February 13, 2025
+## 0.0.15 - March 5, 2025
 
 ### Change Summary
 
@@ -11,6 +11,7 @@ Many thanks to numerous contributions from the community, including our [OSRE24 
 - Added User Specific Time zone to Project logger (@Abhijay007)
 - Added Cancel button when editing project details from Dashboard (@Abhijay007)
 - Improved UI for note editing (@jayantpranjal0)
+- Made project detail tooltip more responsive (@MinjanaAP)
 - Dependency updates (@Abhijay007, @lrasmus, @AdiAkhileshSingh15)
 
 **Full Changelog**: https://github.com/StatTag/StatWrap/compare/0.0.14...0.0.15
