@@ -826,7 +826,7 @@ class Project extends Component<Props> {
           onUpdatedAssetNote={this.assetUpsertNoteHandler}
           onDeletedAssetNote={this.assetDeleteNoteHandler}
           onUpdatedAssetAttribute={this.assetUpdateAttributeHandler}
-          onSelectedAsset={this.assetSelectedHandler}
+          onSelectedAsset={this.props.onAssetSelected}
           onAddedAssetGroup={this.assetGroupAddedHandler}
           onUpdatedAssetGroup={this.assetGroupUpdatedHandler}
           onDeletedAssetGroup={this.assetGroupDeletedHandler}
@@ -835,6 +835,7 @@ class Project extends Component<Props> {
           onDeletedExternalAsset={this.externalAssetDeletedHandler}
           assetAttributes={this.props.configuration.assetAttributes}
           dynamicDetails={this.props.assetDynamicDetails}
+          scanStatus={this.props.scanStatus}
         />
       ) : null;
       const workflow = this.props.project ? <Workflow project={this.props.project} /> : null;
@@ -897,6 +898,7 @@ class Project extends Component<Props> {
             onUpdatedNote={this.checklistUpsertNoteHandler}
             onDeletedNote={this.checklistDeleteNoteHandler}
             onSelectedAsset={this.props.onAssetSelected}
+            scanStatus={this.props.scanStatus}
           />
         ) : null;
 
@@ -983,7 +985,12 @@ Project.propTypes = {
   // }
   checklistResponse: PropTypes.object,
   configuration: PropTypes.object,
-  assetDynamicDetails: PropTypes.object
+  assetDynamicDetails: PropTypes.object,
+  // This can have the following values:
+  // * null / '' - No scan is activate (not started or may be completed)
+  // * started - The scan is in progress
+  // * error  - There was an error initiating or completing the scan.  Display results to user
+  scanStatus: PropTypes.string
 };
 
 Project.defaultProps = {
@@ -995,7 +1002,8 @@ Project.defaultProps = {
   logs: null,
   checklistResponse: null,
   configuration: null,
-  assetDynamicDetails: null
+  assetDynamicDetails: null,
+  scanStatus: null
 };
 
 Project.contextType = UserContext;

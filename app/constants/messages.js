@@ -10,8 +10,14 @@ module.exports = {
   UPDATE_PROJECT_REQUEST: 'statwrap-update-project-request',
   UPDATE_PROJECT_RESPONSE: 'statwrap-update-project-response',
 
+  // This message pair is used from the primary renderer -> main
   SCAN_PROJECT_REQUEST: 'statwrap-scan-project-request',
   SCAN_PROJECT_RESPONSE: 'statwrap-scan-project-response',
+  // This message pair is used from main -> worker renderer
+  SCAN_PROJECT_WORKER_REQUEST: 'statwrap-scan-project-worker-request',
+  SCAN_PROJECT_WORKER_RESPONSE: 'statwrap-scan-project-worker-response',
+  // This message is used from main -> primary renderer
+  SCAN_PROJECT_RESULTS_RESPONSE: 'statwrap-scan-project-results-request',
 
   SCAN_ASSET_DYNAMIC_DETAILS_REQUEST: 'statwrap-scan-asset-dynamic-details-request',
   SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE: 'statwrap-scan-asset-dynamic-details-response',

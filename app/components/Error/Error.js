@@ -5,8 +5,8 @@ import styles from './Error.css';
 
 const error = (props) => {
   return (
-    <div style={props.style} className={styles.container}>
-      <ErrorIcon className={styles.icon} />
+    <div style={props.style} className={[styles.container, (props.size && props.size === 'sm' ? styles.sm : "")].join(' ')}>
+      <ErrorIcon className={[styles.icon, (props.size && props.size === 'sm' ? styles.sm : "")].join(' ')} />
       <div className={styles.message}>{props.children}</div>
     </div>
   );

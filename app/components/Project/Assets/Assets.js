@@ -46,6 +46,7 @@ const assetsComponent = (props) => {
     onDeletedExternalAsset,
     assetAttributes,
     dynamicDetails,
+    scanStatus
   } = props;
   const [selectedAsset, setSelectedAsset] = useState();
   const treeRef = React.useRef(null);
@@ -365,6 +366,13 @@ const assetsComponent = (props) => {
         );
       }
 
+      let assetScanStatus = null;
+      if (scanStatus === 'started') {
+        assetScanStatus = <div className={styles.bottom}><Loading size="sm">Additional details about the assets are still loading...</Loading></div>;
+      } else if (scanStatus === 'error') {
+        assetScanStatus = <div className={styles.bottom}><Error size="sm">There was an error loading additional details about the assets</Error></div>;
+      }
+
       // Note that for the AssetFilter component, we always want that to be the original
       // full list of assets.  That's why we use project.assets for that component's
       // propery, and the assets state variable for the AssetTree.
@@ -448,6 +456,7 @@ const assetsComponent = (props) => {
             />
             {assetDetails}
           </div>
+          {assetScanStatus}
           <AssetGroupDialog
             key={assetDialogKey}
             open={editingGroup}

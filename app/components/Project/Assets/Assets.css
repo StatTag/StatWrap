@@ -21,3 +21,10 @@
 .toolbarButton {
   font-size: 0.8rem !important;
 }
+
+.bottom {
+  position: absolute;
+  bottom: 0;
+  width: 50%;
+  margin-bottom: 10px;
+}
