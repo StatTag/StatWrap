@@ -8,6 +8,7 @@ Many thanks to numerous contributions from the community, including our [OSRE24 
 
 - **New "Reproducibility Checklist" feature** (@AdiAkhileshSingh15)
 - Added +/- zoom control buttons for Workflow view (@Abhijay007)
+- Added navigation to "entrypoint" assets (@AdiAkhileshSingh15)
 - Added User Specific Time zone to Project logger (@Abhijay007)
 - Added Cancel button when editing project details from Dashboard (@Abhijay007)
 - Improved UI for note editing (@jayantpranjal0)
