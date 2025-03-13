@@ -50,6 +50,11 @@ module.exports = {
       categories: ['code'],
     },
     {
+      name: 'Java',
+      extensions: ['java', 'class', 'jar'],
+      categories: ['code'],
+    },
+    {
       name: 'Text Data File',
       extensions: ['csv', 'tsv'],
       categories: ['data'],
