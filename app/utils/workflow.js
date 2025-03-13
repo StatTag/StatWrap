@@ -6,6 +6,7 @@ import RHandler from '../services/assets/handlers/r';
 import SASHandler from '../services/assets/handlers/sas';
 import StataHandler from '../services/assets/handlers/stata';
 import Constants from '../constants/constants';
+import JavaHandler from '../services/assets/handlers/java';
 
 export default class WorkflowUtil {
   static getAssetType(asset) {
@@ -22,6 +23,8 @@ export default class WorkflowUtil {
       assetType = 'sas';
     } else if (AssetUtil.getHandlerMetadata(StataHandler.id, asset.metadata)) {
       assetType = 'stata';
+    } else if (AssetUtil.getHandlerMetadata(JavaHandler.id, asset.metadata)) {
+      assetType = 'java';
     }
 
     return assetType;
@@ -276,6 +279,7 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, RHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, SASHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, StataHandler.id, libraries, inputs, outputs);
+    WorkflowUtil._getMetadataDependencies(asset, JavaHandler.id, libraries, inputs, outputs);
 
     return libraries
       .map((e) => {
@@ -338,6 +342,7 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, RHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, SASHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, StataHandler.id, libraries, [], []);
+    WorkflowUtil._getMetadataDependencies(asset, JavaHandler.id, libraries, [], []);
 
     return libraries;
   }
