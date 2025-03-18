@@ -1,0 +1,4 @@
+.env
+config/secrets.json
+private_keys.pem
+database_passwords.txt
