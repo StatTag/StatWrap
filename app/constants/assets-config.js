@@ -51,7 +51,7 @@ module.exports = {
     },
     {
       name: 'Java',
-      extensions: ['java', 'class', 'jar'],
+      extensions: ['java', 'class', 'jar', 'war', 'ear'],
       categories: ['code'],
     },
     {

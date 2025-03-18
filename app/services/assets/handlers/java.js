@@ -1,7 +1,7 @@
 import BaseCodeHandler from './baseCode';
 import Constants from '../../../constants/constants';
 
-const FILE_EXTENSION_LIST = ['java', 'class', 'jar'];
+const FILE_EXTENSION_LIST = ['java'];
 
 export default class JavaHandler extends BaseCodeHandler {
   static id = 'StatWrap.JavaHandler';
@@ -142,13 +142,24 @@ export default class JavaHandler extends BaseCodeHandler {
     }
 
     const importMatches = [
-      ...text.matchAll(/import\s+(?:static\s+)?([\w.]+)(?:\.(\*|\w+))?\s*;/gm),
+      ...text.matchAll(/import\s+(?:static\s+)?([^;]+)\s*;/gm),
     ];
 
     for (let index = 0; index < importMatches.length; index++) {
       const match = importMatches[index];
-      const packageName = match[1];
-      const className = match[2] || '*';
+      const fullImport = match[1].trim();
+
+      let packageName, className;
+      const lastDotIndex = fullImport.lastIndexOf('.');
+
+      if (lastDotIndex !== -1) {
+        packageName = fullImport.substring(0, lastDotIndex);
+        className = fullImport.substring(lastDotIndex + 1);
+      } else {
+        packageName = fullImport;
+        className = '*';
+      }
+
 
       libraries.push({
         id: this.getLibraryId(packageName, className),
