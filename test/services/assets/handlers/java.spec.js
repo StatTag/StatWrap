@@ -52,6 +52,34 @@ describe('services', () => {
           alias: null,
         });
       });
+
+      it('should detect wildcard imports', () => {
+        const libraries = new JavaHandler().getLibraries(
+          'test.uri',
+          'import java.util.*;'
+        );
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'java.util.*',
+          module: 'java.util',
+          import: '*',
+          alias: null,
+        });
+      });
+
+      it('should detect static imports', () => {
+        const libraries = new JavaHandler().getLibraries(
+          'test.uri',
+          'import static java.lang.Math.PI;'
+        );
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'java.lang.Math.PI',
+          module: 'java.lang.Math',
+          import: 'PI',
+          alias: null,
+        });
+      });
     });
 
     describe('getInputs', () => {
@@ -67,20 +95,99 @@ describe('services', () => {
           path: '"input.txt"',
         });
       });
+
+      it('should detect various file read classes', () => {
+        const inputs = new JavaHandler().getInputs(
+          'test.uri',
+          `
+          FileInputStream fis = new FileInputStream("input1.txt");
+          FileReader fr = new FileReader("input2.txt");
+          BufferedReader br = new BufferedReader(new FileReader("input3.txt"));
+          Scanner scanner = new Scanner(new File("input4.txt"));
+          byte[] data = Files.readAllBytes(Paths.get("input5.txt"));
+          `
+        );
+        expect(inputs.length).toEqual(5);
+        expect(inputs[0].id).toContain('BufferedReader');
+        expect(inputs[1].id).toContain('FileInputStream');
+        expect(inputs[2].id).toContain('FileReader');
+        expect(inputs[3].id).toContain('Scanner');
+        expect(inputs[4].id).toContain('readAllBytes');
+      });
+
+      it('should detect JDBC connections', () => {
+        const inputs = new JavaHandler().getInputs(
+          'test.uri',
+          'Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/demodatabase");'
+        );
+        expect(inputs.length).toEqual(1);
+        expect(inputs[0]).toMatchObject({
+          id: 'JDBC - "jdbc:mysql://localhost:3306/demodatabase"',
+          type: 'data',
+          path: '"jdbc:mysql://localhost:3306/demodatabase"',
+        });
+      });
     });
 
     describe('getOutputs', () => {
       it('should detect file write operations', () => {
         const outputs = new JavaHandler().getOutputs(
           'test.uri',
-          'FileOutputStream fos = new FileOutputStream("output.txt");'
+          `
+          FileOutputStream fos = new FileOutputStream("output1.txt");
+          FileWriter fw = new FileWriter("output2.txt");
+          BufferedWriter bw = new BufferedWriter(new FileWriter("output3.txt"));
+          PrintWriter pw = new PrintWriter("output4.txt");
+          `
+        );
+        expect(outputs.length).toEqual(4);
+        expect(outputs[0].id).toContain('BufferedWriter');
+        expect(outputs[1].id).toContain('FileOutputStream');
+        expect(outputs[2].id).toContain('FileWriter');
+        expect(outputs[3].id).toContain('PrintWriter');
+      });
+
+      it('should detect various file write operations', () => {
+        const outputs = new JavaHandler().getOutputs(
+          'test.uri',
+          `
+          FileOutputStream fos = new FileOutputStream("output1.txt");
+          FileWriter fw = new FileWriter("output2.txt");
+          PrintWriter pw = new PrintWriter("output4.txt");
+          `
+        );
+        expect(outputs.length).toEqual(3);
+        expect(outputs[0].id).toContain('FileOutputStream');
+        expect(outputs[1].id).toContain('FileWriter');
+        expect(outputs[2].id).toContain('PrintWriter');
+      });
+
+      it('should detect image write operations', () => {
+        const outputs = new JavaHandler().getOutputs(
+          'test.uri',
+          'ImageIO.write(bufferedImage, "png", new File("chart.png"));'
         );
         expect(outputs.length).toEqual(1);
         expect(outputs[0]).toMatchObject({
-          id: 'FileOutputStream - "output.txt"',
-          type: 'data',
-          path: '"output.txt"',
+          id: 'ImageIO.write - "chart.png"',
+          type: 'figure',
+          path: '"chart.png"',
         });
+      });
+
+      it('should detect chart export operations', () => {
+        const outputs = new JavaHandler().getOutputs(
+          'test.uri',
+          `
+          ChartUtilities.saveChartAsPNG(new File("chart1.png"), chart, 500, 300);
+          ChartUtils.saveChartAsJPEG(new File("chart2.jpg"), chart, 500, 300);
+          `
+        );
+        expect(outputs.length).toEqual(2);
+        expect(outputs[0].id).toContain('chart1.png');
+        expect(outputs[0].type).toEqual('figure');
+        expect(outputs[1].id).toContain('chart2.jpg');
+        expect(outputs[1].type).toEqual('figure');
       });
     });
 

@@ -35,20 +35,46 @@ export default class JavaHandler extends BaseCodeHandler {
     }
 
     // For file read operations
+    const processedPaths = new Set();
+
+    // For nested reader operations like BufferedReader, InputStreamReader
+    const nestedReaderMatches = [
+      ...text.matchAll(/new\s+(BufferedReader|InputStreamReader)\s*\(\s*new\s+(?:FileReader|FileInputStream)\s*\(\s*(?:new\s+File\s*\(\s*)?(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)\s*\)/gim),
+    ];
+
+    for (let index = 0; index < nestedReaderMatches.length; index++) {
+      const match = nestedReaderMatches[index];
+      const operation = match[1];
+      const path = match[2].trim();
+      if (!processedPaths.has(path)) {
+        inputs.push({
+          id: `${operation} - ${path}`,
+          type: Constants.DependencyType.DATA,
+          path,
+        });
+        processedPaths.add(path);
+      }
+    }
+
+    // For direct file read operations
     const fileReadMatches = [
-      ...text.matchAll(/new\s+(FileInputStream|FileReader|BufferedReader|Scanner)\s*\(\s*(?:new\s+File\s*\(\s*)?(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
-      ...text.matchAll(/Files\.(?:read|readAllLines|readAllBytes|newBufferedReader|newInputStream)\s*\(\s*(?:Paths\.get\s*\(\s*)?(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
+      ...text.matchAll(/new\s+(FileInputStream|FileReader|Scanner)\s*\(\s*(?:new\s+File\s*\(\s*)?(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
+      ...text.matchAll(/Files\.(?:(read|readAllLines|readAllBytes|newBufferedReader|newInputStream))\s*\(\s*(?:Paths\.get\s*\(\s*)?(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
     ];
 
     for (let index = 0; index < fileReadMatches.length; index++) {
       const match = fileReadMatches[index];
       const operation = match[1] || 'Files.read';
       const path = match.length > 2 ? match[2].trim() : match[1].trim();
-      inputs.push({
-        id: `${operation} - ${path}`,
-        type: Constants.DependencyType.DATA,
-        path,
-      });
+
+      if (!processedPaths.has(path)) {
+        inputs.push({
+          id: `${operation} - ${path}`,
+          type: Constants.DependencyType.DATA,
+          path,
+        });
+        processedPaths.add(path);
+      }
     }
 
     // For database operations
@@ -76,8 +102,30 @@ export default class JavaHandler extends BaseCodeHandler {
     }
 
     // For file write operations
+    const processedPaths = new Set();
+
+    // For nested writer operations like BufferedWriter, OutputStreamWriter
+    const nestedWriterMatches = [
+      ...text.matchAll(/new\s+(BufferedWriter|OutputStreamWriter)\s*\(\s*new\s+(?:FileWriter|FileOutputStream)\s*\(\s*(?:new\s+File\s*\(\s*)?(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)\s*\)/gim),
+    ];
+
+    for (let index = 0; index < nestedWriterMatches.length; index++) {
+      const match = nestedWriterMatches[index];
+      const operation = match[1];
+      const path = match[2].trim();
+      if (!processedPaths.has(path)) {
+        outputs.push({
+          id: `${operation} - ${path}`,
+          type: Constants.DependencyType.DATA,
+          path,
+        });
+        processedPaths.add(path);
+      }
+    }
+
+    // For file write operations
     const fileWriteMatches = [
-      ...text.matchAll(/new\s+(FileOutputStream|FileWriter|BufferedWriter|PrintWriter)\s*\(\s*(?:new\s+File\s*\(\s*)?(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
+      ...text.matchAll(/new\s+(FileOutputStream|FileWriter|PrintWriter)\s*\(\s*(?:new\s+File\s*\(\s*)?(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
       ...text.matchAll(/Files\.(?:write|writeString|newBufferedWriter|newOutputStream)\s*\(\s*(?:Paths\.get\s*\(\s*)?(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
     ];
 
@@ -85,11 +133,15 @@ export default class JavaHandler extends BaseCodeHandler {
       const match = fileWriteMatches[index];
       const operation = match[1] || 'Files.write';
       const path = match.length > 2 ? match[2].trim() : match[1].trim();
-      outputs.push({
-        id: `${operation} - ${path}`,
-        type: Constants.DependencyType.DATA,
-        path,
-      });
+
+      if (!processedPaths.has(path)) {
+        outputs.push({
+          id: `${operation} - ${path}`,
+          type: Constants.DependencyType.DATA,
+          path,
+        });
+        processedPaths.add(path);
+      }
     }
 
     // For image write operations
@@ -109,8 +161,8 @@ export default class JavaHandler extends BaseCodeHandler {
 
     // For chart export operations
     const chartExportMatches = [
-      ...text.matchAll(/ChartUtilities\.saveChartAs(?:JPEG|PNG)\s*\(\s*[\s\S]*?,\s*(?:new\s+File\s*\(\s*)?(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
-      ...text.matchAll(/ChartUtils\.saveChartAs(?:JPEG|PNG)\s*\(\s*[\s\S]*?,\s*(?:new\s+File\s*\(\s*)?(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
+      ...text.matchAll(/ChartUtilities\.saveChartAs(?:JPEG|PNG)\s*\(\s*(?:new\s+File\s*\(\s*)?(['"]{1,}[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
+      ...text.matchAll(/ChartUtils\.saveChartAs(?:JPEG|PNG)\s*\(\s*(?:new\s+File\s*\(\s*)?(['"]{1,}[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
     ];
 
     for (let index = 0; index < chartExportMatches.length; index++) {
