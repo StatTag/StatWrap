@@ -227,7 +227,7 @@ const assetsComponent = (props) => {
       // children.
       const groupAssets = {
         uri: clonedGroup.name,
-        type: constants.AssetType.ASSET_GROUP,
+        type: Constants.AssetType.ASSET_GROUP,
         children: clonedGroup.assets,
       };
 

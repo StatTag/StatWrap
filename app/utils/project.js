@@ -737,7 +737,7 @@ export default class ProjectUtil {
       if (ProjectUtil.isDirectoryFilteredOut(filter)) {
         filteredAssetList = ProjectUtil.flattenFilteredAssets(filteredAssetList);
         if (filteredAssetList) {
-          filteredAssetList.type = constants.AssetType.FILTER;
+          filteredAssetList.type = Constants.AssetType.FILTER;
         }
       }
     }
