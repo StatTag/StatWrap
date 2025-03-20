@@ -1,4 +1,4 @@
-# DeepCode 
+# DeepCode
 .dccache
 
 # Logs
@@ -59,3 +59,10 @@ npm-debug.log.*
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
+
+# Ignore sensitive files
+*.sensitive
+my_sensitive_file.txt
+config/secrets.json
+.env
+private_keys.pem
