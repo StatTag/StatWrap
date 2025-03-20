@@ -13,6 +13,7 @@ import SASHandler from './services/assets/handlers/sas';
 import StataHandler from './services/assets/handlers/stata';
 import AssetUtil from './utils/asset';
 import ProjectUtil from './utils/project';
+import JavaHandler from './services/assets/handlers/java';
 
 const projectService = new ProjectService();
 const projectListService = new ProjectListService();
@@ -51,6 +52,7 @@ contextBridge.exposeInMainWorld('workerElectronBridge', {
           new RHandler(),
           new SASHandler(),
           new StataHandler(),
+          new JavaHandler(),
         ]);
         response.assets = service.scan(project.path); // Returns absolute paths
 
