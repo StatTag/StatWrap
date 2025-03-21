@@ -443,11 +443,28 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
           }
           break;
         }
-        // case Constants.ProjectType.CLONE_PROJECT_TYPE: {
-        //   response.error = true;
-        //   response.errorMessage = 'Not yet implemented';
-        //   break;
-        // }
+        case Constants.ProjectType.CLONE_PROJECT_TYPE: {
+          try {
+            // Import the directory cloning utilities
+            const { cloneDirectoryStructure, createStatWrapConfig } = require('./utils/DirectoryCloneUtils');
+            
+            // Create the target directory if it doesn't exist
+            if (!fs.existsSync(validationReport.project.path)) {
+              fs.mkdirSync(validationReport.project.path, { recursive: true });
+            }
+            
+            // Clone the directory structure
+            await cloneDirectoryStructure(project.sourceDirectory, validationReport.project.path);
+            
+            // Create the StatWrap configuration
+            await createStatWrapConfig(validationReport.project.path, validationReport.project.id, validationReport.project.name);
+            
+          } catch (error) {
+            response.error = true;
+            response.errorMessage = `Failed to clone project: ${error.message}`;
+          }
+          break;
+        }
         default:
           response.error = true;
           response.errorMessage = `StatWrap is not able to create projects with a type of ${project.type}`;

@@ -1,0 +1,50 @@
+.container {
+  width: 100%;
+  padding: 10px;
+}
+
+.container fieldset {
+  margin-bottom: 15px;
+  padding: 15px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.container legend {
+  padding: 0 5px;
+  font-weight: bold;
+}
+
+.container input[type='text'] {
+  width: calc(100% - 95px);
+  height: 36px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.browse {
+  margin-left: 10px !important;
+}
+
+.targetDirectoryPreview {
+  margin-top: 10px;
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #f5f5f5;
+}
+
+.targetDirectoryPreview p {
+  margin: 0 0 5px;
+  font-weight: bold;
+}
+
+.targetDirectoryPreview code {
+  display: block;
+  padding: 5px;
+  background-color: #e9e9e9;
+  border-radius: 3px;
+  word-break: break-all;
+}

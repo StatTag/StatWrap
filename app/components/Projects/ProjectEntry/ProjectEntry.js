@@ -19,7 +19,7 @@ const HtmlTooltip = withStyles((theme) => ({
 
 function projectEntry(props) {
   const [isTooltipOpen, setTooltipOpen] = useState(false);
-
+  props.project.loadError=false;
   const iconClasses = [styles.favoriteIicon];
   if (!props.project.favorite) {
     iconClasses.push(styles.placeholder);
