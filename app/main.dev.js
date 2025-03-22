@@ -260,7 +260,15 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
       // Remember that if the file can't be loaded, it may be because we're offline and the project is in
       // a network directory.
       const fullProject = { ...project };
-      if (metadata == null) {
+      const isClonedProject = fs.existsSync(
+        path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, 'cloned_project_marker')
+      );
+
+      if(isClonedProject)
+      {
+        fullProject.loadError = false;
+      }
+      else if (metadata == null) {
         fullProject.loadError = true;
       } else {
         fullProject.name = metadata.name;
@@ -443,11 +451,37 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
           }
           break;
         }
-        // case Constants.ProjectType.CLONE_PROJECT_TYPE: {
-        //   response.error = true;
-        //   response.errorMessage = 'Not yet implemented';
-        //   break;
-        // }
+        // In the CREATE_PROJECT_REQUEST handler, modify the CLONE_PROJECT_TYPE case:
+
+        case Constants.ProjectType.CLONE_PROJECT_TYPE: {
+          try {
+            // Import the directory cloning utilities
+            const { cloneDirectoryStructure, createStatWrapConfig } = require('./utils/DirectoryCloneUtils');
+            
+            // Create the target directory if it doesn't exist
+            if (!fs.existsSync(validationReport.project.path)) {
+              fs.mkdirSync(validationReport.project.path, { recursive: true });
+            }
+            
+            // Clone the directory structure
+            await cloneDirectoryStructure(project.sourceDirectory, validationReport.project.path);
+            
+            // Create the StatWrap configuration
+            await createStatWrapConfig(validationReport.project.path, validationReport.project.id, validationReport.project.name);
+            
+            // Create a marker file to identify this as a cloned project
+            const statWrapDir = path.join(validationReport.project.path, Constants.StatWrapFiles.BASE_FOLDER);
+            if (!fs.existsSync(statWrapDir)) {
+              fs.mkdirSync(statWrapDir, { recursive: true });
+            }
+            fs.writeFileSync(path.join(statWrapDir, 'cloned_project_marker'), 'This is a cloned project');
+            
+          } catch (error) {
+            response.error = true;
+            response.errorMessage = `Failed to clone project: ${error.message}`;
+          }
+          break;
+        }
         default:
           response.error = true;
           response.errorMessage = `StatWrap is not able to create projects with a type of ${project.type}`;
