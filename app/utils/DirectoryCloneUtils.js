@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import Constants from '../constants/constants';
 
 /**
  * Clones the directory structure from a source directory to a target directory
@@ -48,19 +49,16 @@ export const cloneDirectoryStructure = async (sourceDir, targetDir) => {
 /**
  * Creates a new StatWrap configuration folder in the target directory
  * 
- * @param {string} targetDir - The target directory where the .statwrap folder will be created
+ * @param {string} targetDir - The target directory where the StatWrap project file will be created
  * @returns {Promise<void>}
  */
 export const createStatWrapConfig = async (targetDir) => {
   try {
-    const configDir = path.join(targetDir, '.statwrap');
+    const configDir = path.join(targetDir, Constants.StatWrapFiles.BASE_FOLDER);
     fs.mkdirSync(configDir, { recursive: true });
     
-    // Create basic configuration files
-    // This is just a placeholder - you'll need to implement the actual config creation
-    // based on how StatWrap creates config files for new projects
-    const configFile = path.join(configDir, 'config.json');
-    fs.writeFileSync(configFile, JSON.stringify({
+    const projectConfigFile = path.join(targetDir, Constants.StatWrapFiles.PROJECT);
+    fs.writeFileSync(projectConfigFile, JSON.stringify({
       projectName: path.basename(targetDir),
       created: new Date().toISOString(),
     }, null, 2));
