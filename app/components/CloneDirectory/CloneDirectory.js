@@ -61,31 +61,6 @@ class CloneDirectory extends Component {
     this.props.onProjectNameChanged(event.target.value);
   };
 
-  validateForm = () => {
-    if (!this.props.sourceDirectory) {
-      this.setState({
-        validationErrorMessage: 'Please select a source project directory to clone from.',
-      });
-      return false;
-    }
-
-    if (!this.props.targetBaseDirectory) {
-      this.setState({
-        validationErrorMessage: 'Please select a target base directory where the new project will be created.',
-      });
-      return false;
-    }
-
-    if (!this.props.projectName || this.props.projectName.trim() === '') {
-      this.setState({
-        validationErrorMessage: 'Please enter a project name.',
-      });
-      return false;
-    }
-
-    return true;
-  };
-
   render() {
     let validation = null;
     if (this.state.validationErrorMessage) {
