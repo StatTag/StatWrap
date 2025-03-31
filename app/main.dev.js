@@ -261,11 +261,10 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
       // a network directory.
       const fullProject = { ...project };
       const isClonedProject = fs.existsSync(
-        path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, 'cloned_project_marker')
+        path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, Constants.StatWrapFiles.CLONED_PROJECT_MARKER)
       );
 
-      if(isClonedProject)
-      {
+      if(isClonedProject) {
         fullProject.loadError = false;
       }
       else if (metadata == null) {
@@ -474,7 +473,10 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
             if (!fs.existsSync(statWrapDir)) {
               fs.mkdirSync(statWrapDir, { recursive: true });
             }
-            fs.writeFileSync(path.join(statWrapDir, 'cloned_project_marker'), 'This is a cloned project');
+            fs.writeFileSync(
+              path.join(statWrapDir, Constants.StatWrapFiles.CLONED_PROJECT_MARKER), 
+              `This is a cloned project from ${project.sourceDirectory}`
+            );
             
           } catch (error) {
             response.error = true;
