@@ -111,37 +111,64 @@ class CreateProjectDialog extends Component {
   ];
 
   handleSourceDirectoryChanged(dir) {
+    const { isValid, errorMessage } = this.validateCloneDirectories(
+      dir,
+      this.state.project.targetBaseDirectory,
+      this.state.project.name
+    );
+  
     this.setState((prevState) => ({
       project: {
         ...prevState.project,
         sourceDirectory: dir,
       },
-      canProgress: this.validateCloneDirectories(
-        dir,
-        prevState.project.targetBaseDirectory,
-        prevState.project.name
-      ),
+      canProgress: isValid,
+      errorMessage: errorMessage
     }));
   }
   
   handleTargetBaseDirectoryChanged(dir) {
+    const { isValid, errorMessage } = this.validateCloneDirectories(
+      this.state.project.sourceDirectory,
+      dir,
+      this.state.project.name
+    );
+  
     this.setState((prevState) => ({
       project: {
         ...prevState.project,
         targetBaseDirectory: dir,
       },
-      canProgress: this.validateCloneDirectories(
-        prevState.project.sourceDirectory,
-        dir,
-        prevState.project.name
-      ),
+      canProgress: isValid,
+      errorMessage: errorMessage
     }));
   }
   
   validateCloneDirectories(sourceDir, targetBaseDir, name) {
-    return sourceDir && sourceDir !== '' && 
+    const hasRequiredFields = sourceDir && sourceDir !== '' && 
            targetBaseDir && targetBaseDir !== '' && 
            name && name !== '';
+    
+    if (!hasRequiredFields) return { isValid: false, errorMessage: null };
+    // Check if user is trying to clone a directory onto itself
+    if (sourceDir === targetBaseDir) {
+      return { 
+        isValid: false, 
+        errorMessage: 'Cannot clone from and to the same directory. Please choose a different target directory.'
+      };
+    }
+    const normalizedSource = sourceDir.replace(/\\/g, '/');
+  const normalizedTarget = targetBaseDir.replace(/\\/g, '/');
+  
+  // Check if target is a subdirectory of source
+  if (normalizedTarget.startsWith(normalizedSource + '/')) {
+    return {
+      isValid: false,
+      errorMessage: 'Cannot clone a directory into its own subdirectory. Please choose a different target directory.'
+    };
+  }
+  
+    return { isValid: true, errorMessage: null };
   }
 
   handleSelectAddProject(type) {
@@ -268,12 +295,15 @@ class CreateProjectDialog extends Component {
     this.setState((prevState) => {
       // Determine which validation method to use based on project type
       let canProgress;
+      let errorMessage = null;
       if (prevState.project.type === Constants.ProjectType.CLONE_PROJECT_TYPE) {
-        canProgress = this.validateCloneDirectories(
+        const validation = this.validateCloneDirectories(
           prevState.project.sourceDirectory,
           prevState.project.targetBaseDirectory,
           name
         );
+        canProgress = validation.isValid;
+        errorMessage = validation.errorMessage;
       } else {
         canProgress = CreateProjectDialog.validateProjectDirectory(
           prevState.step,
@@ -288,6 +318,7 @@ class CreateProjectDialog extends Component {
           name: name,
         },
         canProgress: canProgress,
+        errorMessage: errorMessage
       };
     });
   }
@@ -364,15 +395,18 @@ if (hasNextStep) {
       case 'CloneProjectDetails': {
         dialogTitle = 'Clone Project from Existing Directory';
         
-        const canProgress = this.validateCloneDirectories(
+        const validation = this.validateCloneDirectories(
           this.state.project.sourceDirectory,
           this.state.project.targetBaseDirectory,
           this.state.project.name
         );
         
-        // Update state if needed
-        if (this.state.canProgress !== canProgress) {
-          this.setState({ canProgress });
+        if (this.state.canProgress !== validation.isValid || 
+            this.state.errorMessage !== validation.errorMessage) {
+          this.setState({ 
+            canProgress: validation.isValid,
+            errorMessage: validation.errorMessage
+          });
         }
         
         displayComponent = (
