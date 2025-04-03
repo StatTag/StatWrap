@@ -106,7 +106,7 @@ class CloneDirectory extends Component {
           />
         </fieldset>
 
-        {targetDirectory && (
+        {targetDirectory && this.props.isValidDirectory && (
           <div className={styles.targetDirectoryPreview}>
             <p>New project will be created at:</p>
             <code>{targetDirectory}</code>
@@ -127,6 +127,10 @@ CloneDirectory.propTypes = {
   onSourceDirectoryChanged: PropTypes.func.isRequired,
   onTargetBaseDirectoryChanged: PropTypes.func.isRequired,
   onProjectNameChanged: PropTypes.func.isRequired,
+  isValidDirectory: PropTypes.bool, 
+};
+CloneDirectory.defaultProps = {
+  isValidDirectory: false,  // Default to false
 };
 
 export default CloneDirectory;
