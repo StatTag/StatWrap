@@ -150,6 +150,14 @@ class CreateProjectDialog extends Component {
            name && name !== '';
     
     if (!hasRequiredFields) return { isValid: false, errorMessage: null };
+    
+    // Normalize paths to handle different path separators
+    const normalizedSource = sourceDir.replace(/\\/g, '/');
+    const normalizedTarget = targetBaseDir.replace(/\\/g, '/');
+    
+    // Create the full target path by joining targetBaseDir and name
+    const fullTargetPath = `${normalizedTarget}/${name}`.replace(/\/\//g, '/');
+    
     // Check if user is trying to clone a directory onto itself
     if (sourceDir === targetBaseDir) {
       return { 
@@ -157,17 +165,23 @@ class CreateProjectDialog extends Component {
         errorMessage: 'Cannot clone from and to the same directory. Please choose a different target directory.'
       };
     }
-    const normalizedSource = sourceDir.replace(/\\/g, '/');
-  const normalizedTarget = targetBaseDir.replace(/\\/g, '/');
-  
-  // Check if target is a subdirectory of source
-  if (normalizedTarget.startsWith(normalizedSource + '/')) {
-    return {
-      isValid: false,
-      errorMessage: 'Cannot clone a directory into its own subdirectory. Please choose a different target directory.'
-    };
-  }
-  
+    
+    // Check if the full target path matches the source directory
+    if (normalizedSource === fullTargetPath) {
+      return {
+        isValid: false,
+        errorMessage: 'Cannot clone a directory to the same name in a parent directory. This would overwrite the source. Please choose a different project name or target directory.'
+      };
+    }
+    
+    // Check if target is a subdirectory of source
+    if (normalizedTarget.startsWith(normalizedSource + '/')) {
+      return {
+        isValid: false,
+        errorMessage: 'Cannot clone a directory into its own subdirectory. Please choose a different target directory.'
+      };
+    }
+    
     return { isValid: true, errorMessage: null };
   }
 
@@ -417,6 +431,7 @@ if (hasNextStep) {
             onSourceDirectoryChanged={this.handleSourceDirectoryChanged}
             onTargetBaseDirectoryChanged={this.handleTargetBaseDirectoryChanged}
             onProjectNameChanged={this.handleNameChanged}
+            isValidDirectory={validation.isValid}
           />
         );
         break;
