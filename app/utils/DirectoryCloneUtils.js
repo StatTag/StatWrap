@@ -54,13 +54,16 @@ export const cloneDirectoryStructure = async (sourceDir, targetDir) => {
  */
 export const createStatWrapConfig = async (targetDir) => {
   try {
+    // Create the .statwrap base folder
     const configDir = path.join(targetDir, Constants.StatWrapFiles.BASE_FOLDER);
     fs.mkdirSync(configDir, { recursive: true });
     
-    const projectConfigFile = path.join(targetDir, Constants.StatWrapFiles.PROJECT);
+    const projectConfigFile = path.join(configDir, Constants.StatWrapFiles.PROJECT);
+    
     fs.writeFileSync(projectConfigFile, JSON.stringify({
       projectName: path.basename(targetDir),
       created: new Date().toISOString(),
+      id: path.basename(targetDir),
     }, null, 2));
   } catch (error) {
     throw new Error(`Failed to create StatWrap configuration: ${error.message}`);
