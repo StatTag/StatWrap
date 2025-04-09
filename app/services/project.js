@@ -250,6 +250,39 @@ export default class ProjectService {
         validationReport.details = '';
         break;
       }
+      case Constants.ProjectType.CLONE_PROJECT_TYPE: {
+        // For cloned directories, we need both source directory and target base directory
+        if (!project.sourceDirectory) {
+          validationReport.isValid = false;
+          validationReport.details = 'Source directory must be specified for cloning';
+          break;
+        }
+        
+        if (!project.targetBaseDirectory) {
+          validationReport.isValid = false;
+          validationReport.details = 'Target base directory must be specified for cloning';
+          break;
+        }
+        
+        if (!project.name || project.name.trim() === '') {
+          validationReport.isValid = false;
+          validationReport.details = 'Project name must be specified for cloning';
+          break;
+        }
+        
+        const sanitizedName = this.sanitizeFolderName(project.name);
+        const projectDirectory = path.join(
+          project.targetBaseDirectory.replace('~', os.homedir()),
+          sanitizedName,
+        );
+        
+        validationReport.project.name = project.name;
+        validationReport.project.path = projectDirectory;
+        validationReport.project.sourceDirectory = project.sourceDirectory;
+        validationReport.isValid = true;
+        validationReport.details = '';
+        break;
+      }
       default: {
         validationReport.isValid = false;
         validationReport.details = `An unknown project type (${project.type}) was specified.`;
