@@ -27,6 +27,20 @@ const FILE_IGNORE_LIST = [
 ];
 
 export default class AssetUtil {
+
+  static isArchived(asset) {
+    if (!asset) {
+      return false;
+    }
+
+    if (asset.attributes && asset.attributes.archived === true) {
+      return true;
+    }
+
+    return false;
+  }
+
+
   static getHandlerMetadata(handler, metadata) {
     if (!metadata || metadata.length === 0) {
       return null;
