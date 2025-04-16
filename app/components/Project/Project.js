@@ -906,9 +906,12 @@ class Project extends Component<Props> {
         <TabContext value={this.state.selectedTab}>
           <div className={styles.header}>
             <div className={styles.titleContainer}>
-              <IconButton color="inherit">
-                {this.props.project && this.props.project.favorite ? <Star /> : <StarBorder />}
-              </IconButton>
+              <IconButton
+            color="inherit"
+            onClick={() => this.props.onFavoriteClick(this.props.project.id)}
+          >
+            {this.props.project && this.props.project.favorite ? <Star /> : <StarBorder />}
+          </IconButton>
               <div className={styles.title}>
                 {name}
                 {projectPath}

@@ -311,9 +311,25 @@ class ProjectPage extends Component {
     });
   }
 
-  handleFavoriteClick(id) {
+  handleFavoriteClick = (id) => {
+    this.setState((prevState) => {
+      const updatedProjects = prevState.projects.map((project) =>
+        project.id === id ? { ...project, favorite: !project.favorite } : project
+      );
+  
+      const updatedSelectedProject =
+        prevState.selectedProject?.id === id
+          ? { ...prevState.selectedProject, favorite: !prevState.selectedProject.favorite }
+          : prevState.selectedProject;
+  
+      return {
+        projects: updatedProjects,
+        selectedProject: updatedSelectedProject,
+      };
+    });
+  
     ipcRenderer.send(Messages.TOGGLE_PROJECT_FAVORITE_REQUEST, id);
-  }
+  };
 
   handleAddProject() {
     this.setState({ addingProject: true });
@@ -428,6 +444,7 @@ class ProjectPage extends Component {
           />
           <Project
             project={this.state.selectedProject}
+            onFavoriteClick={this.handleFavoriteClick}
             logs={this.state.selectedProjectLogs}
             checklistResponse={this.state.selectedProjectChecklist}
             onUpdated={this.handleProjectUpdate}
