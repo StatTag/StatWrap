@@ -53,7 +53,8 @@ function DependencyGraphEChart(props) {
 
   const resetFilter = () => {
     if (assets) {
-      const filteredAssets = AssetUtil.filterIncludedFileAssets(assets);
+      const archivedFilteredAssets = WorkflowUtil.filterArchivedAssets(assets);
+      const filteredAssets = AssetUtil.filterIncludedFileAssets(archivedFilteredAssets);
       setFilter(ProjectUtil.getWorkflowFilters(filteredAssets));
       setGraphData(WorkflowUtil.getAllDependenciesAsEChartGraph(filteredAssets));
     } else {
@@ -69,8 +70,9 @@ function DependencyGraphEChart(props) {
   // those that should be displayed.
   const handleFilterChanged = (updatedFilter) => {
     if (assets) {
+      const filteredAssets = WorkflowUtil.filterArchivedAssets(assets);
       setFilter(updatedFilter);
-      setGraphData(WorkflowUtil.getAllDependenciesAsEChartGraph(assets, filter));
+      setGraphData(WorkflowUtil.getAllDependenciesAsEChartGraph(filteredAssets, filter));
     } else {
       setGraphData(null);
     }

@@ -30,8 +30,9 @@ const dependencyGraphD3 = (props) => {
 
   useEffect(() => {
     if (assets) {
-      setFilter(ProjectUtil.getWorkflowFilters(assets));
-      setGraphData(WorkflowUtil.getAllDependenciesAsGraph(assets));
+      const filteredAssets = WorkflowUtil.filterArchivedAssets(assets);
+      setFilter(ProjectUtil.getWorkflowFilters(filteredAssets));
+      setGraphData(WorkflowUtil.getAllDependenciesAsGraph(filteredAssets));
     } else {
       setGraphData(null);
     }
@@ -41,8 +42,9 @@ const dependencyGraphD3 = (props) => {
   // those that should be displayed.
   const handleFilterChanged = (updatedFilter) => {
     if (assets) {
+      const filteredAssets = WorkflowUtil.filterArchivedAssets(assets);
       setFilter(updatedFilter);
-      setGraphData(WorkflowUtil.getAllDependenciesAsGraph(assets, updatedFilter));
+      setGraphData(WorkflowUtil.getAllDependenciesAsGraph(filteredAssets, updatedFilter));
     } else {
       setGraphData(null);
     }
