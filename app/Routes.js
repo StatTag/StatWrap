@@ -1,6 +1,5 @@
 import React from 'react';
-import { Switch, Route } from 'react-router';
-import { HashRouter } from 'react-router-dom';
+import { HashRouter, Switch, Route } from 'react-router-dom';
 import routes from './constants/routes.json';
 import App from './containers/App';
 import ProjectPage from './containers/ProjectPage/ProjectPage';
