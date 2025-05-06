@@ -68,6 +68,7 @@ class ProjectPage extends Component {
     this.handleScanProjectResponse = this.handleScanProjectResponse.bind(this);
     this.handleScanProjectResultsResponse = this.handleScanProjectResultsResponse.bind(this);
     this.handleProjectUpdate = this.handleProjectUpdate.bind(this);
+    this.handleProjectRename = this.handleProjectRename.bind(this);
     this.handleChecklistUpdate = this.handleChecklistUpdate.bind(this);
     this.handleUpdateProjectResponse = this.handleUpdateProjectResponse.bind(this);
     this.handleLoadProjectLogResponse = this.handleLoadProjectLogResponse.bind(this);
@@ -90,6 +91,7 @@ class ProjectPage extends Component {
 
     ipcRenderer.on(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.on(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
+    ipcRenderer.on(Messages.RENAME_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.on(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
     ipcRenderer.on(Messages.SCAN_PROJECT_RESULTS_RESPONSE, this.handleScanProjectResultsResponse);
     ipcRenderer.on(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
@@ -126,6 +128,10 @@ class ProjectPage extends Component {
     );
     ipcRenderer.removeListener(
       Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE,
+      this.refreshProjectsHandler,
+    );
+    ipcRenderer.removeListener(
+      Messages.RENAME_PROJECT_LIST_ENTRY_RESPONSE,
       this.refreshProjectsHandler,
     );
     ipcRenderer.removeListener(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
@@ -316,18 +322,18 @@ class ProjectPage extends Component {
       const updatedProjects = prevState.projects.map((project) =>
         project.id === id ? { ...project, favorite: !project.favorite } : project
       );
-  
+
       const updatedSelectedProject =
         prevState.selectedProject?.id === id
           ? { ...prevState.selectedProject, favorite: !prevState.selectedProject.favorite }
           : prevState.selectedProject;
-  
+
       return {
         projects: updatedProjects,
         selectedProject: updatedSelectedProject,
       };
     });
-  
+
     ipcRenderer.send(Messages.TOGGLE_PROJECT_FAVORITE_REQUEST, id);
   };
 
@@ -402,6 +408,23 @@ class ProjectPage extends Component {
     );
   }
 
+  handleProjectRename(project, name) {
+    // Update our cached list of projects from which we get the selected projects.  We want to ensure
+    // these are kept in sync with any updates.
+    this.setState((prevState) => {
+      const { projects } = prevState;
+      const foundIndex = projects.findIndex((x) => x.id === project.id);
+      projects[foundIndex].name = name;
+      return { projects };
+    });
+
+    ipcRenderer.send(
+      Messages.RENAME_PROJECT_LIST_ENTRY_REQUEST,
+      project.id,
+      name
+    );
+  }
+
   handleUpdateProjectResponse(sender, response) {
     if (response.error) {
       console.log(response.errorMessage);
@@ -448,6 +471,7 @@ class ProjectPage extends Component {
             logs={this.state.selectedProjectLogs}
             checklistResponse={this.state.selectedProjectChecklist}
             onUpdated={this.handleProjectUpdate}
+            onRename={this.handleProjectRename}
             onAssetSelected={this.handleAssetSelected}
             onChecklistUpdated={this.handleChecklistUpdate}
             configuration={{ assetAttributes: this.state.assetAttributes }}

@@ -57,6 +57,33 @@ export default class ProjectListService {
     return true;
   }
 
+  /**
+   *
+   * @param {uuid} projectId The ID of the project to update
+   * @param {string} name The new display name for the project in the user's list
+   * @param {URI} filePath The path to the project list file
+   * @returns
+   */
+  renameProjectEntry(projectId, name, filePath = DefaultProjectListFile) {
+    let projectList = [];
+    try {
+      fs.accessSync(filePath);
+    } catch {
+      return false;
+    }
+
+    const data = fs.readFileSync(filePath);
+    projectList = JSON.parse(data.toString());
+    const project = projectList.find((x) => x.id === projectId);
+    if (!project) {
+      return false;
+    }
+
+    project.name = name;
+    this.writeProjectList(filePath, projectList);
+    return true;
+  }
+
   // Add a project to the user's list of projects.
   appendAndSaveProjectToList(project, filePath = DefaultProjectListFile) {
     // If the project is invalid, we won't append it to the list

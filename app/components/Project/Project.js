@@ -802,6 +802,28 @@ class Project extends Component<Props> {
     this.setState({ selectedTab: 'projectLog', showLogUpdatesOnly: true });
   };
 
+  /**
+   * Handles when the user clicks out of the project name edit.  This will confirm that the name has
+   * actually changed before triggering a save (to avoid extra update notices in the log).
+   * @param {string} text
+   */
+  projectNameUpdateHandler = name => {
+    if (name === null || name === undefined || name.trim() === '') {
+      console.log('Unable to accept invalid project name');
+      return;
+    }
+
+    const currentProject = { ...this.props.project };
+    currentProject.name = name;
+
+    if (this.props.onRename) {
+      this.props.onRename(
+        currentProject,
+        name
+      );
+    }
+  }
+
   render() {
     const tabStyle = { root: this.props.classes.tabRoot, selected: this.props.classes.tabSelected };
     const tabPanelStyle = { root: this.props.classes.tabPanel };
@@ -847,6 +869,7 @@ class Project extends Component<Props> {
           inputFontWeight="bold"
           inputClassName={styles.editableLabel}
           inputWidth="100%"
+          onFocusOut={this.projectNameUpdateHandler}
         />
       ) : null;
 

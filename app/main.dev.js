@@ -385,6 +385,32 @@ ipcMain.on(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, async (event, projectId) 
   event.sender.send(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, response);
 });
 
+ipcMain.on(Messages.RENAME_PROJECT_LIST_ENTRY_REQUEST, async (event, projectId, name) => {
+  const response = {
+    projectId,
+    error: false,
+    errorMessage: '',
+  };
+
+  try {
+    const userDataPath = app.getPath('userData');
+    projectListService.renameProjectEntry(
+      projectId,
+      name,
+      path.join(userDataPath, DefaultProjectListFile),
+    );
+    response.error = false;
+    response.errorMessage = '';
+  } catch (e) {
+    response.error = true;
+    response.errorMessage =
+      'There was an unexpected error when renaming the project';
+    console.log(e);
+  }
+
+  event.sender.send(Messages.RENAME_PROJECT_LIST_ENTRY_RESPONSE, response);
+});
+
 /**
  * Create a new project - instantiating the project metadata within the project root,
  * and also registering the project within the user's project list.
@@ -456,28 +482,28 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
           try {
             // Import the directory cloning utilities
             const { cloneDirectoryStructure, createStatWrapConfig } = require('./utils/DirectoryCloneUtils');
-            
+
             // Create the target directory if it doesn't exist
             if (!fs.existsSync(validationReport.project.path)) {
               fs.mkdirSync(validationReport.project.path, { recursive: true });
             }
-            
+
             // Clone the directory structure
             await cloneDirectoryStructure(project.sourceDirectory, validationReport.project.path);
-            
+
             // Create the StatWrap configuration
             await createStatWrapConfig(validationReport.project.path, validationReport.project.id, validationReport.project.name);
-            
+
             // Create a marker file to identify this as a cloned project
             const statWrapDir = path.join(validationReport.project.path, Constants.StatWrapFiles.BASE_FOLDER);
             if (!fs.existsSync(statWrapDir)) {
               fs.mkdirSync(statWrapDir, { recursive: true });
             }
             fs.writeFileSync(
-              path.join(statWrapDir, Constants.StatWrapFiles.CLONED_PROJECT_MARKER), 
+              path.join(statWrapDir, Constants.StatWrapFiles.CLONED_PROJECT_MARKER),
               `This is a cloned project from ${project.sourceDirectory}`
             );
-            
+
           } catch (error) {
             response.error = true;
             response.errorMessage = `Failed to clone project: ${error.message}`;

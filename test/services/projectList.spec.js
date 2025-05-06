@@ -13,7 +13,8 @@ const projectListString = `[
     "id": "d01d2925-f6ff-4f8e-988f-fca2ee193427",
     "favorite": true,
     "lastAccessed": "2020-04-21T21:21:27.041Z",
-    "path": "~/Development/projects/test1"
+    "path": "~/Development/projects/test1",
+    "name": "Project 1"
   },
   {
     "id": "6ff79e02-4f24-4948-ac77-f3f1b67064e5",
@@ -248,7 +249,7 @@ describe('services', () => {
         // Flip from 'true' to 'false'
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           '.statwrap-projects.json',
-          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":false,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2020-04-21T21:21:27.041Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2"}]',
+          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":false,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1","name":"Project 1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2020-04-21T21:21:27.041Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2"}]',
         );
       });
 
@@ -260,7 +261,7 @@ describe('services', () => {
         // Initialize as 'true'
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           '.statwrap-projects.json',
-          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":true,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2020-04-21T21:21:27.041Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2","favorite":true}]',
+          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":true,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1","name":"Project 1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2020-04-21T21:21:27.041Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2","favorite":true}]',
         );
       });
 
@@ -269,6 +270,64 @@ describe('services', () => {
         fs.readFileSync.mockReturnValue(invalidProjectListString);
         expect(() =>
           new ProjectListService().toggleProjectFavorite('d01d2925-f6ff-4f8e-988f-fca2ee193427'),
+        ).toThrow(SyntaxError);
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('renameProjectEntry', () => {
+      it('should not try to save if the project list does not exist', () => {
+        fs.accessSync.mockImplementation(() => {
+          throw new Error();
+        });
+        const service = new ProjectListService();
+        expect(service.renameProjectEntry('d01d2925-f6ff-4f8e-988f-fca2ee193427', 'update')).toBe(false);
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+        expect(fs.readFileSync).not.toHaveBeenCalled();
+      });
+
+      it('should not try to save if the project ID is invalid', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListString);
+
+        const service = new ProjectListService();
+        // Undefined as in 'not properly specified'
+        expect(service.renameProjectEntry(null, 'update')).toBe(false);
+        expect(service.renameProjectEntry(undefined, 'update')).toBe(false);
+
+        // Also undefined as in 'can't find the ID'
+        expect(service.renameProjectEntry('1-2-3-4', 'update')).toBe(false);
+
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+      });
+
+      it('should update an existing project entry with the new display name', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListString);
+        const service = new ProjectListService();
+        service.renameProjectEntry('d01d2925-f6ff-4f8e-988f-fca2ee193427', 'updated name');
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+          '.statwrap-projects.json',
+          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":true,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1","name":"updated name"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2020-04-21T21:21:27.041Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2"}]',
+        );
+      });
+
+      it('should update an existing project entry that does not have the name attribute', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListString);
+        const service = new ProjectListService();
+        service.renameProjectEntry('6ff79e02-4f24-4948-ac77-f3f1b67064e5', 'updated name');
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+          '.statwrap-projects.json',
+          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":true,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1","name":"Project 1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2020-04-21T21:21:27.041Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2","name":"updated name"}]',
+        );
+      });
+
+      it('should throw an error and fail to save if the file is invalid', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(invalidProjectListString);
+        expect(() =>
+          new ProjectListService().renameProjectEntry('d01d2925-f6ff-4f8e-988f-fca2ee193427'),
         ).toThrow(SyntaxError);
         expect(fs.writeFileSync).not.toHaveBeenCalled();
       });
@@ -310,7 +369,7 @@ describe('services', () => {
         // Flip from 'true' to 'false'
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           '.statwrap-projects.json',
-          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":true,"lastAccessed":"2022-08-10T12:13:14.015Z","path":"~/Development/projects/test1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2020-04-21T21:21:27.041Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2"}]',
+          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":true,"lastAccessed":"2022-08-10T12:13:14.015Z","path":"~/Development/projects/test1","name":"Project 1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2020-04-21T21:21:27.041Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2"}]',
         );
       });
 
@@ -324,7 +383,7 @@ describe('services', () => {
         // Initialize as 'true'
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           '.statwrap-projects.json',
-          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":true,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2022-08-10T12:13:14.015Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2"}]',
+          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":true,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1","name":"Project 1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2022-08-10T12:13:14.015Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2"}]',
         );
       });
 

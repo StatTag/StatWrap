@@ -28,6 +28,9 @@ module.exports = {
   REMOVE_PROJECT_LIST_ENTRY_REQUEST: 'statwrap-remove-project-list-entry-request',
   REMOVE_PROJECT_LIST_ENTRY_RESPONSE: 'statwrap-remove-project-list-entry-response',
 
+  RENAME_PROJECT_LIST_ENTRY_REQUEST: 'statwrap-rename-project-list-entry-request',
+  RENAME_PROJECT_LIST_ENTRY_RESPONSE: 'statwrap-rename-project-list-entry-response',
+
   LOAD_USER_INFO_REQUEST: 'statwrap-load-user-info-request',
   LOAD_USER_INFO_RESPONSE: 'statwrap-load-user-info-response',
   // The user profile is a subset of the overall user info (settings).  This message pair
