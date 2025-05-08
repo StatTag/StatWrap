@@ -1,5 +1,3 @@
-/* eslint-disable react/prop-types */
-/* eslint-disable valid-jsdoc */
 import React from 'react';
 import styles from './CodeNode.css';
 import Constants from '../../../../../constants/constants';

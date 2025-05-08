@@ -1,4 +1,3 @@
-/* eslint-disable no-underscore-dangle */
 // Note: uuid mocking fixed/broke/fixed?  May need to remove this line
 // if it breaks again.
 import { v4 as uuid } from 'uuid';

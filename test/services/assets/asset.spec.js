@@ -1,4 +1,3 @@
-/* eslint-disable no-underscore-dangle */
 import fs from 'fs';
 import path from 'path';
 import AssetService from '../../../app/services/assets/asset';
@@ -54,7 +53,6 @@ describe('services', () => {
           },
         ];
         const service = new AssetService(null, contentTypes);
-        // eslint-disable-next-line dot-notation
         expect(service.assetContentTypesByCategory['code'].length).toBe(2);
       });
     });

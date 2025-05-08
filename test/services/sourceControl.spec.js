@@ -1,4 +1,3 @@
-/* eslint-disable no-underscore-dangle */
 import fs from 'fs';
 import git from 'isomorphic-git';
 import SourceControlService from '../../app/services/sourceControl';
@@ -165,7 +164,6 @@ describe('services', () => {
           ];
         });
         const service = new SourceControlService();
-        // eslint-disable-next-line prettier/prettier
         return expect(service._getHistory('/Root/Path', 'File.txt')).resolves.toStrictEqual([
           {
             message: 'Test 2',

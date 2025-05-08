@@ -302,7 +302,6 @@ describe('services', () => {
             // Date.now is fixed so we are just offsetting that fixed value
             // to have something different.  Our next use of Date.now when
             // we add a new entry will then be the most recent time.
-            // eslint-disable-next-line prettier/prettier
             added: new Date(Date.now() - (10 * index)).toISOString(),
           });
         }
@@ -333,7 +332,6 @@ describe('services', () => {
             // Date.now is fixed so we are just offsetting that fixed value
             // to have something different.  Our next use of Date.now when
             // we add a new entry will then be the most recent time.
-            // eslint-disable-next-line prettier/prettier
             added: new Date(Date.now() - (10 * index)).toISOString(),
           });
         }

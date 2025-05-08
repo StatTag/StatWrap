@@ -1,4 +1,3 @@
-/* eslint-disable class-methods-use-this */
 import Constants from '../constants/constants';
 
 const fs = require('fs');
@@ -222,7 +221,6 @@ export default class ProjectListService {
         name: 'XuS_775 - Shared drive',
         favorite: false,
         lastAccessed: '2020-04-21T21:21:27.041Z',
-        // eslint-disable-next-line prettier/prettier
         path: 'smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/NUCATS/NUCATS_Shared/BERDShared/StatWrap/Test folders/XuS_775',
       },
       {

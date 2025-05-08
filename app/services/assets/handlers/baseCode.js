@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-cycle
 import AssetUtil from '../../../utils/asset';
 
 const fs = require('fs');
@@ -85,7 +84,6 @@ export default class BaseCodeHandler {
     // about the contained files and sub-folders
     if (asset.type === 'directory' && asset.children) {
       const self = this;
-      // eslint-disable-next-line no-return-assign
       asset.children.forEach((child, index) => (asset.children[index] = self.scan(child)));
     } else {
       if (!this.includeFile(asset.uri)) {

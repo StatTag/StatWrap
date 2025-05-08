@@ -1,5 +1,3 @@
-/* eslint-disable no-continue */
-/* eslint-disable no-underscore-dangle */
 import AssetUtil from './asset';
 import PythonHandler from '../services/assets/handlers/python';
 import RHandler from '../services/assets/handlers/r';

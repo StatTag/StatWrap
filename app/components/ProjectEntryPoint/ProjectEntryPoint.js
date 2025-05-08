@@ -45,7 +45,6 @@ const projectEntryPoint = (props) => {
 
   if (entryPointsList && entryPointsList.length > 0) {
     return (
-      // eslint-disable-next-line react/jsx-filename-extension
       <div className={styles.container}>
         <OverflowDiv>{rootUri}</OverflowDiv>
         <Accordion defaultExpanded>

@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import GeneralUtil from '../../app/utils/general';
 
 describe('utils', () => {

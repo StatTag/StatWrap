@@ -1,7 +1,3 @@
-/* eslint-disable no-continue */
-/* eslint-disable no-nested-ternary */
-/* eslint-disable no-underscore-dangle */
-/* eslint-disable func-names */
 import { v4 as uuid } from 'uuid';
 import { cloneDeep } from 'lodash';
 import Pluralize from 'pluralize';
@@ -44,7 +40,6 @@ const _codeTypeFunc = function (x) {
   return x.contentTypes.includes(Constants.AssetContentType.CODE) && WorkflowUtil.getAssetType(x);
 };
 
-/* eslint-disable no-underscore-dangle */
 export default class ProjectUtil {
   /**
    * Recursive worker function to get unique filter values for an asset and its descendants.

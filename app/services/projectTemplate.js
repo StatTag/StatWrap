@@ -1,5 +1,3 @@
-/* eslint-disable func-names */
-/* eslint-disable class-methods-use-this */
 import templateList from '../constants/project-templates.json';
 
 const fs = require('fs');

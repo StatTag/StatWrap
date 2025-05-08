@@ -1,4 +1,3 @@
-/* eslint-disable no-underscore-dangle */
 const DefaultDisplayName = '(empty)';
 const path = require('path');
 const fs = require('fs');
@@ -140,7 +139,6 @@ export default class GeneralUtil {
       const key = it[field];
       if (Array.isArray(key)) {
         const result = { ...acc };
-        // eslint-disable-next-line no-restricted-syntax
         for (const k of key) {
           const value = acc[k] ? [...acc[k], it] : [it];
           result[k] = value;

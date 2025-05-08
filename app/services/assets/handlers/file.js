@@ -1,6 +1,5 @@
 // The cycles established are just to make accessible constant values, so we are not concerned with it
 // in this case.
-// eslint-disable-next-line import/no-cycle
 import AssetUtil from '../../../utils/asset';
 import { StatWrapFiles } from '../../../constants/constants';
 
@@ -83,7 +82,6 @@ export default class FileHandler {
     // about the contained files and sub-folders
     if (asset.type === 'directory' && asset.children) {
       const self = this;
-      // eslint-disable-next-line no-return-assign
       asset.children.forEach((child, index) => (asset.children[index] = self.scan(child)));
     }
 

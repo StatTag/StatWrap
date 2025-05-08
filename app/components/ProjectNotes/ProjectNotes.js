@@ -76,7 +76,6 @@ const ClearButton = styled.button`
   justify-content: center;
 `;
 
-// eslint-disable-next-line react/prop-types
 function FilterComponent({ filterText, onFilter, onClear }) {
   return (
     <>

@@ -57,7 +57,6 @@ const ClearButton = styled.button`
   justify-content: center;
 `;
 
-// eslint-disable-next-line react/prop-types
 function FilterComponent({ filterText, onFilter, onClear }) {
   return (
     <>
@@ -133,7 +132,6 @@ function projectLog(props) {
 
   let contents = <div className={styles.empty}>There are no actions or notifications to show</div>;
   if (feed) {
-    // eslint-disable-next-line prettier/prettier
     const dataSource = updates && updates.log && filterWhatsNew ? updates.log : feed;
     const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 

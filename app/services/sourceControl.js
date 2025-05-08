@@ -1,6 +1,3 @@
-/* eslint-disable no-underscore-dangle */
-/* eslint-disable no-restricted-syntax */
-/* eslint-disable no-await-in-loop */
 import git from 'isomorphic-git';
 import fs from 'fs';
 import path from 'path';
@@ -37,7 +34,6 @@ export default class SourceControlService {
       return null;
     }
 
-    // eslint-disable-next-line prettier/prettier
     return new Date((committer.timestamp - (committer.timezoneOffset * 60)) * 1000);
   }
 

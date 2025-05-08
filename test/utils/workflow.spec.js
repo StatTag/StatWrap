@@ -1,4 +1,3 @@
-/* eslint-disable no-underscore-dangle */
 import WorkflowUtil from '../../app/utils/workflow';
 import Constants from '../../app/constants/constants';
 

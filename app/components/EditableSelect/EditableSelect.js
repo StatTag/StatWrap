@@ -1,6 +1,3 @@
-/* eslint-disable jsx-a11y/no-static-element-interactions */
-/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
-/* eslint-disable jsx-a11y/click-events-have-key-events */
 import * as React from 'react';
 import { IconButton, Popover } from '@mui/material';
 import { FaChevronDown, FaEdit, FaTrash } from 'react-icons/fa';

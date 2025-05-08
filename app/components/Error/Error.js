@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React from 'react';
 import ErrorIcon from '@mui/icons-material/Error';
 import styles from './Error.css';

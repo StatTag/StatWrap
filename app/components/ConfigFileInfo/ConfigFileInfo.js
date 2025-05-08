@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React from 'react';
 import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
 import styles from './ConfigFileInfo.css';

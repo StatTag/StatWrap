@@ -1,4 +1,3 @@
-/* eslint-disable lines-between-class-members */
 import chokidar from 'chokidar';
 import Messages from '../constants/messages';
 

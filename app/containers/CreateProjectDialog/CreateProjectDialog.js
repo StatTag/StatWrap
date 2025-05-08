@@ -1,5 +1,3 @@
-/* eslint-disable object-shorthand */
-/* eslint-disable react/jsx-props-no-spreading */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Draggable from 'react-draggable';
@@ -46,8 +44,8 @@ class CreateProjectDialog extends Component {
         type: null,
         name: '',
         directory: '',
-        sourceDirectory: '',    
-        targetBaseDirectory: '', 
+        sourceDirectory: '',
+        targetBaseDirectory: '',
       },
       canProgress: false,
       errorMessage: null,
@@ -105,7 +103,7 @@ class CreateProjectDialog extends Component {
     // Progression for Clone Directory
     {
       step: 'CloneProjectDetails',
-      next: 'Create', 
+      next: 'Create',
       prev: 'SelectProjectType',
     },
   ];
@@ -116,7 +114,7 @@ class CreateProjectDialog extends Component {
       this.state.project.targetBaseDirectory,
       this.state.project.name
     );
-  
+
     this.setState((prevState) => ({
       project: {
         ...prevState.project,
@@ -126,14 +124,14 @@ class CreateProjectDialog extends Component {
       errorMessage: errorMessage
     }));
   }
-  
+
   handleTargetBaseDirectoryChanged(dir) {
     const { isValid, errorMessage } = this.validateCloneDirectories(
       this.state.project.sourceDirectory,
       dir,
       this.state.project.name
     );
-  
+
     this.setState((prevState) => ({
       project: {
         ...prevState.project,
@@ -143,29 +141,29 @@ class CreateProjectDialog extends Component {
       errorMessage: errorMessage
     }));
   }
-  
+
   validateCloneDirectories(sourceDir, targetBaseDir, name) {
-    const hasRequiredFields = sourceDir && sourceDir !== '' && 
-           targetBaseDir && targetBaseDir !== '' && 
+    const hasRequiredFields = sourceDir && sourceDir !== '' &&
+           targetBaseDir && targetBaseDir !== '' &&
            name && name !== '';
-    
+
     if (!hasRequiredFields) return { isValid: false, errorMessage: null };
-    
+
     // Normalize paths to handle different path separators
     const normalizedSource = sourceDir.replace(/\\/g, '/');
     const normalizedTarget = targetBaseDir.replace(/\\/g, '/');
-    
+
     // Create the full target path by joining targetBaseDir and name
     const fullTargetPath = `${normalizedTarget}/${name}`.replace(/\/\//g, '/');
-    
+
     // Check if user is trying to clone a directory onto itself
     if (sourceDir === targetBaseDir) {
-      return { 
-        isValid: false, 
+      return {
+        isValid: false,
         errorMessage: 'Cannot clone from and to the same directory. Please choose a different target directory.'
       };
     }
-    
+
     // Check if the full target path matches the source directory
     if (normalizedSource === fullTargetPath) {
       return {
@@ -173,7 +171,7 @@ class CreateProjectDialog extends Component {
         errorMessage: 'Cannot clone a directory to the same name in a parent directory. This would overwrite the source. Please choose a different project name or target directory.'
       };
     }
-    
+
     // Check if target is a subdirectory of source
     if (normalizedTarget.startsWith(normalizedSource + '/')) {
       return {
@@ -181,7 +179,7 @@ class CreateProjectDialog extends Component {
         errorMessage: 'Cannot clone a directory into its own subdirectory. Please choose a different target directory.'
       };
     }
-    
+
     return { isValid: true, errorMessage: null };
   }
 
@@ -191,10 +189,10 @@ class CreateProjectDialog extends Component {
         ...prevState.project,
         type: type,
       };
-      
+
       let newStep;
       let canProgress = false;
-      
+
       switch (type) {
         case Constants.ProjectType.NEW_PROJECT_TYPE:
           newStep = 'SelectNewProjectTemplate';
@@ -204,8 +202,8 @@ class CreateProjectDialog extends Component {
           break;
         case Constants.ProjectType.CLONE_PROJECT_TYPE:
           newStep = 'CloneProjectDetails';
-          if (prevState.project.sourceDirectory && 
-              prevState.project.targetBaseDirectory && 
+          if (prevState.project.sourceDirectory &&
+              prevState.project.targetBaseDirectory &&
               prevState.project.name) {
             canProgress = true;
           }
@@ -213,8 +211,8 @@ class CreateProjectDialog extends Component {
         default:
           newStep = 'SelectProjectType';
       }
-      
-      return { 
+
+      return {
         project: newProject,
         step: newStep,
         canProgress: canProgress
@@ -264,14 +262,14 @@ class CreateProjectDialog extends Component {
 
   handleCreateProject() {
     const { project, selectedTemplate } = this.state;
-    
+
     // For clone projects, we need to set the directory to the final path
     if (project.type === Constants.ProjectType.CLONE_PROJECT_TYPE) {
       const cloneProject = {
         ...project,
         directory: `${project.targetBaseDirectory}/${project.name}`,
         template: selectedTemplate,
-        isClone: true, 
+        isClone: true,
       };
       ipcRenderer.send(Messages.CREATE_PROJECT_REQUEST, cloneProject);
     } else {
@@ -325,7 +323,7 @@ class CreateProjectDialog extends Component {
           name
         );
       }
-      
+
       return {
         project: {
           ...prevState.project,
@@ -343,7 +341,7 @@ class CreateProjectDialog extends Component {
     let displayComponent = null;
     let dialogTitle = null;
     let progressButton = null;
-   
+
 if (hasNextStep) {
   progressButton =
     stepDetails.next === 'Create' ? (
@@ -408,21 +406,21 @@ if (hasNextStep) {
       // In the CloneDirectory component render section for CloneProjectDetails:
       case 'CloneProjectDetails': {
         dialogTitle = 'Clone Project from Existing Directory';
-        
+
         const validation = this.validateCloneDirectories(
           this.state.project.sourceDirectory,
           this.state.project.targetBaseDirectory,
           this.state.project.name
         );
-        
-        if (this.state.canProgress !== validation.isValid || 
+
+        if (this.state.canProgress !== validation.isValid ||
             this.state.errorMessage !== validation.errorMessage) {
-          this.setState({ 
+          this.setState({
             canProgress: validation.isValid,
             errorMessage: validation.errorMessage
           });
         }
-        
+
         displayComponent = (
           <CloneDirectory
             sourceDirectory={this.state.project.sourceDirectory}

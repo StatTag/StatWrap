@@ -1,7 +1,3 @@
-/* eslint-disable no-underscore-dangle */
-/* eslint-disable prettier/prettier */
-/* eslint-disable no-param-reassign */
-/* eslint-disable class-methods-use-this */
 import { v4 as uuid } from 'uuid';
 import lockfile from 'proper-lockfile';
 import { cloneDeep } from 'lodash';

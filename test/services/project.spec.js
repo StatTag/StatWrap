@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import fs from 'fs';
 import os from 'os';
 import process from 'process';
@@ -86,7 +85,6 @@ describe('services', () => {
       });
       it('should throw an exception if the JSON is invalid', () => {
         fs.readFileSync.mockReturnValue(invalidProjectString);
-        // eslint-disable-next-line prettier/prettier
         expect(() => new ProjectService().loadProjectFile('/Test/Path')).toThrow(SyntaxError);
       });
       it('should return null if the file path does not exist', () => {

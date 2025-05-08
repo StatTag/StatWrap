@@ -1,6 +1,8 @@
 const importPlugin = require("eslint-plugin-import");
 const react = require('eslint-plugin-react');
 const jest = require('eslint-plugin-jest');
+const prettier = require('eslint-plugin-prettier');
+const jxsa11y = require('eslint-plugin-jsx-a11y');
 const babelParser = require('@babel/eslint-parser');
 
 
@@ -8,7 +10,7 @@ module.exports = {
   languageOptions: {
     parser: babelParser,
   },
-  plugins: { import: importPlugin, react, jest },
+  plugins: { import: importPlugin, react, jest, prettier, jxsa11y },
   rules: {
     'react/destructuring-assignment': 0,
     'class-methods-use-this': 0,
@@ -80,8 +82,9 @@ module.exports = {
     'app/renderer.prod.js.map',
     'app/style.css',
     'app/style.css.map',
+    'app/dist/*',
     'dist',
-    'dll',
+    'dll/*.js',
     'main.js',
     'main.js.map',
 
@@ -91,6 +94,8 @@ module.exports = {
 
     // Package.json
     'package.json',
-    '.travis.yml'
+    '.travis.yml',
+
+    'configs/*.cjs'
   ]
 };
