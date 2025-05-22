@@ -7,6 +7,29 @@ import Constants from '../constants/constants';
 import JavaHandler from '../services/assets/handlers/java';
 
 export default class WorkflowUtil {
+
+  static filterArchivedAssets(asset) {
+    if (!asset) {
+      return null;
+    }
+
+    if (AssetUtil.isArchived(asset)) {
+      return null;
+    }
+
+    if (!asset.children || asset.children.length === 0) {
+      return asset;
+    }
+
+    const filteredAsset = { ...asset };
+
+    filteredAsset.children = asset.children
+      .map(child => WorkflowUtil.filterArchivedAssets(child))
+      .filter(child => child !== null);
+
+    return filteredAsset;
+  }
+
   static getAssetType(asset) {
     let assetType = 'generic';
     if (!asset) {
@@ -94,12 +117,13 @@ export default class WorkflowUtil {
    * @returns An object containing nodes and links attributes
    */
   static getAllDependenciesAsGraph(asset, filters) {
+    const filteredAsset = WorkflowUtil.filterArchivedAssets(asset);
     const graph = {
       nodes: [],
       links: [],
     };
 
-    if (!asset || !asset.uri) {
+    if (!filteredAsset || !filteredAsset.uri) {
       return graph;
     }
 
@@ -116,7 +140,7 @@ export default class WorkflowUtil {
       ? filters.findIndex((x) => x.category === Constants.FilterCategory.DEPENDENCIES)
       : -1;
     const dependencyFilter = dependencyFilterIndex === -1 ? null : filters[dependencyFilterIndex];
-    const allDeps = WorkflowUtil.getAllDependencies(asset, asset.uri);
+    const allDeps = WorkflowUtil.getAllDependencies(filteredAsset, filteredAsset.uri);
     for (let index = 0; index < allDeps.length; index++) {
       const entry = allDeps[index];
       if (entry.asset && entry.dependencies && entry.dependencies.length > 0) {
@@ -191,26 +215,28 @@ export default class WorkflowUtil {
    * @returns An react-d3-tree tree object containing nodes and links attributes
    */
   static getAllDependenciesAsTree(asset) {
-    if (!asset) {
+    const filteredAsset = WorkflowUtil.filterArchivedAssets(asset);
+
+    if (!filteredAsset) {
       return null;
     }
 
     const tree = {
-      name: AssetUtil.getAssetNameFromUri(asset),
+      name: AssetUtil.getAssetNameFromUri(filteredAsset),
       children: null,
       attributes: {
-        assetType: WorkflowUtil.getAssetType(asset),
+        assetType: WorkflowUtil.getAssetType(filteredAsset),
       },
     };
 
-    if (asset.children) {
+    if (filteredAsset.children) {
       tree.children = [];
-      for (let index = 0; index < asset.children.length; index++) {
-        tree.children.push(WorkflowUtil.getAllDependenciesAsTree(asset.children[index]));
+      for (let index = 0; index < filteredAsset.children.length; index++) {
+        tree.children.push(WorkflowUtil.getAllDependenciesAsTree(filteredAsset.children[index]));
       }
     }
 
-    const allDeps = WorkflowUtil.getDependencies(asset);
+    const allDeps = WorkflowUtil.getDependencies(filteredAsset);
     if (allDeps && allDeps.length > 0 && !tree.children) {
       tree.children = [];
     }

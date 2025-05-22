@@ -315,8 +315,13 @@ export default class ProjectUtil {
       return filters;
     }
 
+    const filteredAssets = WorkflowUtil.filterArchivedAssets(assets);
+    if (!filteredAssets || Object.keys(filteredAssets).length === 0) {
+      return filters;
+    }
+
     const fileTypeFilter = { category: Constants.FilterCategory.FILE_TYPE, values: [] };
-    ProjectUtil._processAssetAndDescendantsForFilter(assets, fileTypeFilter, _codeTypeFunc);
+    ProjectUtil._processAssetAndDescendantsForFilter(filteredAssets, fileTypeFilter, _codeTypeFunc);
     if (fileTypeFilter.values.length > 0) {
       filters.push(fileTypeFilter);
     }
@@ -324,7 +329,7 @@ export default class ProjectUtil {
     // We get back a flat list of dependencies, so no recursive processing is needed for these
     const ioFilter = { category: Constants.FilterCategory.INPUTS_OUTPUTS, values: [] };
     const dependencyFilter = { category: Constants.FilterCategory.DEPENDENCIES, values: [] };
-    const assetDepedencies = WorkflowUtil.getAllDependencies(assets);
+    const assetDepedencies = WorkflowUtil.getAllDependencies(filteredAssets);
     if (!assetDepedencies) {
       return filters;
     }
