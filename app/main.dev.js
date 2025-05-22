@@ -266,8 +266,15 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
 
       if (metadata == null) {
         fullProject.loadError = true;
+        fullProject.errorMessage = 'Failed to load the project details';
       } else {
-        fullProject.name = metadata.name;
+        // Do not set the name from the project, unless our project list entry is empty.  This is because
+        // the user can rename projects in their list however they want.  In the event it ends up as a
+        // blank/empty/null string, we want to be sure there is something on the list the user can see.
+        if (fullProject.name === null || fullProject.name === undefined || fullProject.name.trim() === '') {
+          fullProject.name = metadata.name;
+        }
+
         fullProject.assets = AssetUtil.recursiveRelativeToAbsolutePath(
           project.path,
           metadata.assets,
