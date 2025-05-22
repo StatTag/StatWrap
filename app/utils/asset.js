@@ -26,6 +26,11 @@ const FILE_IGNORE_LIST = [
 
 export default class AssetUtil {
 
+  /**
+   * Determine if an asset has the 'archived' attribute set.
+   * @param {object} asset The asset to check if it is archived
+   * @returns
+   */
   static isArchived(asset) {
     if (!asset) {
       return false;

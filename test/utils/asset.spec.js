@@ -1500,4 +1500,28 @@ describe('utils', () => {
       expect(AssetUtil.includeAsset('Manuscript-v1.docx')).toBeTruthy();
     });
   });
+
+  describe('isArchived', () => {
+    it('should return false when the asset is invalid', () => {
+      expect(AssetUtil.isArchived(null)).toBeFalsy();
+      expect(AssetUtil.isArchived(undefined)).toBeFalsy();
+    });
+
+    it('should return false when the asset has no attributes', () => {
+      expect(AssetUtil.isArchived({})).toBeFalsy();
+      expect(AssetUtil.isArchived({attributes: null})).toBeFalsy();
+      expect(AssetUtil.isArchived({attributes: undefined})).toBeFalsy();
+    });
+
+    it('should return false when the asset is not set as archived', () => {
+      expect(AssetUtil.isArchived({})).toBeFalsy();
+      expect(AssetUtil.isArchived({attributes: null})).toBeFalsy();
+      expect(AssetUtil.isArchived({attributes: {archived: null}})).toBeFalsy();
+      expect(AssetUtil.isArchived({attributes: {archived: false}})).toBeFalsy();
+    });
+
+    it('should return false when the asset is set as archived', () => {
+      expect(AssetUtil.isArchived({attributes: {archived: true}})).toBeTrue();
+    });
+  });
 });

@@ -8,6 +8,13 @@ import JavaHandler from '../services/assets/handlers/java';
 
 export default class WorkflowUtil {
 
+  /**
+   * Recursively filter out all assets that either are flagged as archived,
+   * or have an ancestor that's archived.
+   *
+   * @param {object} asset Root asset with 0..* descendants
+   * @returns Filtered asset object
+   */
   static filterArchivedAssets(asset) {
     if (!asset) {
       return null;
@@ -22,7 +29,6 @@ export default class WorkflowUtil {
     }
 
     const filteredAsset = { ...asset };
-
     filteredAsset.children = asset.children
       .map(child => WorkflowUtil.filterArchivedAssets(child))
       .filter(child => child !== null);

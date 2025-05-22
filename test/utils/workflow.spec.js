@@ -838,5 +838,92 @@ describe('utils', () => {
         ).toEqual(`Z:\\Test\\Directo...cation\\file.txt`);
       });
     });
+
+    describe('filterArchivedAssets', () => {
+      it('should handle empty/invalid input', () => {
+        expect(WorkflowUtil.filterArchivedAssets(null)).toBeNull();
+        expect(WorkflowUtil.filterArchivedAssets(undefined)).toBeNull();
+      });
+
+      it('should return a single asset', () => {
+        expect(WorkflowUtil.filterArchivedAssets({ uri: '/test/1' })).toEqual({ uri: '/test/1' });
+      });
+
+      it('should return null for a single archived asset', () => {
+        expect(WorkflowUtil.filterArchivedAssets({
+          uri: '/test/1',
+          attributes: { archived: true }
+         })).toBeNull();
+      });
+
+      it('should filter out a single descendant that is archived but leave the rest', () => {
+        const asset = {
+          uri: '/test/1',
+          children: [
+            {
+              uri: '/test/1/2',
+              attributes: {},
+              children: [
+                {
+                  uri: '/test/1/2/3',
+                  attributes: {archived: true}
+                },
+                {
+                  uri: '/test/1/2/4',
+                  attributes: {archived: false}
+                }
+              ]
+            },
+          ],
+        };
+
+        expect(WorkflowUtil.filterArchivedAssets(asset)).toEqual(
+          {
+            uri: '/test/1',
+            children: [
+              {
+                uri: '/test/1/2',
+                attributes: {},
+                children: [
+                  {
+                    uri: '/test/1/2/4',
+                    attributes: {archived: false}
+                  }
+                ]
+              },
+            ],
+          }
+        );
+      });
+
+      it('should filter out all descendants by removing an archived folder', () => {
+        const asset = {
+          uri: '/test/1',
+          children: [
+            {
+              uri: '/test/1/2',
+              attributes: {archived: true},
+              children: [
+                {
+                  uri: '/test/1/2/3',
+                  attributes: {archived: false}
+                },
+                {
+                  uri: '/test/1/2/4',
+                  attributes: {archived: false}
+                }
+              ]
+            },
+          ],
+        };
+
+        expect(WorkflowUtil.filterArchivedAssets(asset)).toEqual(
+          {
+            uri: '/test/1',
+            children: []
+          }
+        );
+      });
+    });
   });
 });
