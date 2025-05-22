@@ -264,10 +264,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
         path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, Constants.StatWrapFiles.CLONED_PROJECT_MARKER)
       );
 
-      if(isClonedProject) {
-        fullProject.loadError = false;
-      }
-      else if (metadata == null) {
+      if (metadata == null) {
         fullProject.loadError = true;
       } else {
         fullProject.name = metadata.name;
@@ -283,6 +280,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
           project.path,
           metadata.assetGroups,
         );
+
         fullProject.externalAssets = metadata.externalAssets;
         fullProject.loadError = false;
       }

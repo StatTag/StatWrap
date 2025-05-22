@@ -94,6 +94,7 @@ contextBridge.exposeInMainWorld('workerElectronBridge', {
           project.path,
           projectConfig.assetGroups,
         );
+
         response.project.externalAssets = projectConfig.externalAssets;
 
         const saveResponse = ProjectUtil.saveProject(response.project, projectService);

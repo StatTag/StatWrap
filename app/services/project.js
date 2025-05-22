@@ -390,7 +390,7 @@ export default class ProjectService {
     // Because of the way our downstream code works, it expects the paths to be absolute.  Because we
     // have just loaded from the config file, we need to do that conversion before proceeding.
     project.assets = AssetUtil.recursiveRelativeToAbsolutePath(projectPath, project.assets);
-    project.assetGroups = ProjectUtil.absoluteToRelativePathForAssetGroups(
+    project.assetGroups = ProjectUtil.relativeToAbsolutePathForAssetGroups(
       project.path,
       project.assetGroups,
     );
@@ -526,7 +526,7 @@ export default class ProjectService {
           const oldAssetGroup = cloneDeep(
             project.assetGroups.find((x) => x.id === details.id),
           );
-          ProjectUtil.upsertAssetGroup(project, details);
+          ProjectUtil.upsertAssetGroup(project, details.new);
         } else {
           return null;
         }
