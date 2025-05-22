@@ -1,5 +1,21 @@
 # StatWrap Changelog
 
+## 0.0.16 - May 22, 2025
+
+### Change Summary
+
+Many thanks to numerous contributions from the community.
+
+- Enabled cloning projects (@debangi29)
+- Added support for Java (@ayushkoli772)
+- Fix tooltip visibility issue (@MinjanaAP)
+- Fixed button to add project to favorites list (@debangi29)
+- Allow user to update project display name (@lrasmus)
+- Miscellaneous fixes and improvements (@lrasmus)
+- Dependency updates (@lrasmus)
+
+**Full Changelog**: https://github.com/StatTag/StatWrap/compare/0.0.15...0.0.16
+
 ## 0.0.15 - March 5, 2025
 
 ### Change Summary
