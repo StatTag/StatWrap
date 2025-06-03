@@ -112,6 +112,23 @@ export default class ProjectUtil {
       filters.push(fileTypeFilter);
     }
 
+    // Add attribute filter category last
+    const attributeFilter = { category: Constants.FilterCategory.ATTRIBUTE, values: [] };
+    const attributeFunc = (x) => {
+      if (!x.attributes) return null;
+      const attrs = [];
+      if (x.attributes.archived) attrs.push('archived');
+      if (x.attributes.entrypoint) attrs.push('entrypoint');
+      if (x.attributes.sensitive) attrs.push('sensitive');
+      return attrs.length > 0 ? attrs : null;
+    };
+    ProjectUtil._processAssetAndDescendantsForFilter(assets, attributeFilter, attributeFunc);
+    if (attributeFilter.values.length > 0) {
+      // Sort attribute values to maintain consistent order
+      attributeFilter.values.sort((a, b) => a.key.localeCompare(b.key));
+      filters.push(attributeFilter);
+    }
+
     return filters;
   }
 
@@ -149,13 +166,18 @@ export default class ProjectUtil {
         // retain child items
         const catFilter = f.values.some((v) => !v.value && v.key === asset.type) ? 1 : 0;
         filterOut = Math.max(catFilter, filterOut);
-      }
-      // Directories may get assigned a content type or file type, just because
-      // of how asset processing assigns those, but for filtering purposes directories
-      // should not consider those a relevant filter.  We are going to specify the
-      // asset types where we want those to apply, considering we will be adding more
-      // asset types in the future.
-      if (asset.type === Constants.AssetType.FILE) {
+      } else if (f.category === Constants.FilterCategory.ATTRIBUTE) {
+        // Handle attribute filtering
+        if (asset.attributes) {
+          const shouldFilter = f.values.some((v) => {
+            // If the filter is off (value is false) and the asset has that attribute set to true
+            return !v.value && asset.attributes[v.key] === true;
+          });
+          if (shouldFilter) {
+            filterOut = 2; // Filter out asset and its children if it has a filtered attribute
+          }
+        }
+      } else if (asset.type === Constants.AssetType.FILE) {
         if (f.category === Constants.FilterCategory.CONTENT_TYPE) {
           const catFilter = f.values.some((v) => !v.value && asset.contentTypes.includes(v.key))
             ? 2
@@ -386,22 +408,22 @@ export default class ProjectUtil {
     }
   }
 
-    /**
+  /**
    * Utility function to avoid duplicating parameter checks in our create/update/remove external asset methods
    * @param {object} project The project to validate
    * @param {object} asset The asset to validate
    */
-    static _validateProjectAndAsset(project, asset) {
-      if (!project) {
-        throw new Error('The project object cannot be null or undefined');
-      } else if (!asset) {
-        throw new Error('The asset object cannot be null or undefined');
-      } else if (!asset.uri || asset.uri === undefined || asset.uri === '') {
-        throw new Error(
-          'The asset URI is required, and must be at least one non-whitespace character in length.',
-        );
-      }
+  static _validateProjectAndAsset(project, asset) {
+    if (!project) {
+      throw new Error('The project object cannot be null or undefined');
+    } else if (!asset) {
+      throw new Error('The asset object cannot be null or undefined');
+    } else if (!asset.uri || asset.uri === undefined || asset.uri === '') {
+      throw new Error(
+        'The asset URI is required, and must be at least one non-whitespace character in length.',
+      );
     }
+  }
 
   /**
    * Utility function to handle adding or updating an asset group within a project
@@ -522,7 +544,9 @@ export default class ProjectUtil {
     }
 
     // If we don't find the asset group, we're going to let it slide silently for now.
-    const existingAssetIndex = project.externalAssets.children.findIndex((p) => p.uri === asset.uri);
+    const existingAssetIndex = project.externalAssets.children.findIndex(
+      (p) => p.uri === asset.uri,
+    );
     if (existingAssetIndex > -1) {
       project.externalAssets.children.splice(existingAssetIndex, 1);
     }
