@@ -7,7 +7,6 @@ import Constants from '../constants/constants';
 import JavaHandler from '../services/assets/handlers/java';
 
 export default class WorkflowUtil {
-
   /**
    * Recursively filter out all assets that either are flagged as archived,
    * or have an ancestor that's archived.
@@ -30,8 +29,8 @@ export default class WorkflowUtil {
 
     const filteredAsset = { ...asset };
     filteredAsset.children = asset.children
-      .map(child => WorkflowUtil.filterArchivedAssets(child))
-      .filter(child => child !== null);
+      .map((child) => WorkflowUtil.filterArchivedAssets(child))
+      .filter((child) => child !== null);
 
     return filteredAsset;
   }
@@ -65,7 +64,7 @@ export default class WorkflowUtil {
   static getDependencyName(name) {
     // If the name isn't set return a placeholder string
     if (name === null || name === undefined || name.trim() === '') {
-      return "(unknown)";
+      return '(unknown)';
     }
 
     return name;
@@ -146,6 +145,11 @@ export default class WorkflowUtil {
       ? filters.findIndex((x) => x.category === Constants.FilterCategory.DEPENDENCIES)
       : -1;
     const dependencyFilter = dependencyFilterIndex === -1 ? null : filters[dependencyFilterIndex];
+    const attributeFilterIndex = applyFilter
+      ? filters.findIndex((x) => x.category === Constants.FilterCategory.ATTRIBUTE)
+      : -1;
+    const attributeFilter = attributeFilterIndex === -1 ? null : filters[attributeFilterIndex];
+
     const allDeps = WorkflowUtil.getAllDependencies(filteredAsset, filteredAsset.uri);
     for (let index = 0; index < allDeps.length; index++) {
       const entry = allDeps[index];
@@ -154,6 +158,20 @@ export default class WorkflowUtil {
         // asset out, skip further processing.
         if (typeFilter && typeFilter.values.some((x) => !x.value && x.key === entry.assetType)) {
           continue;
+        }
+
+        // Check attribute filters
+        if (attributeFilter) {
+          const asset = WorkflowUtil.findAssetByUri(filteredAsset, entry.asset);
+          if (asset && asset.attributes) {
+            const shouldFilter = attributeFilter.values.some((v) => {
+              // If the filter is off (value is false) and the asset has that attribute set to true
+              return !v.value && asset.attributes[v.key] === true;
+            });
+            if (shouldFilter) {
+              continue;
+            }
+          }
         }
 
         // Given how we traverse, we can assume assets will be unique
@@ -399,5 +417,34 @@ export default class WorkflowUtil {
       libraries.push(WorkflowUtil.getAllLibraryDependencies(asset.children[index]));
     }
     return libraries.flat();
+  }
+
+  /**
+   * Helper method to find an asset by its URI in the asset tree
+   * @param {object} asset The root asset to search in
+   * @param {string} uri The URI to find
+   * @returns {object|null} The found asset or null if not found
+   */
+  static findAssetByUri(asset, uri) {
+    if (!asset || !uri) {
+      return null;
+    }
+
+    if (asset.uri === uri) {
+      return asset;
+    }
+
+    if (!asset.children) {
+      return null;
+    }
+
+    for (const child of asset.children) {
+      const found = WorkflowUtil.findAssetByUri(child, uri);
+      if (found) {
+        return found;
+      }
+    }
+
+    return null;
   }
 }
