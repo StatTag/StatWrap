@@ -74,7 +74,7 @@ class ProjectPage extends Component {
     this.handleLoadProjectLogResponse = this.handleLoadProjectLogResponse.bind(this);
     this.handleRefreshProjectLog = this.handleRefreshProjectLog.bind(this);
     this.handleRefreshProjectChecklist = this.handleRefreshProjectChecklist.bind(this);
-    this.handleLoadProjectChecklistResponse =this.handleLoadProjectChecklistResponse.bind(this);
+    this.handleLoadProjectChecklistResponse = this.handleLoadProjectChecklistResponse.bind(this);
     this.handleScanAssetDynamicDetailsResponse =
       this.handleScanAssetDynamicDetailsResponse.bind(this);
     this.handleAssetSelected = this.handleAssetSelected.bind(this);
@@ -99,7 +99,10 @@ class ProjectPage extends Component {
     ipcRenderer.on(Messages.LOAD_PROJECT_LOG_RESPONSE, this.handleLoadProjectLogResponse);
     ipcRenderer.on(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
 
-    ipcRenderer.on(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, this.handleLoadProjectChecklistResponse);
+    ipcRenderer.on(
+      Messages.LOAD_PROJECT_CHECKLIST_RESPONSE,
+      this.handleLoadProjectChecklistResponse,
+    );
     ipcRenderer.on(Messages.WRITE_PROJECT_CHECKLIST_RESPONSE, this.handleRefreshProjectChecklist);
 
     ipcRenderer.on(
@@ -135,15 +138,24 @@ class ProjectPage extends Component {
       this.refreshProjectsHandler,
     );
     ipcRenderer.removeListener(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
-    ipcRenderer.removeListener(Messages.SCAN_PROJECT_RESULTS_RESPONSE, this.handleScanProjectResultsResponse);
+    ipcRenderer.removeListener(
+      Messages.SCAN_PROJECT_RESULTS_RESPONSE,
+      this.handleScanProjectResultsResponse,
+    );
     ipcRenderer.removeListener(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
     ipcRenderer.removeListener(
       Messages.LOAD_PROJECT_LOG_RESPONSE,
       this.handleLoadProjectLogResponse,
     );
     ipcRenderer.removeListener(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
-    ipcRenderer.removeListener(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, this.handleLoadProjectChecklistResponse);
-    ipcRenderer.removeListener(Messages.WRITE_PROJECT_CHECKLIST_RESPONSE, this.handleRefreshProjectChecklist);
+    ipcRenderer.removeListener(
+      Messages.LOAD_PROJECT_CHECKLIST_RESPONSE,
+      this.handleLoadProjectChecklistResponse,
+    );
+    ipcRenderer.removeListener(
+      Messages.WRITE_PROJECT_CHECKLIST_RESPONSE,
+      this.handleRefreshProjectChecklist,
+    );
     ipcRenderer.removeListener(
       Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE,
       this.handleScanAssetDynamicDetailsResponse,
@@ -189,7 +201,16 @@ class ProjectPage extends Component {
 
   // This handler writes the updated checklist to the checklist file, and also handles writing updates
   // to the log (if it succeeds).
-  handleChecklistUpdate(project, checklist, actionType, entityType, entityKey, title, description, details) {
+  handleChecklistUpdate(
+    project,
+    checklist,
+    actionType,
+    entityType,
+    entityKey,
+    title,
+    description,
+    details,
+  ) {
     const user = this.context;
     ipcRenderer.send(
       Messages.WRITE_PROJECT_CHECKLIST_REQUEST,
@@ -285,7 +306,7 @@ class ProjectPage extends Component {
     if (response === null || response === undefined || response.error) {
       this.setState({ projectScanStatus: 'error' });
     } else {
-      this.setState({ projectScanStatus: 'started'});
+      this.setState({ projectScanStatus: 'started' });
     }
   }
 
@@ -320,7 +341,7 @@ class ProjectPage extends Component {
   handleFavoriteClick = (id) => {
     this.setState((prevState) => {
       const updatedProjects = prevState.projects.map((project) =>
-        project.id === id ? { ...project, favorite: !project.favorite } : project
+        project.id === id ? { ...project, favorite: !project.favorite } : project,
       );
 
       const updatedSelectedProject =
@@ -375,10 +396,43 @@ class ProjectPage extends Component {
   }
 
   handleSelectProjectListItem(project) {
-    this.setState({ selectedProject: project });
-    ipcRenderer.send(Messages.SCAN_PROJECT_REQUEST, project);
-    ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, project);
-    ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, project);
+    // If the project is offline (has loadError), try to refresh its status
+    if (project.loadError) {
+      // First update the UI to show we're trying to reconnect
+      this.setState({ selectedProject: { ...project, isReconnecting: true } });
+
+      // Try to load the project file to check if it's now accessible
+      ipcRenderer.send(Messages.LOAD_PROJECT_LIST_REQUEST);
+
+      // Set up a one-time listener for the project list response
+      const checkProjectStatus = (sender, response) => {
+        if (response && response.projects) {
+          const updatedProject = response.projects.find((p) => p.id === project.id);
+          if (updatedProject) {
+            // Remove the temporary reconnecting state
+            const finalProject = { ...updatedProject, isReconnecting: undefined };
+            this.setState({ selectedProject: finalProject });
+
+            // If the project is now online, proceed with normal loading
+            if (!updatedProject.loadError) {
+              ipcRenderer.send(Messages.SCAN_PROJECT_REQUEST, finalProject);
+              ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, finalProject);
+              ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, finalProject);
+            }
+          }
+        }
+        // Remove the listener after we've handled the response
+        ipcRenderer.removeListener(Messages.LOAD_PROJECT_LIST_RESPONSE, checkProjectStatus);
+      };
+
+      ipcRenderer.once(Messages.LOAD_PROJECT_LIST_RESPONSE, checkProjectStatus);
+    } else {
+      // Normal flow for online projects
+      this.setState({ selectedProject: project });
+      ipcRenderer.send(Messages.SCAN_PROJECT_REQUEST, project);
+      ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, project);
+      ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, project);
+    }
   }
 
   handleProjectUpdate(project, actionType, entityType, entityKey, title, description, details) {
@@ -418,11 +472,7 @@ class ProjectPage extends Component {
       return { projects };
     });
 
-    ipcRenderer.send(
-      Messages.RENAME_PROJECT_LIST_ENTRY_REQUEST,
-      project.id,
-      name
-    );
+    ipcRenderer.send(Messages.RENAME_PROJECT_LIST_ENTRY_REQUEST, project.id, name);
   }
 
   handleUpdateProjectResponse(sender, response) {
