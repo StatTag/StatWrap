@@ -5,6 +5,7 @@ import SASHandler from '../services/assets/handlers/sas';
 import StataHandler from '../services/assets/handlers/stata';
 import Constants from '../constants/constants';
 import JavaHandler from '../services/assets/handlers/java';
+import path from 'path';
 
 export default class WorkflowUtil {
   /**
@@ -151,6 +152,20 @@ export default class WorkflowUtil {
     const attributeFilter = attributeFilterIndex === -1 ? null : filters[attributeFilterIndex];
 
     const allDeps = WorkflowUtil.getAllDependencies(filteredAsset, filteredAsset.uri);
+    // Create a map of relative URIs to assets for faster lookup
+    const assetMap = new Map();
+    const buildAssetMap = (asset) => {
+      if (!asset) return;
+      const relativeUri = filteredAsset.uri
+        ? asset.uri.replace(filteredAsset.uri, '').replace(/^\\+|\/+/, '')
+        : asset.uri;
+      assetMap.set(relativeUri, asset);
+      if (asset.children) {
+        asset.children.forEach(buildAssetMap);
+      }
+    };
+    buildAssetMap(filteredAsset);
+
     for (let index = 0; index < allDeps.length; index++) {
       const entry = allDeps[index];
       if (entry.asset && entry.dependencies && entry.dependencies.length > 0) {
@@ -160,9 +175,9 @@ export default class WorkflowUtil {
           continue;
         }
 
-        // Check attribute filters
+        // Check attribute filters using the map
         if (attributeFilter) {
-          const asset = WorkflowUtil.findAssetByUri(filteredAsset, entry.asset);
+          const asset = assetMap.get(entry.asset);
           if (asset && asset.attributes) {
             const shouldFilter = attributeFilter.values.some((v) => {
               // If the filter is off (value is false) and the asset has that attribute set to true

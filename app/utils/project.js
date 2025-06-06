@@ -115,7 +115,9 @@ export default class ProjectUtil {
     // Add attribute filter category last
     const attributeFilter = { category: Constants.FilterCategory.ATTRIBUTE, values: [] };
     const attributeFunc = (x) => {
-      if (!x.attributes) return null;
+      if (!x.attributes) {
+        return null;
+      }
       const attrs = [];
       if (x.attributes.archived) attrs.push('archived');
       if (x.attributes.entrypoint) attrs.push('entrypoint');
@@ -374,11 +376,17 @@ export default class ProjectUtil {
     // Add attribute filter category last
     const attributeFilter = { category: Constants.FilterCategory.ATTRIBUTE, values: [] };
     const attributeFunc = (x) => {
-      if (!x.attributes) return null;
+      if (!x.attributes) {
+        return null;
+      }
       const attrs = [];
       // Note: We don't include 'archived' here since it's already filtered by filterArchivedAssets
-      if (x.attributes.entrypoint) attrs.push('entrypoint');
-      if (x.attributes.sensitive) attrs.push('sensitive');
+      if (x.attributes.entrypoint) {
+        attrs.push('entrypoint');
+      }
+      if (x.attributes.sensitive) {
+        attrs.push('sensitive');
+      }
       return attrs.length > 0 ? attrs : null;
     };
     ProjectUtil._processAssetAndDescendantsForFilter(
