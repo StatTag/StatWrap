@@ -396,6 +396,12 @@ class ProjectPage extends Component {
   }
 
   handleSelectProjectListItem(project) {
+    // Handle case where user clicks off of all projects (project is null)
+    if (!project) {
+      this.setState({ selectedProject: null });
+      return;
+    }
+
     // If the project is offline (has loadError), try to refresh its status
     if (project.loadError) {
       // First update the UI to show we're trying to reconnect
