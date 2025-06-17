@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { ipcRenderer } from 'electron';
-import ResizablePanels from 'resizable-panels-react';
+// import ResizablePanels from 'resizable-panels-react';
 import Projects from '../../components/Projects/Projects';
 import Project from '../../components/Project/Project';
 import CreateProjectDialog from '../CreateProjectDialog/CreateProjectDialog';
@@ -74,7 +74,7 @@ class ProjectPage extends Component {
     this.handleLoadProjectLogResponse = this.handleLoadProjectLogResponse.bind(this);
     this.handleRefreshProjectLog = this.handleRefreshProjectLog.bind(this);
     this.handleRefreshProjectChecklist = this.handleRefreshProjectChecklist.bind(this);
-    this.handleLoadProjectChecklistResponse =this.handleLoadProjectChecklistResponse.bind(this);
+    this.handleLoadProjectChecklistResponse = this.handleLoadProjectChecklistResponse.bind(this);
     this.handleScanAssetDynamicDetailsResponse =
       this.handleScanAssetDynamicDetailsResponse.bind(this);
     this.handleAssetSelected = this.handleAssetSelected.bind(this);
@@ -99,7 +99,10 @@ class ProjectPage extends Component {
     ipcRenderer.on(Messages.LOAD_PROJECT_LOG_RESPONSE, this.handleLoadProjectLogResponse);
     ipcRenderer.on(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
 
-    ipcRenderer.on(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, this.handleLoadProjectChecklistResponse);
+    ipcRenderer.on(
+      Messages.LOAD_PROJECT_CHECKLIST_RESPONSE,
+      this.handleLoadProjectChecklistResponse,
+    );
     ipcRenderer.on(Messages.WRITE_PROJECT_CHECKLIST_RESPONSE, this.handleRefreshProjectChecklist);
 
     ipcRenderer.on(
@@ -135,15 +138,24 @@ class ProjectPage extends Component {
       this.refreshProjectsHandler,
     );
     ipcRenderer.removeListener(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
-    ipcRenderer.removeListener(Messages.SCAN_PROJECT_RESULTS_RESPONSE, this.handleScanProjectResultsResponse);
+    ipcRenderer.removeListener(
+      Messages.SCAN_PROJECT_RESULTS_RESPONSE,
+      this.handleScanProjectResultsResponse,
+    );
     ipcRenderer.removeListener(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
     ipcRenderer.removeListener(
       Messages.LOAD_PROJECT_LOG_RESPONSE,
       this.handleLoadProjectLogResponse,
     );
     ipcRenderer.removeListener(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
-    ipcRenderer.removeListener(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, this.handleLoadProjectChecklistResponse);
-    ipcRenderer.removeListener(Messages.WRITE_PROJECT_CHECKLIST_RESPONSE, this.handleRefreshProjectChecklist);
+    ipcRenderer.removeListener(
+      Messages.LOAD_PROJECT_CHECKLIST_RESPONSE,
+      this.handleLoadProjectChecklistResponse,
+    );
+    ipcRenderer.removeListener(
+      Messages.WRITE_PROJECT_CHECKLIST_RESPONSE,
+      this.handleRefreshProjectChecklist,
+    );
     ipcRenderer.removeListener(
       Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE,
       this.handleScanAssetDynamicDetailsResponse,
@@ -189,7 +201,16 @@ class ProjectPage extends Component {
 
   // This handler writes the updated checklist to the checklist file, and also handles writing updates
   // to the log (if it succeeds).
-  handleChecklistUpdate(project, checklist, actionType, entityType, entityKey, title, description, details) {
+  handleChecklistUpdate(
+    project,
+    checklist,
+    actionType,
+    entityType,
+    entityKey,
+    title,
+    description,
+    details,
+  ) {
     const user = this.context;
     ipcRenderer.send(
       Messages.WRITE_PROJECT_CHECKLIST_REQUEST,
@@ -285,7 +306,7 @@ class ProjectPage extends Component {
     if (response === null || response === undefined || response.error) {
       this.setState({ projectScanStatus: 'error' });
     } else {
-      this.setState({ projectScanStatus: 'started'});
+      this.setState({ projectScanStatus: 'started' });
     }
   }
 
@@ -320,7 +341,7 @@ class ProjectPage extends Component {
   handleFavoriteClick = (id) => {
     this.setState((prevState) => {
       const updatedProjects = prevState.projects.map((project) =>
-        project.id === id ? { ...project, favorite: !project.favorite } : project
+        project.id === id ? { ...project, favorite: !project.favorite } : project,
       );
 
       const updatedSelectedProject =
@@ -418,11 +439,7 @@ class ProjectPage extends Component {
       return { projects };
     });
 
-    ipcRenderer.send(
-      Messages.RENAME_PROJECT_LIST_ENTRY_REQUEST,
-      project.id,
-      name
-    );
+    ipcRenderer.send(Messages.RENAME_PROJECT_LIST_ENTRY_REQUEST, project.id, name);
   }
 
   handleUpdateProjectResponse(sender, response) {
@@ -443,42 +460,38 @@ class ProjectPage extends Component {
   render() {
     return (
       <div className={styles.container} data-tid="container">
-        <ResizablePanels
-          bkcolor="#fbfaff"
-          displayDirection="row"
-          width="100%"
-          height="100vh"
-          panelsSize={[25, 75]}
-          sizeUnitMeasure="%"
-          resizerColor="#f6f6f6"
-          resizerSize="4px"
-        >
-          <Projects
-            projects={this.state.projects}
-            selectedProject={this.state.selectedProject}
-            loaded={this.state.loaded}
-            error={this.state.error}
-            errorMessage={this.state.errorMessage}
-            onRefresh={this.refreshProjectsHandler}
-            onAddProject={this.handleAddProject}
-            onFavoriteClick={this.handleFavoriteClick}
-            onMenuClick={this.handleProjectListEntryMenu}
-            onSelect={this.handleSelectProjectListItem}
-          />
-          <Project
-            project={this.state.selectedProject}
-            onFavoriteClick={this.handleFavoriteClick}
-            logs={this.state.selectedProjectLogs}
-            checklistResponse={this.state.selectedProjectChecklist}
-            onUpdated={this.handleProjectUpdate}
-            onRename={this.handleProjectRename}
-            onAssetSelected={this.handleAssetSelected}
-            onChecklistUpdated={this.handleChecklistUpdate}
-            configuration={{ assetAttributes: this.state.assetAttributes }}
-            assetDynamicDetails={this.state.assetDynamicDetails}
-            scanStatus={this.state.projectScanStatus}
-          />
-        </ResizablePanels>
+        {/* Temporarily disabled ResizablePanels to test React compatibility */}
+        <div style={{ display: 'flex', width: '100%', height: '100vh' }}>
+          <div style={{ width: '25%', height: '100%' }}>
+            <Projects
+              projects={this.state.projects}
+              selectedProject={this.state.selectedProject}
+              loaded={this.state.loaded}
+              error={this.state.error}
+              errorMessage={this.state.errorMessage}
+              onRefresh={this.refreshProjectsHandler}
+              onAddProject={this.handleAddProject}
+              onFavoriteClick={this.handleFavoriteClick}
+              onMenuClick={this.handleProjectListEntryMenu}
+              onSelect={this.handleSelectProjectListItem}
+            />
+          </div>
+          <div style={{ width: '75%', height: '100%' }}>
+            <Project
+              project={this.state.selectedProject}
+              onFavoriteClick={this.handleFavoriteClick}
+              logs={this.state.selectedProjectLogs}
+              checklistResponse={this.state.selectedProjectChecklist}
+              onUpdated={this.handleProjectUpdate}
+              onRename={this.handleProjectRename}
+              onAssetSelected={this.handleAssetSelected}
+              onChecklistUpdated={this.handleChecklistUpdate}
+              configuration={{ assetAttributes: this.state.assetAttributes }}
+              assetDynamicDetails={this.state.assetDynamicDetails}
+              scanStatus={this.state.projectScanStatus}
+            />
+          </div>
+        </div>
         <CreateProjectDialog
           key={this.state.createProjectDialogKey}
           projectTemplates={this.state.projectTemplates}

@@ -236,7 +236,19 @@ function About(props) {
     if (descriptionText && descriptionText.trim().length > 0) {
       descriptionControl = (
         <div className={styles.markdownViewer}>
-          <ReactMarkdown className="markdown-body" plugins={[gfm]} children={descriptionText} />
+          <ReactMarkdown
+            remarkPlugins={[gfm]}
+            components={{
+              // Apply the markdown-body class to the root element
+              root: ({ children, ...props }) => (
+                <div className="markdown-body" {...props}>
+                  {children}
+                </div>
+              ),
+            }}
+          >
+            {descriptionText}
+          </ReactMarkdown>
         </div>
       );
     }

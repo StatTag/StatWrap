@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { withStyles } from '@mui/styles';
 import { FaTrash, FaEdit } from 'react-icons/fa';
 import { IconButton } from '@mui/material';
 import OverflowDiv from '../OverflowDiv/OverflowDiv';
 import Constants from '../../constants/constants';
 import Accordion from '@mui/material/Accordion';
-import MuiAccordionSummary from '@mui/material/AccordionSummary';
+import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -14,24 +13,6 @@ import NoteEditor from '../NoteEditor/NoteEditor';
 import Loading from '../Loading/Loading';
 import SourceControlHistory from '../SourceControlHistory/SourceControlHistory';
 import styles from './AssetDetails.css';
-
-const AccordionSummary = withStyles({
-  root: {
-    backgroundColor: 'rgba(0, 0, 0, .03)',
-    borderBottom: '1px solid rgba(0, 0, 0, .125)',
-    marginBottom: -1,
-    minHeight: 32,
-    '&$expanded': {
-      minHeight: 32,
-    },
-  },
-  content: {
-    '&$expanded': {
-      margin: '6px 0',
-    },
-  },
-  expanded: {},
-})(MuiAccordionSummary);
 
 const assetDetails = (props) => {
   const {
@@ -90,15 +71,15 @@ const assetDetails = (props) => {
     if (onRemove) {
       onRemove(asset);
     }
-  }
+  };
 
   const editHandler = () => {
     if (onEdit) {
       onEdit(asset);
     }
-  }
+  };
 
-  const isExternalAsset = (asset && asset.type === Constants.AssetType.URL);
+  const isExternalAsset = asset && asset.type === Constants.AssetType.URL;
 
   let sourceControlAccordion = null;
   if (!isExternalAsset && sourceControlEnabled) {
@@ -125,23 +106,23 @@ const assetDetails = (props) => {
   if (!isExternalAsset) {
     attributesAccordion = (
       <Accordion defaultExpanded>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="attributes-content"
-            id="attributes-header"
-            className={styles.heading}
-          >
-            <Typography className={styles.headingTitle}>Attributes</Typography>
-          </AccordionSummary>
-          <AccordionDetails className={styles.details}>
-            <AssetAttributes
-              asset={asset}
-              configuration={assetAttributes}
-              onUpdateAttribute={updateAssetAttribute}
-            />
-          </AccordionDetails>
-        </Accordion>
-      );
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="attributes-content"
+          id="attributes-header"
+          className={styles.heading}
+        >
+          <Typography className={styles.headingTitle}>Attributes</Typography>
+        </AccordionSummary>
+        <AccordionDetails className={styles.details}>
+          <AssetAttributes
+            asset={asset}
+            configuration={assetAttributes}
+            onUpdateAttribute={updateAssetAttribute}
+          />
+        </AccordionDetails>
+      </Accordion>
+    );
   }
 
   let actions = null;
