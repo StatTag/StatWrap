@@ -396,10 +396,49 @@ class ProjectPage extends Component {
   }
 
   handleSelectProjectListItem(project) {
-    this.setState({ selectedProject: project });
-    ipcRenderer.send(Messages.SCAN_PROJECT_REQUEST, project);
-    ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, project);
-    ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, project);
+    // Handle case where user clicks off of all projects (project is null)
+    if (!project) {
+      this.setState({ selectedProject: null });
+      return;
+    }
+
+    // If the project is offline (has loadError), try to refresh its status
+    if (project.loadError) {
+      // First update the UI to show we're trying to reconnect
+      this.setState({ selectedProject: { ...project, isReconnecting: true } });
+
+      // Try to load the project file to check if it's now accessible
+      ipcRenderer.send(Messages.LOAD_PROJECT_LIST_REQUEST);
+
+      // Set up a one-time listener for the project list response
+      const checkProjectStatus = (sender, response) => {
+        if (response && response.projects) {
+          const updatedProject = response.projects.find((p) => p.id === project.id);
+          if (updatedProject) {
+            // Remove the temporary reconnecting state
+            const finalProject = { ...updatedProject, isReconnecting: undefined };
+            this.setState({ selectedProject: finalProject });
+
+            // If the project is now online, proceed with normal loading
+            if (!updatedProject.loadError) {
+              ipcRenderer.send(Messages.SCAN_PROJECT_REQUEST, finalProject);
+              ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, finalProject);
+              ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, finalProject);
+            }
+          }
+        }
+        // Remove the listener after we've handled the response
+        ipcRenderer.removeListener(Messages.LOAD_PROJECT_LIST_RESPONSE, checkProjectStatus);
+      };
+
+      ipcRenderer.once(Messages.LOAD_PROJECT_LIST_RESPONSE, checkProjectStatus);
+    } else {
+      // Normal flow for online projects
+      this.setState({ selectedProject: project });
+      ipcRenderer.send(Messages.SCAN_PROJECT_REQUEST, project);
+      ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, project);
+      ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, project);
+    }
   }
 
   handleProjectUpdate(project, actionType, entityType, entityKey, title, description, details) {
