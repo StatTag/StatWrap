@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Button,
   Box,
@@ -16,7 +16,7 @@ import styles from './About.css';
 import NoteEditor from '../../NoteEditor/NoteEditor';
 import TagEditor from '../../TagEditor/TagEditor';
 import TagViewer from '../../TagViewer/TagViewer';
-import TextEditor from '../../TextEditor/TextEditor';
+import SimpleMDE from 'react-simplemde-editor';
 import LinkedDescription from '../LinkedDescription/LinkedDescription';
 import ProjectUpdateSummary from '../ProjectUpdateSummary/ProjectUpdateSummary';
 import { DescriptionContentType } from '../../../constants/constants';
@@ -104,9 +104,18 @@ function About(props) {
     setNotes(props.project.notes ? props.project.notes : []);
   }, [props.project.notes]);
 
-  const handleTextChanged = debounce((value) => {
+  const handleTextChanged = useCallback((value: string) => {
     setDescriptionText(value);
-  }, 250);
+  }, []);
+
+  // Per https://github.com/RIP21/react-simplemde-editor
+  // "Note that you need to useMemo to memoize options so they do not change on each rerender!"
+  const autofocusSpellcheckerOptions = useMemo(() => {
+    return {
+      autofocus: true,
+      spellChecker: true,
+    };
+  }, []);
 
   const handleUriChanged = (value) => {
     setDescriptionUri(value);
@@ -194,8 +203,9 @@ function About(props) {
     } else {
       descriptionEditorButtonLabel = 'Select existing file that contains a description';
       descriptionControl = (
-        <TextEditor
-          content={descriptionText}
+        <SimpleMDE
+          options={autofocusSpellcheckerOptions}
+          value={descriptionText}
           onChange={handleTextChanged}
           placeholder="Describe your project in more detail"
         />
