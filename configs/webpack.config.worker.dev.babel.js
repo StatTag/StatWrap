@@ -48,10 +48,9 @@ export default merge(baseConfig, {
   target: 'electron-renderer',
 
   entry: [
-    ...(process.env.PLAIN_HMR ? [] : ['react-hot-loader/patch']),
-    `webpack-dev-server/client?http://localhost:${port}/`,
+    'webpack-dev-server/client?/',
     'webpack/hot/only-dev-server',
-    require.resolve('../app/worker'),
+    require.resolve('../app/worker.js'),
   ],
 
   output: {
@@ -199,11 +198,10 @@ export default merge(baseConfig, {
       },
     ],
   },
-  resolve: {
-    alias: {
-      'react-dom': '@hot-loader/react-dom',
-    },
-  },
+  // Remove or comment out the following alias:
+  // alias: {
+  //   'react-dom': '@hot-loader/react-dom',
+  // },
   plugins: [
     requiredByDLLConfig
       ? null

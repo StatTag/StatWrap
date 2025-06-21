@@ -3,7 +3,7 @@ import GeneralUtil from '../utils/general';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts.vfs;
 
 const fs = require('fs');
 const os = require('os');
@@ -73,12 +73,13 @@ export default class ChecklistService {
         return [
           { text: key, marginLeft: 25 },
           {
-            ul: scanResult[key].length > 0 ?
-              scanResult[key].map((dep, depIndex) => dep) :
-              ['No results'],
-            marginLeft: 30
-          }
-        ]
+            ul:
+              scanResult[key].length > 0
+                ? scanResult[key].map((dep, depIndex) => dep)
+                : ['No results'],
+            marginLeft: 30,
+          },
+        ];
       });
     }
 
@@ -212,16 +213,18 @@ export default class ChecklistService {
               },
               ...subChecklist,
             ];
-          }).flat(),
+          })
+          .flat(),
 
-          // Heading with a page break for checklist item details
-          {
-            text: 'Checklist Details',
-            style: 'sectionHeader',
-            margin: [0, 10],
-		        pageBreak: 'before'
-          },
-          ...checklist.map((item, index) => {
+        // Heading with a page break for checklist item details
+        {
+          text: 'Checklist Details',
+          style: 'sectionHeader',
+          margin: [0, 10],
+          pageBreak: 'before',
+        },
+        ...checklist
+          .map((item, index) => {
             const maxWidth = 450;
             let subChecklist = [];
             if (item.subChecklist && item.subChecklist.length > 0) {
@@ -236,8 +239,8 @@ export default class ChecklistService {
                   {
                     text: subItem.answer ? 'Yes' : 'No',
                     margin: [0, 5, 25, 0],
-                    alignment: 'right'
-                  }
+                    alignment: 'right',
+                  },
                 ],
                 columnGap: 0,
               }));
@@ -297,35 +300,38 @@ export default class ChecklistService {
                     width: 10,
                     margin: [0, 10, 0, 0],
                     alignment: 'left',
-                    bold: true
+                    bold: true,
                   },
                   {
                     text: `${item.statement}`,
                     margin: [0, 10, 5, 0],
                     width: 'auto',
                     alignment: 'left',
-                    bold: true
+                    bold: true,
                   },
                   {
                     text: `(${item.answer ? 'Yes' : 'No'})`,
                     margin: [0, 10, 0, 0],
                     alignment: 'left',
                     bold: true,
-                    color: item.answer ? 'green' : 'red'
-                  }
+                    color: item.answer ? 'green' : 'red',
+                  },
                 ],
                 columnGap: 5,
               },
               ...subChecklist,
-              scanResults.length > 0 ? { text: 'StatWrap Defined Documentation:', style: 'itemSubHeader' } : '',
+              scanResults.length > 0
+                ? { text: 'StatWrap Defined Documentation:', style: 'itemSubHeader' }
+                : '',
               ...scanResults,
               notes.length > 0 ? { text: 'Notes:', style: 'itemSubHeader' } : '',
               ...notes,
               assets.length > 0 ? { text: 'Related Assets:', style: 'itemSubHeader' } : '',
               ...assets,
-              { text: '', marginBottom: 15 }
+              { text: '', marginBottom: 15 },
             ];
-          }).flat(),
+          })
+          .flat(),
       ],
       styles: {
         mainHeader: { fontSize: 22, bold: true, color: '#663399' },

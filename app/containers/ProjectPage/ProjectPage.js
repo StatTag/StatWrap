@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { ipcRenderer } from 'electron';
-import ResizablePanels from 'resizable-panels-react';
+// import ResizablePanels from 'resizable-panels-react';
 import Projects from '../../components/Projects/Projects';
 import Project from '../../components/Project/Project';
 import CreateProjectDialog from '../CreateProjectDialog/CreateProjectDialog';
@@ -499,42 +499,38 @@ class ProjectPage extends Component {
   render() {
     return (
       <div className={styles.container} data-tid="container">
-        <ResizablePanels
-          bkcolor="#fbfaff"
-          displayDirection="row"
-          width="100%"
-          height="100vh"
-          panelsSize={[25, 75]}
-          sizeUnitMeasure="%"
-          resizerColor="#f6f6f6"
-          resizerSize="4px"
-        >
-          <Projects
-            projects={this.state.projects}
-            selectedProject={this.state.selectedProject}
-            loaded={this.state.loaded}
-            error={this.state.error}
-            errorMessage={this.state.errorMessage}
-            onRefresh={this.refreshProjectsHandler}
-            onAddProject={this.handleAddProject}
-            onFavoriteClick={this.handleFavoriteClick}
-            onMenuClick={this.handleProjectListEntryMenu}
-            onSelect={this.handleSelectProjectListItem}
-          />
-          <Project
-            project={this.state.selectedProject}
-            onFavoriteClick={this.handleFavoriteClick}
-            logs={this.state.selectedProjectLogs}
-            checklistResponse={this.state.selectedProjectChecklist}
-            onUpdated={this.handleProjectUpdate}
-            onRename={this.handleProjectRename}
-            onAssetSelected={this.handleAssetSelected}
-            onChecklistUpdated={this.handleChecklistUpdate}
-            configuration={{ assetAttributes: this.state.assetAttributes }}
-            assetDynamicDetails={this.state.assetDynamicDetails}
-            scanStatus={this.state.projectScanStatus}
-          />
-        </ResizablePanels>
+        {/* Temporarily disabled ResizablePanels to test React compatibility */}
+        <div style={{ display: 'flex', width: '100%', height: '100vh' }}>
+          <div style={{ width: '25%', height: '100%' }}>
+            <Projects
+              projects={this.state.projects}
+              selectedProject={this.state.selectedProject}
+              loaded={this.state.loaded}
+              error={this.state.error}
+              errorMessage={this.state.errorMessage}
+              onRefresh={this.refreshProjectsHandler}
+              onAddProject={this.handleAddProject}
+              onFavoriteClick={this.handleFavoriteClick}
+              onMenuClick={this.handleProjectListEntryMenu}
+              onSelect={this.handleSelectProjectListItem}
+            />
+          </div>
+          <div style={{ width: '75%', height: '100%' }}>
+            <Project
+              project={this.state.selectedProject}
+              onFavoriteClick={this.handleFavoriteClick}
+              logs={this.state.selectedProjectLogs}
+              checklistResponse={this.state.selectedProjectChecklist}
+              onUpdated={this.handleProjectUpdate}
+              onRename={this.handleProjectRename}
+              onAssetSelected={this.handleAssetSelected}
+              onChecklistUpdated={this.handleChecklistUpdate}
+              configuration={{ assetAttributes: this.state.assetAttributes }}
+              assetDynamicDetails={this.state.assetDynamicDetails}
+              scanStatus={this.state.projectScanStatus}
+            />
+          </div>
+        </div>
         <CreateProjectDialog
           key={this.state.createProjectDialogKey}
           projectTemplates={this.state.projectTemplates}

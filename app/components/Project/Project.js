@@ -1,7 +1,6 @@
 import React, { Component, useEffect } from 'react';
 import { Tab, Tabs } from '@mui/material';
 import { TabPanel, TabContext } from '@mui/lab';
-import { withStyles } from '@mui/styles/';
 import { cloneDeep } from 'lodash';
 import IconButton from '@mui/material/IconButton';
 import { Star, StarBorder } from '@mui/icons-material';
@@ -24,49 +23,6 @@ import styles from './Project.css';
 import UserContext from '../../contexts/User';
 
 type Props = {};
-
-// We typically do our styles in a separate CSS, but this has been the best way to
-// override Material-UI specific styles, so we will do it in code.
-/*
-const muiStyles = () => ({
-  tabIndicator: {
-    backgroundColor: 'white'
-  },
-  scrollButtons: {
-    color: 'white'
-  },
-  tabRoot: {
-    backgroundColor: '#cccccc',
-    border: 'solid 1px #000',
-    fontSize: '0.8rem'
-  },
-  tabSelected: {
-    backgroundColor: '#ffffff',
-    border: 'solid 1px #836EAA',
-    color: '#836EAA',
-    fontSize: '0.9rem'
-  },
-  tabPanel: {
-    padding: '10px'
-  }
-});
-*/
-const muiStyles = () => ({
-  tabIndicator: {
-    backgroundColor: 'white'
-  },
-  tabRoot: {
-    backgroundColor: '#efefef',
-    fontSize: '0.8rem'
-  },
-  tabSelected: {
-    backgroundColor: '#ffffff',
-    fontSize: '0.8rem'
-  },
-  tabPanel: {
-    padding: '10px'
-  }
-});
 
 class Project extends Component<Props> {
   props: Props;
@@ -825,9 +781,6 @@ class Project extends Component<Props> {
   }
 
   render() {
-    const tabStyle = { root: this.props.classes.tabRoot, selected: this.props.classes.tabSelected };
-    const tabPanelStyle = { root: this.props.classes.tabPanel };
-
     let content = <Welcome />;
     if (this.props.project) {
       const about = this.props.project ? (
@@ -944,40 +897,39 @@ class Project extends Component<Props> {
               aria-label="Project details"
               variant="scrollable"
               onChange={this.changeHandler}
-              classes={{
-                indicator: this.props.classes.tabIndicator,
-                scrollButtons: this.props.classes.scrollButtons
+              style={{
+                backgroundColor: '#efefef'
               }}
               value={this.state.selectedTab}
             >
-              <Tab label="Dashboard" value="about" classes={tabStyle} />
-              <Tab label="Assets" value="assets" classes={tabStyle} />
-              <Tab label="Workflows" value="workflows" classes={tabStyle} />
-              <Tab label="People" value="people" classes={tabStyle} />
-              <Tab label="Notes" value="projectNotes" classes={tabStyle} />
-              <Tab label="Project Log" value="projectLog" classes={tabStyle} />
-              <Tab label="Checklist" value="checklist" classes={tabStyle} />
+              <Tab label="Dashboard" value="about" style={{ backgroundColor: '#efefef', fontSize: '0.8rem' }} />
+              <Tab label="Assets" value="assets" style={{ backgroundColor: '#efefef', fontSize: '0.8rem' }} />
+              <Tab label="Workflows" value="workflows" style={{ backgroundColor: '#efefef', fontSize: '0.8rem' }} />
+              <Tab label="People" value="people" style={{ backgroundColor: '#efefef', fontSize: '0.8rem' }} />
+              <Tab label="Notes" value="projectNotes" style={{ backgroundColor: '#efefef', fontSize: '0.8rem' }} />
+              <Tab label="Project Log" value="projectLog" style={{ backgroundColor: '#efefef', fontSize: '0.8rem' }} />
+              <Tab label="Checklist" value="checklist" style={{ backgroundColor: '#efefef', fontSize: '0.8rem' }} />
             </Tabs>
           </div>
-          <TabPanel value="about" classes={tabPanelStyle}>
+          <TabPanel value="about" style={{ padding: '10px' }}>
             {about}
           </TabPanel>
-          <TabPanel value="assets" classes={tabPanelStyle}>
+          <TabPanel value="assets" style={{ padding: '10px' }}>
             {assets}
           </TabPanel>
-          <TabPanel value="workflows" classes={tabPanelStyle}>
+          <TabPanel value="workflows" style={{ padding: '10px' }}>
             {workflow}
           </TabPanel>
-          <TabPanel value="people" classes={tabPanelStyle}>
+          <TabPanel value="people" style={{ padding: '10px' }}>
             {people}
           </TabPanel>
-          <TabPanel value="projectNotes" classes={tabPanelStyle}>
+          <TabPanel value="projectNotes" style={{ padding: '10px' }}>
             {projectNotes}
           </TabPanel>
-          <TabPanel value="projectLog" classes={tabPanelStyle}>
+          <TabPanel value="projectLog" style={{ padding: '10px' }}>
             {projectLog}
           </TabPanel>
-          <TabPanel value="checklist" classes={tabPanelStyle}>
+          <TabPanel value="checklist" style={{ padding: '10px' }}>
             {checklist}
           </TabPanel>
         </TabContext>
@@ -993,7 +945,6 @@ class Project extends Component<Props> {
 
 Project.propTypes = {
   project: PropTypes.object,
-  classes: PropTypes.object,
   onUpdated: PropTypes.func,
   onAssetSelected: PropTypes.func,
   onChecklistUpdated: PropTypes.func,
@@ -1021,7 +972,6 @@ Project.propTypes = {
 
 Project.defaultProps = {
   project: null,
-  classes: null,
   onUpdated: null,
   onAssetSelected: null,
   onChecklistUpdated: null,
@@ -1034,4 +984,4 @@ Project.defaultProps = {
 
 Project.contextType = UserContext;
 
-export default withStyles(muiStyles)(Project);
+export default Project;
