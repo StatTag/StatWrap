@@ -7,7 +7,9 @@ export function SplitMarkdownSections(markdown) {
 
   tokens.forEach(token => {
     if (token.type === 'heading') {
-      if (currentSection) sections.push(currentSection);
+      if (currentSection){
+        sections.push(currentSection)
+      };
       currentSection = {
         heading: token,
         content: ''
@@ -16,6 +18,8 @@ export function SplitMarkdownSections(markdown) {
       currentSection.content += token.raw || '';
     }
   });
-  if (currentSection) sections.push(currentSection);
+  if (currentSection){
+    sections.push(currentSection);
+  }
   return sections;
 }

@@ -107,6 +107,9 @@ function About(props) {
   useEffect(() => {
     setNotes(props.project.notes ? props.project.notes : []);
   }, [props.project.notes]);
+  useEffect(() => {
+    setCollapsedSections({});
+  }, [props.project.id]);
 
   const handleTextChanged = debounce((value) => {
     setDescriptionText(value);
