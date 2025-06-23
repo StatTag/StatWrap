@@ -7,7 +7,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  IconButton,
 } from '@mui/material';
+import { ExpandMore, ChevronRight } from '@mui/icons-material';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 import PropTypes from 'prop-types';
@@ -20,10 +22,12 @@ import SimpleMDE from 'react-simplemde-editor';
 import LinkedDescription from '../LinkedDescription/LinkedDescription';
 import ProjectUpdateSummary from '../ProjectUpdateSummary/ProjectUpdateSummary';
 import { DescriptionContentType } from '../../../constants/constants';
+import { SplitMarkdownSections } from '../../../utils/SplitMarkdownSections';
 
 function About(props) {
   const [editing, setEditing] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState({});
 
   const [initialState, setInitialState] = useState({
     descriptionEditor:
@@ -103,6 +107,9 @@ function About(props) {
   useEffect(() => {
     setNotes(props.project.notes ? props.project.notes : []);
   }, [props.project.notes]);
+  useEffect(() => {
+    setCollapsedSections({});
+  }, [props.project.id]);
 
   const handleTextChanged = useCallback((value: string) => {
     setDescriptionText(value);
@@ -187,6 +194,13 @@ function About(props) {
     }
   };
 
+  const handleSectionToggle = (idx) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [idx]: !prev[idx]
+    }));
+  };
+
   let view = null;
   if (editing) {
     let descriptionControl = null;
@@ -244,9 +258,31 @@ function About(props) {
     );
     let descriptionControl = null;
     if (descriptionText && descriptionText.trim().length > 0) {
+      const sections = SplitMarkdownSections(descriptionText);
       descriptionControl = (
         <div className={styles.markdownViewer}>
-          <ReactMarkdown className="markdown-body" plugins={[gfm]} children={descriptionText} />
+          {sections.map((section, idx) => {
+            const HeadingTag = `h${section.heading.depth}`;
+            const isCollapsed = collapsedSections[idx];
+            return (
+              <div key={idx} className={styles.sectionBlock}>
+                <div className={styles.collapsibleHeading}>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleSectionToggle(idx)}
+                    aria-label={isCollapsed ? "Expand section" : "Collapse section"}
+                    style={{ marginRight: '8px' }}
+                  >
+                    {isCollapsed ? <ChevronRight /> : <ExpandMore />}
+                  </IconButton>
+                  <HeadingTag>{section.heading.text}</HeadingTag>
+                </div>
+                {!isCollapsed && (
+                  <ReactMarkdown className="markdown-body" plugins={[gfm]} children={section.content} />
+                )}
+              </div>
+            );
+          })}
         </div>
       );
     }
