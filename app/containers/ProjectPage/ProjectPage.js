@@ -10,6 +10,7 @@ import UserContext from '../../contexts/User';
 
 import Messages from '../../constants/messages';
 import ChecklistUtil from '../../utils/checklist';
+import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 
 class ProjectPage extends Component {
   constructor(props) {
@@ -499,9 +500,9 @@ class ProjectPage extends Component {
   render() {
     return (
       <div className={styles.container} data-tid="container">
-        {/* Temporarily disabled ResizablePanels to test React compatibility */}
-        <div style={{ display: 'flex', width: '100%', height: '100vh' }}>
-          <div style={{ width: '25%', height: '100%' }}>
+        {/* Restored ResizablePanels using react-resizable-panels */}
+        <PanelGroup direction="horizontal" style={{ width: '100%', height: '100vh' }}>
+          <Panel defaultSize={25} minSize={15} maxSize={50} style={{ height: '100%' }}>
             <Projects
               projects={this.state.projects}
               selectedProject={this.state.selectedProject}
@@ -514,8 +515,9 @@ class ProjectPage extends Component {
               onMenuClick={this.handleProjectListEntryMenu}
               onSelect={this.handleSelectProjectListItem}
             />
-          </div>
-          <div style={{ width: '75%', height: '100%' }}>
+          </Panel>
+          <PanelResizeHandle style={{ width: 6, background: '#eee', cursor: 'col-resize' }} />
+          <Panel style={{ height: '100%' }}>
             <Project
               project={this.state.selectedProject}
               onFavoriteClick={this.handleFavoriteClick}
@@ -529,8 +531,8 @@ class ProjectPage extends Component {
               assetDynamicDetails={this.state.assetDynamicDetails}
               scanStatus={this.state.projectScanStatus}
             />
-          </div>
-        </div>
+          </Panel>
+        </PanelGroup>
         <CreateProjectDialog
           key={this.state.createProjectDialogKey}
           projectTemplates={this.state.projectTemplates}

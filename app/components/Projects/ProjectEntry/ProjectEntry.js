@@ -4,6 +4,19 @@ import { Tooltip } from '@mui/material';
 import PortableWifiOffIcon from '@mui/icons-material/PortableWifiOff';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import styles from './ProjectEntry.css';
+import { styled } from '@mui/material/styles';
+
+const CustomTooltip = styled(({ className, ...props }) => (
+  <Tooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .MuiTooltip-tooltip`]: {
+    backgroundColor: '#f5f5f9',
+    color: 'rgba(0, 0, 0, 0.87)',
+    maxWidth: 1000,
+    fontSize: theme.typography.pxToRem(12),
+    border: '1px solid #dadde9',
+  },
+}));
 
 function projectEntry(props) {
   const [isTooltipOpen, setTooltipOpen] = useState(false);
@@ -35,7 +48,7 @@ function projectEntry(props) {
 
   return (
     <div onMouseEnter={() => setTooltipOpen(true)} onMouseLeave={() => setTooltipOpen(false)}>
-      <Tooltip
+      <CustomTooltip
         arrow
         open={isTooltipOpen}
         disableInteractive
@@ -70,7 +83,7 @@ function projectEntry(props) {
             onClick={props.onMenuClick}
           />
         </div>
-      </Tooltip>
+      </CustomTooltip>
     </div>
   );
 }

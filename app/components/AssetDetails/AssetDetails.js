@@ -13,6 +13,20 @@ import NoteEditor from '../NoteEditor/NoteEditor';
 import Loading from '../Loading/Loading';
 import SourceControlHistory from '../SourceControlHistory/SourceControlHistory';
 import styles from './AssetDetails.css';
+import { styled } from '@mui/material/styles';
+
+const CustomAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
+  backgroundColor: 'rgba(0, 0, 0, .03)',
+  borderBottom: '1px solid rgba(0, 0, 0, .125)',
+  marginBottom: -1,
+  minHeight: 32,
+  '&.Mui-expanded': {
+    minHeight: 32,
+  },
+  '.MuiAccordionSummary-content.Mui-expanded': {
+    margin: '6px 0',
+  },
+}));
 
 const assetDetails = (props) => {
   const {
@@ -89,14 +103,13 @@ const assetDetails = (props) => {
     }
     sourceControlAccordion = (
       <Accordion>
-        <AccordionSummary
+        <CustomAccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="source-control-content"
           id="source-control-header"
-          className={styles.heading}
         >
           <Typography className={styles.headingTitle}>Source Control</Typography>
-        </AccordionSummary>
+        </CustomAccordionSummary>
         <AccordionDetails className={styles.details}>{dynamicDetailsContainer}</AccordionDetails>
       </Accordion>
     );
@@ -106,14 +119,13 @@ const assetDetails = (props) => {
   if (!isExternalAsset) {
     attributesAccordion = (
       <Accordion defaultExpanded>
-        <AccordionSummary
+        <CustomAccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="attributes-content"
           id="attributes-header"
-          className={styles.heading}
         >
           <Typography className={styles.headingTitle}>Attributes</Typography>
-        </AccordionSummary>
+        </CustomAccordionSummary>
         <AccordionDetails className={styles.details}>
           <AssetAttributes
             asset={asset}
@@ -144,15 +156,14 @@ const assetDetails = (props) => {
       <OverflowDiv>{asset.uri}</OverflowDiv>
       {actions}
       <Accordion expanded={expandNotes}>
-        <AccordionSummary
+        <CustomAccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="notes-content"
           id="notes-header"
-          className={styles.heading}
           onClick={clickNotesAccordionHandler}
         >
           <Typography className={styles.headingTitle}>{notesLabel}</Typography>
-        </AccordionSummary>
+        </CustomAccordionSummary>
         <AccordionDetails className={styles.details}>
           <NoteEditor
             notes={asset.notes}
