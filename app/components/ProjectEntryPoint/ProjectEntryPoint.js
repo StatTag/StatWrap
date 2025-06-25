@@ -1,32 +1,13 @@
 import React from 'react';
 import path from 'path';
-import { withStyles } from '@mui/styles';
 import { Accordion, AccordionDetails, Button, Typography } from '@mui/material';
-import MuiAccordionSummary from '@mui/material/AccordionSummary';
+import AccordionSummary from '@mui/material/AccordionSummary';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileImport, faShareFromSquare } from '@fortawesome/free-solid-svg-icons';
 import OverflowDiv from '../OverflowDiv/OverflowDiv';
 import styles from './ProjectEntryPoint.css';
 import AssetUtil from '../../utils/asset';
-
-const AccordionSummary = withStyles({
-  root: {
-    backgroundColor: 'rgba(0, 0, 0, .03)',
-    borderBottom: '1px solid rgba(0, 0, 0, .125)',
-    marginBottom: -1,
-    minHeight: 32,
-    '&$expanded': {
-      minHeight: 32,
-    },
-  },
-  content: {
-    '&$expanded': {
-      margin: '6px 0',
-    },
-  },
-  expanded: {},
-})(MuiAccordionSummary);
 
 const projectEntryPoint = (props) => {
   const { assets, rootUri, onSelect } = props;
@@ -54,7 +35,9 @@ const projectEntryPoint = (props) => {
             id="entry-points-header"
             className={styles.heading}
           >
-            <Typography className={styles.headingTitle}>Entry Points ({entryPointsList.length})</Typography>
+            <Typography className={styles.headingTitle}>
+              Entry Points ({entryPointsList.length})
+            </Typography>
           </AccordionSummary>
           <AccordionDetails className={styles.details}>
             <ul className={styles.entryPointList} type="disc">

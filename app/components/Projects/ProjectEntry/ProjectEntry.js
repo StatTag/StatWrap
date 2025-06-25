@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { withStyles } from '@mui/styles';
-import { Tooltip, CircularProgress } from '@mui/material';
+import { Tooltip } from '@mui/material';
 import PortableWifiOffIcon from '@mui/icons-material/PortableWifiOff';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import styles from './ProjectEntry.css';
+import { styled } from '@mui/material/styles';
 
-const HtmlTooltip = withStyles((theme) => ({
-  tooltip: {
+const CustomTooltip = styled(({ className, ...props }) => (
+  <Tooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .MuiTooltip-tooltip`]: {
     backgroundColor: '#f5f5f9',
     color: 'rgba(0, 0, 0, 0.87)',
     maxWidth: 1000,
     fontSize: theme.typography.pxToRem(12),
     border: '1px solid #dadde9',
   },
-}))(Tooltip);
+}));
 
 function projectEntry(props) {
   const [isTooltipOpen, setTooltipOpen] = useState(false);
@@ -46,7 +48,7 @@ function projectEntry(props) {
 
   return (
     <div onMouseEnter={() => setTooltipOpen(true)} onMouseLeave={() => setTooltipOpen(false)}>
-      <HtmlTooltip
+      <CustomTooltip
         arrow
         open={isTooltipOpen}
         disableInteractive
@@ -81,7 +83,7 @@ function projectEntry(props) {
             onClick={props.onMenuClick}
           />
         </div>
-      </HtmlTooltip>
+      </CustomTooltip>
     </div>
   );
 }

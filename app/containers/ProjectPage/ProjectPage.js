@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { ipcRenderer } from 'electron';
-import ResizablePanels from 'resizable-panels-react';
+// import ResizablePanels from 'resizable-panels-react';
 import Projects from '../../components/Projects/Projects';
 import Project from '../../components/Project/Project';
 import CreateProjectDialog from '../CreateProjectDialog/CreateProjectDialog';
@@ -10,6 +10,7 @@ import UserContext from '../../contexts/User';
 
 import Messages from '../../constants/messages';
 import ChecklistUtil from '../../utils/checklist';
+import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 
 class ProjectPage extends Component {
   constructor(props) {
@@ -499,42 +500,39 @@ class ProjectPage extends Component {
   render() {
     return (
       <div className={styles.container} data-tid="container">
-        <ResizablePanels
-          bkcolor="#fbfaff"
-          displayDirection="row"
-          width="100%"
-          height="100vh"
-          panelsSize={[25, 75]}
-          sizeUnitMeasure="%"
-          resizerColor="#f6f6f6"
-          resizerSize="4px"
-        >
-          <Projects
-            projects={this.state.projects}
-            selectedProject={this.state.selectedProject}
-            loaded={this.state.loaded}
-            error={this.state.error}
-            errorMessage={this.state.errorMessage}
-            onRefresh={this.refreshProjectsHandler}
-            onAddProject={this.handleAddProject}
-            onFavoriteClick={this.handleFavoriteClick}
-            onMenuClick={this.handleProjectListEntryMenu}
-            onSelect={this.handleSelectProjectListItem}
-          />
-          <Project
-            project={this.state.selectedProject}
-            onFavoriteClick={this.handleFavoriteClick}
-            logs={this.state.selectedProjectLogs}
-            checklistResponse={this.state.selectedProjectChecklist}
-            onUpdated={this.handleProjectUpdate}
-            onRename={this.handleProjectRename}
-            onAssetSelected={this.handleAssetSelected}
-            onChecklistUpdated={this.handleChecklistUpdate}
-            configuration={{ assetAttributes: this.state.assetAttributes }}
-            assetDynamicDetails={this.state.assetDynamicDetails}
-            scanStatus={this.state.projectScanStatus}
-          />
-        </ResizablePanels>
+        {/* Restored ResizablePanels using react-resizable-panels */}
+        <PanelGroup direction="horizontal" style={{ width: '100%', height: '100vh' }}>
+          <Panel defaultSize={25} minSize={15} maxSize={50} style={{ height: '100%' }}>
+            <Projects
+              projects={this.state.projects}
+              selectedProject={this.state.selectedProject}
+              loaded={this.state.loaded}
+              error={this.state.error}
+              errorMessage={this.state.errorMessage}
+              onRefresh={this.refreshProjectsHandler}
+              onAddProject={this.handleAddProject}
+              onFavoriteClick={this.handleFavoriteClick}
+              onMenuClick={this.handleProjectListEntryMenu}
+              onSelect={this.handleSelectProjectListItem}
+            />
+          </Panel>
+          <PanelResizeHandle style={{ width: 6, background: '#eee', cursor: 'col-resize' }} />
+          <Panel style={{ height: '100%' }}>
+            <Project
+              project={this.state.selectedProject}
+              onFavoriteClick={this.handleFavoriteClick}
+              logs={this.state.selectedProjectLogs}
+              checklistResponse={this.state.selectedProjectChecklist}
+              onUpdated={this.handleProjectUpdate}
+              onRename={this.handleProjectRename}
+              onAssetSelected={this.handleAssetSelected}
+              onChecklistUpdated={this.handleChecklistUpdate}
+              configuration={{ assetAttributes: this.state.assetAttributes }}
+              assetDynamicDetails={this.state.assetDynamicDetails}
+              scanStatus={this.state.projectScanStatus}
+            />
+          </Panel>
+        </PanelGroup>
         <CreateProjectDialog
           key={this.state.createProjectDialogKey}
           projectTemplates={this.state.projectTemplates}
