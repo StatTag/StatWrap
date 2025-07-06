@@ -195,9 +195,9 @@ function About(props) {
   };
 
   const handleSectionToggle = (idx) => {
-    setCollapsedSections(prev => ({
+    setCollapsedSections((prev) => ({
       ...prev,
-      [idx]: !prev[idx]
+      [idx]: !prev[idx],
     }));
   };
 
@@ -270,16 +270,14 @@ function About(props) {
                   <IconButton
                     size="small"
                     onClick={() => handleSectionToggle(idx)}
-                    aria-label={isCollapsed ? "Expand section" : "Collapse section"}
+                    aria-label={isCollapsed ? 'Expand section' : 'Collapse section'}
                     style={{ marginRight: '8px' }}
                   >
                     {isCollapsed ? <ChevronRight /> : <ExpandMore />}
                   </IconButton>
                   <HeadingTag>{section.heading.text}</HeadingTag>
                 </div>
-                {!isCollapsed && (
-                  <ReactMarkdown className="markdown-body" plugins={[gfm]} children={section.content} />
-                )}
+                {!isCollapsed && <ReactMarkdown remarkPlugins={[gfm]} children={section.content} />}
               </div>
             );
           })}

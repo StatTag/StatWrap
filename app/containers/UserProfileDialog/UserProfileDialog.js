@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useRef } from 'react';
 import PropTypes from 'prop-types';
 import Draggable from 'react-draggable';
 import { Dialog, DialogActions, DialogTitle, Button, Paper } from '@mui/material';
@@ -10,9 +10,11 @@ import UserContext from '../../contexts/User';
 import styles from './UserProfileDialog.css';
 
 function PaperComponent(props) {
+  // Fix needed for React19: https://github.com/react-grid-layout/react-draggable/blob/master/CHANGELOG.md#440-may-12-2020
+  const nodeRef = useRef(null);
   return (
-    <Draggable handle="#user-profile-dialog-title" cancel={'[class*="MuiDialogContent-root"]'}>
-      <Paper {...props} />
+    <Draggable nodeRef={nodeRef} handle="#user-profile-dialog-title" cancel={'[class*="MuiDialogContent-root"]'}>
+      <Paper ref={nodeRef} {...props} />
     </Draggable>
   );
 }
