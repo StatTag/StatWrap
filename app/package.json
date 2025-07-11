@@ -15,6 +15,10 @@
   },
   "license": "MIT",
   "dependencies": {
-    "chokidar": "^3.5.3"
+    "chokidar": "^3.5.3",
+    "flexsearch": "^0.7.43"
+  },
+  "devDependencies": {
+    "@types/flexsearch": "^0.7.3"
   }
 }
