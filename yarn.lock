@@ -6594,6 +6594,11 @@ flatted@^3.2.9, flatted@^3.3.3:
   resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.3.3.tgz#67c8fad95454a7c7abebf74bb78ee74a44023358"
   integrity sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==
 
+flexsearch@^0.8.205:
+  version "0.8.205"
+  resolved "https://registry.yarnpkg.com/flexsearch/-/flexsearch-0.8.205.tgz#abbe4166ecc830e2456a94b21731ceab59c5ddbb"
+  integrity sha512-REFjMqy86DKkCTJ4gIE42c9MVm9t1vUWfEub/8taixYuhvyu4jd4XmFALk5VuKW4GH4VLav8A4BJboTsslHF1w==
+
 fn.name@1.x.x:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/fn.name/-/fn.name-1.1.0.tgz#26cad8017967aea8731bc42961d04a3d5988accc"
