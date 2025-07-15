@@ -15,6 +15,11 @@
   },
   "license": "MIT",
   "dependencies": {
-    "chokidar": "^3.5.3"
+    "chokidar": "^3.5.3",
+    "elasticlunr": "^0.9.5",
+    "minisearch": "^6.3.0"
+  },
+  "devDependencies": {
+    "@types/elasticlunr": "^0.9.3"
   }
 }
