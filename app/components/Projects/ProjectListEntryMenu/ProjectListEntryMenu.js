@@ -1,9 +1,15 @@
 import React from 'react';
-import { Menu, MenuItem } from '@mui/material';
+import { Menu, MenuItem, Divider } from '@mui/material';
 import PropTypes from 'prop-types';
 import Messages from '../../../constants/messages';
 
 function projectListEntryMenu(props) {
+  if (!props.project){
+    return null;
+  }
+  const isPinned = props.project.favorite;
+  const isPast = props.project.status === 'past';
+
   return (
     <Menu
       id="project-list-menu"
@@ -12,13 +18,32 @@ function projectListEntryMenu(props) {
       open={Boolean(props.anchorElement)}
       onClose={props.onClose}
     >
+      {/* Pin/Unpin option */}
       <MenuItem
         onClick={() =>
           props.onMenuClick(Messages.TOGGLE_PROJECT_FAVORITE_REQUEST, props.project.id)
         }
       >
-        {props.project && props.project.favorite ? 'Unpin from Favorites' : 'Pin to Favorites'}
+      {isPinned ? 'Unpin from Favorites' : 'Pin to Favorites'}
       </MenuItem>
+      
+      {/* Status toggle option - only for non-pinned projects */}
+      {!isPinned && (
+        <>
+          <Divider />
+          <MenuItem
+            onClick={() =>
+              props.onMenuClick(Messages.TOGGLE_PROJECT_STATUS_REQUEST, props.project.id)
+            }
+          >
+            {isPast ? 'Mark as Active' : 'Mark as Past'}
+          </MenuItem>
+        </>
+      )}
+      
+      <Divider />
+      
+      {/* Remove option */}
       <MenuItem
         onClick={() =>
           props.onMenuClick(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, props.project.id)

@@ -8,8 +8,43 @@ import Error from '../Error/Error';
 import styles from './Projects.css';
 
 class Projects extends Component {
+  renderProjectSection(projects, title, count) {
+    if (projects.length === 0){
+      return null;
+    }
+
+    const projectEntries = projects.map((item) => (
+      <ProjectEntry
+        key={item.id}
+        hasUpdate={item.hasUpdate}
+        project={item}
+        selected={this.props.selectedProject && this.props.selectedProject.id === item.id}
+        onSelect={() => this.props.onSelect(item)}
+        onFavoriteClick={(e) => {
+          e.stopPropagation();
+          this.props.onFavoriteClick(item.id);
+        }}
+        onMenuClick={(event) => {
+          event.stopPropagation();
+          this.props.onMenuClick(event.currentTarget, item);
+        }}
+      />
+    ));
+
+    return (
+      <div className={styles.projectSection}>
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionTitle}>{title}</span>
+          <span className={styles.sectionCount}>{count}</span>
+        </div>
+        {projectEntries}
+      </div>
+    );
+  }
+
   render() {
     let projectDetails = <CircularProgress className={styles.progress} />;
+    
     if (this.props.loaded) {
       if (this.props.error) {
         projectDetails = (
@@ -21,53 +56,32 @@ class Projects extends Component {
           </Error>
         );
       } else {
-        const pinnedProjects = this.props.projects
-          .filter((x) => x.favorite)
-          .map((item) => (
-            <ProjectEntry
-              key={item.id}
-              hasUpdate={item.hasUpdate}
-              project={item}
-              selected={this.props.selectedProject && this.props.selectedProject.id === item.id}
-              onSelect={() => this.props.onSelect(item)}
-              onFavoriteClick={(e) => {
-                e.stopPropagation();
-                this.props.onFavoriteClick(item.id);
-              }}
-              onMenuClick={(event) => {
-                event.stopPropagation();
-                this.props.onMenuClick(event.currentTarget, item);
-              }}
-            />
-          ));
-        const projects = this.props.projects
-          .filter((x) => !x.favorite)
-          .map((item) => (
-            <ProjectEntry
-              key={item.id}
-              hasUpdate={item.hasUpdate}
-              project={item}
-              selected={this.props.selectedProject && this.props.selectedProject.id === item.id}
-              onSelect={() => this.props.onSelect(item)}
-              onFavoriteClick={(e) => {
-                e.stopPropagation();
-                this.props.onFavoriteClick(item.id);
-              }}
-              onMenuClick={(event) => {
-                event.stopPropagation();
-                this.props.onMenuClick(event.currentTarget, item);
-              }}
-            />
-          ));
-        const divider =
-          projects.length > 0 && pinnedProjects.length > 0 ? (
-            <hr className={styles.projectDivider} />
-          ) : null;
+        // Create three project categories
+        const pinnedProjects = this.props.projects.filter((x) => x.favorite);
+        const activeProjects = this.props.projects.filter((x) => !x.favorite && (!x.status || x.status === 'active'));
+        const pastProjects = this.props.projects.filter((x) => !x.favorite && x.status === 'past');
+        const sections = [];
+        
+        if (pinnedProjects.length > 0) {
+          sections.push(this.renderProjectSection(pinnedProjects, 'PINNED PROJECTS', pinnedProjects.length));
+        }
+        
+        if (activeProjects.length > 0) {
+          sections.push(this.renderProjectSection(activeProjects, 'ACTIVE PROJECTS', activeProjects.length));
+        }
+        
+        if (pastProjects.length > 0) {
+          sections.push(this.renderProjectSection(pastProjects, 'PAST PROJECTS', pastProjects.length));
+        }
+
         projectDetails = (
           <>
-            {pinnedProjects}
-            {divider}
-            {projects}
+            {sections.map((section, index) => (
+              <React.Fragment key={index}>
+                {section}
+                {index < sections.length - 1 && <hr className={styles.projectDivider} />}
+              </React.Fragment>
+            ))}
           </>
         );
       }
