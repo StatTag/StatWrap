@@ -2,13 +2,14 @@ import React from 'react';
 import { Menu, MenuItem, Divider } from '@mui/material';
 import PropTypes from 'prop-types';
 import Messages from '../../../constants/messages';
+import Constants from '../../../constants/constants';
 
 function projectListEntryMenu(props) {
   if (!props.project){
     return null;
   }
   const isPinned = props.project.favorite;
-  const isPast = props.project.status === 'past';
+  const isPast = props.project.status === Constants.ProjectStatus.PAST;
 
   return (
     <Menu

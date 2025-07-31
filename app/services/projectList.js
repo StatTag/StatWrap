@@ -35,7 +35,7 @@ export default class ProjectListService {
     project.favorite = !project.favorite;
 
     // When unpinning a project, automatically set it to active 
-    if (wasFavorite && !project.favorite && project.status === 'past') {
+    if (wasFavorite && !project.favorite && project.status === Constants.ProjectStatus.PAST) {
       delete project.status; 
     }
     
@@ -63,11 +63,11 @@ export default class ProjectListService {
       return false;
     }
     // Toggle between active  and past
-    if (project.status === 'past') {
+    if (project.status === Constants.ProjectStatus.PAST) {
       delete project.status; 
     } 
     else {
-      project.status = 'past'; 
+      project.status = Constants.ProjectStatus.PAST;
     }
     this.writeProjectList(filePath, projectList);
     return true;

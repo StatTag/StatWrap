@@ -5,6 +5,7 @@ import AddIcon from '@mui/icons-material/Add';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ProjectEntry from './ProjectEntry/ProjectEntry';
 import Error from '../Error/Error';
+import Constants from '../../constants/constants';
 import styles from './Projects.css';
 
 class Projects extends Component {
@@ -58,8 +59,8 @@ class Projects extends Component {
       } else {
         // Create three project categories
         const pinnedProjects = this.props.projects.filter((x) => x.favorite);
-        const activeProjects = this.props.projects.filter((x) => !x.favorite && (!x.status || x.status === 'active'));
-        const pastProjects = this.props.projects.filter((x) => !x.favorite && x.status === 'past');
+        const activeProjects = this.props.projects.filter((x) => !x.favorite && (!x.status || x.status === Constants.ProjectStatus.ACTIVE));
+        const pastProjects = this.props.projects.filter((x) => !x.favorite && x.status === Constants.ProjectStatus.PAST);
         const sections = [];
         
         if (pinnedProjects.length > 0) {
