@@ -23,6 +23,58 @@ const projectListString = `[
   }
 ]`;
 
+const projectListWithStatusString = `[
+    {
+      "id": "d01d2925-f6ff-4f8e-988f-fca2ee193427",
+      "favorite": false,
+      "status": "active",
+      "lastAccessed": "2020-04-21T21:21:27.041Z",
+      "path": "~/Development/projects/test1",
+      "name": "Active Project"
+    },
+    {
+      "id": "6ff79e02-4f24-4948-ac77-f3f1b67064e5",
+      "favorite": false,
+      "status": "past",
+      "lastAccessed": "2020-04-21T21:21:27.041Z",
+      "path": "~/Development/projects/test2",
+      "name": "Past Project"
+    },
+    {
+      "id": "7ff79e02-4f24-4948-ac77-f3f1b67064e6",
+      "favorite": true,
+      "status": "active",
+      "lastAccessed": "2020-04-21T21:21:27.041Z",
+      "path": "~/Development/projects/test3",
+      "name": "Pinned Project"
+    },
+    {
+      "id": "8ff79e02-4f24-4948-ac77-f3f1b67064e7",
+      "favorite": false,
+      "lastAccessed": "2020-04-21T21:21:27.041Z",
+      "path": "~/Development/projects/test4",
+      "name": "No Status Project"
+    }
+  ]`;
+
+const projectListWithPastFavoriteString = `[
+    {
+      "id": "d01d2925-f6ff-4f8e-988f-fca2ee193427",
+      "favorite": true,
+      "status": "past",
+      "lastAccessed": "2020-04-21T21:21:27.041Z",
+      "path": "~/Development/projects/test1",
+      "name": "Past Favorite Project"
+    },
+    {
+      "id": "6ff79e02-4f24-4948-ac77-f3f1b67064e5",
+      "favorite": true,
+      "lastAccessed": "2020-04-21T21:21:27.041Z",
+      "path": "~/Development/projects/test2",
+      "name": "Active Favorite Project"
+    }
+  ]`;
+
 // Used just for testing the sorting of the project list.
 const unsortedProjectListString = `[
   {
@@ -272,6 +324,135 @@ describe('services', () => {
           new ProjectListService().toggleProjectFavorite('d01d2925-f6ff-4f8e-988f-fca2ee193427'),
         ).toThrow(SyntaxError);
         expect(fs.writeFileSync).not.toHaveBeenCalled();
+      });
+
+      it('should remove past status when unpinning a past favorite project', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListWithPastFavoriteString);
+        const service = new ProjectListService();
+
+        service.toggleProjectFavorite('d01d2925-f6ff-4f8e-988f-fca2ee193427');
+
+        // Check that the project was unpinned AND status was removed (active)
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+          '.statwrap-projects.json',
+          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":false,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1","name":"Past Favorite Project"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","favorite":true,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test2","name":"Active Favorite Project"}]'
+        );
+      });
+
+      it('should not affect status when unpinning a non-past favorite project', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListWithPastFavoriteString);
+        const service = new ProjectListService();
+
+        service.toggleProjectFavorite('6ff79e02-4f24-4948-ac77-f3f1b67064e5');
+
+        // Check that the project was unpinned but no status property was added/removed
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+          '.statwrap-projects.json',
+          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":true,"status":"past","lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1","name":"Past Favorite Project"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","favorite":false,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test2","name":"Active Favorite Project"}]'
+        );
+      });
+    });
+
+    describe('toggleProjectStatus', () => {
+      it('should not try to save if the project list does not exist', () => {
+        fs.accessSync.mockImplementation(() => {
+          throw new Error();
+        });
+        const service = new ProjectListService();
+        expect(service.toggleProjectStatus('d01d2925-f6ff-4f8e-988f-fca2ee193427')).toBe(false);
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+        expect(fs.readFileSync).not.toHaveBeenCalled();
+      });
+
+      it('should not try to save if the project ID is invalid', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListWithStatusString);
+
+        const service = new ProjectListService();
+        // Undefined as in 'not properly specified'
+        expect(service.toggleProjectStatus(null)).toBe(false);
+        expect(service.toggleProjectStatus(undefined)).toBe(false);
+
+        // Also undefined as in 'can't find the ID'
+        expect(service.toggleProjectStatus('1-2-3-4')).toBe(false);
+
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+      });
+
+      it('should not allow status changes for pinned projects', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListWithStatusString);
+
+        const service = new ProjectListService();
+        // Try to change status of a pinned project
+        expect(service.toggleProjectStatus('7ff79e02-4f24-4948-ac77-f3f1b67064e6')).toBe(false);
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+      });
+
+      it('should toggle an active project to past status', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListWithStatusString);
+        const service = new ProjectListService();
+
+        const result = service.toggleProjectStatus('d01d2925-f6ff-4f8e-988f-fca2ee193427');
+        expect(result).toBe(true);
+
+        // Check that the project status was changed from 'active' to 'past'
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+          '.statwrap-projects.json',
+          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":false,"status":"past","lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1","name":"Active Project"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","favorite":false,"status":"past","lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test2","name":"Past Project"},{"id":"7ff79e02-4f24-4948-ac77-f3f1b67064e6","favorite":true,"status":"active","lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test3","name":"Pinned Project"},{"id":"8ff79e02-4f24-4948-ac77-f3f1b67064e7","favorite":false,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test4","name":"No Status Project"}]'
+        );
+      });
+
+      it('should toggle a past project to active status (removes status property)', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListWithStatusString);
+        const service = new ProjectListService();
+
+        const result = service.toggleProjectStatus('6ff79e02-4f24-4948-ac77-f3f1b67064e5');
+        expect(result).toBe(true);
+
+        // Check that the project status was removed (making it active by default)
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+          '.statwrap-projects.json',
+          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":false,"status":"active","lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1","name":"Active Project"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","favorite":false,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test2","name":"Past Project"},{"id":"7ff79e02-4f24-4948-ac77-f3f1b67064e6","favorite":true,"status":"active","lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test3","name":"Pinned Project"},{"id":"8ff79e02-4f24-4948-ac77-f3f1b67064e7","favorite":false,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test4","name":"No Status Project"}]'
+        );
+      });
+
+      it('should set status to past for a project with no status property when toggled', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListWithStatusString);
+        const service = new ProjectListService();
+
+        const result = service.toggleProjectStatus('8ff79e02-4f24-4948-ac77-f3f1b67064e7');
+        expect(result).toBe(true);
+
+        // Check that the project without status gets 'past' status
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+          '.statwrap-projects.json',
+          '[{"id":"d01d2925-f6ff-4f8e-988f-fca2ee193427","favorite":false,"status":"active","lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1","name":"Active Project"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","favorite":false,"status":"past","lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test2","name":"Past Project"},{"id":"7ff79e02-4f24-4948-ac77-f3f1b67064e6","favorite":true,"status":"active","lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test3","name":"Pinned Project"},{"id":"8ff79e02-4f24-4948-ac77-f3f1b67064e7","favorite":false,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test4","name":"No Status Project","status":"past"}]'
+        );
+      });
+
+      it('should throw an error and fail to save if the file is invalid', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(invalidProjectListString);
+        expect(() =>
+          new ProjectListService().toggleProjectStatus('d01d2925-f6ff-4f8e-988f-fca2ee193427')
+        ).toThrow(SyntaxError);
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+      });
+
+      it('should return true when successfully toggling status', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListWithStatusString);
+        const service = new ProjectListService();
+
+        expect(service.toggleProjectStatus('d01d2925-f6ff-4f8e-988f-fca2ee193427')).toBe(true);
+        expect(service.toggleProjectStatus('6ff79e02-4f24-4948-ac77-f3f1b67064e5')).toBe(true);
+        expect(service.toggleProjectStatus('8ff79e02-4f24-4948-ac77-f3f1b67064e7')).toBe(true);
       });
     });
 
