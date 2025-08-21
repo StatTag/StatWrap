@@ -212,6 +212,9 @@ class SearchService {
    */
   async loadIndexFromFile() {
     try {
+      if (!this.indexFilePath) {
+        await this.setupIndexFilePath();
+      }
       if (!this.indexFilePath || !fs.existsSync(this.indexFilePath)) {
         console.log('SearchService: No existing index file found, will create new one');
         return {
