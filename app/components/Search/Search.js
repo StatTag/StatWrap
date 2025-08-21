@@ -454,38 +454,78 @@ function Search() {
   };
 
   const handleReindexAll = async () => {
-    console.log('Search: Reindexing all projects');
-    
-    try {
+  console.log('Search: Reindexing all projects');
+  
+  try {
+    if (!SearchService.isInitialized || SearchService.documentStore.size === 0) {
+      console.log('Search: Service needs reinitialization, loading projects first...');
+      setIsInitializing(true);
+      ipcRenderer.send(Message.LOAD_PROJECT_LIST_REQUEST);
+      
+      const handleReinitProjectResponse = async (event, response) => {
+        try {
+          if (response.projects) {
+            await SearchService.initialize(response.projects, indexingFilters.maxFileSize);
+            updateSearchStats();
+            updateIndexFileInfo();
+            setIsInitializing(false);
+            console.log('Search: Reinitialization completed');
+          }
+        } catch (error) {
+          console.error('Search: Reinitialization error:', error);
+          setIsInitializing(false);
+        }
+        ipcRenderer.removeListener(Message.LOAD_PROJECT_LIST_RESPONSE, handleReinitProjectResponse);
+      };
+      
+      ipcRenderer.once(Message.LOAD_PROJECT_LIST_RESPONSE, handleReinitProjectResponse);
+    } else {
       await SearchService.reindexAll();
       updateSearchStats();
       updateIndexFileInfo();
-    } catch (error) {
-      console.error('Search: Error during reindex:', error);
     }
-  };
+  } catch (error) {
+    console.error('Search: Error during reindex:', error);
+    setIsInitializing(false);
+  }
+};
 
 const handleDeleteIndex = async () => {
   if (window.confirm('Are you sure you want to delete the index file? This will require a complete reindex.')) {
     console.log('Search: Deleting index file');
     
     try {
-      await SearchService.deleteIndexFile();
+      const deleteSuccess = await SearchService.deleteIndexFile();
       
-      updateIndexFileInfo();
-      updateSearchStats();
-      
-      setSearchStats({
-        totalDocuments: 0,
-        documentsByType: {},
-        contentIndexedFiles: 0,
-        indexedProjects: 0,
-        indexingInProgress: false
-      });
-      
-      setIndexFileInfo({ exists: false, path: null, size: 0 });
-      
-      alert('Index file deleted. A new index will be created on next initialization.');
+      if (deleteSuccess) {
+        setSearchStats({
+          totalDocuments: 0,
+          documentsByType: {},
+          contentIndexedFiles: 0,
+          indexedProjects: 0,
+          indexingInProgress: false
+        });
+        
+        setIndexFileInfo({ exists: false, path: null, size: 0 });
+        setLastUpdateInfo({ added: 0, removed: 0, updated: 0 });
+        
+        setSearchResults({
+          projects: [],
+          people: [],
+          assets: [],
+          files: [],
+          folders: [],
+          notes: [],
+          all: []
+        });
+        setSearchTerm('');
+        setExpandedItems({});
+        
+        console.log('Search: Index deleted successfully, ready for reinitialization');
+        alert('Index file deleted successfully. Click "Reindex" to create a new index.');
+      } else {
+        alert('Failed to delete index file.');
+      }
     } catch (error) {
       console.error('Search: Error deleting index:', error);
       alert('Error deleting index: ' + error.message);

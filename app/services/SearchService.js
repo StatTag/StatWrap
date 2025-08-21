@@ -1813,20 +1813,37 @@ class SearchService {
    * Delete the index file and start fresh
    */
   async deleteIndexFile() {
-    if (this.indexFilePath && fs.existsSync(this.indexFilePath)) {
-      try {
-        fs.unlinkSync(this.indexFilePath);
-        console.log('SearchService: Index file deleted');
-        this.indicesBuiltThisSession = false;
-        this.isInitialized = false;
-        return true;  
-      } catch (error) {
-        console.error('SearchService: Error deleting index file:', error);
-        return false;
-      }
+  if (this.indexFilePath && fs.existsSync(this.indexFilePath)) {
+    try {
+      fs.unlinkSync(this.indexFilePath);
+      console.log('SearchService: Index file deleted');
+      
+      this.clearIndices();
+      this.isInitialized = false;
+      this.indicesBuiltThisSession = false;
+      this.indexingInProgress = false;
+      this.indexingQueue = [];
+      this.indexedProjectsMap.clear();
+      this.documentStore.clear();
+      this.resultCache.clear();
+      
+      this.performanceStats = {
+        totalSearches: 0,
+        totalIndexingTime: 0,
+        averageSearchTime: 0,
+        documentsIndexed: 0,
+        searchTimes: []
+      };
+      
+      console.log('SearchService: Internal state reset after index deletion');
+      return true;  
+    } catch (error) {
+      console.error('SearchService: Error deleting index file:', error);
+      return false;
     }
-    return true;
   }
+  return true;
+}
 
 }
 
