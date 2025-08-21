@@ -62,4 +62,7 @@ module.exports = {
   REMOVE_PROJECT_PERSON_RESPONSE: 'statwrap-remove-project-person-response',
 
   PROJECT_EXTERNALLY_CHANGED_RESPONSE: 'statwrap-project-externally-changed',
+  SEARCH_INDEX_PROJECT_RESPONSE: 'statwrap-search-index-project-response',
+  SEARCH_INDEX_ALL_RESPONSE: 'statwrap-search-index-all-response',
+  SEARCH_STATUS_RESPONSE: 'statwrap-search-status-response',
 };
