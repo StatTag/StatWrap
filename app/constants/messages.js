@@ -59,25 +59,7 @@ module.exports = {
   REMOVE_PROJECT_PERSON_RESPONSE: 'statwrap-remove-project-person-response',
 
   PROJECT_EXTERNALLY_CHANGED_RESPONSE: 'statwrap-project-externally-changed',
-  ENHANCED_SEARCH_REQUEST: 'statwrap-enhanced-search-request',
-  ENHANCED_SEARCH_RESPONSE: 'statwrap-enhanced-search-response',
-  
-  ENHANCED_SEARCH_INDEX_PROJECT_REQUEST: 'statwrap-enhanced-search-index-project-request',
-  ENHANCED_SEARCH_INDEX_PROJECT_RESPONSE: 'statwrap-enhanced-search-index-project-response',
-  ENHANCED_SEARCH_INDEX_ALL_REQUEST: 'statwrap-enhanced-search-index-all-request',
-  ENHANCED_SEARCH_INDEX_ALL_RESPONSE: 'statwrap-enhanced-search-index-all-response',
-  
-  ENHANCED_SEARCH_STATUS_REQUEST: 'statwrap-enhanced-search-status-request',
-  ENHANCED_SEARCH_STATUS_RESPONSE: 'statwrap-enhanced-search-status-response',
-  ENHANCED_SEARCH_STATS_REQUEST: 'statwrap-enhanced-search-stats-request',
-  ENHANCED_SEARCH_STATS_RESPONSE: 'statwrap-enhanced-search-stats-response',
-  SEARCH_INDEX_PROJECT_REQUEST: 'search-index-project-request',
-  SEARCH_INDEX_PROJECT_RESPONSE: 'search-index-project-response',
-  SEARCH_INDEX_ALL_REQUEST: 'search-index-all-request',
-  SEARCH_INDEX_ALL_RESPONSE: 'search-index-all-response',
-  SEARCH_QUERY_REQUEST: 'search-query-request',
-  SEARCH_QUERY_RESPONSE: 'search-query-response',
-  SEARCH_STATUS_REQUEST: 'search-status-request',
-  SEARCH_STATUS_RESPONSE: 'search-status-response'
-
+  SEARCH_INDEX_PROJECT_RESPONSE: 'statwrap-search-index-project-response',
+  SEARCH_INDEX_ALL_RESPONSE: 'statwrap-search-index-all-response',
+  SEARCH_STATUS_RESPONSE: 'statwrap-search-status-response',
 };

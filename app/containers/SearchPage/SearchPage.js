@@ -1,4 +1,3 @@
-// app/containers/SearchPage/SearchPage.js
 import React from 'react';
 import Search from '../../components/Search/Search';
 import styles from './Search.css';
