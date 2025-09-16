@@ -34,9 +34,44 @@
 }
 
 .projectDivider {
-  margin-top: 10px;
-  margin-bottom: 10px;
+  margin-top: 15px;
+  margin-bottom: 15px;
   width: 90%;
+  border: none;
+  border-top: 1px solid #ddd;
+}
+
+.projectSection {
+  margin-bottom: 10px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background-color: #f8f9fa;
+  border-left: 3px solid #4e2a84;
+  margin-bottom: 5px;
+}
+
+.sectionTitle {
+  color: #836eaa;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sectionCount {
+  color: #6c757d;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: #e9ecef;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
 }
 
 .filler {

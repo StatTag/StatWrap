@@ -971,3 +971,28 @@ ipcMain.on(Messages.SCAN_ASSET_DYNAMIC_DETAILS_REQUEST, async (event, project, a
     event.sender.send(Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE, response);
   })();
 });
+
+ipcMain.on(Messages.TOGGLE_PROJECT_STATUS_REQUEST, async (event, projectId) => {
+  const response = {
+    projectId,
+    error: false,
+    errorMessage: '',
+  };
+
+  try {
+    const userDataPath = app.getPath('userData');
+    projectListService.toggleProjectStatus(
+      projectId,
+      path.join(userDataPath, DefaultProjectListFile),
+    );
+    response.error = false;
+    response.errorMessage = '';
+  } catch (e) {
+    response.error = true;
+    response.errorMessage =
+      'There was an unexpected error when updating the project status';
+    console.log(e);
+  }
+
+  event.sender.send(Messages.TOGGLE_PROJECT_STATUS_RESPONSE, response);
+});

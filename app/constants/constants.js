@@ -7,6 +7,11 @@ module.exports = {
     CLONE_PROJECT_TYPE: 'Clone',
   },
 
+  ProjectStatus: {
+    ACTIVE: 'active',
+    PAST: 'past',
+  },
+  
   UndefinedDefaults: {
     PROJECT: '(Unnamed Project)',
     ACTION_TYPE: 'StatWrap Event',

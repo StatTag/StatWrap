@@ -96,7 +96,7 @@ class ProjectPage extends Component {
     ipcRenderer.on(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
     ipcRenderer.on(Messages.SCAN_PROJECT_RESULTS_RESPONSE, this.handleScanProjectResultsResponse);
     ipcRenderer.on(Messages.UPDATE_PROJECT_RESPONSE, this.handleUpdateProjectResponse);
-
+    ipcRenderer.on(Messages.TOGGLE_PROJECT_STATUS_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.on(Messages.LOAD_PROJECT_LOG_RESPONSE, this.handleLoadProjectLogResponse);
     ipcRenderer.on(Messages.WRITE_PROJECT_LOG_RESPONSE, this.handleRefreshProjectLog);
 
@@ -165,6 +165,7 @@ class ProjectPage extends Component {
       Messages.PROJECT_EXTERNALLY_CHANGED_RESPONSE,
       this.handleProjectExternallyChangedResponse,
     );
+    ipcRenderer.removeListener(Messages.TOGGLE_PROJECT_STATUS_RESPONSE, this.refreshProjectsHandler);
   }
 
   handleScanAssetDynamicDetailsResponse(sender, response) {
@@ -383,18 +384,21 @@ class ProjectPage extends Component {
   }
 
   handleClickProjectListMenu(event, projectId) {
-    switch (event) {
-      case Messages.TOGGLE_PROJECT_FAVORITE_REQUEST:
-        this.handleFavoriteClick(projectId);
-        break;
-      case Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST:
-        ipcRenderer.send(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, projectId);
-        break;
-      default:
-        console.warn(`Unknown project list entry menu event: ${event}`);
-    }
-    this.setState({ projectListMenuAnchor: null });
+  switch (event) {
+    case Messages.TOGGLE_PROJECT_FAVORITE_REQUEST:
+      this.handleFavoriteClick(projectId);
+      break;
+    case Messages.TOGGLE_PROJECT_STATUS_REQUEST:
+      ipcRenderer.send(Messages.TOGGLE_PROJECT_STATUS_REQUEST, projectId);
+      break;
+    case Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST:
+      ipcRenderer.send(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, projectId);
+      break;
+    default:
+      console.warn(`Unknown project list entry menu event: ${event}`);
   }
+  this.setState({ projectListMenuAnchor: null });
+}
 
   handleSelectProjectListItem(project) {
     // Handle case where user clicks off of all projects (project is null)

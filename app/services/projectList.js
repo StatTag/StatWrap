@@ -31,7 +31,44 @@ export default class ProjectListService {
       return false;
     }
 
+    const wasFavorite = project.favorite;
     project.favorite = !project.favorite;
+
+    // When unpinning a project, automatically set it to active 
+    if (wasFavorite && !project.favorite && project.status === Constants.ProjectStatus.PAST) {
+      delete project.status; 
+    }
+    
+    this.writeProjectList(filePath, projectList);
+    return true;
+  }
+
+  // Toggle project status between active and past (similar to pin/unpin)
+  toggleProjectStatus(projectId, filePath = DefaultProjectListFile) {
+    let projectList = [];
+    try {
+      fs.accessSync(filePath);
+    } catch {
+      return false;
+    }
+
+    const data = fs.readFileSync(filePath);
+    projectList = JSON.parse(data.toString());
+    const project = projectList.find((x) => x.id === projectId);
+    if (!project) {
+      return false;
+    }
+    // for pinned projects no status changes
+    if (project.favorite) {
+      return false;
+    }
+    // Toggle between active  and past
+    if (project.status === Constants.ProjectStatus.PAST) {
+      delete project.status; 
+    } 
+    else {
+      project.status = Constants.ProjectStatus.PAST;
+    }
     this.writeProjectList(filePath, projectList);
     return true;
   }
