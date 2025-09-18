@@ -1,7 +1,7 @@
 {
   "name": "statwrap",
   "productName": "StatWrap",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "Reproducible research made easy",
   "main": "./main.prod.js",
   "author": {

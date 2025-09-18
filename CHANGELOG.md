@@ -1,5 +1,20 @@
 # StatWrap Changelog
 
+## 0.0.17 - September 19, 2025
+
+### Change Summary
+
+Many thanks to numerous contributions from the community.
+
+- Allow filtering assets by attributes (@Abhijay007)
+- Collapsible markdown sections in project About page (@debangi29)
+- Detect offline projects that go online (@Abhijay007)
+- Upgrade to React 19 (@Abhijay007)
+- Allow organizing projects into Active and Past groups (@debangi29)
+- Other dependency updates (@lrasmus)
+
+**Full Changelog**: https://github.com/StatTag/StatWrap/compare/0.0.16...0.0.17
+
 ## 0.0.16 - May 22, 2025
 
 ### Change Summary

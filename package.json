@@ -1,7 +1,7 @@
 {
   "name": "statwrap",
   "productName": "StatWrap",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "Reproducible research made easy",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\" \"yarn build-worker\" \"yarn build-preload\"",
