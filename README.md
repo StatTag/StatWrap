@@ -72,6 +72,7 @@ We do not use templates for reporting issues - anyone who has a question about h
 We appreciate contributions from the community, but as with any project a change suggested may not be something we choose to incorporate into the code base. If you have any questions about creation or implementation of a feature, please feel free to [open a new issue](https://github.com/StatTag/StatWrap/issues/new/choose) to solicit feedback.
 
 ## Solutions to Development Issues
+
 If when running the project locally, you get the following error:
 
 ```
@@ -83,11 +84,13 @@ Error: ENOSPC: System limit for number of file watchers reached, watch '/home/<u
     at FSWatcher.<computed> (node:internal/fs/watchers:247:19)
     at Object.watch (node:fs:2392:36)
 ```
+
 You will need to increase the number of file watchers available, to its maximum, by running the following command:
 
 For debian-based distros:
 
 Execute this command:
+
 ```
 echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 ```
@@ -155,6 +158,32 @@ yarn package
 ```
 
 _(Solution courtesy of: https://github.com/marktext/marktext/issues/3175#issuecomment-1208840633)_
+
+## Solutions to Packaging Issues
+
+On Windows, if when trying to run `yarn package`, you may see the following error from electron-builder:
+
+```
+errorOut=ERROR: Cannot create symbolic link : <some path>
+```
+
+Looking back at the error, you will notice that it is failing when trying to download and extract a temporary copy of `winCodeSign`:
+
+```
+Extracting archive: C:\Users\<username>>\AppData\Local\electron-builder\Cache\winCodeSign\618674575.7z
+```
+
+This has to do with how `winCodeSign` is packaged up, where it wants to create symlinks for some lib files. If you search for this error, some recommendations are to run `yarn package` with administrative rights. **This is not adviseable** - you should not have to run the packaging process with elevated rights, and it opens potential security risks. Instead, follow these steps:
+
+> "Download the winCodeSign.7z package manually. You can use the same URL as electron-builder is using:
+> https://github.com/electron-userland/electron-builder-binaries/releases/download/winCodeSign-2.6.0/winCodeSign-2.6.0.7z
+
+> Then extract the archive to the requested location (I've used 7-Zip 23.01 for Windows) so that you have this folder on your machine:
+> C:\Users\<YourUserName>\AppData\Local\electron-builder\Cache\winCodeSign\winCodeSign-2.6.0\"
+
+_(Solution courtesy of: https://github.com/electron-userland/electron-builder/issues/8149#issuecomment-2079252400)_
+
+This should be a one-time change to your system. Once this folder is set up, you should be able to run `yarn package`, and the build process will use the existing copy of `winCodeSign` instead of trying to download a new one.
 
 ## Packaging and Notarization (macOS)
 
