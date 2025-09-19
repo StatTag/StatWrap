@@ -9,7 +9,7 @@ Many thanks to numerous contributions from the community.
 - Allow filtering assets by attributes (@Abhijay007)
 - Collapsible markdown sections in project About page (@debangi29)
 - Detect offline projects that go online (@Abhijay007)
-- Upgrade to React 19 (@Abhijay007)
+- Upgrade to React 18 (@Abhijay007)
 - Allow organizing projects into Active and Past groups (@debangi29)
 - Other dependency updates (@lrasmus)
 
