@@ -25,7 +25,7 @@ import {
   Switch,
   FormControlLabel,
   Slider,
-  Alert
+  Alert,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import {
@@ -52,7 +52,7 @@ import {
   MemoryOutlined,
   RefreshOutlined,
   DeleteOutlined,
-  InfoOutlined
+  InfoOutlined,
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { ipcRenderer } from 'electron';
@@ -61,19 +61,17 @@ import SearchService from '../../services/SearchService';
 import SearchConfig from '../../constants/search-config';
 import Messages from '../../constants/messages';
 
-const Message = Messages;
-
 const SearchContainer = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
   margin: theme.spacing(2),
   display: 'flex',
   flexDirection: 'column',
-  height: 'calc(100vh - 100px)', 
+  height: 'calc(100vh - 100px)',
   overflow: 'auto',
 }));
 
 const SearchHeader = styled(Box)(({ theme }) => ({
-  marginBottom: theme.spacing(2)
+  marginBottom: theme.spacing(2),
 }));
 
 const SearchFilters = styled(Box)(({ theme }) => ({
@@ -81,7 +79,7 @@ const SearchFilters = styled(Box)(({ theme }) => ({
   gap: theme.spacing(1),
   marginBottom: theme.spacing(2),
   flexWrap: 'wrap',
-  alignItems: 'center'
+  alignItems: 'center',
 }));
 
 const SearchResults = styled(Box)({
@@ -93,15 +91,15 @@ const ResultItem = styled(ListItem)(({ theme }) => ({
   borderRadius: theme.shape.borderRadius,
   border: `1px solid ${theme.palette.divider}`,
   '&:hover': {
-    backgroundColor: theme.palette.action.hover
-  }
+    backgroundColor: theme.palette.action.hover,
+  },
 }));
 
 const HighlightedText = styled('span')(({ theme }) => ({
   backgroundColor: theme.palette.warning.light,
   fontWeight: 'bold',
   padding: '0 2px',
-  borderRadius: 2
+  borderRadius: 2,
 }));
 
 const AdvancedSearchPanel = styled(Box)(({ theme }) => ({
@@ -109,7 +107,7 @@ const AdvancedSearchPanel = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
   border: `1px solid ${theme.palette.divider}`,
   borderRadius: theme.shape.borderRadius,
-  backgroundColor: theme.palette.background.default
+  backgroundColor: theme.palette.background.default,
 }));
 
 const PerformancePanel = styled(Box)(({ theme }) => ({
@@ -117,7 +115,7 @@ const PerformancePanel = styled(Box)(({ theme }) => ({
   padding: theme.spacing(1),
   border: `1px solid ${theme.palette.divider}`,
   borderRadius: theme.shape.borderRadius,
-  backgroundColor: theme.palette.grey[50]
+  backgroundColor: theme.palette.grey[50],
 }));
 
 const TabPanel = (props) => {
@@ -130,11 +128,7 @@ const TabPanel = (props) => {
       aria-labelledby={`search-tab-${index}`}
       {...other}
     >
-      {value === index && (
-        <Box p={1}>
-          {children}
-        </Box>
-      )}
+      {value === index && <Box p={1}>{children}</Box>}
     </div>
   );
 };
@@ -149,7 +143,7 @@ function Search() {
     files: [],
     folders: [],
     notes: [],
-    all: []
+    all: [],
   });
   const [activeTab, setActiveTab] = useState(0);
   const [expandedItems, setExpandedItems] = useState({});
@@ -157,11 +151,13 @@ function Search() {
   const [indexingStatus, setIndexingStatus] = useState({
     inProgress: false,
     projectId: null,
-    queueLength: 0
+    queueLength: 0,
   });
+  // maxFileSize (bytes): This is the raw value needed by the backend logic.
+  // maxFileSizeMB (megabytes): This is the display value for the user interface.
   const [indexingFilters, setIndexingFilters] = useState({
-    maxFileSize: 0.1* 1024 * 1024, 
-    maxFileSizeMB: 0.1
+    maxFileSize: 0.1 * 1024 * 1024,
+    maxFileSizeMB: 0.1,
   });
   const [showIndexingConfig, setShowIndexingConfig] = useState(false);
   const [indexFileInfo, setIndexFileInfo] = useState({ exists: false, path: null, size: 0 });
@@ -187,10 +183,10 @@ function Search() {
   useEffect(() => {
     console.log('Search: Starting initialization with persistent indexing');
 
-    ipcRenderer.send(Message.LOAD_PROJECT_LIST_REQUEST);
+    ipcRenderer.send(Messages.LOAD_PROJECT_LIST_REQUEST);
     const handleProjectResponse = async (event, response) => {
       console.log('Search: Got project response, initializing service with persistent index');
-      
+
       try {
         if (response.projects) {
           // Initialize with persistent indexing
@@ -204,12 +200,12 @@ function Search() {
         }
       } catch (error) {
         console.error('Init error:', error);
-      }  
+      }
       // Enable interface
       console.log('Search: Enabling interface');
       setIsInitializing(false);
     };
-    ipcRenderer.once(Message.LOAD_PROJECT_LIST_RESPONSE, handleProjectResponse);
+    ipcRenderer.once(Messages.LOAD_PROJECT_LIST_RESPONSE, handleProjectResponse);
 
     const handleIndexProjectResponse = (event, response) => {
       setIndexingStatus(response.status);
@@ -223,9 +219,9 @@ function Search() {
       setIndexingStatus(response.status);
     };
 
-    ipcRenderer.on(Message.SEARCH_INDEX_PROJECT_RESPONSE, handleIndexProjectResponse);
-    ipcRenderer.on(Message.SEARCH_INDEX_ALL_RESPONSE, handleIndexAllResponse);
-    // ipcRenderer.on(Message.SEARCH_STATUS_RESPONSE, handleSearchStatusResponse);
+    ipcRenderer.on(Messages.SEARCH_INDEX_PROJECT_RESPONSE, handleIndexProjectResponse);
+    ipcRenderer.on(Messages.SEARCH_INDEX_ALL_RESPONSE, handleIndexAllResponse);
+    // ipcRenderer.on(Messages.SEARCH_STATUS_RESPONSE, handleSearchStatusResponse);
 
     // Keyboard shortcuts
     const handleKeyDown = (event) => {
@@ -241,13 +237,15 @@ function Search() {
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      ipcRenderer.removeListener(Message.SEARCH_INDEX_PROJECT_RESPONSE, handleIndexProjectResponse);
-      ipcRenderer.removeListener(Message.SEARCH_INDEX_ALL_RESPONSE, handleIndexAllResponse);
-      // ipcRenderer.removeListener(Message.SEARCH_STATUS_RESPONSE, handleSearchStatusResponse);
+      ipcRenderer.removeListener(
+        Messages.SEARCH_INDEX_PROJECT_RESPONSE,
+        handleIndexProjectResponse,
+      );
+      ipcRenderer.removeListener(Messages.SEARCH_INDEX_ALL_RESPONSE, handleIndexAllResponse);
+      // ipcRenderer.removeListener(Messages.SEARCH_STATUS_RESPONSE, handleSearchStatusResponse);
       document.removeEventListener('keydown', handleKeyDown);
       if (searchTimeout) clearTimeout(searchTimeout);
     };
-    
   }, []);
 
   const updateSearchStats = useCallback(() => {
@@ -276,65 +274,68 @@ function Search() {
     setActiveTab(newValue);
   };
 
-  const performSearch = useCallback((query) => {
-    if (!query.trim()) {
-      setSearchResults({
-        projects: [],
-        people: [],
-        assets: [],
-        files: [],
-        folders: [],
-        notes: [],
-        all: []
-      });
-      setExpandedItems({});
-      return;
-    }
-
-    console.log('Search: Performing search for', query);
-    setIsSearching(true);
-    const searchStartTime = Date.now();
-    setExpandedItems({});
-
-    try {
-      let results;
-      
-      const searchOptions = {
-        type: searchFilters.type !== 'all' ? searchFilters.type : undefined,
-        projectId: searchFilters.project !== 'all' ? searchFilters.project : undefined,
-        maxResults: SearchConfig.search ? SearchConfig.search.maxResults : 1000
-      };
-
-      results = SearchService.search(query, searchOptions);
-      console.log('Search: Search results', results);
-      
-      const filteredResults = applyFilters(results);
-      setSearchResults(filteredResults);
-
-      const searchTime = Date.now() - searchStartTime;
-      setLastSearchTime(searchTime);
-
-      // Add to search history
-      if (query.trim() && !searchHistory.includes(query.trim())) {
-        const historySize = SearchConfig.ui ? SearchConfig.ui.searchHistorySize : 15;
-        setSearchHistory(prev => [query.trim(), ...prev].slice(0, historySize));
+  const performSearch = useCallback(
+    (query) => {
+      const trimmedQuery = query.trim();
+      if (!trimmedQuery) {
+        setSearchResults({
+          projects: [],
+          people: [],
+          assets: [],
+          files: [],
+          folders: [],
+          notes: [],
+          all: [],
+        });
+        setExpandedItems({});
+        return;
       }
 
-    } catch (error) {
-      console.error('Search: Search error', error);
-      setSearchResults({
-        projects: [],
-        people: [],
-        assets: [],
-        files: [],
-        folders: [],
-        notes: [],
-        all: []
-      });
-    }
+      console.log('Search: Performing search for', query);
+      setIsSearching(true);
+      const searchStartTime = Date.now();
+      setExpandedItems({});
 
-    setIsSearching(false);
-  }, [searchFilters, searchHistory]);
+      try {
+        let results;
+
+        const searchOptions = {
+          type: searchFilters.type !== 'all' ? searchFilters.type : undefined,
+          projectId: searchFilters.project !== 'all' ? searchFilters.project : undefined,
+          maxResults: SearchConfig.search ? SearchConfig.search.maxResults : 1000,
+        };
+
+        results = SearchService.search(query, searchOptions);
+        console.log('Search: Search results', results);
+
+        const filteredResults = applyFilters(results);
+        setSearchResults(filteredResults);
+
+        const searchTime = Date.now() - searchStartTime;
+        setLastSearchTime(searchTime);
+
+        // Add to search history
+        if (trimmedQuery && !searchHistory.includes(trimmedQuery)) {
+          const historySize = SearchConfig.ui ? SearchConfig.ui.searchHistorySize : 15;
+          setSearchHistory((prev) => [trimmedQuery, ...prev].slice(0, historySize));
+        }
+      } catch (error) {
+        console.error('Search: Search error', error);
+        setSearchResults({
+          projects: [],
+          people: [],
+          assets: [],
+          files: [],
+          folders: [],
+          notes: [],
+          all: [],
+        });
+      }
+
+      setIsSearching(false);
+    },
+    [searchFilters, searchHistory],
+  );
 
   const handleSearch = () => {
     if (searchTerm.trim()) {
@@ -344,7 +345,7 @@ function Search() {
 
   const handleAutocompleteChange = (event, newValue) => {
     setSearchTerm(newValue || '');
-    
+
     if (newValue && newValue.trim() && suggestions.includes(newValue)) {
       performSearch(newValue);
       setShowSuggestions(false);
@@ -361,8 +362,9 @@ function Search() {
 
     if (SearchConfig.ui && SearchConfig.ui.enableSuggestions && value.length >= 2) {
       try {
-        const newSuggestions = SearchService.getSuggestions ? 
-          SearchService.getSuggestions(value) : [];
+        const newSuggestions = SearchService.getSuggestions
+          ? SearchService.getSuggestions(value)
+          : [];
         setSuggestions(newSuggestions);
         setShowSuggestions(newSuggestions.length > 0);
       } catch (error) {
@@ -383,7 +385,7 @@ function Search() {
         files: [],
         folders: [],
         notes: [],
-        all: []
+        all: [],
       });
       setExpandedItems({});
     }
@@ -404,25 +406,25 @@ function Search() {
     let filtered = { ...results };
 
     if (searchFilters.type !== 'all') {
-      Object.keys(filtered).forEach(key => {
+      Object.keys(filtered).forEach((key) => {
         if (key !== 'all' && key !== searchFilters.type) {
           filtered[key] = [];
         }
       });
-      filtered.all = filtered.all.filter(result => result.type === searchFilters.type);
+      filtered.all = filtered.all.filter((result) => result.type === searchFilters.type);
     }
 
     if (searchFilters.project !== 'all') {
-      Object.keys(filtered).forEach(key => {
-        filtered[key] = filtered[key].filter(result => 
-          result.item && result.item.projectId === searchFilters.project
+      Object.keys(filtered).forEach((key) => {
+        filtered[key] = filtered[key].filter(
+          (result) => result.item && result.item.projectId === searchFilters.project,
         );
       });
     }
 
     if (searchFilters.fileType !== 'all') {
-      Object.keys(filtered).forEach(key => {
-        filtered[key] = filtered[key].filter(result => {
+      Object.keys(filtered).forEach((key) => {
+        filtered[key] = filtered[key].filter((result) => {
           if (result.type === 'file' && result.item.extension) {
             return result.item.extension === searchFilters.fileType;
           }
@@ -435,15 +437,15 @@ function Search() {
   };
 
   const handleToggleExpand = (itemId) => {
-    setExpandedItems(prev => ({
+    setExpandedItems((prev) => ({
       ...prev,
-      [itemId]: !prev[itemId]
+      [itemId]: !prev[itemId],
     }));
   };
 
   const handleReindexWithFileSize = async () => {
     console.log('Search: Reindexing with file size limit:', indexingFilters.maxFileSize);
-    
+
     try {
       await SearchService.reindexAll(indexingFilters.maxFileSize);
       updateSearchStats();
@@ -454,84 +456,91 @@ function Search() {
   };
 
   const handleReindexAll = async () => {
-  console.log('Search: Reindexing all projects');
-  
-  try {
-    if (!SearchService.isInitialized || SearchService.documentStore.size === 0) {
-      console.log('Search: Service needs reinitialization, loading projects first...');
-      setIsInitializing(true);
-      ipcRenderer.send(Message.LOAD_PROJECT_LIST_REQUEST);
-      
-      const handleReinitProjectResponse = async (event, response) => {
-        try {
-          if (response.projects) {
-            await SearchService.initialize(response.projects, indexingFilters.maxFileSize);
-            updateSearchStats();
-            updateIndexFileInfo();
-            setIsInitializing(false);
-            console.log('Search: Reinitialization completed');
-          }
-        } catch (error) {
-          console.error('Search: Reinitialization error:', error);
-          setIsInitializing(false);
-        }
-        ipcRenderer.removeListener(Message.LOAD_PROJECT_LIST_RESPONSE, handleReinitProjectResponse);
-      };
-      
-      ipcRenderer.once(Message.LOAD_PROJECT_LIST_RESPONSE, handleReinitProjectResponse);
-    } else {
-      await SearchService.reindexAll();
-      updateSearchStats();
-      updateIndexFileInfo();
-    }
-  } catch (error) {
-    console.error('Search: Error during reindex:', error);
-    setIsInitializing(false);
-  }
-};
+    console.log('Search: Reindexing all projects');
 
-const handleDeleteIndex = async () => {
-  if (window.confirm('Are you sure you want to delete the index file? This will require a complete reindex.')) {
-    console.log('Search: Deleting index file');
-    
     try {
-      const deleteSuccess = await SearchService.deleteIndexFile();
-      
-      if (deleteSuccess) {
-        setSearchStats({
-          totalDocuments: 0,
-          documentsByType: {},
-          contentIndexedFiles: 0,
-          indexedProjects: 0,
-          indexingInProgress: false
-        });
-        
-        setIndexFileInfo({ exists: false, path: null, size: 0 });
-        setLastUpdateInfo({ added: 0, removed: 0, updated: 0 });
-        
-        setSearchResults({
-          projects: [],
-          people: [],
-          assets: [],
-          files: [],
-          folders: [],
-          notes: [],
-          all: []
-        });
-        setSearchTerm('');
-        setExpandedItems({});
-        
-        console.log('Search: Index deleted successfully, ready for reinitialization');
-        alert('Index file deleted successfully. Click "Reindex" to create a new index.');
+      if (!SearchService.isInitialized || SearchService.documentStore.size === 0) {
+        console.log('Search: Service needs reinitialization, loading projects first...');
+        setIsInitializing(true);
+        ipcRenderer.send(Messages.LOAD_PROJECT_LIST_REQUEST);
+
+        const handleReinitProjectResponse = async (event, response) => {
+          try {
+            if (response.projects) {
+              await SearchService.initialize(response.projects, indexingFilters.maxFileSize);
+              updateSearchStats();
+              updateIndexFileInfo();
+              setIsInitializing(false);
+              console.log('Search: Reinitialization completed');
+            }
+          } catch (error) {
+            console.error('Search: Reinitialization error:', error);
+            setIsInitializing(false);
+          }
+          ipcRenderer.removeListener(
+            Messages.LOAD_PROJECT_LIST_RESPONSE,
+            handleReinitProjectResponse,
+          );
+        };
+
+        ipcRenderer.once(Messages.LOAD_PROJECT_LIST_RESPONSE, handleReinitProjectResponse);
       } else {
-        alert('Failed to delete index file.');
+        await SearchService.reindexAll();
+        updateSearchStats();
+        updateIndexFileInfo();
       }
     } catch (error) {
-      console.error('Search: Error deleting index:', error);
-      alert('Error deleting index: ' + error.message);
+      console.error('Search: Error during reindex:', error);
+      setIsInitializing(false);
     }
-  }
-};
+  };
+
+  const handleDeleteIndex = async () => {
+    if (
+      window.confirm(
+        'Are you sure you want to delete the index file? This will require a complete reindex.',
+      )
+    ) {
+      console.log('Search: Deleting index file');
+
+      try {
+        const deleteSuccess = await SearchService.deleteIndexFile();
+
+        if (deleteSuccess) {
+          setSearchStats({
+            totalDocuments: 0,
+            documentsByType: {},
+            contentIndexedFiles: 0,
+            indexedProjects: 0,
+            indexingInProgress: false,
+          });
+
+          setIndexFileInfo({ exists: false, path: null, size: 0 });
+          setLastUpdateInfo({ added: 0, removed: 0, updated: 0 });
+
+          setSearchResults({
+            projects: [],
+            people: [],
+            assets: [],
+            files: [],
+            folders: [],
+            notes: [],
+            all: [],
+          });
+          setSearchTerm('');
+          setExpandedItems({});
+
+          console.log('Search: Index deleted successfully, ready for reinitialization');
+          alert('Index file deleted successfully. Click "Reindex" to create a new index.');
+        } else {
+          alert('Failed to delete index file.');
+        }
+      } catch (error) {
+        console.error('Search: Error deleting index:', error);
+        alert('Error deleting index: ' + error.message);
+      }
+    }
+  };
 
   const handleClearSearch = () => {
     setSearchTerm('');
@@ -542,7 +551,7 @@ const handleDeleteIndex = async () => {
       files: [],
       folders: [],
       notes: [],
-      all: []
+      all: [],
     });
     setSuggestions([]);
     setShowSuggestions(false);
@@ -558,7 +567,7 @@ const handleDeleteIndex = async () => {
       const exportData = SearchService.exportIndex();
       const dataStr = JSON.stringify(exportData, null, 2);
       const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      
+
       const link = document.createElement('a');
       link.href = URL.createObjectURL(dataBlob);
       link.download = `statwrap-search-index-${new Date().toISOString().split('T')[0]}.json`;
@@ -579,7 +588,7 @@ const handleDeleteIndex = async () => {
         SearchService.importIndex(importData);
         updateSearchStats();
         updateIndexFileInfo();
-        setIsInitializing(false); 
+        setIsInitializing(false);
         console.log('Search: Successfully imported search index');
         alert('Index imported successfully!');
       } catch (error) {
@@ -592,15 +601,13 @@ const handleDeleteIndex = async () => {
 
   const highlightText = (text, query) => {
     if (!query || !text || typeof text !== 'string') return text;
-    
+
     try {
       const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
       const parts = text.split(regex);
-      
-      return parts.map((part, index) => 
-        regex.test(part) ? 
-          <HighlightedText key={index}>{part}</HighlightedText> : 
-          part
+
+      return parts.map((part, index) =>
+        regex.test(part) ? <HighlightedText key={index}>{part}</HighlightedText> : part,
       );
     } catch (error) {
       console.error('Error highlighting text:', error);
@@ -609,12 +616,12 @@ const handleDeleteIndex = async () => {
   };
 
   const totalResults = searchResults.all.length;
-  const availableProjects = searchStats?.documentsByType && SearchService.projectsData ? 
-    SearchService.projectsData : [];
+  const availableProjects =
+    searchStats?.documentsByType && SearchService.projectsData ? SearchService.projectsData : [];
 
   const availableFileTypes = React.useMemo(() => {
     const extensions = new Set();
-    searchResults.files.forEach(result => {
+    searchResults.files.forEach((result) => {
       if (result.item.extension) {
         extensions.add(result.item.extension);
       }
@@ -628,7 +635,7 @@ const handleDeleteIndex = async () => {
         <Typography variant="h5" gutterBottom>
           Search
         </Typography>
-        
+
         <Box display="flex" alignItems="center" gap={1} mb={2}>
           <Box position="relative" flexGrow={1}>
             <Autocomplete
@@ -653,11 +660,7 @@ const handleDeleteIndex = async () => {
                     endAdornment: (
                       <Box display="flex" alignItems="center">
                         {searchTerm && !isInitializing && (
-                          <IconButton 
-                            size="small" 
-                            onClick={handleClearSearch}
-                            title="Clear search"
-                          >
+                          <IconButton size="small" onClick={handleClearSearch} title="Clear search">
                             <ClearOutlined />
                           </IconButton>
                         )}
@@ -670,7 +673,7 @@ const handleDeleteIndex = async () => {
                           {isSearching ? <CircularProgress size={24} /> : <SearchIcon />}
                         </IconButton>
                       </Box>
-                    )
+                    ),
                   }}
                 />
               )}
@@ -687,7 +690,7 @@ const handleDeleteIndex = async () => {
           </Button>
           <IconButton
             onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-            color={showAdvancedSearch ? "primary" : "default"}
+            color={showAdvancedSearch ? 'primary' : 'default'}
             disabled={isInitializing}
           >
             <TuneOutlined />
@@ -696,8 +699,14 @@ const handleDeleteIndex = async () => {
 
         <Box mb={2}>
           <Paper variant="outlined" sx={{ backgroundColor: 'background.default' }}>
-            <Box 
-              sx={{ p: 2, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+            <Box
+              sx={{
+                p: 2,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
               onClick={() => setShowIndexingConfig(!showIndexingConfig)}
             >
               <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -708,19 +717,23 @@ const handleDeleteIndex = async () => {
                 {showIndexingConfig ? <ExpandLess /> : <ExpandMore />}
               </IconButton>
             </Box>
-            
+
             <Collapse in={showIndexingConfig}>
               <Box sx={{ px: 2, pb: 2 }}>
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="body2" color="textSecondary" gutterBottom>
-                    Configure which files to index based on size. Only files smaller than the specified limit will be indexed for search.
+                    Configure which files to index based on size. Only files smaller than the
+                    specified limit will be indexed for search.
                   </Typography>
                 </Box>
-                
+
                 <Box sx={{ minWidth: 300, maxWidth: 600 }}>
                   <Box display="flex" alignItems="center" gap={2} mb={1} flexWrap="wrap">
                     <Typography variant="caption" sx={{ minWidth: 200 }}>
-                      Maximum File Size to Index: {indexingFilters.maxFileSizeMB >= 1 ? `${indexingFilters.maxFileSizeMB} MB` : `${Math.round(indexingFilters.maxFileSizeMB * 1024)} KB`}
+                      Maximum File Size to Index:{' '}
+                      {indexingFilters.maxFileSizeMB >= 1
+                        ? `${indexingFilters.maxFileSizeMB} MB`
+                        : `${Math.round(indexingFilters.maxFileSizeMB * 1024)} KB`}
                     </Typography>
                     <Button
                       variant="contained"
@@ -730,10 +743,14 @@ const handleDeleteIndex = async () => {
                       disabled={isInitializing || indexingStatus.inProgress}
                       color="primary"
                     >
-                      Reindex with {indexingFilters.maxFileSizeMB >= 1 ? `${indexingFilters.maxFileSizeMB}MB` : `${Math.round(indexingFilters.maxFileSizeMB * 1024)}KB`} Limit
+                      Reindex with{' '}
+                      {indexingFilters.maxFileSizeMB >= 1
+                        ? `${indexingFilters.maxFileSizeMB}MB`
+                        : `${Math.round(indexingFilters.maxFileSizeMB * 1024)}KB`}{' '}
+                      Limit
                     </Button>
                   </Box>
-                  
+
                   <Box display="flex" alignItems="center" gap={2} mb={2}>
                     <TextField
                       size="small"
@@ -743,16 +760,16 @@ const handleDeleteIndex = async () => {
                       onChange={(e) => {
                         const kbValue = parseInt(e.target.value) || 1;
                         const mbValue = Math.max(0.001, kbValue / 1024);
-                        setIndexingFilters(prev => ({
+                        setIndexingFilters((prev) => ({
                           ...prev,
                           maxFileSizeMB: mbValue,
-                          maxFileSize: mbValue * 1024 * 1024
+                          maxFileSize: mbValue * 1024 * 1024,
                         }));
                       }}
-                      inputProps={{ 
-                        min: 0, 
+                      inputProps={{
+                        min: 0,
                         max: 102400,
-                        step: 1
+                        step: 1,
                       }}
                       sx={{ width: 200 }}
                       disabled={isInitializing || indexingStatus.inProgress}
@@ -761,7 +778,7 @@ const handleDeleteIndex = async () => {
                       (1 KB - 100 MB)
                     </Typography>
                   </Box>
-                  
+
                   <Box mt={1} display="flex" gap={1} flexWrap="wrap" alignItems="center">
                     <Typography variant="caption" color="textSecondary">
                       Quick presets:
@@ -769,11 +786,13 @@ const handleDeleteIndex = async () => {
                     <Button
                       size="small"
                       variant="outlined"
-                      onClick={() => setIndexingFilters(prev => ({ 
-                        ...prev, 
-                        maxFileSizeMB: 0.005,
-                        maxFileSize: 0.005 * 1024 * 1024 
-                      }))}
+                      onClick={() =>
+                        setIndexingFilters((prev) => ({
+                          ...prev,
+                          maxFileSizeMB: 0.005,
+                          maxFileSize: 0.005 * 1024 * 1024,
+                        }))
+                      }
                       disabled={isInitializing || indexingStatus.inProgress}
                     >
                       5KB
@@ -781,11 +800,13 @@ const handleDeleteIndex = async () => {
                     <Button
                       size="small"
                       variant="outlined"
-                      onClick={() => setIndexingFilters(prev => ({ 
-                        ...prev, 
-                        maxFileSizeMB: 0.01,
-                        maxFileSize: 0.01 * 1024 * 1024 
-                      }))}
+                      onClick={() =>
+                        setIndexingFilters((prev) => ({
+                          ...prev,
+                          maxFileSizeMB: 0.01,
+                          maxFileSize: 0.01 * 1024 * 1024,
+                        }))
+                      }
                       disabled={isInitializing || indexingStatus.inProgress}
                     >
                       10KB
@@ -793,11 +814,13 @@ const handleDeleteIndex = async () => {
                     <Button
                       size="small"
                       variant="outlined"
-                      onClick={() => setIndexingFilters(prev => ({ 
-                        ...prev, 
-                        maxFileSizeMB: 0.1,
-                        maxFileSize: 0.1 * 1024 * 1024 
-                      }))}
+                      onClick={() =>
+                        setIndexingFilters((prev) => ({
+                          ...prev,
+                          maxFileSizeMB: 0.1,
+                          maxFileSize: 0.1 * 1024 * 1024,
+                        }))
+                      }
                       disabled={isInitializing || indexingStatus.inProgress}
                     >
                       100KB (Default)
@@ -805,11 +828,13 @@ const handleDeleteIndex = async () => {
                     <Button
                       size="small"
                       variant="outlined"
-                      onClick={() => setIndexingFilters(prev => ({ 
-                        ...prev, 
-                        maxFileSizeMB: 1,
-                        maxFileSize: 1 * 1024 * 1024 
-                      }))}
+                      onClick={() =>
+                        setIndexingFilters((prev) => ({
+                          ...prev,
+                          maxFileSizeMB: 1,
+                          maxFileSize: 1 * 1024 * 1024,
+                        }))
+                      }
                       disabled={isInitializing || indexingStatus.inProgress}
                     >
                       1MB
@@ -817,21 +842,24 @@ const handleDeleteIndex = async () => {
                     <Button
                       size="small"
                       variant="outlined"
-                      onClick={() => setIndexingFilters(prev => ({ 
-                        ...prev, 
-                        maxFileSizeMB: 0.1,
-                        maxFileSize: 10 * 1024 * 1024 
-                      }))}
+                      onClick={() =>
+                        setIndexingFilters((prev) => ({
+                          ...prev,
+                          maxFileSizeMB: 0.1,
+                          maxFileSize: 10 * 1024 * 1024,
+                        }))
+                      }
                       disabled={isInitializing || indexingStatus.inProgress}
                     >
-                      10MB 
+                      10MB
                     </Button>
                   </Box>
                 </Box>
-                
+
                 <Alert severity="info" sx={{ mt: 2 }}>
                   <Typography variant="caption">
-                    <strong>Note:</strong> Index is automatically saved and loaded. Changes to file size require reindexing to take effect.
+                    <strong>Note:</strong> Index is automatically saved and loaded. Changes to file
+                    size require reindexing to take effect.
                   </Typography>
                 </Alert>
               </Box>
@@ -847,14 +875,14 @@ const handleDeleteIndex = async () => {
             </Typography>
             <SearchFilters>
               <FilterListOutlined color="action" />
-              
+
               <FormControl size="small" sx={{ minWidth: 120 }}>
                 <InputLabel>Type</InputLabel>
                 <Select
                   value={searchFilters.type}
                   label="Type"
                   disabled={isInitializing}
-                  onChange={(e) => setSearchFilters(prev => ({ ...prev, type: e.target.value }))}
+                  onChange={(e) => setSearchFilters((prev) => ({ ...prev, type: e.target.value }))}
                 >
                   <MenuItem value="all">All Types</MenuItem>
                   <MenuItem value="project">Projects</MenuItem>
@@ -872,10 +900,12 @@ const handleDeleteIndex = async () => {
                   value={searchFilters.project}
                   label="Project"
                   disabled={isInitializing}
-                  onChange={(e) => setSearchFilters(prev => ({ ...prev, project: e.target.value }))}
+                  onChange={(e) =>
+                    setSearchFilters((prev) => ({ ...prev, project: e.target.value }))
+                  }
                 >
                   <MenuItem value="all">All Projects</MenuItem>
-                  {availableProjects.map(project => (
+                  {availableProjects.map((project) => (
                     <MenuItem key={project.id} value={project.id}>
                       {project.name}
                     </MenuItem>
@@ -890,10 +920,12 @@ const handleDeleteIndex = async () => {
                     value={searchFilters.fileType}
                     label="File Type"
                     disabled={isInitializing}
-                    onChange={(e) => setSearchFilters(prev => ({ ...prev, fileType: e.target.value }))}
+                    onChange={(e) =>
+                      setSearchFilters((prev) => ({ ...prev, fileType: e.target.value }))
+                    }
                   >
                     <MenuItem value="all">All Types</MenuItem>
-                    {availableFileTypes.map(ext => (
+                    {availableFileTypes.map((ext) => (
                       <MenuItem key={ext} value={ext}>
                         {ext}
                       </MenuItem>
@@ -925,9 +957,7 @@ const handleDeleteIndex = async () => {
             <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
               <Box display="flex" alignItems="center" gap={0.5}>
                 <SpeedOutlined fontSize="small" />
-                <Typography variant="caption">
-                  Last Search: {lastSearchTime}ms
-                </Typography>
+                <Typography variant="caption">Last Search: {lastSearchTime}ms</Typography>
               </Box>
               <Box display="flex" alignItems="center" gap={0.5}>
                 <MemoryOutlined fontSize="small" />
@@ -954,9 +984,9 @@ const handleDeleteIndex = async () => {
           <Box display="flex" alignItems="center" mt={1}>
             <CircularProgress size={20} sx={{ mr: 1 }} />
             <Typography variant="body2">
-              {indexFileInfo.exists ? 
-                'Loading persistent index and checking for updates...' : 
-                'Creating new search index...'}
+              {indexFileInfo.exists
+                ? 'Loading persistent index and checking for updates...'
+                : 'Creating new search index...'}
             </Typography>
           </Box>
         )}
@@ -981,13 +1011,15 @@ const handleDeleteIndex = async () => {
                   variant="outlined"
                 />
               </Tooltip>
-              
+
               {searchStats.indexedProjects !== undefined && (
                 <Chip
                   label={`${searchStats.indexedProjects}/${availableProjects.length} projects indexed`}
                   size="small"
                   variant="outlined"
-                  color={searchStats.indexedProjects === availableProjects.length ? "success" : "default"}
+                  color={
+                    searchStats.indexedProjects === availableProjects.length ? 'success' : 'default'
+                  }
                 />
               )}
 
@@ -996,14 +1028,14 @@ const handleDeleteIndex = async () => {
                   label={`${searchStats.contentIndexedFiles} files with content`}
                   size="small"
                   variant="outlined"
-                  color={searchStats.contentIndexedFiles > 0 ? "success" : "error"}
+                  color={searchStats.contentIndexedFiles > 0 ? 'success' : 'error'}
                 />
               )}
             </Box>
-            
+
             <IconButton
               onClick={() => setShowIndexManagement(!showIndexManagement)}
-              color={showIndexManagement ? "primary" : "default"}
+              color={showIndexManagement ? 'primary' : 'default'}
               disabled={isInitializing}
               title="Index Management"
               size="small"
@@ -1018,8 +1050,14 @@ const handleDeleteIndex = async () => {
           <Box mb={1}>
             <Typography variant="caption" color="textSecondary" display="block">
               Persistent index: {indexFileInfo.sizeMB}MB saved locally
-              {lastUpdateInfo.added > 0 || lastUpdateInfo.removed > 0 || lastUpdateInfo.updated > 0 ? (
-                <> • Last update: +{lastUpdateInfo.added} -{lastUpdateInfo.removed} ~{lastUpdateInfo.updated} projects</>
+              {lastUpdateInfo.added > 0 ||
+              lastUpdateInfo.removed > 0 ||
+              lastUpdateInfo.updated > 0 ? (
+                <>
+                  {' '}
+                  • Last update: +{lastUpdateInfo.added} -{lastUpdateInfo.removed} ~
+                  {lastUpdateInfo.updated} projects
+                </>
               ) : null}
             </Typography>
           </Box>
@@ -1029,11 +1067,15 @@ const handleDeleteIndex = async () => {
         <Collapse in={showIndexManagement}>
           <Box mb={2}>
             <Paper variant="outlined" sx={{ p: 2, backgroundColor: 'background.default' }}>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+              >
                 <InfoOutlined />
                 Index Management
               </Typography>
-              
+
               <Box display="flex" gap={1} flexWrap="wrap" mb={2}>
                 <Button
                   startIcon={<RefreshOutlined />}
@@ -1044,7 +1086,7 @@ const handleDeleteIndex = async () => {
                 >
                   Full Reindex
                 </Button>
-                
+
                 <Button
                   startIcon={<DeleteOutlined />}
                   onClick={handleDeleteIndex}
@@ -1055,7 +1097,7 @@ const handleDeleteIndex = async () => {
                 >
                   Delete Index
                 </Button>
-                
+
                 <Button
                   startIcon={<DownloadOutlined />}
                   onClick={handleExportIndex}
@@ -1065,7 +1107,7 @@ const handleDeleteIndex = async () => {
                 >
                   Export
                 </Button>
-                
+
                 <Button
                   startIcon={<UploadFileOutlined />}
                   component="label"
@@ -1074,15 +1116,10 @@ const handleDeleteIndex = async () => {
                   disabled={isInitializing}
                 >
                   Import
-                  <input
-                    type="file"
-                    hidden
-                    accept=".json"
-                    onChange={handleImportIndex}
-                  />
+                  <input type="file" hidden accept=".json" onChange={handleImportIndex} />
                 </Button>
               </Box>
-              
+
               {indexFileInfo.exists && (
                 <Box>
                   <Typography variant="caption" color="textSecondary" display="block">
@@ -1101,9 +1138,11 @@ const handleDeleteIndex = async () => {
       {!isInitializing && searchTerm && (
         <Box mt={2} mb={1}>
           <Typography variant="body2">
-            {isSearching ? 'Searching...' :
-              totalResults > 0 ? `Found ${totalResults} results for "${searchTerm}"` :
-              `No results found for "${searchTerm}"`}
+            {isSearching
+              ? 'Searching...'
+              : totalResults > 0
+                ? `Found ${totalResults} results for "${searchTerm}"`
+                : `No results found for "${searchTerm}"`}
           </Typography>
         </Box>
       )}
@@ -1202,17 +1241,17 @@ const handleDeleteIndex = async () => {
                 {indexFileInfo.exists ? 'Loading existing index...' : 'Creating search index...'}
               </Typography>
               <Typography variant="caption" color="textSecondary">
-                {indexFileInfo.exists ? 
-                  'Loading saved index and checking for changes' : 
-                  'Building new search index for all projects'}
+                {indexFileInfo.exists
+                  ? 'Loading saved index and checking for changes'
+                  : 'Building new search index for all projects'}
               </Typography>
             </Box>
           </Box>
         ) : (
           <>
             <TabPanel value={activeTab} index={0}>
-              <AllResultsList 
-                results={searchResults.all} 
+              <AllResultsList
+                results={searchResults.all}
                 searchTerm={searchTerm}
                 expandedItems={expandedItems}
                 onToggleExpand={handleToggleExpand}
@@ -1222,7 +1261,7 @@ const handleDeleteIndex = async () => {
             </TabPanel>
 
             <TabPanel value={activeTab} index={1}>
-              <ResultsList 
+              <ResultsList
                 results={searchResults.projects}
                 searchTerm={searchTerm}
                 expandedItems={expandedItems}
@@ -1234,7 +1273,7 @@ const handleDeleteIndex = async () => {
             </TabPanel>
 
             <TabPanel value={activeTab} index={2}>
-              <ResultsList 
+              <ResultsList
                 results={searchResults.files}
                 searchTerm={searchTerm}
                 expandedItems={expandedItems}
@@ -1246,7 +1285,7 @@ const handleDeleteIndex = async () => {
             </TabPanel>
 
             <TabPanel value={activeTab} index={3}>
-              <ResultsList 
+              <ResultsList
                 results={searchResults.folders}
                 searchTerm={searchTerm}
                 expandedItems={expandedItems}
@@ -1258,7 +1297,7 @@ const handleDeleteIndex = async () => {
             </TabPanel>
 
             <TabPanel value={activeTab} index={4}>
-              <ResultsList 
+              <ResultsList
                 results={searchResults.people}
                 searchTerm={searchTerm}
                 expandedItems={expandedItems}
@@ -1270,7 +1309,7 @@ const handleDeleteIndex = async () => {
             </TabPanel>
 
             <TabPanel value={activeTab} index={5}>
-              <ResultsList 
+              <ResultsList
                 results={searchResults.assets}
                 searchTerm={searchTerm}
                 expandedItems={expandedItems}
@@ -1282,7 +1321,7 @@ const handleDeleteIndex = async () => {
             </TabPanel>
 
             <TabPanel value={activeTab} index={6}>
-              <ResultsList 
+              <ResultsList
                 results={searchResults.notes}
                 searchTerm={searchTerm}
                 expandedItems={expandedItems}
@@ -1297,7 +1336,7 @@ const handleDeleteIndex = async () => {
       </SearchResults>
 
       {process.env.NODE_ENV === 'development' && !isInitializing && (
-        <DebugPanel 
+        <DebugPanel
           searchService={SearchService}
           searchStats={searchStats}
           searchConfig={SearchConfig}
@@ -1309,7 +1348,14 @@ const handleDeleteIndex = async () => {
   );
 }
 
-const AllResultsList = ({ results, searchTerm, expandedItems, onToggleExpand, highlightText, showRelevanceScores }) => {
+const AllResultsList = ({
+  results,
+  searchTerm,
+  expandedItems,
+  onToggleExpand,
+  highlightText,
+  showRelevanceScores,
+}) => {
   if (results.length === 0) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="200px">
@@ -1345,7 +1391,15 @@ const AllResultsList = ({ results, searchTerm, expandedItems, onToggleExpand, hi
   );
 };
 
-const ResultsList = ({ results, searchTerm, expandedItems, onToggleExpand, highlightText, showRelevanceScores, emptyMessage }) => {
+const ResultsList = ({
+  results,
+  searchTerm,
+  expandedItems,
+  onToggleExpand,
+  highlightText,
+  showRelevanceScores,
+  emptyMessage,
+}) => {
   if (results.length === 0) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" mt={4}>
@@ -1375,8 +1429,26 @@ const ResultsList = ({ results, searchTerm, expandedItems, onToggleExpand, highl
     </List>
   );
 };
+const formatPersonName = (name) => {
+  if (!name) return '';
+  if (typeof name === 'string') return name;
 
-const ResultItemComponent = ({ result, searchTerm, expanded, onToggleExpand, highlightText, showRelevanceScores }) => {
+  const parts = [];
+  if (name.first) parts.push(name.first);
+  if (name.middle) parts.push(name.middle);
+  if (name.last) parts.push(name.last);
+
+  return parts.join(' ').trim();
+};
+
+const ResultItemComponent = ({
+  result,
+  searchTerm,
+  expanded,
+  onToggleExpand,
+  highlightText,
+  showRelevanceScores,
+}) => {
   if (!result || !result.item) {
     return null;
   }
@@ -1386,14 +1458,21 @@ const ResultItemComponent = ({ result, searchTerm, expanded, onToggleExpand, hig
 
   const getIcon = () => {
     switch (type) {
-      case 'project': return <FolderOutlined />;
-      case 'file': return <InsertDriveFileOutlined />;
-      case 'folder': return <FolderOpenOutlined />;
-      case 'person': return <PersonOutline />;
-      case 'asset': 
-      case 'external-asset': return <InsertDriveFileOutlined />;
-      case 'note': return <NoteOutlined />;
-      default: return <Description />;
+      case 'project':
+        return <FolderOutlined />;
+      case 'file':
+        return <InsertDriveFileOutlined />;
+      case 'folder':
+        return <FolderOpenOutlined />;
+      case 'person':
+        return <PersonOutline />;
+      case 'asset':
+      case 'external-asset':
+        return <InsertDriveFileOutlined />;
+      case 'note':
+        return <NoteOutlined />;
+      default:
+        return <Description />;
     }
   };
 
@@ -1407,7 +1486,9 @@ const ResultItemComponent = ({ result, searchTerm, expanded, onToggleExpand, hig
   const renderTags = () => {
     if (!item.tags || (!Array.isArray(item.tags) && typeof item.tags !== 'string')) return null;
 
-    const tagArray = Array.isArray(item.tags) ? item.tags : item.tags.split(' ').filter(t => t.trim());
+    const tagArray = Array.isArray(item.tags)
+      ? item.tags
+      : item.tags.split(' ').filter((t) => t.trim());
     if (tagArray.length === 0) return null;
 
     return (
@@ -1434,8 +1515,11 @@ const ResultItemComponent = ({ result, searchTerm, expanded, onToggleExpand, hig
   };
 
   const renderPrimaryContent = () => {
-    const title = item.title || item.name || item.filename || item.folderName || 'Untitled';
-    
+    const title =
+      type === 'person' && typeof item.name === 'object' && item.name !== null
+        ? formatPersonName(item.name)
+        : item.title || item.name || item.filename || item.folderName || 'Untitled';
+
     return (
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Box display="flex" alignItems="center" sx={{ minWidth: 0, flexGrow: 1 }}>
@@ -1456,24 +1540,41 @@ const ResultItemComponent = ({ result, searchTerm, expanded, onToggleExpand, hig
               </Typography>
               {item.extension && (
                 <>
-                  <Typography variant="caption" color="textSecondary">•</Typography>
-                  <Chip label={item.extension} size="small" variant="outlined" sx={{ height: 16, fontSize: '0.6rem' }} />
+                  <Typography variant="caption" color="textSecondary">
+                    •
+                  </Typography>
+                  <Chip
+                    label={item.extension}
+                    size="small"
+                    variant="outlined"
+                    sx={{ height: 16, fontSize: '0.6rem' }}
+                  />
                 </>
               )}
               {item.size && (
                 <>
-                  <Typography variant="caption" color="textSecondary">•</Typography>
                   <Typography variant="caption" color="textSecondary">
-                    {item.size > 1024 * 1024 ? 
-                      `${(item.size / (1024 * 1024)).toFixed(1)} MB` :
-                      `${Math.round(item.size / 1024)} KB`}
+                    •
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    {item.size > 1024 * 1024
+                      ? `${(item.size / (1024 * 1024)).toFixed(1)} MB`
+                      : `${Math.round(item.size / 1024)} KB`}
                   </Typography>
                 </>
               )}
               {item.isContentIndexed && (
                 <>
-                  <Typography variant="caption" color="textSecondary">•</Typography>
-                  <Chip label="Content Indexed" size="small" color="success" variant="outlined" sx={{ height: 16, fontSize: '0.6rem' }} />
+                  <Typography variant="caption" color="textSecondary">
+                    •
+                  </Typography>
+                  <Chip
+                    label="Content Indexed"
+                    size="small"
+                    color="success"
+                    variant="outlined"
+                    sx={{ height: 16, fontSize: '0.6rem' }}
+                  />
                 </>
               )}
             </Box>
@@ -1482,9 +1583,9 @@ const ResultItemComponent = ({ result, searchTerm, expanded, onToggleExpand, hig
         <Box display="flex" alignItems="center" gap={1}>
           {showRelevanceScores && (
             <Tooltip title={`Relevance Score: ${relevance}%`}>
-              <Chip 
-                label={`${relevance}%`} 
-                size="small" 
+              <Chip
+                label={`${relevance}%`}
+                size="small"
                 variant="outlined"
                 color={getRelevanceColor(relevance)}
               />
@@ -1500,19 +1601,19 @@ const ResultItemComponent = ({ result, searchTerm, expanded, onToggleExpand, hig
 
   const renderSecondaryContent = () => {
     return (
-    <Box> {/* Use Box instead of Fragment to avoid nesting issues */}
-      <Typography variant="body2" color="textSecondary" component="div" noWrap>
-        {item.path || item.relativePath || item.uri || 'No path'}
-      </Typography>
-      {renderTags()}
-      <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <Box mt={2}>
-          {renderExpandedContent()}
-        </Box>
-      </Collapse>
-    </Box>
-  );
-};
+      <Box>
+        {' '}
+        {/* Use Box instead of Fragment to avoid nesting issues */}
+        <Typography variant="body2" color="textSecondary" component="div" noWrap>
+          {item.path || item.relativePath || item.uri || 'No path'}
+        </Typography>
+        {renderTags()}
+        <Collapse in={expanded} timeout="auto" unmountOnExit>
+          <Box mt={2}>{renderExpandedContent()}</Box>
+        </Collapse>
+      </Box>
+    );
+  };
 
   const renderExpandedContent = () => {
     switch (type) {
@@ -1521,10 +1622,11 @@ const ResultItemComponent = ({ result, searchTerm, expanded, onToggleExpand, hig
           <Box>
             <Box display="flex" gap={4} flexWrap="wrap" mb={2}>
               <Typography variant="body2" component="span">
-                <strong>Size:</strong> {item.size ? 
-                  item.size > 1024 * 1024 ? 
-                    `${(item.size / (1024 * 1024)).toFixed(2)} MB` :
-                    `${(item.size / 1024).toFixed(1)} KB` 
+                <strong>Size:</strong>{' '}
+                {item.size
+                  ? item.size > 1024 * 1024
+                    ? `${(item.size / (1024 * 1024)).toFixed(2)} MB`
+                    : `${(item.size / 1024).toFixed(1)} KB`
                   : 'Unknown'}
               </Typography>
               <Typography variant="body2" component="span">
@@ -1539,30 +1641,43 @@ const ResultItemComponent = ({ result, searchTerm, expanded, onToggleExpand, hig
                 </Typography>
               )}
             </Box>
-            
+
             {item.snippet && (
-              <Paper variant="outlined" sx={{ p: 1, mt: 1, fontFamily: 'monospace', fontSize: '0.85rem', maxHeight: 200, overflow: 'auto' }}>
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 1,
+                  mt: 1,
+                  fontFamily: 'monospace',
+                  fontSize: '0.85rem',
+                  maxHeight: 200,
+                  overflow: 'auto',
+                }}
+              >
                 <Typography variant="caption" color="textSecondary" display="block" mb={1}>
                   Content Preview:
                 </Typography>
                 {highlightText(String(item.snippet), searchTerm)}
               </Paper>
             )}
-            
+
             {highlights && highlights.content && (
               <Box mt={1}>
                 <Typography variant="caption" color="primary">
                   Match found in content
                 </Typography>
-                <Paper variant="outlined" sx={{ p: 1, mt: 1, fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                <Paper
+                  variant="outlined"
+                  sx={{ p: 1, mt: 1, fontFamily: 'monospace', fontSize: '0.85rem' }}
+                >
                   {highlightText(highlights.content[0], searchTerm)}
                 </Paper>
               </Box>
             )}
-            
+
             <Box mt={2} display="flex" gap={1}>
-              <Button 
-                size="small" 
+              <Button
+                size="small"
                 variant="outlined"
                 onClick={() => {
                   if (item.fullPath) {
@@ -1572,18 +1687,20 @@ const ResultItemComponent = ({ result, searchTerm, expanded, onToggleExpand, hig
               >
                 Show in Folder
               </Button>
-              
-              {item.fullPath && SearchConfig.integration && SearchConfig.integration.enableExternalTools && (
-                <Button 
-                  size="small" 
-                  variant="outlined"
-                  onClick={() => {
-                    ipcRenderer.send('open-file-with-default', item.fullPath);
-                  }}
-                >
-                  Open File
-                </Button>
-              )}
+
+              {item.fullPath &&
+                SearchConfig.integration &&
+                SearchConfig.integration.enableExternalTools && (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => {
+                      ipcRenderer.send('open-file-with-default', item.fullPath);
+                    }}
+                  >
+                    Open File
+                  </Button>
+                )}
             </Box>
           </Box>
         );
@@ -1626,7 +1743,7 @@ const ResultItemComponent = ({ result, searchTerm, expanded, onToggleExpand, hig
             <Typography variant="body2" component="div" sx={{ mb: 1 }}>
               <strong>Note Type:</strong> {item.noteType || 'Unknown'}
             </Typography>
-            
+
             {item.content && (
               <Paper variant="outlined" sx={{ p: 1, mt: 1, maxHeight: 150, overflow: 'auto' }}>
                 <Typography variant="caption" color="textSecondary" display="block" mb={1}>
@@ -1653,8 +1770,8 @@ const ResultItemComponent = ({ result, searchTerm, expanded, onToggleExpand, hig
         primary={renderPrimaryContent()}
         secondary={renderSecondaryContent()}
         secondaryTypographyProps={{
-        component: "div"
-      }}
+          component: 'div',
+        }}
       />
     </ResultItem>
   );
@@ -1664,18 +1781,25 @@ const DebugPanel = ({ searchService, searchStats, searchConfig, onStatsUpdate, i
   const [debugExpanded, setDebugExpanded] = useState(false);
 
   return (
-    <Box mt={2} p={2} border={1} borderColor="grey.300" borderRadius={1} sx={{ 
-      backgroundColor: 'background.paper',
-      position: 'relative',
-      zIndex: 1 
-    }}>
+    <Box
+      mt={2}
+      p={2}
+      border={1}
+      borderColor="grey.300"
+      borderRadius={1}
+      sx={{
+        backgroundColor: 'background.paper',
+        position: 'relative',
+        zIndex: 1,
+      }}
+    >
       <Box display="flex" alignItems="center" justifyContent="space-between">
         <Typography variant="h6">Debug Tools & Analytics</Typography>
         <IconButton size="small" onClick={() => setDebugExpanded(!debugExpanded)}>
           {debugExpanded ? <ExpandLess /> : <ExpandMore />}
         </IconButton>
       </Box>
-      
+
       <Collapse in={debugExpanded}>
         <Box mt={2}>
           <Box display="flex" gap={1} flexWrap="wrap" mb={2}>
@@ -1719,7 +1843,7 @@ const DebugPanel = ({ searchService, searchStats, searchConfig, onStatsUpdate, i
             >
               Show Stats
             </Button>
-            
+
             <Button
               onClick={() => {
                 onStatsUpdate();
@@ -1731,7 +1855,7 @@ const DebugPanel = ({ searchService, searchStats, searchConfig, onStatsUpdate, i
               Refresh Stats
             </Button>
           </Box>
-          
+
           {searchStats && (
             <Box>
               <Typography variant="body2" gutterBottom>
@@ -1749,7 +1873,7 @@ const DebugPanel = ({ searchService, searchStats, searchConfig, onStatsUpdate, i
                     Indexed Projects: {searchStats.indexedProjects || 0}
                   </Typography>
                 </Box>
-                
+
                 {searchStats.performance && (
                   <Box>
                     <Typography variant="caption" display="block">
@@ -1763,7 +1887,7 @@ const DebugPanel = ({ searchService, searchStats, searchConfig, onStatsUpdate, i
                     </Typography>
                   </Box>
                 )}
-                
+
                 {searchStats.cacheStats && (
                   <Box>
                     <Typography variant="caption" display="block">
@@ -1796,7 +1920,7 @@ const DebugPanel = ({ searchService, searchStats, searchConfig, onStatsUpdate, i
                   </Box>
                 )}
               </Box>
-              
+
               {searchStats.documentsByType && (
                 <Box mt={2}>
                   <Typography variant="caption" display="block">
@@ -1813,14 +1937,14 @@ const DebugPanel = ({ searchService, searchStats, searchConfig, onStatsUpdate, i
               )}
             </Box>
           )}
-          
+
           {searchConfig && (
             <Box mt={2}>
               <Typography variant="caption" display="block">
                 <strong>Configuration:</strong>
               </Typography>
               <Typography variant="caption" display="block">
-                Max File Size: {(searchConfig.indexing?.maxFileSize || 0)*1.0 / (1024 * 1024)}MB
+                Max File Size: {((searchConfig.indexing?.maxFileSize || 0) * 1.0) / (1024 * 1024)}MB
               </Typography>
               <Typography variant="caption" display="block">
                 Enable Fuzzy Search: {searchConfig.search?.enableFuzzySearch ? 'Yes' : 'No'}

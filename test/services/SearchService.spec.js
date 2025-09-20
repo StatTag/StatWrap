@@ -1,7 +1,17 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+beforeAll(() => {
+  jest.spyOn(console, 'log').mockImplementation(() => {});
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+});
 
+afterAll(() => {
+  console.log.mockRestore();
+  console.warn.mockRestore();
+  console.error.mockRestore();
+});
 // Mock dependencies
 jest.mock('flexsearch');
 jest.mock('electron', () => ({
@@ -10,8 +20,8 @@ jest.mock('electron', () => ({
     send: jest.fn(),
     on: jest.fn(),
     once: jest.fn(),
-    removeListener: jest.fn()
-  }
+    removeListener: jest.fn(),
+  },
 }));
 jest.mock('fs');
 jest.mock('path');
@@ -29,12 +39,12 @@ jest.mock('../../app/constants/search-config', () => ({
       enableStopWords: false,
       stopWords: ['the', 'and', 'or'],
       technicalStopWords: ['function', 'class'],
-      minWordLength: 2
-    }
+      minWordLength: 2,
+    },
   },
   performance: {
     resultCacheSize: 100,
-    resultCacheTTL: 600000
+    resultCacheTTL: 600000,
   },
   scoring: {
     weights: {
@@ -48,10 +58,10 @@ jest.mock('../../app/constants/search-config', () => ({
       contentIndexedBonus: 0.05,
       flexSearchScore: 0.4,
       proximityBonus: 0.2,
-      fieldLengthPenalty: 0.1
+      fieldLengthPenalty: 0.1,
     },
-    maxBaseScore: 100
-  }
+    maxBaseScore: 100,
+  },
 }));
 
 import FlexSearch from 'flexsearch';
@@ -77,55 +87,56 @@ describe('SearchService', () => {
         name: { first: 'John', last: 'Doe' },
         affiliation: 'Test Corp',
         roles: ['developer'],
-        notes: [{ id: 'note-1', content: 'Test person note' }]
-      }
+        notes: [{ id: 'note-1', content: 'Test person note' }],
+      },
     ],
-    notes: [
-      { id: 'project-note-1', content: 'Project level note', author: 'test' }
-    ],
+    notes: [{ id: 'project-note-1', content: 'Project level note', author: 'test' }],
     assetGroups: [
       {
         id: 'asset-group-1',
         name: 'Test Assets',
         details: 'Test asset group',
-        assets: [{ uri: 'test-asset.txt' }]
-      }
-    ]
+        assets: [{ uri: 'test-asset.txt' }],
+      },
+    ],
   };
 
   const mockIndexData = {
     version: '1.0',
     timestamp: new Date().toISOString(),
     documentStore: [
-      ['doc1', {
-        id: 'doc1',
-        type: 'project',
-        title: 'Test Project',
-        content: 'test content',
-        item: mockProject
-      }]
+      [
+        'doc1',
+        {
+          id: 'doc1',
+          type: 'project',
+          title: 'Test Project',
+          content: 'test content',
+          item: mockProject,
+        },
+      ],
     ],
     indexedProjects: {
       'test-project-1': {
         id: 'test-project-1',
         name: 'Test Project',
         path: '/test/project/path',
-        lastIndexed: Date.now()
-      }
+        lastIndexed: Date.now(),
+      },
     },
     performanceStats: {
       totalSearches: 0,
       totalIndexingTime: 0,
       averageSearchTime: 0,
       documentsIndexed: 0,
-      searchTimes: []
+      searchTimes: [],
     },
-    maxIndexingFileSize: 0.1 * 1024 * 1024
+    maxIndexingFileSize: 0.1 * 1024 * 1024,
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Completely reset the SearchService instance state
     SearchServiceInstance.isInitialized = false;
     SearchServiceInstance.documentStore.clear();
@@ -138,44 +149,47 @@ describe('SearchService', () => {
     SearchServiceInstance.indicesBuiltThisSession = false;
     SearchServiceInstance.isRestoring = false;
     SearchServiceInstance.indexingQueue = [];
-    
+
     // Reset performance stats
     SearchServiceInstance.performanceStats = {
       totalSearches: 0,
       totalIndexingTime: 0,
       averageSearchTime: 0,
       documentsIndexed: 0,
-      searchTimes: []
+      searchTimes: [],
     };
-    
+
     if (SearchServiceInstance.performSearch && SearchServiceInstance.performSearch.mockRestore) {
       SearchServiceInstance.performSearch.mockRestore();
     }
-    if (SearchServiceInstance.buildIndicesFromDocumentStore && SearchServiceInstance.buildIndicesFromDocumentStore.mockRestore) {
+    if (
+      SearchServiceInstance.buildIndicesFromDocumentStore &&
+      SearchServiceInstance.buildIndicesFromDocumentStore.mockRestore
+    ) {
       SearchServiceInstance.buildIndicesFromDocumentStore.mockRestore();
     }
     if (SearchServiceInstance.getFromCache && SearchServiceInstance.getFromCache.mockRestore) {
       SearchServiceInstance.getFromCache.mockRestore();
     }
-    
+
     // Mock FlexSearch Document
     mockFlexSearchDocument = {
       add: jest.fn(),
       search: jest.fn(() => []),
-      remove: jest.fn()
+      remove: jest.fn(),
     };
-    
+
     FlexSearch.Document = jest.fn(() => mockFlexSearchDocument);
-    
+
     // Reset indices to use mocked FlexSearch
     SearchServiceInstance.indices = {
       main: mockFlexSearchDocument,
       projects: mockFlexSearchDocument,
       files: mockFlexSearchDocument,
       people: mockFlexSearchDocument,
-      notes: mockFlexSearchDocument
+      notes: mockFlexSearchDocument,
     };
-    
+
     // Mock file system
     fs.existsSync = jest.fn();
     fs.readFileSync = jest.fn();
@@ -184,7 +198,7 @@ describe('SearchService', () => {
     fs.readdirSync = jest.fn(() => []);
     fs.statSync = jest.fn();
     fs.unlinkSync = jest.fn();
-    
+
     path.join = jest.fn((...args) => args.join('/'));
     path.extname = jest.fn((file) => {
       const parts = file.split('.');
@@ -246,7 +260,7 @@ describe('SearchService', () => {
     });
 
     it('should load existing valid index file', async () => {
-      SearchServiceInstance.indexFilePath = '/test/index.json'; 
+      SearchServiceInstance.indexFilePath = '/test/index.json';
       fs.existsSync.mockReturnValue(true);
       fs.readFileSync.mockReturnValue(JSON.stringify(mockIndexData));
 
@@ -289,7 +303,7 @@ describe('SearchService', () => {
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(
         '/test/index.json',
-        expect.stringMatching(/"version":\s*"1\.0"/)
+        expect.stringMatching(/"version":\s*"1\.0"/),
       );
     });
 
@@ -309,28 +323,30 @@ describe('SearchService', () => {
         id: 'doc1',
         type: 'project',
         title: 'Test',
-        content: 'test content'
+        content: 'test content',
       });
 
       SearchServiceInstance.buildIndicesFromDocumentStore();
 
-      expect(mockFlexSearchDocument.add).toHaveBeenCalledWith(expect.objectContaining({
-        id: 'doc1',
-        type: 'project'
-      }));
+      expect(mockFlexSearchDocument.add).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'doc1',
+          type: 'project',
+        }),
+      );
     });
 
     it('should handle documents in batches', () => {
       // Clear previous calls and reset mock
       mockFlexSearchDocument.add.mockClear();
-      
-      // Add 150 documents 
+
+      // Add 150 documents
       for (let i = 0; i < 150; i++) {
         SearchServiceInstance.documentStore.set(`doc${i}`, {
           id: `doc${i}`,
           type: 'file',
           title: `Test ${i}`,
-          content: `test content ${i}`
+          content: `test content ${i}`,
         });
       }
 
@@ -356,15 +372,16 @@ describe('SearchService', () => {
     it('should load existing index and check for updates', async () => {
       fs.existsSync.mockReturnValue(true);
       fs.readFileSync.mockReturnValue(JSON.stringify(mockIndexData));
-      
-      const buildIndicesSpy = jest.spyOn(SearchServiceInstance, 'buildIndicesFromDocumentStore')
+
+      const buildIndicesSpy = jest
+        .spyOn(SearchServiceInstance, 'buildIndicesFromDocumentStore')
         .mockImplementation(() => {});
 
       await SearchServiceInstance.initialize([mockProject]);
 
       expect(SearchServiceInstance.isInitialized).toBe(true);
       expect(buildIndicesSpy).toHaveBeenCalled();
-      
+
       buildIndicesSpy.mockRestore();
     });
   });
@@ -373,7 +390,13 @@ describe('SearchService', () => {
     beforeEach(() => {
       SearchServiceInstance.isInitialized = true;
       SearchServiceInstance.groupResultsByType = jest.fn(() => ({
-        projects: [], people: [], assets: [], files: [], folders: [], notes: [], all: []
+        projects: [],
+        people: [],
+        assets: [],
+        files: [],
+        folders: [],
+        notes: [],
+        all: [],
       }));
       SearchServiceInstance.addToCache = jest.fn();
     });
@@ -397,38 +420,42 @@ describe('SearchService', () => {
         processedQuery: 'test',
         originalQuery: 'test query',
         removedWords: ['query'],
-        keptWords: ['test']
+        keptWords: ['test'],
       }));
-      
+
       // Mock performSearch to return empty array
-      const performSearchSpy = jest.spyOn(SearchServiceInstance, 'performSearch')
+      const performSearchSpy = jest
+        .spyOn(SearchServiceInstance, 'performSearch')
         .mockReturnValue([]);
 
       SearchServiceInstance.search('test query');
 
       expect(SearchServiceInstance.preprocessQuery).toHaveBeenCalledWith('test query');
       expect(performSearchSpy).toHaveBeenCalledWith('test', {});
-      
+
       performSearchSpy.mockRestore();
     });
 
     it('should return cached results when available', () => {
       const cachedResults = { all: [{ id: 'cached' }] };
-      const getFromCacheSpy = jest.spyOn(SearchServiceInstance, 'getFromCache')
+      const getFromCacheSpy = jest
+        .spyOn(SearchServiceInstance, 'getFromCache')
         .mockReturnValue(cachedResults);
 
       const results = SearchServiceInstance.search('test');
 
       expect(results.all).toEqual(cachedResults.all);
-      
+
       getFromCacheSpy.mockRestore();
     });
 
     it('should handle search errors gracefully', () => {
       // Clear any cached results first
-      const getFromCacheSpy = jest.spyOn(SearchServiceInstance, 'getFromCache')
+      const getFromCacheSpy = jest
+        .spyOn(SearchServiceInstance, 'getFromCache')
         .mockReturnValue(null);
-      const performSearchSpy = jest.spyOn(SearchServiceInstance, 'performSearch')
+      const performSearchSpy = jest
+        .spyOn(SearchServiceInstance, 'performSearch')
         .mockImplementation(() => {
           throw new Error('Search failed');
         });
@@ -436,7 +463,7 @@ describe('SearchService', () => {
       const results = SearchServiceInstance.search('test');
 
       expect(results.all).toEqual([]);
-      
+
       getFromCacheSpy.mockRestore();
       performSearchSpy.mockRestore();
     });
@@ -450,17 +477,15 @@ describe('SearchService', () => {
         type: 'file',
         title: 'test file',
         content: 'test content',
-        item: { projectId: 'project1', name: 'test.txt' }
+        item: { projectId: 'project1', name: 'test.txt' },
       });
-      
+
       // Clear any previous mocks
       mockFlexSearchDocument.search.mockClear();
     });
 
     it('should search using FlexSearch indices', () => {
-      mockFlexSearchDocument.search.mockReturnValue([
-        { field: 'title', result: ['doc1'] }
-      ]);
+      mockFlexSearchDocument.search.mockReturnValue([{ field: 'title', result: ['doc1'] }]);
 
       const results = SearchServiceInstance.performSearch('test');
 
@@ -470,9 +495,7 @@ describe('SearchService', () => {
     });
 
     it('should filter results by type', () => {
-      mockFlexSearchDocument.search.mockReturnValue([
-        { field: 'title', result: ['doc1'] }
-      ]);
+      mockFlexSearchDocument.search.mockReturnValue([{ field: 'title', result: ['doc1'] }]);
 
       const results = SearchServiceInstance.performSearch('test', { type: 'file' });
 
@@ -483,9 +506,7 @@ describe('SearchService', () => {
     });
 
     it('should filter results by project', () => {
-      mockFlexSearchDocument.search.mockReturnValue([
-        { field: 'title', result: ['doc1'] }
-      ]);
+      mockFlexSearchDocument.search.mockReturnValue([{ field: 'title', result: ['doc1'] }]);
 
       const results = SearchServiceInstance.performSearch('test', { projectId: 'project1' });
 
@@ -495,16 +516,22 @@ describe('SearchService', () => {
     it('should limit results according to maxResults', () => {
       // Create multiple mock results
       SearchServiceInstance.documentStore.set('doc2', {
-        id: 'doc2', type: 'file', title: 'test2', content: 'test2', 
-        item: { projectId: 'project1', name: 'test2.txt' }
+        id: 'doc2',
+        type: 'file',
+        title: 'test2',
+        content: 'test2',
+        item: { projectId: 'project1', name: 'test2.txt' },
       });
       SearchServiceInstance.documentStore.set('doc3', {
-        id: 'doc3', type: 'file', title: 'test3', content: 'test3', 
-        item: { projectId: 'project1', name: 'test3.txt' }
+        id: 'doc3',
+        type: 'file',
+        title: 'test3',
+        content: 'test3',
+        item: { projectId: 'project1', name: 'test3.txt' },
       });
 
       mockFlexSearchDocument.search.mockReturnValue([
-        { field: 'title', result: ['doc1', 'doc2', 'doc3'] }
+        { field: 'title', result: ['doc1', 'doc2', 'doc3'] },
       ]);
 
       const results = SearchServiceInstance.performSearch('test', { maxResults: 2 });
@@ -569,7 +596,10 @@ describe('SearchService', () => {
 
   describe('getSearchStats', () => {
     it('should return comprehensive search statistics', () => {
-      SearchServiceInstance.documentStore.set('doc1', { type: 'file', item: { isContentIndexed: true } });
+      SearchServiceInstance.documentStore.set('doc1', {
+        type: 'file',
+        item: { isContentIndexed: true },
+      });
       SearchServiceInstance.documentStore.set('doc2', { type: 'project', item: {} });
       SearchServiceInstance.indexedProjectsMap.set('project1', {});
 
@@ -624,7 +654,7 @@ describe('SearchService', () => {
       // Test with the same query as the first test to ensure consistency
       const result = SearchServiceInstance.preprocessQuery('test query');
 
-      expect(result.processedQuery).toBe(result.processedQuery); 
+      expect(result.processedQuery).toBe(result.processedQuery);
       expect(result.originalQuery).toBe('test query');
       expect(Array.isArray(result.keptWords)).toBe(true);
       expect(Array.isArray(result.removedWords)).toBe(true);
@@ -647,7 +677,7 @@ describe('SearchService', () => {
         id: 'test-doc',
         type: 'file',
         title: 'Test Document',
-        content: 'Test content'
+        content: 'Test content',
       };
 
       SearchServiceInstance.addToIndices(doc, ['main', 'files']);
@@ -691,9 +721,9 @@ describe('SearchService', () => {
       // Manually test the cache methods
       SearchServiceInstance.resultCache.set(cacheKey, {
         data: testData,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
-      
+
       // Verify cache entry was created
       expect(SearchServiceInstance.resultCache.size).toBe(1);
       expect(SearchServiceInstance.resultCache.has(cacheKey)).toBe(true);
@@ -709,9 +739,9 @@ describe('SearchService', () => {
 
       SearchServiceInstance.resultCache.set(cacheKey, {
         data: testData,
-        timestamp: Date.now() - (SearchServiceInstance.cacheTTL + 1000)
+        timestamp: Date.now() - (SearchServiceInstance.cacheTTL + 1000),
       });
-      
+
       expect(SearchServiceInstance.resultCache.has(cacheKey)).toBe(true);
       const cached = SearchServiceInstance.getFromCache(cacheKey);
       expect(cached).toBeNull();
@@ -737,9 +767,9 @@ describe('SearchService', () => {
       const importData = {
         version: '1.0',
         documentStore: [['doc1', { id: 'doc1', type: 'test' }]],
-        indexedProjects: { 'project1': { id: 'project1' } },
+        indexedProjects: { project1: { id: 'project1' } },
         performanceStats: { totalSearches: 5 },
-        maxIndexingFileSize: 1024
+        maxIndexingFileSize: 1024,
       };
 
       SearchServiceInstance.clearIndices = jest.fn();
@@ -756,8 +786,9 @@ describe('SearchService', () => {
     it('should reject invalid index data', () => {
       const invalidData = { version: '0.5' };
 
-      expect(() => SearchServiceInstance.importIndex(invalidData))
-        .toThrow('Invalid or unsupported index data format');
+      expect(() => SearchServiceInstance.importIndex(invalidData)).toThrow(
+        'Invalid or unsupported index data format',
+      );
     });
   });
 
@@ -766,7 +797,7 @@ describe('SearchService', () => {
       SearchServiceInstance.indexFilePath = '/test/index.json';
       const mockStats = {
         size: 1024,
-        mtime: new Date('2024-01-01T10:00:00Z')
+        mtime: new Date('2024-01-01T10:00:00Z'),
       };
       fs.statSync.mockReturnValue(mockStats);
 
@@ -799,7 +830,7 @@ describe('SearchService', () => {
         totalIndexingTime: 0,
         averageSearchTime: 0,
         documentsIndexed: 0,
-        searchTimes: []
+        searchTimes: [],
       };
     });
 

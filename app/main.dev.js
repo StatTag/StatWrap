@@ -973,7 +973,7 @@ ipcMain.on(Messages.SCAN_ASSET_DYNAMIC_DETAILS_REQUEST, async (event, project, a
 });
 
 // Handler to get app data path for persistent storage
-ipcMain.handle('get-app-data-path', async () => {
+ipcMain.handle(Messages.GET_APP_DATA_PATH, async () => {
   try {
     return app.getPath('userData');
   } catch (error) {
@@ -984,13 +984,13 @@ ipcMain.handle('get-app-data-path', async () => {
 });
 
 // Handler to show item in folder
-ipcMain.on('show-item-in-folder', (event, fullPath) => {
+ipcMain.on(Messages.SHOW_ITEM_IN_FOLDER, (event, fullPath) => {
   const { shell } = require('electron');
   shell.showItemInFolder(fullPath);
 });
 
 // Handler to open file with default application
-ipcMain.on('open-file-with-default', (event, fullPath) => {
+ipcMain.on(Messages.OPEN_FILE_WITH_DEFAULT, (event, fullPath) => {
   const { shell } = require('electron');
   shell.openPath(fullPath);
 });

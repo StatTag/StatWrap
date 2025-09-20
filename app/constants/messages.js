@@ -61,5 +61,8 @@ module.exports = {
   PROJECT_EXTERNALLY_CHANGED_RESPONSE: 'statwrap-project-externally-changed',
   SEARCH_INDEX_PROJECT_RESPONSE: 'statwrap-search-index-project-response',
   SEARCH_INDEX_ALL_RESPONSE: 'statwrap-search-index-all-response',
-  SEARCH_STATUS_RESPONSE: 'statwrap-search-status-response',
+
+  GET_APP_DATA_PATH: 'get-app-data-path',
+  SHOW_ITEM_IN_FOLDER: 'show-item-in-folder',
+  OPEN_FILE_WITH_DEFAULT: 'open-file-with-default',
 };

@@ -4,6 +4,9 @@ import fs from 'fs';
 import path from 'path';
 import SearchConfig from '../constants/search-config';
 
+const SEARCH_CONFIG_VERSION = '1.0';
+const EXCLUDED_DIRS = ['node_modules', '.git', '.statwrap', '__pycache__', '.venv', 'venv'];
+
 class SearchService {
   constructor() {
     this.isInitialized = false;
@@ -11,22 +14,22 @@ class SearchService {
     this.projectsData = [];
     this.indexingInProgress = false;
     this.indexingQueue = [];
-    this.maxIndexingFileSize = 0.1 * 1024 * 1024 
+    this.maxIndexingFileSize = 0.1 * 1024 * 1024;
     this.previousMaxFileSize = null; // Tracking file size changes
-    this.isRestoring = false; 
+    this.isRestoring = false;
     this.indicesBuiltThisSession = false;
 
-    // Index file path 
+    // Index file path
     this.indexFilePath = null;
-    this.indexedProjectsMap = new Map(); 
-    
-    // FlexSearch indices 
+    this.indexedProjectsMap = new Map();
+
+    // FlexSearch indices
     this.indices = {
       main: null,
       projects: null,
       files: null,
       people: null,
-      notes: null
+      notes: null,
     };
     this.initializeScoringConfig(SearchConfig?.scoring || {});
     // Performance tracking
@@ -35,9 +38,9 @@ class SearchService {
       totalIndexingTime: 0,
       averageSearchTime: 0,
       documentsIndexed: 0,
-      searchTimes: []
+      searchTimes: [],
     };
-    
+
     // Result caching
     this.resultCache = new Map();
     this.maxCacheSize = SearchConfig?.performance?.resultCacheSize || 100;
@@ -53,12 +56,12 @@ class SearchService {
     try {
       const appDataPath = await ipcRenderer.invoke('get-app-data-path');
       const searchDataDir = path.join(appDataPath, 'search');
-      
+
       // Create directory if it doesn't exist
       if (!fs.existsSync(searchDataDir)) {
         fs.mkdirSync(searchDataDir, { recursive: true });
       }
-      
+
       this.indexFilePath = path.join(searchDataDir, 'search-index.json');
       console.log('SearchService: Index file path set to:', this.indexFilePath);
     } catch (error) {
@@ -71,134 +74,269 @@ class SearchService {
   initializeIndices() {
     try {
       const commonConfig = {
-        tokenize: "strict",
+        tokenize: 'strict',
         resolution: 9,
         depth: 4,
         threshold: 1,
         suggest: true,
-        context: true
+        context: true,
       };
 
       this.indices.main = new FlexSearch.Document({
-        id: "id",
-        tag: "score",
+        id: 'id',
+        tag: 'score',
         ...commonConfig,
         index: [
           {
-            field: "title",
-            tokenize: "strict",
+            field: 'title',
+            tokenize: 'strict',
             optimize: true,
             resolution: 9,
-            context: { 
-            resolution: SearchConfig?.search?.resolution || 5,
-            depth: SearchConfig?.search?.depth || 3,
-            bidirectional: true
-            }
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
           },
           {
-            field: "content", 
-            tokenize: "strict",
+            field: 'content',
+            tokenize: 'strict',
             optimize: true,
             resolution: 9,
             minlength: 1,
             threshold: 0,
-            context: { 
-            resolution: SearchConfig?.search?.resolution || 5,
-            depth: SearchConfig?.search?.depth || 3,
-            bidirectional: true
-            }
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
           },
           {
-            field: "type",
-            tokenize: "strict",
-            context: { 
-            resolution: SearchConfig?.search?.resolution || 5,
-            depth: SearchConfig?.search?.depth || 3,
-            bidirectional: true
-            }
+            field: 'type',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
           },
           {
-            field: "projectName",
-            tokenize: "strict",
-            context: { 
-            resolution: SearchConfig?.search?.resolution || 5,
-            depth: SearchConfig?.search?.depth || 3,
-            bidirectional: true
-            }
+            field: 'projectName',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
           },
           {
-            field: "filename",
-            tokenize: "strict",
+            field: 'filename',
+            tokenize: 'strict',
             resolution: 9,
-            context: { 
-            resolution: SearchConfig?.search?.resolution || 5,
-            depth: SearchConfig?.search?.depth || 3,
-            bidirectional: true
-            }
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
           },
           {
-            field: "extension",
-            tokenize: "strict",
-            context: { 
-            resolution: SearchConfig?.search?.resolution || 5,
-            depth: SearchConfig?.search?.depth || 3,
-            bidirectional: true
-            }
+            field: 'extension',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
           },
           {
-            field: "author",
-            tokenize: "strict",
-            context: { 
-            resolution: SearchConfig?.search?.resolution || 5,
-            depth: SearchConfig?.search?.depth || 3,
-            bidirectional: true
-            }
-          }
-        ]
+            field: 'author',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+        ],
       });
 
       this.indices.projects = new FlexSearch.Document({
-        id: "id",
+        id: 'id',
         ...commonConfig,
         index: [
-          { field: "name", tokenize: "strict", resolution: 9, context: { resolution: SearchConfig?.search?.resolution || 5, depth: SearchConfig?.search?.depth || 3, bidirectional: true } },
-          { field: "description", tokenize: "strict", resolution: 9, context: { resolution: SearchConfig?.search?.resolution || 5, depth: SearchConfig?.search?.depth || 3, bidirectional: true } },
-          { field: "categories", tokenize: "strict", context: { resolution: SearchConfig?.search?.resolution || 5, depth: SearchConfig?.search?.depth || 3, bidirectional: true } },
-          { field: "path", tokenize: "strict", context: { resolution: SearchConfig?.search?.resolution || 5, depth: SearchConfig?.search?.depth || 3, bidirectional: true } }
-        ]
+          {
+            field: 'name',
+            tokenize: 'strict',
+            resolution: 9,
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'description',
+            tokenize: 'strict',
+            resolution: 9,
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'categories',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'path',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+        ],
       });
 
       this.indices.files = new FlexSearch.Document({
-        id: "id",
+        id: 'id',
         ...commonConfig,
         index: [
-          { field: "filename", tokenize: "strict", resolution: 9, context: { resolution: SearchConfig?.search?.resolution || 5, depth: SearchConfig?.search?.depth || 3, bidirectional: true } },
-          { field: "content", tokenize: "strict", resolution: 9, minlength: 1, threshold: 0, context: { resolution: SearchConfig?.search?.resolution || 5, depth: SearchConfig?.search?.depth || 3, bidirectional: true } },
-          { field: "extension", tokenize: "strict", context: { resolution: SearchConfig?.search?.resolution || 5, depth: SearchConfig?.search?.depth || 3, bidirectional: true } },
-          { field: "path", tokenize: "strict", context: { resolution: SearchConfig?.search?.resolution || 5, depth: SearchConfig?.search?.depth || 3, bidirectional: true } },
-        ]
+          {
+            field: 'filename',
+            tokenize: 'strict',
+            resolution: 9,
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'content',
+            tokenize: 'strict',
+            resolution: 9,
+            minlength: 1,
+            threshold: 0,
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'extension',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'path',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+        ],
       });
 
       this.indices.people = new FlexSearch.Document({
-        id: "id",
+        id: 'id',
         ...commonConfig,
         index: [
-          { field: "name", tokenize: "strict", resolution: 9, context: { resolution: SearchConfig?.search?.resolution || 5, depth: SearchConfig?.search?.depth || 3, bidirectional: true } },
-          { field: "affiliation", tokenize: "strict", context: { resolution: SearchConfig?.search?.resolution || 5, depth: SearchConfig?.search?.depth || 3, bidirectional: true } },
-          { field: "roles", tokenize: "strict", context: { resolution: SearchConfig?.search?.resolution || 5, depth: SearchConfig?.search?.depth || 3, bidirectional: true } },
-          { field: "notes", tokenize: "strict", resolution: 9, context: { resolution: SearchConfig?.search?.resolution || 5, depth: SearchConfig?.search?.depth || 3, bidirectional: true } }
-        ]
+          {
+            field: 'name',
+            tokenize: 'strict',
+            resolution: 9,
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'affiliation',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'roles',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'notes',
+            tokenize: 'strict',
+            resolution: 9,
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+        ],
       });
 
       this.indices.notes = new FlexSearch.Document({
-        id: "id",
+        id: 'id',
         ...commonConfig,
         index: [
-          { field: "content", tokenize: "strict", resolution: 9, minlength: 1, threshold: 0, context: { resolution: 5, depth: 3, bidirectional: true } },
-          { field: "author", tokenize: "strict", context: { resolution: SearchConfig?.search?.resolution || 5, depth: SearchConfig?.search?.depth || 3, bidirectional: true } },
-          { field: "type", tokenize: "strict", context: { resolution: SearchConfig?.search?.resolution || 5, depth: SearchConfig?.search?.depth || 3, bidirectional: true } },
-          { field: "entityName", tokenize: "strict", context: { resolution: SearchConfig?.search?.resolution || 5, depth: SearchConfig?.search?.depth || 3, bidirectional: true } }
-        ]
+          {
+            field: 'content',
+            tokenize: 'strict',
+            resolution: 9,
+            minlength: 1,
+            threshold: 0,
+            context: { resolution: 5, depth: 3, bidirectional: true },
+          },
+          {
+            field: 'author',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'type',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'entityName',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+        ],
       });
 
       console.log('SearchService: FlexSearch indices initialized successfully');
@@ -218,34 +356,38 @@ class SearchService {
       if (!this.indexFilePath || !fs.existsSync(this.indexFilePath)) {
         console.log('SearchService: No existing index file found, will create new one');
         return {
-          version: '1.0',
+          version: SEARCH_CONFIG_VERSION,
           timestamp: new Date().toISOString(),
           documentStore: [],
           indexedProjects: {},
           performanceStats: this.performanceStats,
-          maxIndexingFileSize: this.maxIndexingFileSize
+          maxIndexingFileSize: this.maxIndexingFileSize,
         };
       }
 
       console.log('SearchService: Loading index from file:', this.indexFilePath);
       const indexData = JSON.parse(fs.readFileSync(this.indexFilePath, 'utf8'));
-      
-      if (!indexData.version || indexData.version !== '1.0') {
+
+      if (!indexData.version || indexData.version !== SEARCH_CONFIG_VERSION) {
         console.warn('SearchService: Invalid or outdated index file, creating new one');
         return {
-          version: '1.0',
+          version: SEARCH_CONFIG_VERSION,
           timestamp: new Date().toISOString(),
           documentStore: [],
           indexedProjects: {},
           performanceStats: this.performanceStats,
-          maxIndexingFileSize: this.maxIndexingFileSize
+          maxIndexingFileSize: this.maxIndexingFileSize,
         };
       }
-       if (indexData.maxIndexingFileSize !== undefined) {
-      this.previousMaxFileSize = indexData.maxIndexingFileSize;
-      console.log(`SearchService: Previous file size limit was ${(this.previousMaxFileSize / (1024 * 1024)).toFixed(3)}MB`);
-      console.log(`SearchService: Current file size limit is ${(this.maxIndexingFileSize / (1024 * 1024)).toFixed(3)}MB`);
-    }
+      if (indexData.maxIndexingFileSize !== undefined) {
+        this.previousMaxFileSize = indexData.maxIndexingFileSize;
+        console.log(
+          `SearchService: Previous file size limit was ${(this.previousMaxFileSize / (1024 * 1024)).toFixed(3)}MB`,
+        );
+        console.log(
+          `SearchService: Current file size limit is ${(this.maxIndexingFileSize / (1024 * 1024)).toFixed(3)}MB`,
+        );
+      }
       console.log(`SearchService: Loaded index with ${indexData.documentStore.length} documents`);
       console.log(`SearchService: Indexed projects:`, Object.keys(indexData.indexedProjects || {}));
       return indexData;
@@ -257,7 +399,7 @@ class SearchService {
         documentStore: [],
         indexedProjects: {},
         performanceStats: this.performanceStats,
-        maxIndexingFileSize: this.maxIndexingFileSize
+        maxIndexingFileSize: this.maxIndexingFileSize,
       };
     }
   }
@@ -272,12 +414,12 @@ class SearchService {
       }
 
       const indexData = {
-        version: '1.0',
+        version: SEARCH_CONFIG_VERSION,
         timestamp: new Date().toISOString(),
         documentStore: Array.from(this.documentStore.entries()),
         indexedProjects: Object.fromEntries(this.indexedProjectsMap.entries()),
         performanceStats: this.performanceStats,
-        maxIndexingFileSize: this.maxIndexingFileSize
+        maxIndexingFileSize: this.maxIndexingFileSize,
       };
 
       fs.writeFileSync(this.indexFilePath, JSON.stringify(indexData, null, 2));
@@ -292,32 +434,35 @@ class SearchService {
     let totalIndexEntries = 0;
     const batchSize = 100;
     const documents = Array.from(this.documentStore.values());
-    
+
     for (let i = 0; i < documents.length; i += batchSize) {
       const batch = documents.slice(i, i + batchSize);
-      
-      batch.forEach(doc => {
+
+      batch.forEach((doc) => {
         const indexNames = this.getIndexNamesForType(doc.type);
         let docAddedToAnyIndex = false;
-        
-        indexNames.forEach(indexName => {
+
+        indexNames.forEach((indexName) => {
           if (this.indices[indexName]) {
             try {
               this.indices[indexName].add(doc);
               totalIndexEntries++;
               docAddedToAnyIndex = true;
             } catch (error) {
-              console.warn(`SearchService: Error adding document ${doc.id} to ${indexName} index:`, error.message);
+              console.warn(
+                `SearchService: Error adding document ${doc.id} to ${indexName} index:`,
+                error.message,
+              );
             }
           }
         });
-        
+
         if (docAddedToAnyIndex) {
           documentsProcessed++;
         }
       });
     }
-    
+
     console.log(`SearchService: Built indices with ${documentsProcessed} unique documents`);
     console.log(`SearchService: Total index entries: ${totalIndexEntries}`);
   }
@@ -327,38 +472,51 @@ class SearchService {
    */
   emitStatsUpdate(updateResults) {
     if (typeof window !== 'undefined' && window.dispatchEvent) {
-      window.dispatchEvent(new CustomEvent('searchStatsUpdated', { 
-        detail: { updateResults, stats: this.getSearchStats() } 
-      }));
+      window.dispatchEvent(
+        new CustomEvent('searchStatsUpdated', {
+          detail: { updateResults, stats: this.getSearchStats() },
+        }),
+      );
     }
   }
 
-
   async compareAndUpdateIndex(currentProjects) {
-    const currentProjectIds = new Set(currentProjects.map(p => p.id));
+    const currentProjectIds = new Set(currentProjects.map((p) => p.id));
     const indexedProjectIds = new Set(this.indexedProjectsMap.keys());
-    
-    const projectsToAdd = currentProjects.filter(p => !indexedProjectIds.has(p.id));
-    const projectsToRemove = Array.from(indexedProjectIds).filter(id => !currentProjectIds.has(id));
-    
+
+    const projectsToAdd = currentProjects.filter((p) => !indexedProjectIds.has(p.id));
+    const projectsToRemove = Array.from(indexedProjectIds).filter(
+      (id) => !currentProjectIds.has(id),
+    );
+
     // Check for path changes
-    const projectsToUpdate = currentProjects.filter(p => {
+    const projectsToUpdate = currentProjects.filter((p) => {
       if (!indexedProjectIds.has(p.id)) return false;
-      
+
       const indexedProject = this.indexedProjectsMap.get(p.id);
       return indexedProject.path !== p.path;
     });
 
-    console.log(`SearchService: Index comparison results:`);
-    console.log(`Projects to add: ${projectsToAdd.length}`);
-    console.log(`Projects to remove: ${projectsToRemove.length}`);
-    console.log(`Projects to update: ${projectsToUpdate.length}`);
+    const shouldLog =
+      typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'test';
+    if (shouldLog) {
+      console.log(`SearchService: Index comparison results:`);
+      console.log(`Projects to add: ${projectsToAdd.length}`);
+      console.log(`Projects to remove: ${projectsToRemove.length}`);
+      console.log(`Projects to update: ${projectsToUpdate.length}`);
+    }
 
-    if (projectsToAdd.length === 0 && projectsToRemove.length === 0 && projectsToUpdate.length === 0) {
-      console.log('SearchService: No changes detected, index is up to date');
+    if (
+      projectsToAdd.length === 0 &&
+      projectsToRemove.length === 0 &&
+      projectsToUpdate.length === 0
+    ) {
+      if (shouldLog) {
+        console.log('SearchService: No changes detected, index is up to date');
+      }
       return { added: 0, removed: 0, updated: 0 };
     }
-    
+
     // Remove projects without rebuilding indices
     for (const projectId of projectsToRemove) {
       await this.removeProjectDocumentsOnly(projectId);
@@ -366,47 +524,57 @@ class SearchService {
 
     // Add new projects (already incremental)
     for (const project of projectsToAdd) {
-      console.log(`SearchService: Adding new project: ${project.name}`);
+      if (shouldLog) {
+        console.log(`SearchService: Adding new project: ${project.name}`);
+      }
       await this.indexProject(project);
     }
 
     // Updating projects by removing old and adding new
     for (const project of projectsToUpdate) {
-      console.log(`SearchService: Updating project: ${project.name}`);
+      if (shouldLog) {
+        console.log(`SearchService: Updating project: ${project.name}`);
+      }
       await this.removeProjectDocumentsOnly(project.id);
       await this.indexProject(project);
     }
 
-    console.log('SearchService: Incremental updates completed without index rebuild');
+    if (shouldLog) {
+      console.log('SearchService: Incremental updates completed without index rebuild');
+    }
 
     return {
       added: projectsToAdd.length,
       removed: projectsToRemove.length,
-      updated: projectsToUpdate.length
+      updated: projectsToUpdate.length,
     };
   }
-   async removeProjectDocumentsOnly(projectId) {
+  async removeProjectDocumentsOnly(projectId) {
     console.log(`SearchService: Removing documents for project ${projectId}`);
-    
+
     const documentsToRemove = [];
     this.documentStore.forEach((doc, docId) => {
       if (doc.item && doc.item.projectId === projectId) {
         documentsToRemove.push({ docId, doc });
       }
     });
-    
+
     // Remove from document store
     documentsToRemove.forEach(({ docId }) => {
       this.documentStore.delete(docId);
     });
     if (documentsToRemove.length > 0) {
-      console.log(`SearchService: Removed ${documentsToRemove.length} documents from document store`);
+      console.log(
+        `SearchService: Removed ${documentsToRemove.length} documents from document store`,
+      );
     }
 
     // Remove from indexed projects map
     this.indexedProjectsMap.delete(projectId);
-    
-    console.log(`SearchService: Removed project ${projectId} (${documentsToRemove.length} documents)`);
+
+    console.log(
+      `SearchService: Removed project ${projectId} (${documentsToRemove.length} documents)`,
+    );
   }
 
   /**
@@ -414,7 +582,7 @@ class SearchService {
    */
   async indexProject(project) {
     console.log(`SearchService: Indexing project: ${project.name}`);
-    
+
     try {
       // Index project metadata
       await this.indexProjectMetadata(project);
@@ -445,9 +613,9 @@ class SearchService {
         id: project.id,
         name: project.name,
         path: project.path,
-        lastIndexed: Date.now()
+        lastIndexed: Date.now(),
       });
-      
+
       console.log(`SearchService: Successfully indexed project: ${project.name}`);
     } catch (error) {
       console.error(`SearchService: Error indexing project ${project.name}:`, error);
@@ -461,13 +629,13 @@ class SearchService {
     // If already initialized, only check for changes
     if (this.isInitialized && this.indicesBuiltThisSession) {
       console.log('SearchService: Already initialized this session, checking for changes...');
-      
+
       // Updating current projects data
       this.projectsData = projects;
 
       // Checking for project changes (additions, removals, updates)
       const updateResults = await this.compareAndUpdateIndex(projects);
-      
+
       if (updateResults.added > 0 || updateResults.removed > 0 || updateResults.updated > 0) {
         await this.saveIndexToFile();
         console.log('SearchService: Project changes handled:', updateResults);
@@ -475,28 +643,34 @@ class SearchService {
       } else {
         console.log('SearchService: No project changes detected');
       }
-      
+
       return;
     }
     try {
       console.log('SearchService: Starting initialization with persistent indexing');
       console.log('SearchService: Projects to process:', projects.length);
-      console.log('SearchService: Max file size for indexing:', (maxFileSize / (1024 * 1024)).toFixed(3), 'MB');
+      console.log(
+        'SearchService: Max file size for indexing:',
+        (maxFileSize / (1024 * 1024)).toFixed(3),
+        'MB',
+      );
 
       this.projectsData = projects;
       this.maxIndexingFileSize = maxFileSize;
-      
+
       // Load existing index
       const existingIndex = await this.loadIndexFromFile();
       const hasExistingData = existingIndex.documentStore && existingIndex.documentStore.length > 0;
-      
+
       if (hasExistingData) {
         console.log('SearchService: Found existing index, performing fast restoration');
-        
+
         // Fast restore from existing index
         this.documentStore = new Map(existingIndex.documentStore);
-        console.log(`SearchService: Restored ${this.documentStore.size} documents from existing index`);
-        
+        console.log(
+          `SearchService: Restored ${this.documentStore.size} documents from existing index`,
+        );
+
         // Restore indexed projects map
         if (existingIndex.indexedProjects) {
           this.indexedProjectsMap = new Map(Object.entries(existingIndex.indexedProjects));
@@ -505,7 +679,7 @@ class SearchService {
         if (existingIndex.performanceStats) {
           this.performanceStats = { ...this.performanceStats, ...existingIndex.performanceStats };
         }
-        
+
         if (!this.indicesBuiltThisSession) {
           console.log('SearchService: Building FlexSearch indices from document store...');
           const startTime = Date.now();
@@ -516,14 +690,16 @@ class SearchService {
         } else {
           console.log('SearchService: FlexSearch indices already built this session');
         }
-        
+
         this.isInitialized = true;
-        const fileSizeChanged = this.previousMaxFileSize !== null && 
-                       this.previousMaxFileSize !== maxFileSize;
+        const fileSizeChanged =
+          this.previousMaxFileSize !== null && this.previousMaxFileSize !== maxFileSize;
         if (fileSizeChanged) {
-          console.log(`SearchService: File size limit changed from ${(existingIndex.maxIndexingFileSize / (1024 * 1024)).toFixed(3)}MB to ${(maxFileSize / (1024 * 1024)).toFixed(3)}MB - will reindex affected projects`);
+          console.log(
+            `SearchService: File size limit changed from ${(existingIndex.maxIndexingFileSize / (1024 * 1024)).toFixed(3)}MB to ${(maxFileSize / (1024 * 1024)).toFixed(3)}MB - will reindex affected projects`,
+          );
           this.maxIndexingFileSize = maxFileSize;
-          
+
           setTimeout(async () => {
             this.indexingInProgress = true;
             const updateResults = await this.compareAndUpdateIndex(projects);
@@ -536,7 +712,7 @@ class SearchService {
             this.indexingInProgress = true;
             const updateResults = await this.compareAndUpdateIndex(projects);
             this.indexingInProgress = false;
-            
+
             if (updateResults.added > 0 || updateResults.removed > 0 || updateResults.updated > 0) {
               await this.saveIndexToFile();
               console.log('SearchService: Incremental update completed:', updateResults);
@@ -545,39 +721,37 @@ class SearchService {
             }
           }, 100);
         }
-        
       } else {
         console.log('SearchService: No existing index found, creating new index');
-        this.isInitialized = true; 
+        this.isInitialized = true;
         this.indexingInProgress = true;
-        
+
         // Index all projects
         for (const project of projects) {
           await this.indexProject(project);
         }
-        
+
         this.indexingInProgress = false;
-        
+
         // Save the new index
         await this.saveIndexToFile();
-        
+
         console.log('SearchService: New index created and saved');
       }
-      
+
       console.log('SearchService: Initialization complete');
       console.log('Documents indexed:', this.documentStore.size);
-      
+
       const stats = this.getSearchStats();
       console.log('SearchService: Final indexing summary:');
       Object.entries(stats.documentsByType).forEach(([type, count]) => {
         console.log(`  ${type}: ${count} documents`);
       });
       console.log(`  Content-indexed files: ${stats.contentIndexedFiles}`);
-      
     } catch (error) {
       console.error('SearchService: Initialization error:', error);
       this.indexingInProgress = false;
-      this.isInitialized = true; 
+      this.isInitialized = true;
     }
   }
 
@@ -596,26 +770,25 @@ class SearchService {
    */
   async reindexAll(maxFileSize = null) {
     console.log('SearchService: Starting complete reindex');
-    
+
     try {
       const fileSizeLimit = maxFileSize || this.maxIndexingFileSize;
       this.clearIndices();
       this.maxIndexingFileSize = fileSizeLimit;
-      
+
       this.indexingInProgress = true;
-      
+
       // Reindex all current projects
       for (const project of this.projectsData) {
         await this.indexProject(project);
       }
-      
+
       this.indexingInProgress = false;
-      
+
       // Save the new index
       await this.saveIndexToFile();
-      
+
       console.log('SearchService: Complete reindex finished');
-      
     } catch (error) {
       console.error('SearchService: Reindex error:', error);
       this.indexingInProgress = false;
@@ -625,40 +798,42 @@ class SearchService {
 
   async FolderTraversal(project, maxFileSize = null) {
     const fileSizeLimit = maxFileSize || this.maxIndexingFileSize;
-    console.log(`SearchService: Indexing files in: ${project.path} (max size: ${(fileSizeLimit / (1024 * 1024)).toFixed(3)}MB)`);
+    console.log(
+      `SearchService: Indexing files in: ${project.path} (max size: ${(fileSizeLimit / (1024 * 1024)).toFixed(3)}MB)`,
+    );
 
     let totalFiles = 0;
     let indexedFiles = 0;
     let skippedLargeFiles = 0;
-    
+
     const scanDirectory = async (dirPath) => {
       try {
         const items = fs.readdirSync(dirPath);
-        
+
         for (const item of items) {
           const fullPath = path.join(dirPath, item);
           const relativePath = path.relative(project.path, fullPath);
-          
+
           try {
             const stats = fs.statSync(fullPath);
-            
+
             if (stats.isDirectory()) {
-              if (!['node_modules', '.git', '.statwrap', '__pycache__', '.venv', 'venv'].includes(item)) {
+              if (!EXCLUDED_DIRS.includes(item)) {
                 await scanDirectory(fullPath);
               }
             } else if (stats.isFile()) {
               totalFiles++;
-              
+
               if (stats.size > fileSizeLimit) {
                 skippedLargeFiles++;
                 continue;
               }
-              
+
               const extension = path.extname(item).toLowerCase();
               const isTextFile = this.isTextFile(item, extension);
-              
+
               if (isTextFile) {
-                const success = await this.FileScanner (fullPath, relativePath, project, stats);
+                const success = await this.FileScanner(fullPath, relativePath, project, stats);
                 if (success) {
                   indexedFiles++;
                 }
@@ -672,9 +847,9 @@ class SearchService {
         console.error(`SearchService: Read error for ${dirPath}: ${readError.message}`);
       }
     };
-    
+
     await scanDirectory(project.path);
-    
+
     console.log(`SearchService: Indexing complete for ${project.name}:`);
     console.log(`  - Total files found: ${totalFiles}`);
     console.log(`  - Files indexed: ${indexedFiles}`);
@@ -683,26 +858,50 @@ class SearchService {
 
   isTextFile(filename, extension) {
     const textExtensions = [
-      '.py', '.js', '.jsx', '.ts', '.tsx', '.html', '.htm', '.css', '.scss',
-      '.json', '.txt', '.md', '.csv', '.sql', '.xml', '.yaml', '.yml',
-      '.ipynb', '.r', '.rmd', '.log', '.sh', '.bat', '.ps1', '.ini', '.conf', '.cpp'
+      '.py',
+      '.js',
+      '.jsx',
+      '.ts',
+      '.tsx',
+      '.html',
+      '.htm',
+      '.css',
+      '.scss',
+      '.json',
+      '.txt',
+      '.md',
+      '.csv',
+      '.sql',
+      '.xml',
+      '.yaml',
+      '.yml',
+      '.ipynb',
+      '.r',
+      '.rmd',
+      '.log',
+      '.sh',
+      '.bat',
+      '.ps1',
+      '.ini',
+      '.conf',
+      '.cpp',
     ];
-    
+
     const specialFiles = ['readme', 'license', 'makefile', 'dockerfile'];
-    
+
     if (textExtensions.includes(extension)) {
       return true;
     }
-    
+
     const lowerName = filename.toLowerCase();
-    if (specialFiles.some(special => lowerName.includes(special))) {
+    if (specialFiles.some((special) => lowerName.includes(special))) {
       return true;
     }
-    
+
     return false;
   }
 
-  async FileScanner (fullPath, relativePath, project, stats) {
+  async FileScanner(fullPath, relativePath, project, stats) {
     try {
       let content = '';
       try {
@@ -711,13 +910,13 @@ class SearchService {
         console.error(`SearchService: Failed to read ${relativePath} - ${readError.message}`);
         return false;
       }
-      
+
       const extension = path.extname(relativePath).toLowerCase();
       const filename = path.basename(relativePath);
-      
-      const searchableContent = `${filename} ${content}`;      
+
+      const searchableContent = `${filename} ${content}`;
       const docId = `file_${project.id}_${relativePath.replace(/[^a-zA-Z0-9]/g, '_')}`;
-      
+
       const doc = {
         id: docId,
         type: 'file',
@@ -734,35 +933,34 @@ class SearchService {
           lastModified: stats.mtime,
           isContentIndexed: true,
           source: 'brute-force',
-          contentLength: content.length
-        })
+          contentLength: content.length,
+        }),
       };
-      
+
       this.addToIndices(doc, ['main', 'files']);
-      
-      this.documentStore.set(docId, { 
-        ...doc, 
-        item: { 
+
+      this.documentStore.set(docId, {
+        ...doc,
+        item: {
           uri: relativePath,
           name: filename,
           size: stats.size,
           lastModified: stats.mtime,
           snippet: content.substring(0, 300) + (content.length > 300 ? '...' : ''),
-          isContentIndexed: true, 
+          isContentIndexed: true,
           projectName: project.name,
           projectId: project.id,
           fullPath: fullPath,
           type: 'file',
-          actualContent: content, 
+          actualContent: content,
           title: filename,
           extension: extension,
           path: relativePath,
-          relativePath: relativePath
-        } 
+          relativePath: relativePath,
+        },
       });
-      
+
       return true;
-      
     } catch (error) {
       console.error(`SearchService: Error indexing ${relativePath}:`, error);
       return false;
@@ -776,7 +974,7 @@ class SearchService {
 
   async indexProjectMetadata(project) {
     const docId = this.generateDocumentId('project', project.id);
-    
+
     const doc = {
       id: docId,
       type: 'project',
@@ -800,23 +998,25 @@ class SearchService {
       project.description?.content || '',
       project.description?.uriContent || '',
       (project.categories || []).join(' '),
-      (project.notes || []).map(note => note.content).join(' ')
+      (project.notes || []).map((note) => note.content).join(' '),
     ];
-    
-    return parts.filter(part => part && part.trim()).join(' ');
+
+    return parts.filter((part) => part && part.trim()).join(' ');
   }
 
   async indexPerson(person, project) {
     if (!person || !person.id) return;
-    
+
     const searchableContent = [
       this.formatPersonName(person.name),
       person.affiliation || '',
       (person.roles || []).join(' '),
-      (person.notes || []).map(note => note.content).join(' ')
-    ].filter(part => part && part.trim()).join(' ');
+      (person.notes || []).map((note) => note.content).join(' '),
+    ]
+      .filter((part) => part && part.trim())
+      .join(' ');
     const docId = this.generateDocumentId('person', person.id);
-    
+
     const doc = {
       id: docId,
       type: 'person',
@@ -825,18 +1025,18 @@ class SearchService {
       name: this.formatPersonName(person.name),
       affiliation: person.affiliation || '',
       roles: (person.roles || []).join(' '),
-      notes: (person.notes || []).map(note => note.content).join(' '),
+      notes: (person.notes || []).map((note) => note.content).join(' '),
       projectName: project.name,
       projectId: project.id,
     };
-    
+
     this.addToIndices(doc, ['main', 'people']);
-    this.documentStore.set(docId, { 
-      ...doc, 
-      item: { 
-        ...person, 
-        projectName: project.name 
-      } 
+    this.documentStore.set(docId, {
+      ...doc,
+      item: {
+        ...person,
+        projectName: project.name,
+      },
     });
 
     if (person.notes && Array.isArray(person.notes)) {
@@ -848,9 +1048,9 @@ class SearchService {
 
   async indexNote(note, project, entityType, entityName) {
     if (!note || !note.content) return;
-    
+
     const docId = this.generateDocumentId('note', note.id || Date.now(), entityType);
-    
+
     const doc = {
       id: docId,
       type: 'note',
@@ -862,30 +1062,32 @@ class SearchService {
       projectName: project.name,
       projectId: project.id,
     };
-    
+
     this.addToIndices(doc, ['main', 'notes']);
-    this.documentStore.set(docId, { 
-      ...doc, 
-      item: { 
-        ...note, 
+    this.documentStore.set(docId, {
+      ...doc,
+      item: {
+        ...note,
         noteType: entityType,
         entityName: entityName,
-        projectName: project.name 
-      } 
+        projectName: project.name,
+      },
     });
   }
 
   async indexAssetGroup(group, project) {
     if (!group || !group.id) return;
-    
+
     const searchableContent = [
       group.name || '',
       group.details || '',
-      (group.assets || []).map(asset => asset.uri).join(' ')
-    ].filter(part => part && part.trim()).join(' ');
-    
+      (group.assets || []).map((asset) => asset.uri).join(' '),
+    ]
+      .filter((part) => part && part.trim())
+      .join(' ');
+
     const docId = this.generateDocumentId('asset-group', group.id);
-    
+
     const doc = {
       id: docId,
       type: 'asset-group',
@@ -894,32 +1096,32 @@ class SearchService {
       projectName: project.name,
       projectId: project.id,
     };
-    
+
     this.addToIndices(doc, ['main']);
-    this.documentStore.set(docId, { 
-      ...doc, 
-      item: { 
-        ...group, 
-        projectName: project.name 
-      } 
+    this.documentStore.set(docId, {
+      ...doc,
+      item: {
+        ...group,
+        projectName: project.name,
+      },
     });
   }
 
   formatPersonName(name) {
     if (!name) return '';
-    
+
     if (typeof name === 'string') return name;
-    
+
     const parts = [];
     if (name.first) parts.push(name.first);
     if (name.middle) parts.push(name.middle);
     if (name.last) parts.push(name.last);
-    
+
     return parts.join(' ').trim();
   }
 
   addToIndices(doc, indexNames = ['main']) {
-    indexNames.forEach(indexName => {
+    indexNames.forEach((indexName) => {
       if (this.indices[indexName]) {
         try {
           this.indices[indexName].add(doc);
@@ -936,39 +1138,47 @@ class SearchService {
   preprocessQuery(originalQuery) {
     try {
       const config = SearchConfig?.search?.preprocessing;
-      
+
       if (!config || !config.enableStopWords) {
         return {
           processedQuery: originalQuery,
           originalQuery: originalQuery,
           removedWords: [],
-          keptWords: originalQuery.toLowerCase().trim().split(/\s+/).filter(word => word.length > 0)
+          keptWords: originalQuery
+            .toLowerCase()
+            .trim()
+            .split(/\s+/)
+            .filter((word) => word.length > 0),
         };
       }
 
       // Convert to lowercase and split into words
-      const words = originalQuery.toLowerCase().trim().split(/\s+/).filter(word => word.length > 0);
-      
+      const words = originalQuery
+        .toLowerCase()
+        .trim()
+        .split(/\s+/)
+        .filter((word) => word.length > 0);
+
       if (words.length === 0) {
         return {
           processedQuery: '',
           originalQuery: originalQuery,
           removedWords: [],
-          keptWords: []
+          keptWords: [],
         };
       }
 
       // Combine regular stop words with technical stop words
       const allStopWords = new Set([
         ...(config.stopWords || []),
-        ...(config.technicalStopWords || [])
+        ...(config.technicalStopWords || []),
       ]);
 
       const minWordLength = config.minWordLength || 2;
       const removedWords = [];
       const keptWords = [];
 
-      words.forEach(word => {
+      words.forEach((word) => {
         const cleanWord = word.replace(/^[^\w]+|[^\w]+$/g, '');
         if (cleanWord.length === 0) {
           removedWords.push(word);
@@ -989,17 +1199,20 @@ class SearchService {
         originalQuery: originalQuery,
         removedWords: removedWords,
         keptWords: keptWords,
-        wasProcessed: keptWords.length < words.length
+        wasProcessed: keptWords.length < words.length,
       };
-      
     } catch (error) {
       console.error('SearchService: Error preprocessing query:', error);
       return {
         processedQuery: originalQuery,
         originalQuery: originalQuery,
         removedWords: [],
-        keptWords: originalQuery.toLowerCase().trim().split(/\s+/).filter(word => word.length > 0),
-        error: error.message
+        keptWords: originalQuery
+          .toLowerCase()
+          .trim()
+          .split(/\s+/)
+          .filter((word) => word.length > 0),
+        error: error.message,
       };
     }
   }
@@ -1012,44 +1225,45 @@ class SearchService {
       console.warn('SearchService: Service not initialized');
       return this.getEmptyResults();
     }
-    
+
     if (!query || typeof query !== 'string' || query.trim() === '') {
       return this.getEmptyResults();
     }
-    
+
     const startTime = Date.now();
-    
+
     // Preprocess the query
     const queryPreprocessing = this.preprocessQuery(query);
     const searchQuery = queryPreprocessing.processedQuery;
     const cacheKey = this.generateCacheKey(searchQuery, options);
-    
+
     // Check cache first
     const cached = this.getFromCache(cacheKey);
     if (cached) {
       console.log('SearchService: Returning cached results');
       return {
         ...cached,
-        queryPreprocessing: queryPreprocessing
+        queryPreprocessing: queryPreprocessing,
       };
     }
-    
+
     try {
       const searchResults = this.performSearch(searchQuery, options);
       const groupedResults = this.groupResultsByType(searchResults);
-      
+
       // Add preprocessing information to results
       groupedResults.queryPreprocessing = queryPreprocessing;
       groupedResults.searchQuery = searchQuery;
       const searchTime = Date.now() - startTime;
       this.updateSearchStats(searchTime);
       this.addToCache(cacheKey, groupedResults);
-      
-      console.log(`SearchService: Search completed in ${searchTime}ms, found ${searchResults.length} results`);
+
+      console.log(
+        `SearchService: Search completed in ${searchTime}ms, found ${searchResults.length} results`,
+      );
       console.log(`SearchService: Used query: "${searchQuery}" (processed from: "${query}")`);
-      
+
       return groupedResults;
-      
     } catch (error) {
       console.error('SearchService: Search error:', error);
       const emptyResults = this.getEmptyResults();
@@ -1063,134 +1277,126 @@ class SearchService {
    * performSearch that handles both processed and original queries
    */
   performSearch(query, options = {}) {
-    const {
-      type,
-      projectId,
-      maxResults = SearchConfig?.search?.maxResults || 1000
-    } = options;
-    
+    const { type, projectId, maxResults = SearchConfig?.search?.maxResults || 1000 } = options;
+
     try {
       console.log('SearchService: Performing FlexSearch for query:', query);
       console.log('SearchService: Document store size:', this.documentStore.size);
-      
-      let allResults = new Map(); 
+
+      let allResults = new Map();
       const queryTerms = query.toLowerCase().trim().split(/\s+/);
-      
+
       // 1: Exact query search with score tracking
-      const exactResults = this.indices.main.search(query, { 
+      const exactResults = this.indices.main.search(query, {
         limit: maxResults,
         suggest: true,
         context: true,
       });
       this.processFlexSearchResultsWithScores(exactResults, allResults, 1.0);
-      
+
       // 2: Fuzzy search for typo tolerance
       const enableFuzzy = SearchConfig?.search?.enableFuzzySearch !== false;
-    if (enableFuzzy) {
-      const fuzzyThreshold = SearchConfig?.search?.fuzzySearchThreshold || 3;
-      const fuzzyResults = this.indices.main.search(query, {
-        limit: maxResults,
-        suggest: true,
-        threshold: fuzzyThreshold 
-      });
-      this.processFlexSearchResultsWithScores(fuzzyResults, allResults, 0.8);
-    }
-      
+      if (enableFuzzy) {
+        const fuzzyThreshold = SearchConfig?.search?.fuzzySearchThreshold || 3;
+        const fuzzyResults = this.indices.main.search(query, {
+          limit: maxResults,
+          suggest: true,
+          threshold: fuzzyThreshold,
+        });
+        this.processFlexSearchResultsWithScores(fuzzyResults, allResults, 0.8);
+      }
+
       // 3: Individual term searches for partial matching
       if (queryTerms.length > 1) {
         for (const term of queryTerms) {
           if (term.length >= 2) {
-            const termResults = this.indices.main.search(term, { 
+            const termResults = this.indices.main.search(term, {
               limit: maxResults,
-              context: true
+              context: true,
             });
             this.processFlexSearchResultsWithScores(termResults, allResults, 0.6);
           }
         }
       }
-      
+
       // 4: Context-aware search
       const contextResults = this.indices.main.search(query, {
         limit: maxResults,
         context: {
           depth: SearchConfig?.search?.depth || 3,
           resolution: SearchConfig?.search?.resolution || 3,
-        }
+        },
       });
       this.processFlexSearchResultsWithScores(contextResults, allResults, 0.7);
-      
+
       console.log(`SearchService: Found ${allResults.size} unique document IDs from search`);
-      
+
       // Convert Map to search results with scoring
       let searchResults = [];
       allResults.forEach((flexScore, id) => {
         const docData = this.documentStore.get(id);
         if (docData) {
-          const relevance = this.calculateRelevance(
-            docData, 
-            query, 
-            queryTerms, 
-            flexScore,
-            { searchType: 'multi-strategy', ...options }
-          );
-          
+          const relevance = this.calculateRelevance(docData, query, queryTerms, flexScore, {
+            searchType: 'multi-strategy',
+            ...options,
+          });
+
           searchResults.push({
             id: id,
             score: relevance,
             flexSearchScore: flexScore,
             type: docData.type,
             item: docData.item,
-            highlights: this.generateHighlights(docData, query)
+            highlights: this.generateHighlights(docData, query),
           });
         }
       });
-      
+
       // Sort by relevance score (highest first)
       searchResults.sort((a, b) => b.score - a.score);
-      
+
       // Apply filters
       if (type && type !== 'all') {
-        searchResults = searchResults.filter(result => result.type === type);
+        searchResults = searchResults.filter((result) => result.type === type);
       }
-      
+
       if (projectId && projectId !== 'all') {
-        searchResults = searchResults.filter(result => 
-          result.item && result.item.projectId === projectId
+        searchResults = searchResults.filter(
+          (result) => result.item && result.item.projectId === projectId,
         );
       }
-      
+
       searchResults = searchResults.slice(0, maxResults);
       return searchResults;
-      
     } catch (error) {
       console.error('SearchService: Error in performSearch:', error);
       return [];
     }
   }
-    /**
-     * Process FlexSearch results with score tracking
-     */
-    processFlexSearchResultsWithScores(flexSearchResults, resultsMap, scoreMultiplier = 1.0) {
-      if (Array.isArray(flexSearchResults)) {
-        flexSearchResults.forEach(fieldResult => {
-          if (fieldResult && fieldResult.result && Array.isArray(fieldResult.result)) {
-            fieldResult.result.forEach((id, index) => {
-              // Create position-based score (higher position = lower score)
-              const positionScore = Math.max(0.1, 1.0 - (index * 0.1)); 
-              const flexScore = positionScore * scoreMultiplier;
-              
-              const currentScore = resultsMap.get(id) || 0;
-              resultsMap.set(id, Math.max(currentScore, flexScore));
-            });
-          }
-        });
-      }
+  /**
+   * Process FlexSearch results with score tracking
+   */
+  processFlexSearchResultsWithScores(flexSearchResults, resultsMap, scoreMultiplier = 1.0) {
+    if (Array.isArray(flexSearchResults)) {
+      flexSearchResults.forEach((fieldResult) => {
+        if (fieldResult && fieldResult.result && Array.isArray(fieldResult.result)) {
+          fieldResult.result.forEach((id, index) => {
+            // Create position-based score (higher position = lower score)
+            const positionScore = Math.max(0.1, 1.0 - index * 0.1);
+            const flexScore = positionScore * scoreMultiplier;
+
+            const currentScore = resultsMap.get(id) || 0;
+            resultsMap.set(id, Math.max(currentScore, flexScore));
+          });
+        }
+      });
     }
+  }
   //   **
   //  * Initialize scoring configuration in constructor
   //  */
   initializeScoringConfig(config = {}) {
-    const weights = config.weights || {}; 
+    const weights = config.weights || {};
     this.scoringWeights = {
       exactPhraseContent: weights.exactPhraseContent || 1.0,
       exactPhraseTitle: weights.exactPhraseTitle || 0.9,
@@ -1202,9 +1408,9 @@ class SearchService {
       contentIndexedBonus: weights.contentIndexedBonus || 0.05,
       flexSearchScore: weights.flexSearchScore || 0.4,
       proximityBonus: weights.proximityBonus || 0.2,
-      fieldLengthPenalty: weights.fieldLengthPenalty || 0.1
+      fieldLengthPenalty: weights.fieldLengthPenalty || 0.1,
     };
-    
+
     this.maxBaseScore = config.maxBaseScore || 100;
   }
 
@@ -1212,7 +1418,7 @@ class SearchService {
     const query = originalQuery.toLowerCase();
     const content = (docData.content || '').toLowerCase();
     const title = (docData.title || '').toLowerCase();
-    
+
     let score = 0;
     score += flexSearchScore * this.scoringWeights.flexSearchScore * this.maxBaseScore;
 
@@ -1220,8 +1426,11 @@ class SearchService {
     score += exactPhraseScore;
 
     const completenessData = this.calculateQueryCompleteness(content, title, queryTerms);
-    const completenessPenalty = this.calculateCompletenessPenalty(completenessData, queryTerms.length);
-    score *= completenessPenalty; 
+    const completenessPenalty = this.calculateCompletenessPenalty(
+      completenessData,
+      queryTerms.length,
+    );
+    score *= completenessPenalty;
 
     const wordMatchData = this.calculateWordMatches(content, title, queryTerms);
     score += wordMatchData.score;
@@ -1246,19 +1455,19 @@ class SearchService {
    */
   calculateExactPhraseScore(content, title, query) {
     let score = 0;
-    
+
     if (content.includes(query)) {
       const position = content.indexOf(query);
-      const positionWeight = Math.max(0.5, 1 - (position / content.length));
+      const positionWeight = Math.max(0.5, 1 - position / content.length);
       score += this.scoringWeights.exactPhraseContent * this.maxBaseScore * positionWeight;
     }
-    
+
     if (title.includes(query)) {
       const position = title.indexOf(query);
-      const positionWeight = Math.max(0.7, 1 - (position / title.length));
+      const positionWeight = Math.max(0.7, 1 - position / title.length);
       score += this.scoringWeights.exactPhraseTitle * this.maxBaseScore * positionWeight;
     }
-    
+
     return score;
   }
 
@@ -1267,19 +1476,19 @@ class SearchService {
    */
   calculatePartialMatches(content, title, queryTerms) {
     let score = 0;
-    
-    queryTerms.forEach(term => {
+
+    queryTerms.forEach((term) => {
       if (term.length >= 3) {
         // Try different partial match strategies
         const partialTerm = term.substring(0, Math.max(3, term.length - 1));
         const prefixTerm = term.substring(0, Math.min(term.length, 4));
-        
+
         // Partial matches in content
         if (content.includes(partialTerm) || this.hasPartialMatch(content, prefixTerm)) {
           const matchQuality = partialTerm.length / term.length;
           score += this.scoringWeights.partialWordMatch * this.maxBaseScore * matchQuality;
         }
-        
+
         // Partial matches in title
         if (title.includes(partialTerm) || this.hasPartialMatch(title, prefixTerm)) {
           const matchQuality = partialTerm.length / term.length;
@@ -1287,7 +1496,7 @@ class SearchService {
         }
       }
     });
-    
+
     return score;
   }
 
@@ -1296,50 +1505,51 @@ class SearchService {
    */
   calculateProximityScore(content, queryTerms) {
     if (queryTerms.length < 2) return 0;
-    
+
     let proximityScore = 0;
     const positions = {};
-    
+
     // Find positions of all terms
-    queryTerms.forEach(term => {
+    queryTerms.forEach((term) => {
       const termLower = term.toLowerCase();
       const termPositions = [];
       let index = content.indexOf(termLower);
-      
+
       while (index !== -1) {
         termPositions.push(index);
         index = content.indexOf(termLower, index + 1);
       }
-      
+
       if (termPositions.length > 0) {
         positions[term] = termPositions;
       }
     });
-    
+
     // Calculate proximity bonuses
     const termKeys = Object.keys(positions);
     for (let i = 0; i < termKeys.length - 1; i++) {
       for (let j = i + 1; j < termKeys.length; j++) {
         const term1Positions = positions[termKeys[i]];
         const term2Positions = positions[termKeys[j]];
-        
+
         // Find closest pair
         let minDistance = Infinity;
-        term1Positions.forEach(pos1 => {
-          term2Positions.forEach(pos2 => {
+        term1Positions.forEach((pos1) => {
+          term2Positions.forEach((pos2) => {
             const distance = Math.abs(pos1 - pos2);
             minDistance = Math.min(minDistance, distance);
           });
         });
-        
+
         if (minDistance < Infinity) {
           // Closer terms get higher scores
-          const proximityWeight = Math.max(0, 1 - (minDistance / 100));
-          proximityScore += this.scoringWeights.proximityBonus * this.maxBaseScore * proximityWeight;
+          const proximityWeight = Math.max(0, 1 - minDistance / 100);
+          proximityScore +=
+            this.scoringWeights.proximityBonus * this.maxBaseScore * proximityWeight;
         }
       }
     }
-    
+
     return proximityScore;
   }
 
@@ -1349,7 +1559,7 @@ class SearchService {
   calculateFieldLengthScore(content, title) {
     const contentLength = content.length;
     const titleLength = title.length;
-    
+
     let score = 0;
     if (contentLength > 50 && contentLength < 5000) {
       score += this.scoringWeights.fieldLengthPenalty * this.maxBaseScore * 0.1;
@@ -1357,7 +1567,7 @@ class SearchService {
     if (titleLength > 5 && titleLength < 100) {
       score += this.scoringWeights.fieldLengthPenalty * this.maxBaseScore * 0.05;
     }
-    
+
     return score;
   }
 
@@ -1367,11 +1577,11 @@ class SearchService {
   calculateContentTypeBonus(docData) {
     let score = 0;
     const typeMultipliers = {
-      'project': 1.2,
-      'file': 1.0,
-      'person': 1.1,
-      'note': 0.9,
-      'asset': 0.8
+      project: 1.2,
+      file: 1.0,
+      person: 1.1,
+      note: 0.9,
+      asset: 0.8,
     };
     const multiplier = typeMultipliers[docData.type] || 1.0;
     score *= multiplier;
@@ -1384,41 +1594,41 @@ class SearchService {
     let matchedTerms = 0;
     let totalTermOccurrences = 0;
     const termMatchDetails = {};
-    
-    queryTerms.forEach(term => {
+
+    queryTerms.forEach((term) => {
       const termLower = term.toLowerCase();
       let termFound = false;
       let termOccurrences = 0;
-      
+
       // Check content
       if (content.includes(termLower)) {
         termFound = true;
         termOccurrences += this.countOccurrences(content, termLower);
       }
-      
+
       // title
       if (title.includes(termLower)) {
         termFound = true;
         termOccurrences += this.countOccurrences(title, termLower);
       }
-      
+
       if (termFound) {
         matchedTerms++;
         totalTermOccurrences += termOccurrences;
       }
-      
+
       termMatchDetails[term] = {
         found: termFound,
-        occurrences: termOccurrences
+        occurrences: termOccurrences,
       };
     });
-    
+
     return {
       matchedTerms,
       totalTerms: queryTerms.length,
       completenessRatio: matchedTerms / queryTerms.length,
       totalOccurrences: totalTermOccurrences,
-      termDetails: termMatchDetails
+      termDetails: termMatchDetails,
     };
   }
 
@@ -1427,18 +1637,18 @@ class SearchService {
    */
   calculateCompletenessPenalty(completenessData, totalQueryTerms) {
     const { matchedTerms } = completenessData;
-    
+
     if (matchedTerms === 0) {
-      return 0.0; 
+      return 0.0;
     }
-    
+
     if (matchedTerms === totalQueryTerms) {
-      return 1.0; 
+      return 1.0;
     }
     const missingTerms = totalQueryTerms - matchedTerms;
     const missingRatio = missingTerms / totalQueryTerms;
     const penalty = Math.pow(0.5, missingRatio * 2);
-    
+
     return penalty;
   }
 
@@ -1449,17 +1659,17 @@ class SearchService {
     let score = 0;
     const totalWords = content.split(/\s+/).length;
     const titleWords = title.split(/\s+/).length;
-    
+
     // Giving frequency bonuses to terms that actually matched
-    queryTerms.forEach(term => {
+    queryTerms.forEach((term) => {
       const termData = completenessData.termDetails[term];
       if (termData && termData.found) {
         const termLower = term.toLowerCase();
-        
+
         // Term frequency in content (capped to prevent spam)
         const contentOccurrences = this.countOccurrences(content, termLower);
         if (contentOccurrences > 0) {
-          const tf = Math.min(contentOccurrences / Math.max(totalWords, 1), 0.1); 
+          const tf = Math.min(contentOccurrences / Math.max(totalWords, 1), 0.1);
           score += tf * this.maxBaseScore * 0.1;
         }
         // Term frequency in title (higher weight, also capped)
@@ -1470,7 +1680,7 @@ class SearchService {
         }
       }
     });
-    
+
     return score;
   }
 
@@ -1481,43 +1691,49 @@ class SearchService {
     let score = 0;
     let matchedTerms = 0;
     const termPositions = {};
-    
+
     queryTerms.forEach((term, index) => {
       const termLower = term.toLowerCase();
       let termMatched = false;
-      
+
       // Content matches
       if (content.includes(termLower)) {
         const occurrences = this.countOccurrences(content, termLower);
         const firstPosition = content.indexOf(termLower);
-        const positionWeight = Math.max(0.3, 1 - (firstPosition / content.length));
-        
-        const frequencyScore = Math.min(1, Math.log(occurrences + 1) / Math.log(5)); 
-        score += this.scoringWeights.individualWordContent * this.maxBaseScore * 
-                frequencyScore * positionWeight;
-        
+        const positionWeight = Math.max(0.3, 1 - firstPosition / content.length);
+
+        const frequencyScore = Math.min(1, Math.log(occurrences + 1) / Math.log(5));
+        score +=
+          this.scoringWeights.individualWordContent *
+          this.maxBaseScore *
+          frequencyScore *
+          positionWeight;
+
         termPositions[term] = firstPosition;
         termMatched = true;
       }
-      
+
       // Title matches (higher weight)
       if (title.includes(termLower)) {
         const occurrences = this.countOccurrences(title, termLower);
         const firstPosition = title.indexOf(termLower);
-        const positionWeight = Math.max(0.5, 1 - (firstPosition / title.length));
-        
-        const frequencyScore = Math.min(1, Math.log(occurrences + 1) / Math.log(3)); 
-        score += this.scoringWeights.individualWordTitle * this.maxBaseScore * 
-                frequencyScore * positionWeight;
-        
+        const positionWeight = Math.max(0.5, 1 - firstPosition / title.length);
+
+        const frequencyScore = Math.min(1, Math.log(occurrences + 1) / Math.log(3));
+        score +=
+          this.scoringWeights.individualWordTitle *
+          this.maxBaseScore *
+          frequencyScore *
+          positionWeight;
+
         termMatched = true;
       }
-      
+
       if (termMatched) {
         matchedTerms++;
       }
     });
-    
+
     return { score, matchedTerms, termPositions };
   }
 
@@ -1527,12 +1743,12 @@ class SearchService {
   countOccurrences(text, term) {
     let count = 0;
     let index = text.indexOf(term);
-    
+
     while (index !== -1) {
       count++;
       index = text.indexOf(term, index + 1);
     }
-    
+
     return count;
   }
 
@@ -1550,11 +1766,11 @@ class SearchService {
 
   generateHighlights(docData, query) {
     const highlights = {};
-    
+
     if (docData.content && query) {
       const content = docData.content;
       const queryTerms = query.toLowerCase().split(/\s+/);
-      
+
       for (const term of queryTerms) {
         if (term.length > 2 && content.toLowerCase().includes(term)) {
           const index = content.toLowerCase().indexOf(term);
@@ -1567,7 +1783,7 @@ class SearchService {
         }
       }
     }
-    
+
     return highlights;
   }
 
@@ -1579,10 +1795,10 @@ class SearchService {
       files: [],
       folders: [],
       notes: [],
-      all: [...results]
+      all: [...results],
     };
-    
-    results.forEach(result => {
+
+    results.forEach((result) => {
       switch (result.type) {
         case 'project':
           grouped.projects.push(result);
@@ -1607,7 +1823,7 @@ class SearchService {
           break;
       }
     });
-    
+
     return grouped;
   }
 
@@ -1615,19 +1831,19 @@ class SearchService {
     if (!this.isInitialized || !partialQuery || partialQuery.length < 2) {
       return [];
     }
-    
+
     try {
       const suggestions = new Set();
       const maxSuggestions = SearchConfig?.ui?.maxSuggestions || 8;
-      
+
       const suggestResults = this.indices.main.search(partialQuery, {
-        limit: maxSuggestions
+        limit: maxSuggestions,
       });
-      
+
       if (Array.isArray(suggestResults)) {
-        suggestResults.forEach(fieldResult => {
+        suggestResults.forEach((fieldResult) => {
           if (fieldResult.result) {
-            fieldResult.result.slice(0, maxSuggestions).forEach(id => {
+            fieldResult.result.slice(0, maxSuggestions).forEach((id) => {
               const docData = this.documentStore.get(id);
               if (docData && docData.title) {
                 suggestions.add(docData.title);
@@ -1636,7 +1852,7 @@ class SearchService {
           }
         });
       }
-      
+
       return Array.from(suggestions).slice(0, maxSuggestions);
     } catch (error) {
       console.error('SearchService: Error getting suggestions:', error);
@@ -1646,65 +1862,65 @@ class SearchService {
 
   exportIndex() {
     const exportData = {
-      version: '1.0',
+      version: SEARCH_CONFIG_VERSION,
       timestamp: new Date().toISOString(),
       documentStore: Array.from(this.documentStore.entries()),
       indexedProjects: Object.fromEntries(this.indexedProjectsMap.entries()),
       performanceStats: this.performanceStats,
       maxIndexingFileSize: this.maxIndexingFileSize,
-      projectsData: this.projectsData.map(p => ({
+      projectsData: this.projectsData.map((p) => ({
         id: p.id,
         name: p.name,
-        path: p.path
-      }))
+        path: p.path,
+      })),
     };
-    
+
     return exportData;
   }
 
   importIndex(indexData) {
-    if (!indexData || indexData.version !== '1.0') {
+    if (!indexData || indexData.version !== SEARCH_CONFIG_VERSION) {
       throw new Error('Invalid or unsupported index data format');
     }
-    
+
     console.log('SearchService: Importing index data');
-    
+
     this.clearIndices();
-    
+
     this.documentStore = new Map(indexData.documentStore);
-    
+
     if (indexData.indexedProjects) {
       this.indexedProjectsMap = new Map(Object.entries(indexData.indexedProjects));
     }
-        
+
     if (indexData.performanceStats) {
       this.performanceStats = { ...this.performanceStats, ...indexData.performanceStats };
     }
-    
+
     if (indexData.maxIndexingFileSize) {
       this.maxIndexingFileSize = indexData.maxIndexingFileSize;
     }
     console.log('SearchService: Rebuilding FlexSearch indices from imported data');
     this.buildIndicesFromDocumentStore();
     this.indicesBuiltThisSession = true;
-    
+
     this.saveIndexToFile();
-    
+
     console.log('SearchService: Index import completed with FlexSearch indices rebuilt');
   }
 
   getIndexNamesForType(type) {
     const indexMap = {
-      'project': ['main', 'projects'],
-      'file': ['main', 'files'],
-      'folder': ['main', 'files'],
-      'person': ['main', 'people'],
-      'note': ['main', 'notes'],
-      'asset': ['main'],
+      project: ['main', 'projects'],
+      file: ['main', 'files'],
+      folder: ['main', 'files'],
+      person: ['main', 'people'],
+      note: ['main', 'notes'],
+      asset: ['main'],
       'external-asset': ['main'],
-      'asset-group': ['main']
+      'asset-group': ['main'],
     };
-    
+
     return indexMap[type] || ['main'];
   }
 
@@ -1715,12 +1931,12 @@ class SearchService {
   getFromCache(key) {
     const cached = this.resultCache.get(key);
     if (!cached) return null;
-    
+
     if (Date.now() - cached.timestamp > this.cacheTTL) {
       this.resultCache.delete(key);
       return null;
     }
-    
+
     return cached.data;
   }
 
@@ -1729,38 +1945,38 @@ class SearchService {
       const firstKey = this.resultCache.keys().next().value;
       this.resultCache.delete(firstKey);
     }
-    
+
     this.resultCache.set(key, {
       data: data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
   updateSearchStats(searchTime) {
     this.performanceStats.totalSearches++;
     this.performanceStats.searchTimes.push(searchTime);
-    
+
     if (this.performanceStats.searchTimes.length > 100) {
       this.performanceStats.searchTimes = this.performanceStats.searchTimes.slice(-100);
     }
-    
+
     const sum = this.performanceStats.searchTimes.reduce((a, b) => a + b, 0);
     this.performanceStats.averageSearchTime = sum / this.performanceStats.searchTimes.length;
   }
 
   getSearchStats() {
     const docsByType = {};
-    this.documentStore.forEach(doc => {
+    this.documentStore.forEach((doc) => {
       docsByType[doc.type] = (docsByType[doc.type] || 0) + 1;
     });
-    
+
     let contentIndexedCount = 0;
-    this.documentStore.forEach(doc => {
+    this.documentStore.forEach((doc) => {
       if (doc.item && doc.item.isContentIndexed) {
         contentIndexedCount++;
       }
     });
-    
+
     return {
       totalDocuments: this.documentStore.size,
       documentsByType: docsByType,
@@ -1773,8 +1989,8 @@ class SearchService {
       performance: this.performanceStats,
       cacheStats: {
         size: this.resultCache.size,
-        maxSize: this.maxCacheSize
-      }
+        maxSize: this.maxCacheSize,
+      },
     };
   }
 
@@ -1786,7 +2002,7 @@ class SearchService {
       files: [],
       folders: [],
       notes: [],
-      all: []
+      all: [],
     };
   }
   /**
@@ -1804,8 +2020,8 @@ class SearchService {
         path: this.indexFilePath,
         size: stats.size,
         lastModified: stats.mtime,
-        sizeKB: (stats.size / 1024),
-        sizeMB: (stats.size / (1024 * 1024) * 100) / 100
+        sizeKB: stats.size / 1024,
+        sizeMB: ((stats.size / (1024 * 1024)) * 100) / 100,
       };
     } catch (error) {
       return { exists: false, path: this.indexFilePath, size: 0 };
@@ -1816,38 +2032,37 @@ class SearchService {
    * Delete the index file and start fresh
    */
   async deleteIndexFile() {
-  if (this.indexFilePath && fs.existsSync(this.indexFilePath)) {
-    try {
-      fs.unlinkSync(this.indexFilePath);
-      console.log('SearchService: Index file deleted');
-      
-      this.clearIndices();
-      this.isInitialized = false;
-      this.indicesBuiltThisSession = false;
-      this.indexingInProgress = false;
-      this.indexingQueue = [];
-      this.indexedProjectsMap.clear();
-      this.documentStore.clear();
-      this.resultCache.clear();
-      
-      this.performanceStats = {
-        totalSearches: 0,
-        totalIndexingTime: 0,
-        averageSearchTime: 0,
-        documentsIndexed: 0,
-        searchTimes: []
-      };
-      
-      console.log('SearchService: Internal state reset after index deletion');
-      return true;  
-    } catch (error) {
-      console.error('SearchService: Error deleting index file:', error);
-      return false;
-    }
-  }
-  return true;
-}
+    if (this.indexFilePath && fs.existsSync(this.indexFilePath)) {
+      try {
+        fs.unlinkSync(this.indexFilePath);
+        console.log('SearchService: Index file deleted');
 
+        this.clearIndices();
+        this.isInitialized = false;
+        this.indicesBuiltThisSession = false;
+        this.indexingInProgress = false;
+        this.indexingQueue = [];
+        this.indexedProjectsMap.clear();
+        this.documentStore.clear();
+        this.resultCache.clear();
+
+        this.performanceStats = {
+          totalSearches: 0,
+          totalIndexingTime: 0,
+          averageSearchTime: 0,
+          documentsIndexed: 0,
+          searchTimes: [],
+        };
+
+        console.log('SearchService: Internal state reset after index deletion');
+        return true;
+      } catch (error) {
+        console.error('SearchService: Error deleting index file:', error);
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 const searchServiceInstance = new SearchService();
