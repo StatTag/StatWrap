@@ -4,6 +4,9 @@ import fs from 'fs';
 import path from 'path';
 import SearchConfig from '../constants/search-config';
 
+const SEARCH_CONFIG_VERSION = '1.0';
+const EXCLUDED_DIRS = ['node_modules', '.git', '.statwrap', '__pycache__', '.venv', 'venv'];
+
 class SearchService {
   constructor() {
     this.isInitialized = false;
@@ -11,141 +14,329 @@ class SearchService {
     this.projectsData = [];
     this.indexingInProgress = false;
     this.indexingQueue = [];
-    
-    // FlexSearch indices - multiple indices for different content types
+    this.maxIndexingFileSize = 0.1 * 1024 * 1024;
+    this.previousMaxFileSize = null; // Tracking file size changes
+    this.isRestoring = false;
+    this.indicesBuiltThisSession = false;
+
+    // Index file path
+    this.indexFilePath = null;
+    this.indexedProjectsMap = new Map();
+
+    // FlexSearch indices
     this.indices = {
       main: null,
       projects: null,
       files: null,
       people: null,
-      notes: null
+      notes: null,
     };
-    
+    this.initializeScoringConfig(SearchConfig?.scoring || {});
     // Performance tracking
     this.performanceStats = {
       totalSearches: 0,
       totalIndexingTime: 0,
       averageSearchTime: 0,
       documentsIndexed: 0,
-      searchTimes: []
+      searchTimes: [],
     };
-    
+
     // Result caching
     this.resultCache = new Map();
     this.maxCacheSize = SearchConfig?.performance?.resultCacheSize || 100;
     this.cacheTTL = SearchConfig?.performance?.resultCacheTTL || 600000; // 10 minutes
-    
-    // Auto-tagging patterns
-    this.tagPatterns = SearchConfig?.tagging?.statisticalPatterns || {};
-    this.commonTags = SearchConfig?.tagging?.commonTags || {};
-    
     this.initializeIndices();
+    this.setupIndexFilePath();
   }
 
   /**
-   * Initialize FlexSearch indices with optimized configuration
+   * Setup the index file path in app data directory
    */
+  async setupIndexFilePath() {
+    try {
+      const appDataPath = await ipcRenderer.invoke('get-app-data-path');
+      const searchDataDir = path.join(appDataPath, 'search');
+
+      // Create directory if it doesn't exist
+      if (!fs.existsSync(searchDataDir)) {
+        fs.mkdirSync(searchDataDir, { recursive: true });
+      }
+
+      this.indexFilePath = path.join(searchDataDir, 'search-index.json');
+      console.log('SearchService: Index file path set to:', this.indexFilePath);
+    } catch (error) {
+      console.error('SearchService: Error setting up index file path:', error);
+      // Falling back to current directory
+      this.indexFilePath = path.join(process.cwd(), 'search-index.json');
+    }
+  }
+
   initializeIndices() {
     try {
-      //  configuration including partial matching and phrase search
       const commonConfig = {
-        tokenize: "forward", //for partial matchingg
+        tokenize: 'strict',
         resolution: 9,
         depth: 4,
         threshold: 1,
         suggest: true,
-        context: true
+        context: true,
       };
 
       this.indices.main = new FlexSearch.Document({
-        id: "id",
+        id: 'id',
+        tag: 'score',
         ...commonConfig,
         index: [
           {
-            field: "title",
-            tokenize: "forward",
-            optimize: true,
-            resolution: 9
-          },
-          {
-            field: "content", 
-            tokenize: "forward",
+            field: 'title',
+            tokenize: 'strict',
             optimize: true,
             resolution: 9,
-            minlength: 1, // Allow single character matches
-            threshold: 0  // More lenient threshold
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
           },
           {
-            field: "type",
-            tokenize: "forward"
+            field: 'content',
+            tokenize: 'strict',
+            optimize: true,
+            resolution: 9,
+            minlength: 1,
+            threshold: 0,
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
           },
           {
-            field: "projectName",
-            tokenize: "forward"
+            field: 'type',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
           },
           {
-            field: "tags",
-            tokenize: "forward"
+            field: 'projectName',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
           },
           {
-            field: "filename",
-            tokenize: "forward",
-            resolution: 9
+            field: 'filename',
+            tokenize: 'strict',
+            resolution: 9,
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
           },
           {
-            field: "extension",
-            tokenize: "forward"
+            field: 'extension',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
           },
           {
-            field: "author",
-            tokenize: "forward"
-          }
-        ]
+            field: 'author',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+        ],
       });
 
       this.indices.projects = new FlexSearch.Document({
-        id: "id",
+        id: 'id',
         ...commonConfig,
         index: [
-          { field: "name", tokenize: "forward", resolution: 9 },
-          { field: "description", tokenize: "forward", resolution: 9 },
-          { field: "categories", tokenize: "forward" },
-          { field: "path", tokenize: "forward" }
-        ]
+          {
+            field: 'name',
+            tokenize: 'strict',
+            resolution: 9,
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'description',
+            tokenize: 'strict',
+            resolution: 9,
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'categories',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'path',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+        ],
       });
 
       this.indices.files = new FlexSearch.Document({
-        id: "id",
+        id: 'id',
         ...commonConfig,
         index: [
-          { field: "filename", tokenize: "forward", resolution: 9 },
-          { field: "content", tokenize: "forward", resolution: 9, minlength: 1, threshold: 0 },
-          { field: "extension", tokenize: "forward" },
-          { field: "path", tokenize: "forward" },
-          { field: "tags", tokenize: "forward" }
-        ]
+          {
+            field: 'filename',
+            tokenize: 'strict',
+            resolution: 9,
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'content',
+            tokenize: 'strict',
+            resolution: 9,
+            minlength: 1,
+            threshold: 0,
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'extension',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'path',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+        ],
       });
 
       this.indices.people = new FlexSearch.Document({
-        id: "id",
+        id: 'id',
         ...commonConfig,
         index: [
-          { field: "name", tokenize: "forward", resolution: 9 },
-          { field: "affiliation", tokenize: "forward" },
-          { field: "roles", tokenize: "forward" },
-          { field: "notes", tokenize: "forward", resolution: 9 }
-        ]
+          {
+            field: 'name',
+            tokenize: 'strict',
+            resolution: 9,
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'affiliation',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'roles',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'notes',
+            tokenize: 'strict',
+            resolution: 9,
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+        ],
       });
 
       this.indices.notes = new FlexSearch.Document({
-        id: "id",
+        id: 'id',
         ...commonConfig,
         index: [
-          { field: "content", tokenize: "forward", resolution: 9, minlength: 1, threshold: 0 },
-          { field: "author", tokenize: "forward" },
-          { field: "type", tokenize: "forward" },
-          { field: "entityName", tokenize: "forward" }
-        ]
+          {
+            field: 'content',
+            tokenize: 'strict',
+            resolution: 9,
+            minlength: 1,
+            threshold: 0,
+            context: { resolution: 5, depth: 3, bidirectional: true },
+          },
+          {
+            field: 'author',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'type',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+          {
+            field: 'entityName',
+            tokenize: 'strict',
+            context: {
+              resolution: SearchConfig?.search?.resolution || 5,
+              depth: SearchConfig?.search?.depth || 3,
+              bidirectional: true,
+            },
+          },
+        ],
       });
 
       console.log('SearchService: FlexSearch indices initialized successfully');
@@ -155,83 +346,412 @@ class SearchService {
   }
 
   /**
-   * Initialize the service with project data 
+   * Load existing index from JSON file
    */
-  async initialize(projects = []) {
+  async loadIndexFromFile() {
     try {
-      console.log('SearchService: Starting initialization with', projects.length, 'projects');
-      
-      this.projectsData = projects;
-      this.clearIndices();
-      
-      // to allow UI to function
-      this.isInitialized = true;
-      
-      this.indexingInProgress = true;
-      
-      for (let i = 0; i < projects.length; i++) {
-        const project = projects[i];
-        console.log(`SearchService: FORCE PROCESSING PROJECT ${i + 1}/${projects.length}: ${project.name}`);
-        
-        // Index project metadata
-        await this.indexProjectMetadata(project);
-        
-        if (project.path && fs.existsSync(project.path)) {
-          console.log(`SearchService: FORCE SCANNING DIRECTORY: ${project.path}`);
-          await this.bruteForceIndexAllFiles(project);
-        } else {
-          console.error(`SearchService: PROJECT PATH DOES NOT EXIST: ${project.path}`);
-        }
-        
-        // Index people
-        if (project.people && Array.isArray(project.people)) {
-          for (const person of project.people) {
-            await this.indexPerson(person, project);
+      if (!this.indexFilePath) {
+        await this.setupIndexFilePath();
+      }
+      if (!this.indexFilePath || !fs.existsSync(this.indexFilePath)) {
+        console.log('SearchService: No existing index file found, will create new one');
+        return {
+          version: SEARCH_CONFIG_VERSION,
+          timestamp: new Date().toISOString(),
+          documentStore: [],
+          indexedProjects: {},
+          performanceStats: this.performanceStats,
+          maxIndexingFileSize: this.maxIndexingFileSize,
+        };
+      }
+
+      console.log('SearchService: Loading index from file:', this.indexFilePath);
+      const indexData = JSON.parse(fs.readFileSync(this.indexFilePath, 'utf8'));
+
+      if (!indexData.version || indexData.version !== SEARCH_CONFIG_VERSION) {
+        console.warn('SearchService: Invalid or outdated index file, creating new one');
+        return {
+          version: SEARCH_CONFIG_VERSION,
+          timestamp: new Date().toISOString(),
+          documentStore: [],
+          indexedProjects: {},
+          performanceStats: this.performanceStats,
+          maxIndexingFileSize: this.maxIndexingFileSize,
+        };
+      }
+      if (indexData.maxIndexingFileSize !== undefined) {
+        this.previousMaxFileSize = indexData.maxIndexingFileSize;
+        console.log(
+          `SearchService: Previous file size limit was ${(this.previousMaxFileSize / (1024 * 1024)).toFixed(3)}MB`,
+        );
+        console.log(
+          `SearchService: Current file size limit is ${(this.maxIndexingFileSize / (1024 * 1024)).toFixed(3)}MB`,
+        );
+      }
+      console.log(`SearchService: Loaded index with ${indexData.documentStore.length} documents`);
+      console.log(`SearchService: Indexed projects:`, Object.keys(indexData.indexedProjects || {}));
+      return indexData;
+    } catch (error) {
+      console.error('SearchService: Error loading index file:', error);
+      return {
+        version: '1.0',
+        timestamp: new Date().toISOString(),
+        documentStore: [],
+        indexedProjects: {},
+        performanceStats: this.performanceStats,
+        maxIndexingFileSize: this.maxIndexingFileSize,
+      };
+    }
+  }
+
+  /**
+   * Save index to JSON file
+   */
+  async saveIndexToFile() {
+    try {
+      if (!this.indexFilePath) {
+        await this.setupIndexFilePath();
+      }
+
+      const indexData = {
+        version: SEARCH_CONFIG_VERSION,
+        timestamp: new Date().toISOString(),
+        documentStore: Array.from(this.documentStore.entries()),
+        indexedProjects: Object.fromEntries(this.indexedProjectsMap.entries()),
+        performanceStats: this.performanceStats,
+        maxIndexingFileSize: this.maxIndexingFileSize,
+      };
+
+      fs.writeFileSync(this.indexFilePath, JSON.stringify(indexData, null, 2));
+      console.log(`SearchService: Index saved to file with ${this.documentStore.size} documents`);
+    } catch (error) {
+      console.error('SearchService: Error saving index file:', error);
+    }
+  }
+  buildIndicesFromDocumentStore() {
+    console.log('SearchService: Building FlexSearch indices from document store');
+    let documentsProcessed = 0;
+    let totalIndexEntries = 0;
+    const batchSize = 100;
+    const documents = Array.from(this.documentStore.values());
+
+    for (let i = 0; i < documents.length; i += batchSize) {
+      const batch = documents.slice(i, i + batchSize);
+
+      batch.forEach((doc) => {
+        const indexNames = this.getIndexNamesForType(doc.type);
+        let docAddedToAnyIndex = false;
+
+        indexNames.forEach((indexName) => {
+          if (this.indices[indexName]) {
+            try {
+              this.indices[indexName].add(doc);
+              totalIndexEntries++;
+              docAddedToAnyIndex = true;
+            } catch (error) {
+              console.warn(
+                `SearchService: Error adding document ${doc.id} to ${indexName} index:`,
+                error.message,
+              );
+            }
           }
+        });
+
+        if (docAddedToAnyIndex) {
+          documentsProcessed++;
         }
-        
-        // Index project notes
-        if (project.notes && Array.isArray(project.notes)) {
-          for (const note of project.notes) {
-            await this.indexNote(note, project, 'project', project.name);
-          }
-        }
-        
-        // Index asset groups
-        if (project.assetGroups && Array.isArray(project.assetGroups)) {
-          for (const group of project.assetGroups) {
-            await this.indexAssetGroup(group, project);
-          }
-        }
-        
-        // Small delay b/w projects
-        if (i < projects.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 100));
+      });
+    }
+
+    console.log(`SearchService: Built indices with ${documentsProcessed} unique documents`);
+    console.log(`SearchService: Total index entries: ${totalIndexEntries}`);
+  }
+
+  /**
+   * Emit stats update event for UI
+   */
+  emitStatsUpdate(updateResults) {
+    if (typeof window !== 'undefined' && window.dispatchEvent) {
+      window.dispatchEvent(
+        new CustomEvent('searchStatsUpdated', {
+          detail: { updateResults, stats: this.getSearchStats() },
+        }),
+      );
+    }
+  }
+
+  async compareAndUpdateIndex(currentProjects) {
+    const currentProjectIds = new Set(currentProjects.map((p) => p.id));
+    const indexedProjectIds = new Set(this.indexedProjectsMap.keys());
+
+    const projectsToAdd = currentProjects.filter((p) => !indexedProjectIds.has(p.id));
+    const projectsToRemove = Array.from(indexedProjectIds).filter(
+      (id) => !currentProjectIds.has(id),
+    );
+
+    // Check for path changes
+    const projectsToUpdate = currentProjects.filter((p) => {
+      if (!indexedProjectIds.has(p.id)) return false;
+
+      const indexedProject = this.indexedProjectsMap.get(p.id);
+      return indexedProject.path !== p.path;
+    });
+
+    const shouldLog =
+      typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'test';
+    if (shouldLog) {
+      console.log(`SearchService: Index comparison results:`);
+      console.log(`Projects to add: ${projectsToAdd.length}`);
+      console.log(`Projects to remove: ${projectsToRemove.length}`);
+      console.log(`Projects to update: ${projectsToUpdate.length}`);
+    }
+
+    if (
+      projectsToAdd.length === 0 &&
+      projectsToRemove.length === 0 &&
+      projectsToUpdate.length === 0
+    ) {
+      if (shouldLog) {
+        console.log('SearchService: No changes detected, index is up to date');
+      }
+      return { added: 0, removed: 0, updated: 0 };
+    }
+
+    // Remove projects without rebuilding indices
+    for (const projectId of projectsToRemove) {
+      await this.removeProjectDocumentsOnly(projectId);
+    }
+
+    // Add new projects (already incremental)
+    for (const project of projectsToAdd) {
+      if (shouldLog) {
+        console.log(`SearchService: Adding new project: ${project.name}`);
+      }
+      await this.indexProject(project);
+    }
+
+    // Updating projects by removing old and adding new
+    for (const project of projectsToUpdate) {
+      if (shouldLog) {
+        console.log(`SearchService: Updating project: ${project.name}`);
+      }
+      await this.removeProjectDocumentsOnly(project.id);
+      await this.indexProject(project);
+    }
+
+    if (shouldLog) {
+      console.log('SearchService: Incremental updates completed without index rebuild');
+    }
+
+    return {
+      added: projectsToAdd.length,
+      removed: projectsToRemove.length,
+      updated: projectsToUpdate.length,
+    };
+  }
+  async removeProjectDocumentsOnly(projectId) {
+    console.log(`SearchService: Removing documents for project ${projectId}`);
+
+    const documentsToRemove = [];
+    this.documentStore.forEach((doc, docId) => {
+      if (doc.item && doc.item.projectId === projectId) {
+        documentsToRemove.push({ docId, doc });
+      }
+    });
+
+    // Remove from document store
+    documentsToRemove.forEach(({ docId }) => {
+      this.documentStore.delete(docId);
+    });
+    if (documentsToRemove.length > 0) {
+      console.log(
+        `SearchService: Removed ${documentsToRemove.length} documents from document store`,
+      );
+    }
+
+    // Remove from indexed projects map
+    this.indexedProjectsMap.delete(projectId);
+
+    console.log(
+      `SearchService: Removed project ${projectId} (${documentsToRemove.length} documents)`,
+    );
+  }
+
+  /**
+   * Index a single project
+   */
+  async indexProject(project) {
+    console.log(`SearchService: Indexing project: ${project.name}`);
+
+    try {
+      // Index project metadata
+      await this.indexProjectMetadata(project);
+      // Index files if project path exists
+      if (project.path && fs.existsSync(project.path)) {
+        await this.FolderTraversal(project, this.maxIndexingFileSize);
+      }
+      // Index people
+      if (project.people && Array.isArray(project.people)) {
+        for (const person of project.people) {
+          await this.indexPerson(person, project);
         }
       }
-      
-      this.indexingInProgress = false;
-      
+      // Index notes
+      if (project.notes && Array.isArray(project.notes)) {
+        for (const note of project.notes) {
+          await this.indexNote(note, project, 'project', project.name);
+        }
+      }
+      // Index asset groups
+      if (project.assetGroups && Array.isArray(project.assetGroups)) {
+        for (const group of project.assetGroups) {
+          await this.indexAssetGroup(group, project);
+        }
+      }
+      // Mark project as indexed
+      this.indexedProjectsMap.set(project.id, {
+        id: project.id,
+        name: project.name,
+        path: project.path,
+        lastIndexed: Date.now(),
+      });
+
+      console.log(`SearchService: Successfully indexed project: ${project.name}`);
+    } catch (error) {
+      console.error(`SearchService: Error indexing project ${project.name}:`, error);
+    }
+  }
+
+  /**
+   * Initialize the service with project data and optional file size limit
+   */
+  async initialize(projects = [], maxFileSize = 0.1 * 1024 * 1024) {
+    // If already initialized, only check for changes
+    if (this.isInitialized && this.indicesBuiltThisSession) {
+      console.log('SearchService: Already initialized this session, checking for changes...');
+
+      // Updating current projects data
+      this.projectsData = projects;
+
+      // Checking for project changes (additions, removals, updates)
+      const updateResults = await this.compareAndUpdateIndex(projects);
+
+      if (updateResults.added > 0 || updateResults.removed > 0 || updateResults.updated > 0) {
+        await this.saveIndexToFile();
+        console.log('SearchService: Project changes handled:', updateResults);
+        this.emitStatsUpdate(updateResults);
+      } else {
+        console.log('SearchService: No project changes detected');
+      }
+
+      return;
+    }
+    try {
+      console.log('SearchService: Starting initialization with persistent indexing');
+      console.log('SearchService: Projects to process:', projects.length);
+      console.log(
+        'SearchService: Max file size for indexing:',
+        (maxFileSize / (1024 * 1024)).toFixed(3),
+        'MB',
+      );
+
+      this.projectsData = projects;
+      this.maxIndexingFileSize = maxFileSize;
+
+      // Load existing index
+      const existingIndex = await this.loadIndexFromFile();
+      const hasExistingData = existingIndex.documentStore && existingIndex.documentStore.length > 0;
+
+      if (hasExistingData) {
+        console.log('SearchService: Found existing index, performing fast restoration');
+
+        // Fast restore from existing index
+        this.documentStore = new Map(existingIndex.documentStore);
+        console.log(
+          `SearchService: Restored ${this.documentStore.size} documents from existing index`,
+        );
+
+        // Restore indexed projects map
+        if (existingIndex.indexedProjects) {
+          this.indexedProjectsMap = new Map(Object.entries(existingIndex.indexedProjects));
+          console.log(`SearchService: Restored ${this.indexedProjectsMap.size} indexed projects`);
+        }
+        if (existingIndex.performanceStats) {
+          this.performanceStats = { ...this.performanceStats, ...existingIndex.performanceStats };
+        }
+
+        if (!this.indicesBuiltThisSession) {
+          console.log('SearchService: Building FlexSearch indices from document store...');
+          const startTime = Date.now();
+          this.buildIndicesFromDocumentStore();
+          const buildTime = Date.now() - startTime;
+          console.log(`SearchService: FlexSearch indices built in ${buildTime}ms`);
+          this.indicesBuiltThisSession = true;
+        } else {
+          console.log('SearchService: FlexSearch indices already built this session');
+        }
+
+        this.isInitialized = true;
+        const fileSizeChanged =
+          this.previousMaxFileSize !== null && this.previousMaxFileSize !== maxFileSize;
+        if (fileSizeChanged) {
+          console.log(
+            `SearchService: File size limit changed from ${(existingIndex.maxIndexingFileSize / (1024 * 1024)).toFixed(3)}MB to ${(maxFileSize / (1024 * 1024)).toFixed(3)}MB - will reindex affected projects`,
+          );
+          this.maxIndexingFileSize = maxFileSize;
+
+          setTimeout(async () => {
+            this.indexingInProgress = true;
+            const updateResults = await this.compareAndUpdateIndex(projects);
+            this.indexingInProgress = false;
+            await this.saveIndexToFile();
+            console.log('SearchService: Background update completed:', updateResults);
+          }, 100);
+        } else {
+          setTimeout(async () => {
+            this.indexingInProgress = true;
+            const updateResults = await this.compareAndUpdateIndex(projects);
+            this.indexingInProgress = false;
+
+            if (updateResults.added > 0 || updateResults.removed > 0 || updateResults.updated > 0) {
+              await this.saveIndexToFile();
+              console.log('SearchService: Incremental update completed:', updateResults);
+            } else {
+              console.log('SearchService: No changes detected, index is up to date');
+            }
+          }, 100);
+        }
+      } else {
+        console.log('SearchService: No existing index found, creating new index');
+        this.isInitialized = true;
+        this.indexingInProgress = true;
+
+        // Index all projects
+        for (const project of projects) {
+          await this.indexProject(project);
+        }
+
+        this.indexingInProgress = false;
+
+        // Save the new index
+        await this.saveIndexToFile();
+
+        console.log('SearchService: New index created and saved');
+      }
+
       console.log('SearchService: Initialization complete');
       console.log('Documents indexed:', this.documentStore.size);
-      
-      // Log indexing summary
+
       const stats = this.getSearchStats();
-      console.log('SearchService: indexing Summary:');
+      console.log('SearchService: Final indexing summary:');
       Object.entries(stats.documentsByType).forEach(([type, count]) => {
         console.log(`  ${type}: ${count} documents`);
       });
       console.log(`  Content-indexed files: ${stats.contentIndexedFiles}`);
-      
-      if (stats.contentIndexedFiles === 0) {
-        console.error('SearchService: ❌ No files indexed!!!');
-      } else {
-        console.log(`SearchService: ✅ YESS! ${stats.contentIndexedFiles} files have content indexed`);
-      }
-      
     } catch (error) {
       console.error('SearchService: Initialization error:', error);
       this.indexingInProgress = false;
+      this.isInitialized = true;
     }
   }
 
@@ -241,56 +761,83 @@ class SearchService {
   clearIndices() {
     this.documentStore.clear();
     this.resultCache.clear();
+    this.indexedProjectsMap.clear();
     this.initializeIndices();
   }
 
-  
-  async bruteForceIndexAllFiles(project) {
-    console.log(`SearchService: Indexing all files in: ${project.path}`);
-    
+  /**
+   * complete reindex with optional new file size limit
+   */
+  async reindexAll(maxFileSize = null) {
+    console.log('SearchService: Starting complete reindex');
+
+    try {
+      const fileSizeLimit = maxFileSize || this.maxIndexingFileSize;
+      this.clearIndices();
+      this.maxIndexingFileSize = fileSizeLimit;
+
+      this.indexingInProgress = true;
+
+      // Reindex all current projects
+      for (const project of this.projectsData) {
+        await this.indexProject(project);
+      }
+
+      this.indexingInProgress = false;
+
+      // Save the new index
+      await this.saveIndexToFile();
+
+      console.log('SearchService: Complete reindex finished');
+    } catch (error) {
+      console.error('SearchService: Reindex error:', error);
+      this.indexingInProgress = false;
+      throw error;
+    }
+  }
+
+  async FolderTraversal(project, maxFileSize = null) {
+    const fileSizeLimit = maxFileSize || this.maxIndexingFileSize;
+    console.log(
+      `SearchService: Indexing files in: ${project.path} (max size: ${(fileSizeLimit / (1024 * 1024)).toFixed(3)}MB)`,
+    );
+
     let totalFiles = 0;
     let indexedFiles = 0;
-    
+    let skippedLargeFiles = 0;
+
     const scanDirectory = async (dirPath) => {
       try {
         const items = fs.readdirSync(dirPath);
-        
+
         for (const item of items) {
           const fullPath = path.join(dirPath, item);
           const relativePath = path.relative(project.path, fullPath);
-          
+
           try {
             const stats = fs.statSync(fullPath);
-            
+
             if (stats.isDirectory()) {
-              // Skip certain directories but scan everything else
-              if (!['node_modules', '.git', '.statwrap', '__pycache__', '.venv', 'venv'].includes(item)) {
+              if (!EXCLUDED_DIRS.includes(item)) {
                 await scanDirectory(fullPath);
               }
             } else if (stats.isFile()) {
               totalFiles++;
-              
+
+              if (stats.size > fileSizeLimit) {
+                skippedLargeFiles++;
+                continue;
+              }
+
               const extension = path.extname(item).toLowerCase();
               const isTextFile = this.isTextFile(item, extension);
-              
+
               if (isTextFile) {
-                console.log(`SearchService: Indexing file: ${relativePath}`);
-                const success = await this.absoluteForceIndexFile(fullPath, relativePath, project, stats);
+                const success = await this.FileScanner(fullPath, relativePath, project, stats);
                 if (success) {
                   indexedFiles++;
-                  console.log(`SearchService: Success: ${relativePath}`);
-                } else {
-                  console.error(`SearchService: ❌ FAILED: ${relativePath}`);
                 }
-              } else {
-                console.log(`SearchService: Skipping non text files: ${relativePath}`);
               }
-              
-              // Progress every 10 files
-              // if (totalFiles % 10 === 0) {
-              //   console.log(`SearchService: Progress: ${totalFiles} files processed, ${indexedFiles} indexed`);
-              //   await new Promise(resolve => setTimeout(resolve, 10));
-              // }
             }
           } catch (statError) {
             console.warn(`SearchService: Stat error for ${fullPath}: ${statError.message}`);
@@ -300,192 +847,134 @@ class SearchService {
         console.error(`SearchService: Read error for ${dirPath}: ${readError.message}`);
       }
     };
-    
+
     await scanDirectory(project.path);
-    
-    console.log(`SearchService: Brute force done: ${indexedFiles}/${totalFiles} files indexed for ${project.name}`);
-    
-    if (indexedFiles === 0) {
-      console.error(`SearchService: 0 files indexef for ${project.name}!`);
-    }
+
+    console.log(`SearchService: Indexing complete for ${project.name}:`);
+    console.log(`  - Total files found: ${totalFiles}`);
+    console.log(`  - Files indexed: ${indexedFiles}`);
+    console.log(`  - Large files skipped: ${skippedLargeFiles}`);
   }
 
-  /**
-   * Check if file is a text file that should be indexed
-   */
   isTextFile(filename, extension) {
     const textExtensions = [
-      '.py', '.js', '.jsx', '.ts', '.tsx', '.html', '.htm', '.css', '.scss',
-      '.json', '.txt', '.md', '.csv', '.sql', '.xml', '.yaml', '.yml',
-      '.ipynb', '.r', '.rmd', '.log', '.sh', '.bat', '.ps1', '.ini', '.conf'
+      '.py',
+      '.js',
+      '.jsx',
+      '.ts',
+      '.tsx',
+      '.html',
+      '.htm',
+      '.css',
+      '.scss',
+      '.json',
+      '.txt',
+      '.md',
+      '.csv',
+      '.sql',
+      '.xml',
+      '.yaml',
+      '.yml',
+      '.ipynb',
+      '.r',
+      '.rmd',
+      '.log',
+      '.sh',
+      '.bat',
+      '.ps1',
+      '.ini',
+      '.conf',
+      '.cpp',
     ];
-    
+
     const specialFiles = ['readme', 'license', 'makefile', 'dockerfile'];
-    
+
     if (textExtensions.includes(extension)) {
       return true;
     }
-    
+
     const lowerName = filename.toLowerCase();
-    if (specialFiles.some(special => lowerName.includes(special))) {
+    if (specialFiles.some((special) => lowerName.includes(special))) {
       return true;
     }
-    
+
     return false;
   }
 
-  /**
-   * absolute force indexing no excuse
-   */
-  async absoluteForceIndexFile(fullPath, relativePath, project, stats) {
+  async FileScanner(fullPath, relativePath, project, stats) {
     try {
-      console.log(`SearchService: Reading : ${fullPath}`);
-      
       let content = '';
       try {
         content = fs.readFileSync(fullPath, 'utf8');
-        console.log(`SearchService: Success: ${relativePath} (${content.length} characters)`);
       } catch (readError) {
-        console.error(`SearchService: FAILED: ${relativePath} - ${readError.message}`);
+        console.error(`SearchService: Failed to read ${relativePath} - ${readError.message}`);
         return false;
       }
-      
-      // if (content.length === 0) {
-      //   console.log(`SearchService: 📄 EMPTY FILE: ${relativePath}`);
-      //   content = ''; // Still index empty files
-      // }
-      
+
       const extension = path.extname(relativePath).toLowerCase();
       const filename = path.basename(relativePath);
-      
-      // Building the search document
+
       const searchableContent = `${filename} ${content}`;
-      const tags = this.generateTags(content, 'file', extension);
-      
-      // Create a unique, simple document ID
       const docId = `file_${project.id}_${relativePath.replace(/[^a-zA-Z0-9]/g, '_')}`;
-      
+
       const doc = {
         id: docId,
         type: 'file',
         title: filename,
-        content: searchableContent, // File name + content
+        content: searchableContent,
         filename: filename,
         extension: extension,
         path: relativePath,
         relativePath: relativePath,
         projectName: project.name,
         projectId: project.id,
-        tags: tags.join(' '), // FlexSearch expects string, not array
         metadata: JSON.stringify({
           size: stats.size,
           lastModified: stats.mtime,
-          isContentIndexed: true, 
+          isContentIndexed: true,
           source: 'brute-force',
-          contentLength: content.length
-        })
+          contentLength: content.length,
+        }),
       };
-      
-      // add to indices
+
       this.addToIndices(doc, ['main', 'files']);
-      
-      // Add to document store
-      this.documentStore.set(docId, { 
-        ...doc, 
-        item: { 
+
+      this.documentStore.set(docId, {
+        ...doc,
+        item: {
           uri: relativePath,
           name: filename,
           size: stats.size,
           lastModified: stats.mtime,
           snippet: content.substring(0, 300) + (content.length > 300 ? '...' : ''),
-          isContentIndexed: true, 
+          isContentIndexed: true,
           projectName: project.name,
           projectId: project.id,
           fullPath: fullPath,
           type: 'file',
-          actualContent: content, 
+          actualContent: content,
           title: filename,
           extension: extension,
           path: relativePath,
-          relativePath: relativePath
-        } 
+          relativePath: relativePath,
+        },
       });
-      
-      console.log(`SearchService: Indexed: ${relativePath} with ${content.length} chars of content (ID: ${docId})`);
+
       return true;
-      
     } catch (error) {
-      console.error(`SearchService: error!!!!! for ${relativePath}:`, error);
+      console.error(`SearchService: Error indexing ${relativePath}:`, error);
       return false;
     }
   }
 
-  /**
-   * Generate unique document ID
-   */
   generateDocumentId(type, identifier, subId = '') {
     const cleanId = `${type}_${identifier}_${subId}`.replace(/[^a-zA-Z0-9_-]/g, '_');
     return cleanId;
   }
 
-  /**
-   * Extract and generate tags for content analysis
-   */
-  generateTags(content, type, extension = '') {
-    const tags = new Set();
-    
-    // Add type-based tags
-    tags.add(type);
-    
-    // Add extension-based tags
-    if (extension) {
-      tags.add(`ext-${extension.replace('.', '')}`);
-      
-      // Check for statistical file patterns
-      const ext = extension.toLowerCase();
-      Object.entries(this.tagPatterns).forEach(([lang, config]) => {
-        if (config.extensions && config.extensions.includes(ext)) {
-          if (config.tags) {
-            config.tags.forEach(tag => tags.add(tag));
-          }
-          
-          // Check content patterns
-          if (content && config.patterns) {
-            config.patterns.forEach(pattern => {
-              if (content.toLowerCase().includes(pattern.toLowerCase())) {
-                tags.add(`pattern-${pattern.replace(/[^a-zA-Z0-9]/g, '-')}`);
-              }
-            });
-          }
-        }
-      });
-    }
-    
-    // Content-based tag generation
-    if (content && typeof content === 'string') {
-      const lowerContent = content.toLowerCase();
-      
-      // Check for common research terms
-      Object.entries(this.commonTags).forEach(([category, terms]) => {
-        if (Array.isArray(terms)) {
-          terms.forEach(term => {
-            if (lowerContent.includes(term.toLowerCase())) {
-              tags.add(`${category}-${term}`);
-            }
-          });
-        }
-      });
-    }
-    
-    return Array.from(tags);
-  }
-
-  /**
-   * Index project metadata
-   */
   async indexProjectMetadata(project) {
     const docId = this.generateDocumentId('project', project.id);
-    
+
     const doc = {
       id: docId,
       type: 'project',
@@ -497,44 +986,37 @@ class SearchService {
       path: project.path,
       projectName: project.name,
       projectId: project.id,
-      tags: this.generateTags(this.extractProjectContent(project), 'project').join(' ')
     };
 
     this.addToIndices(doc, ['main', 'projects']);
     this.documentStore.set(docId, { ...doc, item: project });
   }
 
-  /**
-   * Extract searchable content from project
-   */
   extractProjectContent(project) {
     const parts = [
       project.name || '',
       project.description?.content || '',
       project.description?.uriContent || '',
       (project.categories || []).join(' '),
-      (project.notes || []).map(note => note.content).join(' ')
+      (project.notes || []).map((note) => note.content).join(' '),
     ];
-    
-    return parts.filter(part => part && part.trim()).join(' ');
+
+    return parts.filter((part) => part && part.trim()).join(' ');
   }
 
-  /**
-   * Index a person
-   */
   async indexPerson(person, project) {
     if (!person || !person.id) return;
-    
+
     const searchableContent = [
       this.formatPersonName(person.name),
       person.affiliation || '',
       (person.roles || []).join(' '),
-      (person.notes || []).map(note => note.content).join(' ')
-    ].filter(part => part && part.trim()).join(' ');
-    
-    const tags = this.generateTags(searchableContent, 'person');
+      (person.notes || []).map((note) => note.content).join(' '),
+    ]
+      .filter((part) => part && part.trim())
+      .join(' ');
     const docId = this.generateDocumentId('person', person.id);
-    
+
     const doc = {
       id: docId,
       type: 'person',
@@ -543,22 +1025,20 @@ class SearchService {
       name: this.formatPersonName(person.name),
       affiliation: person.affiliation || '',
       roles: (person.roles || []).join(' '),
-      notes: (person.notes || []).map(note => note.content).join(' '),
+      notes: (person.notes || []).map((note) => note.content).join(' '),
       projectName: project.name,
       projectId: project.id,
-      tags: tags.join(' ')
     };
-    
+
     this.addToIndices(doc, ['main', 'people']);
-    this.documentStore.set(docId, { 
-      ...doc, 
-      item: { 
-        ...person, 
-        projectName: project.name 
-      } 
+    this.documentStore.set(docId, {
+      ...doc,
+      item: {
+        ...person,
+        projectName: project.name,
+      },
     });
 
-    // Index person notes separately
     if (person.notes && Array.isArray(person.notes)) {
       for (const note of person.notes) {
         await this.indexNote(note, project, 'person', this.formatPersonName(person.name));
@@ -566,15 +1046,11 @@ class SearchService {
     }
   }
 
-  /**
-   * Index a note
-   */
   async indexNote(note, project, entityType, entityName) {
     if (!note || !note.content) return;
-    
-    const tags = this.generateTags(note.content, 'note');
+
     const docId = this.generateDocumentId('note', note.id || Date.now(), entityType);
-    
+
     const doc = {
       id: docId,
       type: 'note',
@@ -585,36 +1061,33 @@ class SearchService {
       entityName: entityName,
       projectName: project.name,
       projectId: project.id,
-      tags: tags.join(' ')
     };
-    
+
     this.addToIndices(doc, ['main', 'notes']);
-    this.documentStore.set(docId, { 
-      ...doc, 
-      item: { 
-        ...note, 
+    this.documentStore.set(docId, {
+      ...doc,
+      item: {
+        ...note,
         noteType: entityType,
         entityName: entityName,
-        projectName: project.name 
-      } 
+        projectName: project.name,
+      },
     });
   }
 
-  /**
-   * Index an asset group
-   */
   async indexAssetGroup(group, project) {
     if (!group || !group.id) return;
-    
+
     const searchableContent = [
       group.name || '',
       group.details || '',
-      (group.assets || []).map(asset => asset.uri).join(' ')
-    ].filter(part => part && part.trim()).join(' ');
-    
-    const tags = this.generateTags(searchableContent, 'asset-group');
+      (group.assets || []).map((asset) => asset.uri).join(' '),
+    ]
+      .filter((part) => part && part.trim())
+      .join(' ');
+
     const docId = this.generateDocumentId('asset-group', group.id);
-    
+
     const doc = {
       id: docId,
       type: 'asset-group',
@@ -622,40 +1095,33 @@ class SearchService {
       content: searchableContent,
       projectName: project.name,
       projectId: project.id,
-      tags: tags.join(' ')
     };
-    
+
     this.addToIndices(doc, ['main']);
-    this.documentStore.set(docId, { 
-      ...doc, 
-      item: { 
-        ...group, 
-        projectName: project.name 
-      } 
+    this.documentStore.set(docId, {
+      ...doc,
+      item: {
+        ...group,
+        projectName: project.name,
+      },
     });
   }
 
-  /**
-   * Format person name consistently
-   */
   formatPersonName(name) {
     if (!name) return '';
-    
+
     if (typeof name === 'string') return name;
-    
+
     const parts = [];
     if (name.first) parts.push(name.first);
     if (name.middle) parts.push(name.middle);
     if (name.last) parts.push(name.last);
-    
+
     return parts.join(' ').trim();
   }
 
-  /**
-   * Add document to specified indices
-   */
   addToIndices(doc, indexNames = ['main']) {
-    indexNames.forEach(indexName => {
+    indexNames.forEach((indexName) => {
       if (this.indices[indexName]) {
         try {
           this.indices[indexName].add(doc);
@@ -666,231 +1132,645 @@ class SearchService {
       }
     });
   }
+  /**
+   * Preprocess query by removing stop words and applying other filters
+   */
+  preprocessQuery(originalQuery) {
+    try {
+      const config = SearchConfig?.search?.preprocessing;
+
+      if (!config || !config.enableStopWords) {
+        return {
+          processedQuery: originalQuery,
+          originalQuery: originalQuery,
+          removedWords: [],
+          keptWords: originalQuery
+            .toLowerCase()
+            .trim()
+            .split(/\s+/)
+            .filter((word) => word.length > 0),
+        };
+      }
+
+      // Convert to lowercase and split into words
+      const words = originalQuery
+        .toLowerCase()
+        .trim()
+        .split(/\s+/)
+        .filter((word) => word.length > 0);
+
+      if (words.length === 0) {
+        return {
+          processedQuery: '',
+          originalQuery: originalQuery,
+          removedWords: [],
+          keptWords: [],
+        };
+      }
+
+      // Combine regular stop words with technical stop words
+      const allStopWords = new Set([
+        ...(config.stopWords || []),
+        ...(config.technicalStopWords || []),
+      ]);
+
+      const minWordLength = config.minWordLength || 2;
+      const removedWords = [];
+      const keptWords = [];
+
+      words.forEach((word) => {
+        const cleanWord = word.replace(/^[^\w]+|[^\w]+$/g, '');
+        if (cleanWord.length === 0) {
+          removedWords.push(word);
+          return;
+        }
+        if (allStopWords.has(cleanWord) || cleanWord.length < minWordLength) {
+          removedWords.push(word);
+        } else {
+          keptWords.push(cleanWord);
+        }
+      });
+
+      // If all words were removed, keep the original query to avoid empty searches
+      const processedQuery = keptWords.length > 0 ? keptWords.join(' ') : originalQuery;
+
+      return {
+        processedQuery: processedQuery,
+        originalQuery: originalQuery,
+        removedWords: removedWords,
+        keptWords: keptWords,
+        wasProcessed: keptWords.length < words.length,
+      };
+    } catch (error) {
+      console.error('SearchService: Error preprocessing query:', error);
+      return {
+        processedQuery: originalQuery,
+        originalQuery: originalQuery,
+        removedWords: [],
+        keptWords: originalQuery
+          .toLowerCase()
+          .trim()
+          .split(/\s+/)
+          .filter((word) => word.length > 0),
+        error: error.message,
+      };
+    }
+  }
 
   /**
-   * Perform search across all indexed content
+   * Search method with query preprocessing
    */
   search(query, options = {}) {
     if (!this.isInitialized) {
       console.warn('SearchService: Service not initialized');
       return this.getEmptyResults();
     }
-    
+
     if (!query || typeof query !== 'string' || query.trim() === '') {
       return this.getEmptyResults();
     }
-    
+
     const startTime = Date.now();
-    const cacheKey = this.generateCacheKey(query, options);
-    
+
+    // Preprocess the query
+    const queryPreprocessing = this.preprocessQuery(query);
+    const searchQuery = queryPreprocessing.processedQuery;
+    const cacheKey = this.generateCacheKey(searchQuery, options);
+
     // Check cache first
     const cached = this.getFromCache(cacheKey);
     if (cached) {
       console.log('SearchService: Returning cached results');
-      return cached;
+      return {
+        ...cached,
+        queryPreprocessing: queryPreprocessing,
+      };
     }
-    
+
     try {
-      const searchResults = this.performSearch(query, options);
+      const searchResults = this.performSearch(searchQuery, options);
       const groupedResults = this.groupResultsByType(searchResults);
-      
-      // Update performance stats
+
+      // Add preprocessing information to results
+      groupedResults.queryPreprocessing = queryPreprocessing;
+      groupedResults.searchQuery = searchQuery;
       const searchTime = Date.now() - startTime;
       this.updateSearchStats(searchTime);
-      
-      // Cache results
       this.addToCache(cacheKey, groupedResults);
-      
-      console.log(`SearchService: Search completed in ${searchTime}ms, found ${searchResults.length} results`);
-      
+
+      console.log(
+        `SearchService: Search completed in ${searchTime}ms, found ${searchResults.length} results`,
+      );
+      console.log(`SearchService: Used query: "${searchQuery}" (processed from: "${query}")`);
+
       return groupedResults;
-      
     } catch (error) {
       console.error('SearchService: Search error:', error);
-      return this.getEmptyResults();
+      const emptyResults = this.getEmptyResults();
+      emptyResults.queryPreprocessing = queryPreprocessing;
+      emptyResults.searchQuery = searchQuery;
+      return emptyResults;
     }
   }
 
   /**
-   * Perform the actual search using FlexSearch 
+   * performSearch that handles both processed and original queries
    */
   performSearch(query, options = {}) {
-    const {
-      type,
-      projectId,
-      maxResults = SearchConfig?.search?.maxResults || 1000
-    } = options;
-    
+    const { type, projectId, maxResults = SearchConfig?.search?.maxResults || 1000 } = options;
+
     try {
       console.log('SearchService: Performing FlexSearch for query:', query);
       console.log('SearchService: Document store size:', this.documentStore.size);
-      
-      let allResults = new Set();
-      
-      // 1: Exact query search
-      const exactResults = this.indices.main.search(query, { limit: maxResults });
-      this.processFlexSearchResults(exactResults, allResults);
-      
-      // 2: Split query into individual terms for partial matching
+
+      let allResults = new Map();
       const queryTerms = query.toLowerCase().trim().split(/\s+/);
+
+      // 1: Exact query search with score tracking
+      const exactResults = this.indices.main.search(query, {
+        limit: maxResults,
+        suggest: true,
+        context: true,
+      });
+      this.processFlexSearchResultsWithScores(exactResults, allResults, 1.0);
+
+      // 2: Fuzzy search for typo tolerance
+      const enableFuzzy = SearchConfig?.search?.enableFuzzySearch !== false;
+      if (enableFuzzy) {
+        const fuzzyThreshold = SearchConfig?.search?.fuzzySearchThreshold || 3;
+        const fuzzyResults = this.indices.main.search(query, {
+          limit: maxResults,
+          suggest: true,
+          threshold: fuzzyThreshold,
+        });
+        this.processFlexSearchResultsWithScores(fuzzyResults, allResults, 0.8);
+      }
+
+      // 3: Individual term searches for partial matching
       if (queryTerms.length > 1) {
         for (const term of queryTerms) {
-          if (term.length >= 2) { // Only search terms with 2+ characters
-            const termResults = this.indices.main.search(term, { limit: maxResults });
-            this.processFlexSearchResults(termResults, allResults);
+          if (term.length >= 2) {
+            const termResults = this.indices.main.search(term, {
+              limit: maxResults,
+              context: true,
+            });
+            this.processFlexSearchResultsWithScores(termResults, allResults, 0.6);
           }
         }
       }
-      
-      // 3: Try prefix matching for each term
-      for (const term of queryTerms) {
-        if (term.length >= 2) {
-          // Try with wildcard-like partial matching (flex search inbuild)
-          const prefixResults = this.indices.main.search(term.substring(0, Math.max(2, term.length - 1)), { limit: maxResults });
-          this.processFlexSearchResults(prefixResults, allResults);
-        }
-      }
-      
-      console.log(`SearchService: Found ${allResults.size} unique document IDs from enhanced search`);
-      
-      // Convert Set of IDs to search results
+
+      // 4: Context-aware search
+      const contextResults = this.indices.main.search(query, {
+        limit: maxResults,
+        context: {
+          depth: SearchConfig?.search?.depth || 3,
+          resolution: SearchConfig?.search?.resolution || 3,
+        },
+      });
+      this.processFlexSearchResultsWithScores(contextResults, allResults, 0.7);
+
+      console.log(`SearchService: Found ${allResults.size} unique document IDs from search`);
+
+      // Convert Map to search results with scoring
       let searchResults = [];
-      allResults.forEach(id => {
+      allResults.forEach((flexScore, id) => {
         const docData = this.documentStore.get(id);
         if (docData) {
-          // Calculate relevance based on how well the content matches
-          const relevance = this.calculateRelevance(docData, query, queryTerms);
-          
-          console.log(`SearchService: Found document for ID ${id}: ${docData.type} (relevance: ${relevance})`);
+          const relevance = this.calculateRelevance(docData, query, queryTerms, flexScore, {
+            searchType: 'multi-strategy',
+            ...options,
+          });
+
           searchResults.push({
             id: id,
             score: relevance,
+            flexSearchScore: flexScore,
             type: docData.type,
             item: docData.item,
-            highlights: this.generateHighlights(docData, query)
+            highlights: this.generateHighlights(docData, query),
           });
-        } else {
-          console.warn(`SearchService: No document found for ID: ${id}`);
         }
       });
-      
+
       // Sort by relevance score (highest first)
       searchResults.sort((a, b) => b.score - a.score);
-      
-      console.log(`SearchService: Processed ${searchResults.length} valid results`);
-      
+
       // Apply filters
       if (type && type !== 'all') {
-        const beforeFilter = searchResults.length;
-        searchResults = searchResults.filter(result => result.type === type);
-        console.log(`SearchService: Type filter (${type}) reduced results from ${beforeFilter} to ${searchResults.length}`);
+        searchResults = searchResults.filter((result) => result.type === type);
       }
-      
+
       if (projectId && projectId !== 'all') {
-        const beforeFilter = searchResults.length;
-        searchResults = searchResults.filter(result => 
-          result.item && result.item.projectId === projectId
+        searchResults = searchResults.filter(
+          (result) => result.item && result.item.projectId === projectId,
         );
-        console.log(`SearchService: Project filter (${projectId}) reduced results from ${beforeFilter} to ${searchResults.length}`);
       }
-      
-      // Limit results
+
       searchResults = searchResults.slice(0, maxResults);
-      
-      console.log(`SearchService: Final search results count: ${searchResults.length}`);
       return searchResults;
-      
     } catch (error) {
       console.error('SearchService: Error in performSearch:', error);
       return [];
     }
   }
-
   /**
-   * Process FlexSearch results and add unique IDs to the results set
+   * Process FlexSearch results with score tracking
    */
-  processFlexSearchResults(flexSearchResults, resultsSet) {
+  processFlexSearchResultsWithScores(flexSearchResults, resultsMap, scoreMultiplier = 1.0) {
     if (Array.isArray(flexSearchResults)) {
-      flexSearchResults.forEach(fieldResult => {
+      flexSearchResults.forEach((fieldResult) => {
         if (fieldResult && fieldResult.result && Array.isArray(fieldResult.result)) {
-          fieldResult.result.forEach(id => {
-            resultsSet.add(id);
+          fieldResult.result.forEach((id, index) => {
+            // Create position-based score (higher position = lower score)
+            const positionScore = Math.max(0.1, 1.0 - index * 0.1);
+            const flexScore = positionScore * scoreMultiplier;
+
+            const currentScore = resultsMap.get(id) || 0;
+            resultsMap.set(id, Math.max(currentScore, flexScore));
           });
         }
       });
     }
   }
+  //   **
+  //  * Initialize scoring configuration in constructor
+  //  */
+  initializeScoringConfig(config = {}) {
+    const weights = config.weights || {};
+    this.scoringWeights = {
+      exactPhraseContent: weights.exactPhraseContent || 1.0,
+      exactPhraseTitle: weights.exactPhraseTitle || 0.9,
+      individualWordContent: weights.individualWordContent || 0.2,
+      individualWordTitle: weights.individualWordTitle || 0.15,
+      allWordsBonus: weights.allWordsBonus || 0.3,
+      partialWordMatch: weights.partialWordMatch || 0.1,
+      titlePartialMatch: weights.titlePartialMatch || 0.08,
+      contentIndexedBonus: weights.contentIndexedBonus || 0.05,
+      flexSearchScore: weights.flexSearchScore || 0.4,
+      proximityBonus: weights.proximityBonus || 0.2,
+      fieldLengthPenalty: weights.fieldLengthPenalty || 0.1,
+    };
 
-  /**
-   * Calculate relevance score for a document based on query match
-   */
-  calculateRelevance(docData, originalQuery, queryTerms) {
-    let score = 0;
+    this.maxBaseScore = config.maxBaseScore || 100;
+  }
+
+  calculateRelevance(docData, originalQuery, queryTerms, flexSearchScore, searchContext = {}) {
     const query = originalQuery.toLowerCase();
     const content = (docData.content || '').toLowerCase();
     const title = (docData.title || '').toLowerCase();
-    
-    // Exact phrase match in content gets highest score
-    if (content.includes(query)) {
-      score += 100;
+
+    let score = 0;
+    score += flexSearchScore * this.scoringWeights.flexSearchScore * this.maxBaseScore;
+
+    const exactPhraseScore = this.calculateExactPhraseScore(content, title, query);
+    score += exactPhraseScore;
+
+    const completenessData = this.calculateQueryCompleteness(content, title, queryTerms);
+    const completenessPenalty = this.calculateCompletenessPenalty(
+      completenessData,
+      queryTerms.length,
+    );
+    score *= completenessPenalty;
+
+    const wordMatchData = this.calculateWordMatches(content, title, queryTerms);
+    score += wordMatchData.score;
+
+    if (completenessData.matchedTerms >= queryTerms.length) {
+      score += this.scoringWeights.allWordsBonus * this.maxBaseScore;
     }
-    
-    // Exact phrase match in title gets very high score  
-    if (title.includes(query)) {
-      score += 90;
+
+    score += this.calculatePartialMatches(content, title, queryTerms);
+    if (completenessData.matchedTerms > 1) {
+      score += this.calculateProximityScore(content, queryTerms);
     }
-    
-    // Individual word matches in content
-    let wordMatches = 0;
-    queryTerms.forEach(term => {
-      if (content.includes(term.toLowerCase())) {
-        wordMatches++;
-        score += 20;
-      }
-      if (title.includes(term.toLowerCase())) {
-        wordMatches++;
-        score += 15;
-      }
-    });// thes scores can be changed
-    
-    // Bonus for matching all query terms
-    if (wordMatches >= queryTerms.length) {
-      score += 30;
-    }
-    
-    // Partial word matches (for "play" matching "playing")
-    queryTerms.forEach(term => {
-      if (term.length >= 3) {
-        const partialRegex = new RegExp(term.substring(0, term.length - 1), 'i');
-        if (partialRegex.test(content)) {
-          score += 10;
-        }
-        if (partialRegex.test(title)) {
-          score += 8;
-        }
-      }
-    });
-    
-    // File type bonus for text content
-    if (docData.type === 'file' && docData.item && docData.item.isContentIndexed) {
-      score += 5;
-    }
-    
-    // Normalize score to 0-1 range
-    return Math.min(score / 100, 1.0);
+
+    score += this.calculateFieldLengthScore(content, title);
+    score += this.calculateContentTypeBonus(docData);
+    score += this.calculateBalancedTermFrequencyScore(content, title, queryTerms, completenessData);
+    return Math.min(score / this.maxBaseScore, 1.0);
   }
 
   /**
-   * Generate highlights for search results
+   * Calculate exact phrase match scores
    */
+  calculateExactPhraseScore(content, title, query) {
+    let score = 0;
+
+    if (content.includes(query)) {
+      const position = content.indexOf(query);
+      const positionWeight = Math.max(0.5, 1 - position / content.length);
+      score += this.scoringWeights.exactPhraseContent * this.maxBaseScore * positionWeight;
+    }
+
+    if (title.includes(query)) {
+      const position = title.indexOf(query);
+      const positionWeight = Math.max(0.7, 1 - position / title.length);
+      score += this.scoringWeights.exactPhraseTitle * this.maxBaseScore * positionWeight;
+    }
+
+    return score;
+  }
+
+  /**
+   * Calculate partial word matching scores (fuzzy-like matching)
+   */
+  calculatePartialMatches(content, title, queryTerms) {
+    let score = 0;
+
+    queryTerms.forEach((term) => {
+      if (term.length >= 3) {
+        // Try different partial match strategies
+        const partialTerm = term.substring(0, Math.max(3, term.length - 1));
+        const prefixTerm = term.substring(0, Math.min(term.length, 4));
+
+        // Partial matches in content
+        if (content.includes(partialTerm) || this.hasPartialMatch(content, prefixTerm)) {
+          const matchQuality = partialTerm.length / term.length;
+          score += this.scoringWeights.partialWordMatch * this.maxBaseScore * matchQuality;
+        }
+
+        // Partial matches in title
+        if (title.includes(partialTerm) || this.hasPartialMatch(title, prefixTerm)) {
+          const matchQuality = partialTerm.length / term.length;
+          score += this.scoringWeights.titlePartialMatch * this.maxBaseScore * matchQuality;
+        }
+      }
+    });
+
+    return score;
+  }
+
+  /**
+   * Calculate proximity score (how close query terms appear to each other)
+   */
+  calculateProximityScore(content, queryTerms) {
+    if (queryTerms.length < 2) return 0;
+
+    let proximityScore = 0;
+    const positions = {};
+
+    // Find positions of all terms
+    queryTerms.forEach((term) => {
+      const termLower = term.toLowerCase();
+      const termPositions = [];
+      let index = content.indexOf(termLower);
+
+      while (index !== -1) {
+        termPositions.push(index);
+        index = content.indexOf(termLower, index + 1);
+      }
+
+      if (termPositions.length > 0) {
+        positions[term] = termPositions;
+      }
+    });
+
+    // Calculate proximity bonuses
+    const termKeys = Object.keys(positions);
+    for (let i = 0; i < termKeys.length - 1; i++) {
+      for (let j = i + 1; j < termKeys.length; j++) {
+        const term1Positions = positions[termKeys[i]];
+        const term2Positions = positions[termKeys[j]];
+
+        // Find closest pair
+        let minDistance = Infinity;
+        term1Positions.forEach((pos1) => {
+          term2Positions.forEach((pos2) => {
+            const distance = Math.abs(pos1 - pos2);
+            minDistance = Math.min(minDistance, distance);
+          });
+        });
+
+        if (minDistance < Infinity) {
+          // Closer terms get higher scores
+          const proximityWeight = Math.max(0, 1 - minDistance / 100);
+          proximityScore +=
+            this.scoringWeights.proximityBonus * this.maxBaseScore * proximityWeight;
+        }
+      }
+    }
+
+    return proximityScore;
+  }
+
+  /**
+   * Calculate field length normalization score
+   */
+  calculateFieldLengthScore(content, title) {
+    const contentLength = content.length;
+    const titleLength = title.length;
+
+    let score = 0;
+    if (contentLength > 50 && contentLength < 5000) {
+      score += this.scoringWeights.fieldLengthPenalty * this.maxBaseScore * 0.1;
+    }
+    if (titleLength > 5 && titleLength < 100) {
+      score += this.scoringWeights.fieldLengthPenalty * this.maxBaseScore * 0.05;
+    }
+
+    return score;
+  }
+
+  /**
+   * Calculate content type and quality bonuses
+   */
+  calculateContentTypeBonus(docData) {
+    let score = 0;
+    const typeMultipliers = {
+      project: 1.2,
+      file: 1.0,
+      person: 1.1,
+      note: 0.9,
+      asset: 0.8,
+    };
+    const multiplier = typeMultipliers[docData.type] || 1.0;
+    score *= multiplier;
+    return score;
+  }
+  /**
+   * Calculate query completeness - how many query terms are found
+   */
+  calculateQueryCompleteness(content, title, queryTerms) {
+    let matchedTerms = 0;
+    let totalTermOccurrences = 0;
+    const termMatchDetails = {};
+
+    queryTerms.forEach((term) => {
+      const termLower = term.toLowerCase();
+      let termFound = false;
+      let termOccurrences = 0;
+
+      // Check content
+      if (content.includes(termLower)) {
+        termFound = true;
+        termOccurrences += this.countOccurrences(content, termLower);
+      }
+
+      // title
+      if (title.includes(termLower)) {
+        termFound = true;
+        termOccurrences += this.countOccurrences(title, termLower);
+      }
+
+      if (termFound) {
+        matchedTerms++;
+        totalTermOccurrences += termOccurrences;
+      }
+
+      termMatchDetails[term] = {
+        found: termFound,
+        occurrences: termOccurrences,
+      };
+    });
+
+    return {
+      matchedTerms,
+      totalTerms: queryTerms.length,
+      completenessRatio: matchedTerms / queryTerms.length,
+      totalOccurrences: totalTermOccurrences,
+      termDetails: termMatchDetails,
+    };
+  }
+
+  /**
+   * Calculate completeness penalty for missing query terms
+   */
+  calculateCompletenessPenalty(completenessData, totalQueryTerms) {
+    const { matchedTerms } = completenessData;
+
+    if (matchedTerms === 0) {
+      return 0.0;
+    }
+
+    if (matchedTerms === totalQueryTerms) {
+      return 1.0;
+    }
+    const missingTerms = totalQueryTerms - matchedTerms;
+    const missingRatio = missingTerms / totalQueryTerms;
+    const penalty = Math.pow(0.5, missingRatio * 2);
+
+    return penalty;
+  }
+
+  /**
+   * Calculate balanced term frequency score that considers completeness
+   */
+  calculateBalancedTermFrequencyScore(content, title, queryTerms, completenessData) {
+    let score = 0;
+    const totalWords = content.split(/\s+/).length;
+    const titleWords = title.split(/\s+/).length;
+
+    // Giving frequency bonuses to terms that actually matched
+    queryTerms.forEach((term) => {
+      const termData = completenessData.termDetails[term];
+      if (termData && termData.found) {
+        const termLower = term.toLowerCase();
+
+        // Term frequency in content (capped to prevent spam)
+        const contentOccurrences = this.countOccurrences(content, termLower);
+        if (contentOccurrences > 0) {
+          const tf = Math.min(contentOccurrences / Math.max(totalWords, 1), 0.1);
+          score += tf * this.maxBaseScore * 0.1;
+        }
+        // Term frequency in title (higher weight, also capped)
+        const titleOccurrences = this.countOccurrences(title, termLower);
+        if (titleOccurrences > 0) {
+          const tf = Math.min(titleOccurrences / Math.max(titleWords, 1), 0.3); // logarithmic cap to penalise too much frequency
+          score += tf * this.maxBaseScore * 0.15;
+        }
+      }
+    });
+
+    return score;
+  }
+
+  /**
+   * word matching that works with completeness data
+   */
+  calculateWordMatches(content, title, queryTerms) {
+    let score = 0;
+    let matchedTerms = 0;
+    const termPositions = {};
+
+    queryTerms.forEach((term, index) => {
+      const termLower = term.toLowerCase();
+      let termMatched = false;
+
+      // Content matches
+      if (content.includes(termLower)) {
+        const occurrences = this.countOccurrences(content, termLower);
+        const firstPosition = content.indexOf(termLower);
+        const positionWeight = Math.max(0.3, 1 - firstPosition / content.length);
+
+        const frequencyScore = Math.min(1, Math.log(occurrences + 1) / Math.log(5));
+        score +=
+          this.scoringWeights.individualWordContent *
+          this.maxBaseScore *
+          frequencyScore *
+          positionWeight;
+
+        termPositions[term] = firstPosition;
+        termMatched = true;
+      }
+
+      // Title matches (higher weight)
+      if (title.includes(termLower)) {
+        const occurrences = this.countOccurrences(title, termLower);
+        const firstPosition = title.indexOf(termLower);
+        const positionWeight = Math.max(0.5, 1 - firstPosition / title.length);
+
+        const frequencyScore = Math.min(1, Math.log(occurrences + 1) / Math.log(3));
+        score +=
+          this.scoringWeights.individualWordTitle *
+          this.maxBaseScore *
+          frequencyScore *
+          positionWeight;
+
+        termMatched = true;
+      }
+
+      if (termMatched) {
+        matchedTerms++;
+      }
+    });
+
+    return { score, matchedTerms, termPositions };
+  }
+
+  /**
+   * Count occurrences of a term in text
+   */
+  countOccurrences(text, term) {
+    let count = 0;
+    let index = text.indexOf(term);
+
+    while (index !== -1) {
+      count++;
+      index = text.indexOf(term, index + 1);
+    }
+
+    return count;
+  }
+
+  /**
+   * Check for partial word matches using regex
+   */
+  hasPartialMatch(text, partialTerm) {
+    try {
+      const regex = new RegExp(`\\b${partialTerm}`, 'i');
+      return regex.test(text);
+    } catch (error) {
+      return false;
+    }
+  }
+
   generateHighlights(docData, query) {
     const highlights = {};
-    
-    // Simple highlight generation
+
     if (docData.content && query) {
       const content = docData.content;
       const queryTerms = query.toLowerCase().split(/\s+/);
-      
+
       for (const term of queryTerms) {
         if (term.length > 2 && content.toLowerCase().includes(term)) {
           const index = content.toLowerCase().indexOf(term);
@@ -903,13 +1783,10 @@ class SearchService {
         }
       }
     }
-    
+
     return highlights;
   }
 
-  /**
-   * Group search results by type
-   */
   groupResultsByType(results) {
     const grouped = {
       projects: [],
@@ -918,10 +1795,10 @@ class SearchService {
       files: [],
       folders: [],
       notes: [],
-      all: [...results]
+      all: [...results],
     };
-    
-    results.forEach(result => {
+
+    results.forEach((result) => {
       switch (result.type) {
         case 'project':
           grouped.projects.push(result);
@@ -943,44 +1820,30 @@ class SearchService {
           grouped.notes.push(result);
           break;
         default:
-          // Handle unknown types
           break;
       }
     });
-    
+
     return grouped;
   }
 
-  /**
-   * Advanced search with enhanced features
-   */
-  advancedSearch(query, options = {}) {
-    // For FlexSearch, we'll use the same search but with different options
-    return this.search(query, { ...options, suggest: true });
-  }
-
-  /**
-   * Get search suggestions based on partial query
-   */
   getSuggestions(partialQuery) {
     if (!this.isInitialized || !partialQuery || partialQuery.length < 2) {
       return [];
     }
-    
+
     try {
       const suggestions = new Set();
       const maxSuggestions = SearchConfig?.ui?.maxSuggestions || 8;
-      
-      // Use FlexSearch suggest
+
       const suggestResults = this.indices.main.search(partialQuery, {
-        limit: maxSuggestions
+        limit: maxSuggestions,
       });
-      
-      // Extract suggestions from results
+
       if (Array.isArray(suggestResults)) {
-        suggestResults.forEach(fieldResult => {
+        suggestResults.forEach((fieldResult) => {
           if (fieldResult.result) {
-            fieldResult.result.slice(0, maxSuggestions).forEach(id => {
+            fieldResult.result.slice(0, maxSuggestions).forEach((id) => {
               const docData = this.documentStore.get(id);
               if (docData && docData.title) {
                 suggestions.add(docData.title);
@@ -989,7 +1852,7 @@ class SearchService {
           }
         });
       }
-      
+
       return Array.from(suggestions).slice(0, maxSuggestions);
     } catch (error) {
       console.error('SearchService: Error getting suggestions:', error);
@@ -997,195 +1860,140 @@ class SearchService {
     }
   }
 
-  /**
-   * Reindex all projects with full content
-   */
-  async reindexAll() {
-    console.log('SearchService: Starting complete reindex');
-    
-    this.clearIndices();
-    this.indexingQueue.length = 0;
-    this.indexingInProgress = true;
-    
-    for (const project of this.projectsData) {
-      await this.indexProjectMetadata(project);
-      if (project.path && fs.existsSync(project.path)) {
-        await this.bruteForceIndexAllFiles(project);
-      }
-      // Index other project components...
-    }
-    
-    this.indexingInProgress = false;
-    console.log('SearchService: Complete reindex finished');
-    
-    // Log reindexing summary
-    const stats = this.getSearchStats();
-    console.log('SearchService: Reindex Summary:');
-    Object.entries(stats.documentsByType).forEach(([type, count]) => {
-      console.log(`  ${type}: ${count} documents`);
-    });
-    console.log(`  Content-indexed files: ${stats.contentIndexedFiles}`);
-  }
-
-  /**
-   * Export search index for backup/transfer
-   */
   exportIndex() {
     const exportData = {
-      version: '1.0',
+      version: SEARCH_CONFIG_VERSION,
       timestamp: new Date().toISOString(),
       documentStore: Array.from(this.documentStore.entries()),
+      indexedProjects: Object.fromEntries(this.indexedProjectsMap.entries()),
       performanceStats: this.performanceStats,
-      projectsData: this.projectsData.map(p => ({
+      maxIndexingFileSize: this.maxIndexingFileSize,
+      projectsData: this.projectsData.map((p) => ({
         id: p.id,
         name: p.name,
-        path: p.path
-      }))
+        path: p.path,
+      })),
     };
-    
-    // **** FlexSearch indices cannot be easily serialized
-    // Users will need to reindex after import
+
     return exportData;
   }
 
-  /**
-   * Import search index from backup
-   */
   importIndex(indexData) {
-    if (!indexData || indexData.version !== '1.0') {
+    if (!indexData || indexData.version !== SEARCH_CONFIG_VERSION) {
       throw new Error('Invalid or unsupported index data format');
     }
-    
+
     console.log('SearchService: Importing index data');
-    
-    // Clear current data
+
     this.clearIndices();
-    
-    // Restore document store
+
     this.documentStore = new Map(indexData.documentStore);
-    
-    // Rebuild FlexSearch indices from document store
-    this.documentStore.forEach(doc => {
-      const indexNames = this.getIndexNamesForType(doc.type);
-      this.addToIndices(doc, indexNames);
-    });
-    
-    // Restore performance stats
+
+    if (indexData.indexedProjects) {
+      this.indexedProjectsMap = new Map(Object.entries(indexData.indexedProjects));
+    }
+
     if (indexData.performanceStats) {
       this.performanceStats = { ...this.performanceStats, ...indexData.performanceStats };
     }
-    
-    console.log('SearchService: Index import completed');
+
+    if (indexData.maxIndexingFileSize) {
+      this.maxIndexingFileSize = indexData.maxIndexingFileSize;
+    }
+    console.log('SearchService: Rebuilding FlexSearch indices from imported data');
+    this.buildIndicesFromDocumentStore();
+    this.indicesBuiltThisSession = true;
+
+    this.saveIndexToFile();
+
+    console.log('SearchService: Index import completed with FlexSearch indices rebuilt');
   }
 
-  /**
-   * Get appropriate index names for a document type
-   */
   getIndexNamesForType(type) {
     const indexMap = {
-      'project': ['main', 'projects'],
-      'file': ['main', 'files'],
-      'folder': ['main', 'files'],
-      'person': ['main', 'people'],
-      'note': ['main', 'notes'],
-      'asset': ['main'],
+      project: ['main', 'projects'],
+      file: ['main', 'files'],
+      folder: ['main', 'files'],
+      person: ['main', 'people'],
+      note: ['main', 'notes'],
+      asset: ['main'],
       'external-asset': ['main'],
-      'asset-group': ['main']
+      'asset-group': ['main'],
     };
-    
+
     return indexMap[type] || ['main'];
   }
 
-  /**
-   * Generate cache key for search results
-   */
   generateCacheKey(query, options) {
     return `${query}_${JSON.stringify(options)}`.replace(/[^a-zA-Z0-9_]/g, '_');
   }
 
-  /**
-   * Get results from cache
-   */
   getFromCache(key) {
     const cached = this.resultCache.get(key);
     if (!cached) return null;
-    
+
     if (Date.now() - cached.timestamp > this.cacheTTL) {
       this.resultCache.delete(key);
       return null;
     }
-    
+
     return cached.data;
   }
 
-  /**
-   * Add results to cache
-   */
   addToCache(key, data) {
-    // Implement LRU eviction if cache is full
     if (this.resultCache.size >= this.maxCacheSize) {
       const firstKey = this.resultCache.keys().next().value;
       this.resultCache.delete(firstKey);
     }
-    
+
     this.resultCache.set(key, {
       data: data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
-  /**
-   * Update search performance statistics
-   */
   updateSearchStats(searchTime) {
     this.performanceStats.totalSearches++;
     this.performanceStats.searchTimes.push(searchTime);
-    
-    // Keep only last 100 search times for memory efficiency
+
     if (this.performanceStats.searchTimes.length > 100) {
       this.performanceStats.searchTimes = this.performanceStats.searchTimes.slice(-100);
     }
-    
-    // Calculate average
+
     const sum = this.performanceStats.searchTimes.reduce((a, b) => a + b, 0);
     this.performanceStats.averageSearchTime = sum / this.performanceStats.searchTimes.length;
   }
 
-  /**
-   * Get search statistics
-   */
   getSearchStats() {
     const docsByType = {};
-    this.documentStore.forEach(doc => {
+    this.documentStore.forEach((doc) => {
       docsByType[doc.type] = (docsByType[doc.type] || 0) + 1;
     });
-    
-    // Calculate content-indexed files
+
     let contentIndexedCount = 0;
-    this.documentStore.forEach(doc => {
+    this.documentStore.forEach((doc) => {
       if (doc.item && doc.item.isContentIndexed) {
         contentIndexedCount++;
       }
     });
-    
+
     return {
       totalDocuments: this.documentStore.size,
       documentsByType: docsByType,
       contentIndexedFiles: contentIndexedCount,
-      indexedProjects: this.projectsData.length,
+      indexedProjects: this.indexedProjectsMap.size,
       indexingInProgress: this.indexingInProgress,
       queueLength: this.indexingQueue.length,
+      maxIndexingFileSize: this.maxIndexingFileSize,
+      maxIndexingFileSizeMB: (this.maxIndexingFileSize / (1024 * 1024)).toFixed(3),
       performance: this.performanceStats,
       cacheStats: {
         size: this.resultCache.size,
-        maxSize: this.maxCacheSize
-      }
+        maxSize: this.maxCacheSize,
+      },
     };
   }
 
-  /**
-   * Get empty search results structure
-   */
   getEmptyResults() {
     return {
       projects: [],
@@ -1194,77 +2002,66 @@ class SearchService {
       files: [],
       folders: [],
       notes: [],
-      all: []
+      all: [],
     };
   }
-
   /**
-   * Check if service is ready for searching
+   * Get information about the current index file
    */
-  isReady() {
-    return this.isInitialized && !this.indexingInProgress;
+  getIndexFileInfo() {
+    if (!this.indexFilePath) {
+      return { exists: false, path: null, size: 0 };
+    }
+
+    try {
+      const stats = fs.statSync(this.indexFilePath);
+      return {
+        exists: true,
+        path: this.indexFilePath,
+        size: stats.size,
+        lastModified: stats.mtime,
+        sizeKB: stats.size / 1024,
+        sizeMB: ((stats.size / (1024 * 1024)) * 100) / 100,
+      };
+    } catch (error) {
+      return { exists: false, path: this.indexFilePath, size: 0 };
+    }
   }
 
   /**
-   * Get service status
+   * Delete the index file and start fresh
    */
-  getStatus() {
-    return {
-      initialized: this.isInitialized,
-      indexingInProgress: this.indexingInProgress,
-      queueLength: this.indexingQueue.length,
-      totalDocuments: this.documentStore.size,
-      cacheSize: this.resultCache.size
-    };
-  }
+  async deleteIndexFile() {
+    if (this.indexFilePath && fs.existsSync(this.indexFilePath)) {
+      try {
+        fs.unlinkSync(this.indexFilePath);
+        console.log('SearchService: Index file deleted');
 
-  /**
-   * Clear all caches
-   */
-  clearCaches() {
-    this.resultCache.clear();
-    console.log('SearchService: Caches cleared');
-  }
+        this.clearIndices();
+        this.isInitialized = false;
+        this.indicesBuiltThisSession = false;
+        this.indexingInProgress = false;
+        this.indexingQueue = [];
+        this.indexedProjectsMap.clear();
+        this.documentStore.clear();
+        this.resultCache.clear();
 
-  /**
-   * Cleanup resources
-   */
-  cleanup() {
-    this.clearIndices();
-    this.clearCaches();
-    this.indexingQueue.length = 0;
-    this.indexingInProgress = false;
-    this.isInitialized = false;
-    console.log('SearchService: Cleanup completed');
-  }
+        this.performanceStats = {
+          totalSearches: 0,
+          totalIndexingTime: 0,
+          averageSearchTime: 0,
+          documentsIndexed: 0,
+          searchTimes: [],
+        };
 
-  /**
-   * Debug method to check document store
-   */
-  debugDocumentStore() {
-    console.log('SearchService DEBUG: Document Store Contents:');
-    console.log('  Total documents:', this.documentStore.size);
-    
-    const typeCount = {};
-    this.documentStore.forEach((doc, id) => {
-      typeCount[doc.type] = (typeCount[doc.type] || 0) + 1;
-      console.log(`  ${id}: ${doc.type} - "${doc.title || doc.item?.name || 'No title'}"`);
-    });
-    
-    console.log('Documents by type:', typeCount);
-    
-    // Test a simple search
-    const testQuery = 'py';
-    console.log(`Testing search for "${testQuery}":`);
-    const testResults = this.indices.main.search(testQuery);
-    console.log('Raw FlexSearch results:', testResults);
-    
-    return {
-      totalDocs: this.documentStore.size,
-      typeCount,
-      testQuery,
-      testResults
-    };
+        console.log('SearchService: Internal state reset after index deletion');
+        return true;
+      } catch (error) {
+        console.error('SearchService: Error deleting index file:', error);
+        return false;
+      }
+    }
+    return true;
   }
 }
 
