@@ -62,4 +62,10 @@ module.exports = {
   REMOVE_PROJECT_PERSON_RESPONSE: 'statwrap-remove-project-person-response',
 
   PROJECT_EXTERNALLY_CHANGED_RESPONSE: 'statwrap-project-externally-changed',
+  SEARCH_INDEX_PROJECT_RESPONSE: 'statwrap-search-index-project-response',
+  SEARCH_INDEX_ALL_RESPONSE: 'statwrap-search-index-all-response',
+
+  GET_APP_DATA_PATH: 'get-app-data-path',
+  SHOW_ITEM_IN_FOLDER: 'show-item-in-folder',
+  OPEN_FILE_WITH_DEFAULT: 'open-file-with-default',
 };

@@ -996,3 +996,26 @@ ipcMain.on(Messages.TOGGLE_PROJECT_STATUS_REQUEST, async (event, projectId) => {
 
   event.sender.send(Messages.TOGGLE_PROJECT_STATUS_RESPONSE, response);
 });
+
+// Handler to get app data path for persistent storage
+ipcMain.handle(Messages.GET_APP_DATA_PATH, async () => {
+  try {
+    return app.getPath('userData');
+  } catch (error) {
+    console.error('Error getting app data path:', error);
+    // Fallback to current working directory
+    return process.cwd();
+  }
+});
+
+// Handler to show item in folder
+ipcMain.on(Messages.SHOW_ITEM_IN_FOLDER, (event, fullPath) => {
+  const { shell } = require('electron');
+  shell.showItemInFolder(fullPath);
+});
+
+// Handler to open file with default application
+ipcMain.on(Messages.OPEN_FILE_WITH_DEFAULT, (event, fullPath) => {
+  const { shell } = require('electron');
+  shell.openPath(fullPath);
+});

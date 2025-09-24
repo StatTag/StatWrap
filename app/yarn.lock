@@ -2,6 +2,13 @@
 # yarn lockfile v1
 
 
+"@types/flexsearch@^0.7.3":
+  version "0.7.42"
+  resolved "https://registry.yarnpkg.com/@types/flexsearch/-/flexsearch-0.7.42.tgz#4c3a551f4c78db330a9a1d9e419eb8f100f80bbb"
+  integrity sha512-FdKaw3dPgcCvqU9w8SGgqx8PrxFF2EKySRhEj1nc45HNe/2cBLff3pF52C67hzeUbNhq49t7XRIIibBd41vcIg==
+  dependencies:
+    flexsearch "*"
+
 anymatch@~3.1.2:
   version "3.1.3"
   resolved "https://registry.npmjs.org/anymatch/-/anymatch-3.1.3.tgz"
@@ -43,6 +50,16 @@ fill-range@^7.1.1:
   integrity sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==
   dependencies:
     to-regex-range "^5.0.1"
+
+flexsearch@*:
+  version "0.8.205"
+  resolved "https://registry.yarnpkg.com/flexsearch/-/flexsearch-0.8.205.tgz#abbe4166ecc830e2456a94b21731ceab59c5ddbb"
+  integrity sha512-REFjMqy86DKkCTJ4gIE42c9MVm9t1vUWfEub/8taixYuhvyu4jd4XmFALk5VuKW4GH4VLav8A4BJboTsslHF1w==
+
+flexsearch@^0.7.43:
+  version "0.7.43"
+  resolved "https://registry.yarnpkg.com/flexsearch/-/flexsearch-0.7.43.tgz#34f89b36278a466ce379c5bf6fb341965ed3f16c"
+  integrity sha512-c5o/+Um8aqCSOXGcZoqZOm+NqtVwNsvVpWv6lfmSclU954O3wvQKxxK8zj74fPaSJbXpSLTs4PRhh+wnoCXnKg==
 
 fsevents@~2.3.2:
   version "2.3.2"
