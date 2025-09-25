@@ -37,7 +37,7 @@ import {
   InsertDriveFileOutlined,
   Description,
   SettingsOutlined,
-  NoteOutlined,
+  CommentOutlined,
   FolderOpenOutlined,
   TrendingUpOutlined,
   FilterListOutlined,
@@ -1049,7 +1049,7 @@ function Search() {
         {indexFileInfo.exists && !isInitializing && (
           <Box mb={1}>
             <Typography variant="caption" color="textSecondary" display="block">
-              Persistent index: {indexFileInfo.sizeMB}MB saved locally
+              Persistent index: {indexFileInfo.sizeMB.toFixed(2)}MB saved locally
               {lastUpdateInfo.added > 0 ||
               lastUpdateInfo.removed > 0 ||
               lastUpdateInfo.updated > 0 ? (
@@ -1123,7 +1123,7 @@ function Search() {
               {indexFileInfo.exists && (
                 <Box>
                   <Typography variant="caption" color="textSecondary" display="block">
-                    Index file: {indexFileInfo.sizeKB}KB at {indexFileInfo.path}
+                    Index file: {indexFileInfo.sizeKB.toFixed(2)}KB at {indexFileInfo.path}
                   </Typography>
                   <Typography variant="caption" color="textSecondary" display="block">
                     Last modified: {new Date(indexFileInfo.lastModified).toLocaleString()}
@@ -1222,7 +1222,7 @@ function Search() {
             label={
               <Badge badgeContent={searchResults.notes.length} color="primary" max={999}>
                 <Box display="flex" alignItems="center" gap={0.5}>
-                  <NoteOutlined fontSize="small" />
+                  <CommentOutlined fontSize="small" />
                   Notes
                 </Box>
               </Badge>
@@ -1470,7 +1470,7 @@ const ResultItemComponent = ({
       case 'external-asset':
         return <InsertDriveFileOutlined />;
       case 'note':
-        return <NoteOutlined />;
+        return <CommentOutlined />;
       default:
         return <Description />;
     }
@@ -1536,7 +1536,7 @@ const ResultItemComponent = ({
                 •
               </Typography>
               <Typography variant="caption" color="textSecondary" noWrap>
-                {item.projectName || 'Unknown Project'}
+                {item.projectName || (type === 'project' && item.name) || 'Unknown Project'}
               </Typography>
               {item.extension && (
                 <>
@@ -1605,7 +1605,7 @@ const ResultItemComponent = ({
         {' '}
         {/* Use Box instead of Fragment to avoid nesting issues */}
         <Typography variant="body2" color="textSecondary" component="div" noWrap>
-          {item.path || item.relativePath || item.uri || 'No path'}
+          {item.path || item.relativePath || item.uri || ''}
         </Typography>
         {renderTags()}
         <Collapse in={expanded} timeout="auto" unmountOnExit>
@@ -1681,7 +1681,7 @@ const ResultItemComponent = ({
                 variant="outlined"
                 onClick={() => {
                   if (item.fullPath) {
-                    ipcRenderer.send('show-item-in-folder', item.fullPath);
+                    ipcRenderer.send(Messages.SHOW_ITEM_IN_FOLDER, item.fullPath);
                   }
                 }}
               >
@@ -1695,7 +1695,7 @@ const ResultItemComponent = ({
                     size="small"
                     variant="outlined"
                     onClick={() => {
-                      ipcRenderer.send('open-file-with-default', item.fullPath);
+                      ipcRenderer.send(Messages.OPEN_FILE_WITH_DEFAULT, item.fullPath);
                     }}
                   >
                     Open File
@@ -1822,10 +1822,10 @@ const DebugPanel = ({ searchService, searchStats, searchConfig, onStatsUpdate, i
                     - Content-indexed files: ${stats.contentIndexedFiles || 0}
                     - Indexed Projects: ${stats.indexedProjects || 0}
                     - Cache Size: ${stats.cacheStats?.size || 0}/${stats.cacheStats?.maxSize || 0}
-                    
+
                     Index File:
                     - Exists: ${indexFileInfo.exists}
-                    - Size: ${indexFileInfo.sizeMB || 0}MB
+                    - Size: ${indexFileInfo.sizeMB.toFixed(2) || 0}MB
                     - Path: ${indexFileInfo.path || 'N/A'}
 
                     Performance:
@@ -1910,7 +1910,7 @@ const DebugPanel = ({ searchService, searchStats, searchConfig, onStatsUpdate, i
                     {indexFileInfo.exists && (
                       <>
                         <Typography variant="caption" display="block">
-                          Size: {indexFileInfo.sizeMB}MB
+                          Size: {indexFileInfo.sizeMB.toFixed(2)}MB
                         </Typography>
                         <Typography variant="caption" display="block">
                           Path: {indexFileInfo.path}

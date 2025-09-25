@@ -71,6 +71,7 @@ os.homedir.mockReturnValue(TEST_USER_HOME_PATH);
 
 // Import singleton instance
 import SearchServiceInstance from '../../app/services/SearchService';
+import Messages from '../../app/constants/messages';
 
 describe('SearchService', () => {
   let mockFlexSearchDocument;
@@ -231,7 +232,7 @@ describe('SearchService', () => {
 
       await SearchServiceInstance.setupIndexFilePath();
 
-      expect(ipcRenderer.invoke).toHaveBeenCalledWith('get-app-data-path');
+      expect(ipcRenderer.invoke).toHaveBeenCalledWith(Messages.GET_APP_DATA_PATH);
       expect(fs.mkdirSync).toHaveBeenCalledWith('/app/data/search', { recursive: true });
       expect(SearchServiceInstance.indexFilePath).toBe('/app/data/search/search-index.json');
     });

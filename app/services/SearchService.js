@@ -3,6 +3,8 @@ import { ipcRenderer } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import SearchConfig from '../constants/search-config';
+import Messages from '../constants/messages';
+import Constants from '../constants/constants';
 
 const SEARCH_CONFIG_VERSION = '1.0';
 const EXCLUDED_DIRS = ['node_modules', '.git', '.statwrap', '__pycache__', '.venv', 'venv'];
@@ -54,7 +56,7 @@ class SearchService {
    */
   async setupIndexFilePath() {
     try {
-      const appDataPath = await ipcRenderer.invoke('get-app-data-path');
+      const appDataPath = await ipcRenderer.invoke(Messages.GET_APP_DATA_PATH);
       const searchDataDir = path.join(appDataPath, 'search');
 
       // Create directory if it doesn't exist
@@ -62,12 +64,12 @@ class SearchService {
         fs.mkdirSync(searchDataDir, { recursive: true });
       }
 
-      this.indexFilePath = path.join(searchDataDir, 'search-index.json');
+      this.indexFilePath = path.join(searchDataDir, Constants.StatWrapFiles.SEARCH_INDEX);
       console.log('SearchService: Index file path set to:', this.indexFilePath);
     } catch (error) {
       console.error('SearchService: Error setting up index file path:', error);
       // Falling back to current directory
-      this.indexFilePath = path.join(process.cwd(), 'search-index.json');
+      this.indexFilePath = path.join(process.cwd(), Constants.StatWrapFiles.SEARCH_INDEX);
     }
   }
 

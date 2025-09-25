@@ -65,7 +65,7 @@ module.exports = {
   SEARCH_INDEX_PROJECT_RESPONSE: 'statwrap-search-index-project-response',
   SEARCH_INDEX_ALL_RESPONSE: 'statwrap-search-index-all-response',
 
-  GET_APP_DATA_PATH: 'get-app-data-path',
-  SHOW_ITEM_IN_FOLDER: 'show-item-in-folder',
-  OPEN_FILE_WITH_DEFAULT: 'open-file-with-default',
+  GET_APP_DATA_PATH: 'statwrap-get-app-data-path',
+  SHOW_ITEM_IN_FOLDER: 'statwrap-show-item-in-folder',
+  OPEN_FILE_WITH_DEFAULT: 'statwrap-open-file-with-default',
 };

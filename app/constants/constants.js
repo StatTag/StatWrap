@@ -11,7 +11,7 @@ module.exports = {
     ACTIVE: 'active',
     PAST: 'past',
   },
-  
+
   UndefinedDefaults: {
     PROJECT: '(Unnamed Project)',
     ACTION_TYPE: 'StatWrap Event',
@@ -45,7 +45,8 @@ module.exports = {
     PROJECT: '.statwrap-project.json',
     LOG: '.statwrap.log',
     CHECKLIST: '.statwrap-checklist.json',
-    CLONED_PROJECT_MARKER: 'cloned_project_marker'
+    CLONED_PROJECT_MARKER: 'cloned_project_marker',
+    SEARCH_INDEX: 'search-index.json'
   },
 
   ActionType: {
