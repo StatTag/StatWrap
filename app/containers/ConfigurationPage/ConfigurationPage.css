@@ -1,9 +1,19 @@
 .container {
-  margin: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
+  font-size: 0.9rem;
 }
 
 .informational {
   font-size: 0.8rem;
   font-style: italic;
   margin-bottom: 10px;
+}
+
+h1 {
+  font-size: 1.4rem;
+}
+
+h2 {
+  font-size: 1.2rem;
 }

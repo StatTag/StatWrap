@@ -625,9 +625,9 @@ class SearchService {
   }
 
   /**
-   * Initialize the service with project data and optional file size limit
+   * Initialize the service with project data and optional file size limit (default 100KB)
    */
-  async initialize(projects = [], maxFileSize = 0.1 * 1024 * 1024) {
+  async initialize(projects = [], maxFileSize = 100 * 1024) {
     // If already initialized, only check for changes
     if (this.isInitialized && this.indicesBuiltThisSession) {
       console.log('SearchService: Already initialized this session, checking for changes...');

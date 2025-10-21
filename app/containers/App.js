@@ -57,6 +57,7 @@ export default class App extends React.Component {
     };
 
     this.handleLoadUserInfoResponse = this.handleLoadUserInfoResponse.bind(this);
+    this.handleUpdateSearchSettingsResponse = this.handleUpdateSearchSettingsResponse.bind(this);
     this.handlePersonDirectoryChangeResponse = this.handlePersonDirectoryChangeResponse.bind(this);
     this.handleCloseUserProfileDialog = this.handleCloseUserProfileDialog.bind(this);
     this.handleOpenUserProfileDialog = this.handleOpenUserProfileDialog.bind(this);
@@ -66,6 +67,7 @@ export default class App extends React.Component {
   componentDidMount() {
     ipcRenderer.send(Messages.LOAD_USER_INFO_REQUEST);
     ipcRenderer.on(Messages.LOAD_USER_INFO_RESPONSE, this.handleLoadUserInfoResponse);
+    ipcRenderer.on(Messages.SEARCH_UPDATE_SETTINGS_RESPONSE, this.handleUpdateSearchSettingsResponse);
     ipcRenderer.on(
       Messages.CREATE_UPDATE_PERSON_RESPONSE,
       this.handlePersonDirectoryChangeResponse,
@@ -78,6 +80,7 @@ export default class App extends React.Component {
 
   componentWillUnmount() {
     ipcRenderer.removeListener(Messages.LOAD_USER_INFO_RESPONSE, this.handleLoadUserInfoResponse);
+    ipcRenderer.removeListener(Messages.SEARCH_UPDATE_SETTINGS_RESPONSE, this.handleUpdateSearchSettingsResponse);
     ipcRenderer.removeListener(
       Messages.CREATE_UPDATE_PERSON_RESPONSE,
       this.handlePersonDirectoryChangeResponse,
@@ -96,6 +99,12 @@ export default class App extends React.Component {
       settings: response.settings,
       userProfileDialogKey: prevState + 1,
       displayUserProfileDialog: firstTimeRun,
+    }));
+  }
+
+  handleUpdateSearchSettingsResponse(sender, response) {
+    this.setState((prevState) => ({
+      settings: {...prevState.settings, searchSettings: response.searchSettings }
     }));
   }
 

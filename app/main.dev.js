@@ -24,6 +24,7 @@ import SourceControlService from './services/sourceControl';
 import ProjectTemplateService from './services/projectTemplate';
 import AssetService from './services/assets/asset';
 import UserService, { DefaultSettingsFile } from './services/user';
+import SearchService from './services/SearchService';
 import Messages from './constants/messages';
 import Constants from './constants/constants';
 import AssetsConfig from './constants/assets-config';
@@ -51,6 +52,7 @@ const projectListService = new ProjectListService();
 const sourceControlService = new SourceControlService();
 const logService = new LogService();
 const checklistService = new ChecklistService();
+//const searchService = new SearchService();
 
 // The LogWatcherService requires a window from which we can send messages, so we can't
 // construct it until the BrowserWindow is created.
@@ -1018,4 +1020,123 @@ ipcMain.on(Messages.SHOW_ITEM_IN_FOLDER, (event, fullPath) => {
 ipcMain.on(Messages.OPEN_FILE_WITH_DEFAULT, (event, fullPath) => {
   const { shell } = require('electron');
   shell.openPath(fullPath);
+});
+
+/**
+ * Request the status of the search index
+ */
+ipcMain.on(Messages.SEARCH_INDEX_STATUS_REQUEST, async (event, projects, searchSettings) => {
+  const response = {
+    stats: null,
+    info: null,
+    error: false,
+    errorMessage: '',
+  };
+
+  if (!searchSettings) {
+    response.error = true;
+    response.errorMessage = 'Invalid search settings were provided';
+    event.sender.send(Messages.SEARCH_INDEX_STATUS_RESPONSE, response);
+    return;
+  }
+
+  try {
+    // Initialize with persistent indexing
+    await SearchService.initialize(projects, searchSettings.maxIndexableFileSize);
+    response.stats = SearchService.getSearchStats();
+    response.info = SearchService.getIndexFileInfo();
+  } catch (error) {
+    response.error = true;
+    response.errorMessage = 'Error initializing SearchService and retrieving status';
+    console.log(error);
+  }
+
+  event.sender.send(Messages.SEARCH_INDEX_STATUS_RESPONSE, response);
+});
+
+/**
+ * Handle a request to reindex the search index
+ */
+ipcMain.on(Messages.SEARCH_INDEX_REINDEX_REQUEST, async (event, searchSettings) => {
+  const response = {
+    stats: null,
+    info: null,
+    error: false,
+    errorMessage: '',
+  };
+
+  try {
+    // Initialize with persistent indexing
+    await SearchService.reindexAll();
+    response.stats = SearchService.getSearchStats();
+    response.info = SearchService.getIndexFileInfo();
+  } catch (error) {
+    response.error = true;
+    response.errorMessage = 'There was an error reindexing the search index';
+    console.log(error);
+  }
+
+  event.sender.send(Messages.SEARCH_INDEX_REINDEX_RESPONSE, response);
+});
+
+
+/**
+ * Handle a request to delete the search index
+ */
+ipcMain.on(Messages.SEARCH_INDEX_DELETE_REQUEST, async (event) => {
+  const response = {
+    error: false,
+    errorMessage: '',
+  };
+
+  try {
+    console.log('Search: Preparing to delete index');
+    const deleteSuccess = await SearchService.deleteIndexFile();
+
+    if (deleteSuccess) {
+      console.log('Search: Index deleted successfully, ready for reinitialization');
+    } else {
+      response.error = true;
+      response.errorMessage = 'There was an error deleting the index.';
+    }
+  } catch (error) {
+    response.error = true;
+    response.errorMessage = 'There was an error deleting the index.';
+    console.error('Search: Error deleting index:', error);
+  }
+  event.sender.send(Messages.SEARCH_INDEX_DELETE_RESPONSE, response);
+});
+
+/**
+ * Handle a request to delete the search index
+ */
+ipcMain.on(Messages.SEARCH_UPDATE_SETTINGS_REQUEST, async (event, searchSettings) => {
+  const response = {
+    searchSettings: searchSettings,
+    error: false,
+    errorMessage: '',
+  };
+
+  console.log('Updating search settings for user: ', searchSettings);
+
+  if (!searchSettings) {
+    response.error = true;
+    response.errorMessage = 'No search settings were provided';
+    event.sender.send(Messages.SEARCH_UPDATE_SETTINGS_RESPONSE, response);
+    return;
+  }
+
+  try {
+    const service = new UserService();
+    const userSettingsPath = path.join(app.getPath('userData'), DefaultSettingsFile);
+    const settings = service.loadUserSettingsFromFile(userSettingsPath);
+    settings.searchSettings = searchSettings;
+    service.saveUserSettingsToFile(settings, userSettingsPath);
+    console.log('Saved search settings for user');
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = e.message;
+    console.log(e);
+  }
+  event.sender.send(Messages.SEARCH_UPDATE_SETTINGS_RESPONSE, response);
 });

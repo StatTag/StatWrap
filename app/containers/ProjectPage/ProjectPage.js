@@ -384,21 +384,21 @@ class ProjectPage extends Component {
   }
 
   handleClickProjectListMenu(event, projectId) {
-  switch (event) {
-    case Messages.TOGGLE_PROJECT_FAVORITE_REQUEST:
-      this.handleFavoriteClick(projectId);
-      break;
-    case Messages.TOGGLE_PROJECT_STATUS_REQUEST:
-      ipcRenderer.send(Messages.TOGGLE_PROJECT_STATUS_REQUEST, projectId);
-      break;
-    case Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST:
-      ipcRenderer.send(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, projectId);
-      break;
-    default:
-      console.warn(`Unknown project list entry menu event: ${event}`);
+    switch (event) {
+      case Messages.TOGGLE_PROJECT_FAVORITE_REQUEST:
+        this.handleFavoriteClick(projectId);
+        break;
+      case Messages.TOGGLE_PROJECT_STATUS_REQUEST:
+        ipcRenderer.send(Messages.TOGGLE_PROJECT_STATUS_REQUEST, projectId);
+        break;
+      case Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST:
+        ipcRenderer.send(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, projectId);
+        break;
+      default:
+        console.warn(`Unknown project list entry menu event: ${event}`);
+    }
+    this.setState({ projectListMenuAnchor: null });
   }
-  this.setState({ projectListMenuAnchor: null });
-}
 
   handleSelectProjectListItem(project) {
     // Handle case where user clicks off of all projects (project is null)

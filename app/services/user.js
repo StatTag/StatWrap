@@ -4,12 +4,18 @@ import username from 'username';
 const fs = require('fs');
 
 const DefaultSettingsFile = '.user-settings.json';
-const SettingsFileFormatVersion = '1';
+
+// v1 - Original
+// v2 - Added searchSettings { maxIndexableFileSize }
+const SettingsFileFormatVersion = '2';
 
 // Artificially set limit to how many people will be stored in the user's directory.  This
 // limit is imposed because the directory will act more like a 'most recently used' list than
 // an address book.
 const PersonDirectoryLimit = 10;
+
+// The default indexable file size is 100KB (stored as bytes)
+const DefaultMaxIndexableFileSize = 100 * 1024;
 
 // Used to verify that we have at least one non-whitespace character in a string
 const oneNonWhitespaceRegex = new RegExp('\\S');
@@ -33,7 +39,13 @@ export default class UserService {
   loadUserSettingsFromFile(filePath = DefaultSettingsFile) {
     // Empty settings object should represent the expectation for the current
     // format version of settings data.
-    let settings = { formatVersion: SettingsFileFormatVersion, directory: [] };
+    let settings = {
+      formatVersion: SettingsFileFormatVersion,
+      directory: [],
+      searchSettings: {
+        maxIndexableFileSize: DefaultMaxIndexableFileSize
+      }
+    };
     try {
       fs.accessSync(filePath);
     } catch {
@@ -42,8 +54,15 @@ export default class UserService {
 
     const data = fs.readFileSync(filePath);
     settings = JSON.parse(data.toString());
-    // TODO - at some point in the future, we may need to consider differences across versions
-    // of the settings file.
+
+    if (settings.formatVersion == '1') {
+      // Upgrade to v2
+      settings.formatVersion = SettingsFileFormatVersion;
+      settings.searchSettings = {
+        maxIndexableFileSize: DefaultMaxIndexableFileSize
+      };
+    }
+
     return settings;
   }
 

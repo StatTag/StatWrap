@@ -62,6 +62,16 @@ module.exports = {
   REMOVE_PROJECT_PERSON_RESPONSE: 'statwrap-remove-project-person-response',
 
   PROJECT_EXTERNALLY_CHANGED_RESPONSE: 'statwrap-project-externally-changed',
+
+  SEARCH_INDEX_STATUS_REQUEST: 'statwrap-search-index-status-request',
+  SEARCH_INDEX_STATUS_RESPONSE: 'statwrap-search-index-status-response',
+  SEARCH_INDEX_REINDEX_REQUEST: 'statwrap-search-index-reindex-request',
+  SEARCH_INDEX_REINDEX_RESPONSE: 'statwrap-search-index-reindex-response',
+  SEARCH_INDEX_DELETE_REQUEST: 'statwrap-search-index-delete-request',
+  SEARCH_INDEX_DELETE_RESPONSE: 'statwrap-search-index-delete-response',
+  SEARCH_UPDATE_SETTINGS_REQUEST: 'statwrap-search-update-settings-request',
+  SEARCH_UPDATE_SETTINGS_RESPONSE: 'statwrap-search-update-settings-response',
+
   SEARCH_INDEX_PROJECT_RESPONSE: 'statwrap-search-index-project-response',
   SEARCH_INDEX_ALL_RESPONSE: 'statwrap-search-index-all-response',
 
