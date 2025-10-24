@@ -5,6 +5,7 @@ import {
   Paper,
   Typography,
   Box,
+  CircularProgress,
   IconButton,
   Collapse,
   Button,
@@ -31,7 +32,9 @@ import styles from './SearchSettings.css';
  *
  * @param {object} settings The user searchSettings
  */
-function getIndexFilterFromCurrentSettings(settings) {
+function getIndexSettings(settings) {
+  // maxFileSize (bytes): This is the raw value needed by the backend logic.
+  // maxFileSizeMB (megabytes): This is the display value for the user interface.
   return {
     maxFileSize: settings ? settings.maxIndexableFileSize : 100 * 1024,
     maxFileSizeMB: settings ? (settings.maxIndexableFileSize/(1024*1024)) : 0.1,
@@ -43,10 +46,8 @@ const searchSettings = (props) => {
 
   const [showIndexManagement, setShowIndexManagement] = useState(true);
   const [indexFileInfo, setIndexFileInfo] = useState({ exists: false, path: null, size: 0 });
-  // maxFileSize (bytes): This is the raw value needed by the backend logic.
-  // maxFileSizeMB (megabytes): This is the display value for the user interface.
-  const [indexingFilters, setIndexingFilters] = useState(
-    getIndexFilterFromCurrentSettings(searchSettings));
+  const [indexSettings, setIndexSettings] = useState(
+    getIndexSettings(searchSettings));
   const [showIndexingConfig, setShowIndexingConfig] = useState(true);
   const [isInitializing, setIsInitializing] = useState(true);
   const [indexingStatus, setIndexingStatus] = useState({
@@ -165,14 +166,14 @@ const searchSettings = (props) => {
    * Event handler when the user indicates they want to reindex.
    */
   const handleSearchReindex = () => {
-    setIndexingFilters(getIndexFilterFromCurrentSettings(searchSettings));
+    setIndexSettings(getIndexSettings(searchSettings));
     console.log('Search: Reindexing with current settings: ', searchSettings);
     ipcRenderer.send(Messages.SEARCH_INDEX_REINDEX_REQUEST, searchSettings);
     setIsInitializing(true);
   }
 
   const handleSearchReindexWithFileSize = () => {
-    const updatedSearchSettings = {maxIndexableFileSize: indexingFilters.maxFileSize};
+    const updatedSearchSettings = {maxIndexableFileSize: indexSettings.maxFileSize};
     console.log('Search: Reindexing with updated settings: ', updatedSearchSettings);
     ipcRenderer.send(Messages.SEARCH_UPDATE_SETTINGS_REQUEST, updatedSearchSettings);
     ipcRenderer.send(Messages.SEARCH_INDEX_REINDEX_REQUEST, updatedSearchSettings);
@@ -203,6 +204,26 @@ const searchSettings = (props) => {
           </Box>
 
           <Collapse in={showIndexingConfig}>
+            {isInitializing && (
+              <Box display="flex" alignItems="center" mt={1}>
+                <CircularProgress size={20} sx={{ mr: 1 }} />
+                <Typography variant="body2">
+                  {indexFileInfo.exists
+                    ? 'Loading persistent index and checking for updates...'
+                    : 'Creating new search index...'}
+                </Typography>
+              </Box>
+            )}
+
+            {indexingStatus.inProgress && !isInitializing && (
+              <Box display="flex" alignItems="center" mt={1}>
+                <CircularProgress size={20} sx={{ mr: 1 }} />
+                <Typography variant="body2">
+                  Updating index... {indexingStatus.queueLength} projects remaining
+                </Typography>
+              </Box>
+            )}
+
             {/* Index Management Panels */}
             <Box sx={{ px: 2, pb: 2 }}>
               <Box sx={{ mb: 2 }}>
@@ -279,9 +300,9 @@ const searchSettings = (props) => {
                 <Box display="flex" alignItems="center" gap={2} mb={1} flexWrap="wrap">
                   <Typography variant="caption" sx={{ minWidth: 200 }}>
                     Maximum File Size to Index:{' '}
-                    {indexingFilters.maxFileSizeMB >= 1
-                      ? `${indexingFilters.maxFileSizeMB} MB`
-                      : `${Math.round(indexingFilters.maxFileSizeMB * 1024)} KB`}
+                    {indexSettings.maxFileSizeMB >= 1
+                      ? `${indexSettings.maxFileSizeMB} MB`
+                      : `${Math.round(indexSettings.maxFileSizeMB * 1024)} KB`}
                   </Typography>
                   <Button
                     variant="contained"
@@ -292,9 +313,9 @@ const searchSettings = (props) => {
                     color="primary"
                   >
                     Reindex with{' '}
-                    {indexingFilters.maxFileSizeMB >= 1
-                      ? `${indexingFilters.maxFileSizeMB}MB`
-                      : `${Math.round(indexingFilters.maxFileSizeMB * 1024)}KB`}{' '}
+                    {indexSettings.maxFileSizeMB >= 1
+                      ? `${indexSettings.maxFileSizeMB}MB`
+                      : `${Math.round(indexSettings.maxFileSizeMB * 1024)}KB`}{' '}
                     Limit
                   </Button>
                 </Box>
@@ -304,11 +325,11 @@ const searchSettings = (props) => {
                     size="small"
                     label="Size in KB"
                     type="number"
-                    value={Math.round(indexingFilters.maxFileSizeMB * 1024)}
+                    value={Math.round(indexSettings.maxFileSizeMB * 1024)}
                     onChange={(e) => {
                       const kbValue = parseInt(e.target.value) || 1;
                       const mbValue = Math.max(0.001, kbValue / 1024);
-                      setIndexingFilters((prev) => ({
+                      setIndexSettings((prev) => ({
                         ...prev,
                         maxFileSizeMB: mbValue,
                         maxFileSize: mbValue * 1024 * 1024,
@@ -335,7 +356,7 @@ const searchSettings = (props) => {
                     size="small"
                     variant="outlined"
                     onClick={() =>
-                      setIndexingFilters((prev) => ({
+                      setIndexSettings((prev) => ({
                         ...prev,
                         maxFileSizeMB: 0.005,
                         maxFileSize: 0.005 * 1024 * 1024,
@@ -349,7 +370,7 @@ const searchSettings = (props) => {
                     size="small"
                     variant="outlined"
                     onClick={() =>
-                      setIndexingFilters((prev) => ({
+                      setIndexSettings((prev) => ({
                         ...prev,
                         maxFileSizeMB: 0.01,
                         maxFileSize: 0.01 * 1024 * 1024,
@@ -363,7 +384,7 @@ const searchSettings = (props) => {
                     size="small"
                     variant="outlined"
                     onClick={() =>
-                      setIndexingFilters((prev) => ({
+                      setIndexSettings((prev) => ({
                         ...prev,
                         maxFileSizeMB: 0.1,
                         maxFileSize: 0.1 * 1024 * 1024,
@@ -377,7 +398,7 @@ const searchSettings = (props) => {
                     size="small"
                     variant="outlined"
                     onClick={() =>
-                      setIndexingFilters((prev) => ({
+                      setIndexSettings((prev) => ({
                         ...prev,
                         maxFileSizeMB: 1,
                         maxFileSize: 1 * 1024 * 1024,
@@ -391,7 +412,7 @@ const searchSettings = (props) => {
                     size="small"
                     variant="outlined"
                     onClick={() =>
-                      setIndexingFilters((prev) => ({
+                      setIndexSettings((prev) => ({
                         ...prev,
                         maxFileSizeMB: 10,
                         maxFileSize: 10 * 1024 * 1024,

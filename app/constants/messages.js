@@ -72,8 +72,8 @@ module.exports = {
   SEARCH_UPDATE_SETTINGS_REQUEST: 'statwrap-search-update-settings-request',
   SEARCH_UPDATE_SETTINGS_RESPONSE: 'statwrap-search-update-settings-response',
 
-  SEARCH_INDEX_PROJECT_RESPONSE: 'statwrap-search-index-project-response',
-  SEARCH_INDEX_ALL_RESPONSE: 'statwrap-search-index-all-response',
+  SEARCH_REQUEST: 'statwrap-search-request',
+  SEARCH_RESPONSE: 'statwrap-search-response',
 
   GET_APP_DATA_PATH: 'statwrap-get-app-data-path',
   SHOW_ITEM_IN_FOLDER: 'statwrap-show-item-in-folder',

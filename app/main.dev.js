@@ -1042,7 +1042,10 @@ ipcMain.on(Messages.SEARCH_INDEX_STATUS_REQUEST, async (event, projects, searchS
 
   try {
     // Initialize with persistent indexing
-    await SearchService.initialize(projects, searchSettings.maxIndexableFileSize);
+    await SearchService.initialize(
+      app.getPath('userData'),
+      projects,
+      searchSettings.maxIndexableFileSize);
     response.stats = SearchService.getSearchStats();
     response.info = SearchService.getIndexFileInfo();
   } catch (error) {
@@ -1136,7 +1139,30 @@ ipcMain.on(Messages.SEARCH_UPDATE_SETTINGS_REQUEST, async (event, searchSettings
   } catch (e) {
     response.error = true;
     response.errorMessage = e.message;
-    console.log(e);
+    console.log('Error updating search settings: ', e);
   }
   event.sender.send(Messages.SEARCH_UPDATE_SETTINGS_RESPONSE, response);
+});
+
+ipcMain.on(Messages.SEARCH_REQUEST, async (event, query, searchOptions) => {
+  const response = {
+    results: null,
+    searchTime: '',
+    error: false,
+    errorMessage: ''
+  }
+
+  try {
+    const searchStartTime = Date.now();
+    const results = SearchService.search(query, searchOptions);
+    response.results = results;
+    response.searchTime = Date.now() - searchStartTime;
+    console.log('Search completed');
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = e.message;
+    console.log('Error in search request: ', e);
+  }
+
+  event.sender.send(Messages.SEARCH_RESPONSE, response);
 });

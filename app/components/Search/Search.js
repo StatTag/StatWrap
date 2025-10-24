@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useContext } from 'react';
 import {
   TextField,
   Paper,
@@ -51,6 +51,7 @@ import {
 import { Link } from 'react-router-dom';
 import { ipcRenderer } from 'electron';
 import routes from '../../constants/routes.json';
+import SettingsContext from '../../contexts/Settings';
 import SearchService from '../../services/SearchService';
 import SearchConfig from '../../constants/search-config';
 import Messages from '../../constants/messages';
@@ -127,7 +128,9 @@ const TabPanel = (props) => {
   );
 };
 
-function Search() {
+const Search = (props) => {
+  const { searchSettings } = useContext(SettingsContext);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState({
@@ -146,12 +149,6 @@ function Search() {
     inProgress: false,
     projectId: null,
     queueLength: 0,
-  });
-  // maxFileSize (bytes): This is the raw value needed by the backend logic.
-  // maxFileSizeMB (megabytes): This is the display value for the user interface.
-  const [indexingFilters, setIndexingFilters] = useState({
-    maxFileSize: 0.1 * 1024 * 1024,
-    maxFileSizeMB: 0.1,
   });
   const [indexFileInfo, setIndexFileInfo] = useState({ exists: false, path: null, size: 0 });
   const [lastUpdateInfo, setLastUpdateInfo] = useState({ added: 0, removed: 0, updated: 0 });
@@ -173,22 +170,25 @@ function Search() {
   const searchInputRef = useRef(null);
 
   useEffect(() => {
+    // Trigger the request to get the search index information once we have the list of
+    // projects and search settings available (both are needed to initialize the index).
+    if (props.projects && searchSettings) {
+      ipcRenderer.send(Messages.SEARCH_INDEX_STATUS_REQUEST, props.projects, searchSettings);
+    } else {
+      console.log('Defering index status request until all configuration data is available');
+    }
+  }, [searchSettings, props.projects]);
+
+  useEffect(() => {
     console.log('Search: Starting initialization with persistent indexing');
 
-    ipcRenderer.send(Messages.SEARCH_INDEX_STATUS_REQUEST);
-    const handleSearchStatusResponse = async (event, response) => {
+    const handleSearchIndexStatusResponse = async (event, response) => {
       console.log('Search: Got search status response, initializing service with persistent index');
 
       try {
-        if (response.projects) {
-          // Initialize with persistent indexing
-          await SearchService.initialize(response.projects, indexingFilters.maxFileSize);
-          updateSearchStats();
-          updateIndexFileInfo();
-          const stats = SearchService.getSearchStats();
-          if (stats.lastUpdateResults) {
-            setLastUpdateInfo(stats.lastUpdateResults);
-          }
+        if (!response.error) {
+          setSearchStats(response.stats);
+          setIndexFileInfo(response.info);
         }
       } catch (error) {
         console.error('Init error:', error);
@@ -197,23 +197,19 @@ function Search() {
       console.log('Search: Enabling interface');
       setIsInitializing(false);
     };
-    ipcRenderer.once(Messages.SEARCH_INDEX_STATUS_RESPONSE, handleSearchStatusResponse);
 
-    const handleIndexProjectResponse = (event, response) => {
-      setIndexingStatus(response.status);
-    };
+    const handleSearchResponse = async (event, response) => {
+      console.log('Search response: ', response);
 
-    const handleIndexAllResponse = (event, response) => {
-      setIndexingStatus(response.status);
-    };
+      if (!response.error) {
+        const filteredResults = applyFilters(response.results);
+        setSearchResults(filteredResults);
+        setLastSearchTime(response.searchTime);
+      }
+    }
 
-    /*const handleSearchStatusResponse = (event, response) => {
-      setIndexingStatus(response.status);
-    };*/
-
-    ipcRenderer.on(Messages.SEARCH_INDEX_PROJECT_RESPONSE, handleIndexProjectResponse);
-    ipcRenderer.on(Messages.SEARCH_INDEX_ALL_RESPONSE, handleIndexAllResponse);
-    // ipcRenderer.on(Messages.SEARCH_STATUS_RESPONSE, handleSearchStatusResponse);
+    ipcRenderer.on(Messages.SEARCH_INDEX_STATUS_RESPONSE, handleSearchIndexStatusResponse);
+    ipcRenderer.on(Messages.SEARCH_RESPONSE, handleSearchResponse);
 
     // Keyboard shortcuts
     const handleKeyDown = (event) => {
@@ -229,12 +225,9 @@ function Search() {
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      ipcRenderer.removeListener(
-        Messages.SEARCH_INDEX_PROJECT_RESPONSE,
-        handleIndexProjectResponse,
-      );
-      ipcRenderer.removeListener(Messages.SEARCH_INDEX_ALL_RESPONSE, handleIndexAllResponse);
-      // ipcRenderer.removeListener(Messages.SEARCH_STATUS_RESPONSE, handleSearchStatusResponse);
+      ipcRenderer.removeListener(Messages.SEARCH_INDEX_REINDEX_RESPONSE, handleSearchIndexStatusResponse);
+      ipcRenderer.removeListener(Messages.SEARCH_RESPONSE, handleSearchResponse);
+
       document.removeEventListener('keydown', handleKeyDown);
       if (searchTimeout) clearTimeout(searchTimeout);
     };
@@ -242,10 +235,10 @@ function Search() {
 
   const updateSearchStats = useCallback(() => {
     try {
-      if (SearchService && SearchService.getSearchStats) {
-        const stats = SearchService.getSearchStats();
-        setSearchStats(stats);
-      }
+      //if (SearchService && SearchService.getSearchStats) {
+        //const stats = SearchService.getSearchStats();
+        //setSearchStats(stats);
+      //}
     } catch (error) {
       console.error('Error updating search stats:', error);
     }
@@ -253,10 +246,10 @@ function Search() {
 
   const updateIndexFileInfo = useCallback(() => {
     try {
-      if (SearchService && SearchService.getIndexFileInfo) {
-        const info = SearchService.getIndexFileInfo();
-        setIndexFileInfo(info);
-      }
+      //if (SearchService && SearchService.getIndexFileInfo) {
+        //const info = SearchService.getIndexFileInfo();
+        //setIndexFileInfo(info);
+      //}
     } catch (error) {
       console.error('Error updating index file info:', error);
     }
@@ -285,7 +278,6 @@ function Search() {
 
       console.log('Search: Performing search for', query);
       setIsSearching(true);
-      const searchStartTime = Date.now();
       setExpandedItems({});
 
       try {
@@ -297,14 +289,7 @@ function Search() {
           maxResults: SearchConfig.search ? SearchConfig.search.maxResults : 1000,
         };
 
-        results = SearchService.search(query, searchOptions);
-        console.log('Search: Search results', results);
-
-        const filteredResults = applyFilters(results);
-        setSearchResults(filteredResults);
-
-        const searchTime = Date.now() - searchStartTime;
-        setLastSearchTime(searchTime);
+        ipcRenderer.send(Messages.SEARCH_REQUEST, query, searchOptions);
 
         // Add to search history
         if (trimmedQuery && !searchHistory.includes(trimmedQuery)) {
@@ -472,8 +457,8 @@ function Search() {
   };
 
   const totalResults = searchResults.all.length;
-  const availableProjects =
-    searchStats?.documentsByType && SearchService.projectsData ? SearchService.projectsData : [];
+  const availableProjects = props?.projects ? props.projects : [];
+    //searchStats?.documentsByType && SearchService.projectsData ? SearchService.projectsData : [];
 
   const availableFileTypes = React.useMemo(() => {
     const extensions = new Set();

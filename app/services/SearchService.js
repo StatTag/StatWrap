@@ -20,6 +20,7 @@ class SearchService {
     this.previousMaxFileSize = null; // Tracking file size changes
     this.isRestoring = false;
     this.indicesBuiltThisSession = false;
+    this.userDataPath = null;
 
     // Index file path
     this.indexFilePath = null;
@@ -47,8 +48,6 @@ class SearchService {
     this.resultCache = new Map();
     this.maxCacheSize = SearchConfig?.performance?.resultCacheSize || 100;
     this.cacheTTL = SearchConfig?.performance?.resultCacheTTL || 600000; // 10 minutes
-    this.initializeIndices();
-    this.setupIndexFilePath();
   }
 
   /**
@@ -56,8 +55,7 @@ class SearchService {
    */
   async setupIndexFilePath() {
     try {
-      const appDataPath = await ipcRenderer.invoke(Messages.GET_APP_DATA_PATH);
-      const searchDataDir = path.join(appDataPath, 'search');
+      const searchDataDir = path.join(this.userDataPath, 'search');
 
       // Create directory if it doesn't exist
       if (!fs.existsSync(searchDataDir)) {
@@ -627,7 +625,7 @@ class SearchService {
   /**
    * Initialize the service with project data and optional file size limit (default 100KB)
    */
-  async initialize(projects = [], maxFileSize = 100 * 1024) {
+  async initialize(userDataPath, projects = [], maxFileSize = 100 * 1024) {
     // If already initialized, only check for changes
     if (this.isInitialized && this.indicesBuiltThisSession) {
       console.log('SearchService: Already initialized this session, checking for changes...');
@@ -650,6 +648,10 @@ class SearchService {
     }
     try {
       console.log('SearchService: Starting initialization with persistent indexing');
+      this.userDataPath = userDataPath;
+      this.initializeIndices();
+      this.setupIndexFilePath();
+
       console.log('SearchService: Projects to process:', projects.length);
       console.log(
         'SearchService: Max file size for indexing:',
