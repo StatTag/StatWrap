@@ -226,21 +226,21 @@ describe('SearchService', () => {
 
   describe('setupIndexFilePath', () => {
     it('should set up index file path correctly', async () => {
-      const { ipcRenderer } = require('electron');
-      ipcRenderer.invoke.mockResolvedValue('/app/data');
       fs.existsSync.mockReturnValue(false);
+      SearchServiceInstance.userDataPath = '/app/data';
 
       await SearchServiceInstance.setupIndexFilePath();
 
-      expect(ipcRenderer.invoke).toHaveBeenCalledWith(Messages.GET_APP_DATA_PATH);
       expect(fs.mkdirSync).toHaveBeenCalledWith('/app/data/search', { recursive: true });
       expect(SearchServiceInstance.indexFilePath).toBe('/app/data/search/search-index.json');
     });
 
     it('should handle errors and fall back to current directory', async () => {
-      const { ipcRenderer } = require('electron');
-      ipcRenderer.invoke.mockRejectedValue(new Error('IPC error'));
       process.cwd = jest.fn(() => '/current/dir');
+      fs.existsSync.mockImplementationOnce(() => {
+          throw new Error();
+      });
+      SearchServiceInstance.userDataPath = '/app/data';
 
       await SearchServiceInstance.setupIndexFilePath();
 
@@ -363,11 +363,11 @@ describe('SearchService', () => {
       fs.existsSync.mockReturnValue(false);
       SearchServiceInstance.indexProject = jest.fn();
 
-      await SearchServiceInstance.initialize([mockProject]);
+      await SearchServiceInstance.initialize('/app/data', [mockProject]);
 
       expect(SearchServiceInstance.isInitialized).toBe(true);
-      expect(SearchServiceInstance.projectsData).toEqual([mockProject]);
       expect(SearchServiceInstance.indexProject).toHaveBeenCalledWith(mockProject);
+      expect(SearchServiceInstance.projectsData).toEqual([mockProject]);
     });
 
     it('should load existing index and check for updates', async () => {
@@ -378,7 +378,7 @@ describe('SearchService', () => {
         .spyOn(SearchServiceInstance, 'buildIndicesFromDocumentStore')
         .mockImplementation(() => {});
 
-      await SearchServiceInstance.initialize([mockProject]);
+      await SearchServiceInstance.initialize('/app/data', [mockProject]);
 
       expect(SearchServiceInstance.isInitialized).toBe(true);
       expect(buildIndicesSpy).toHaveBeenCalled();

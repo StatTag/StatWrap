@@ -63,6 +63,8 @@ module.exports = {
 
   PROJECT_EXTERNALLY_CHANGED_RESPONSE: 'statwrap-project-externally-changed',
 
+  SEARCH_INDEX_INIT_REQUEST: 'statwrap-search-index-init-request',
+  SEARCH_INDEX_INIT_RESPONSE: 'statwrap-search-index-init-response',
   SEARCH_INDEX_STATUS_REQUEST: 'statwrap-search-index-status-request',
   SEARCH_INDEX_STATUS_RESPONSE: 'statwrap-search-index-status-response',
   SEARCH_INDEX_REINDEX_REQUEST: 'statwrap-search-index-reindex-request',
@@ -74,6 +76,8 @@ module.exports = {
 
   SEARCH_REQUEST: 'statwrap-search-request',
   SEARCH_RESPONSE: 'statwrap-search-response',
+  SEARCH_GET_SUGGESTIONS_REQUEST: 'statwrap-search-get-suggestions-request',
+  SEARCH_GET_SUGGESTIONS_RESPONSE: 'statwrap-search-get-suggestions-response',
 
   GET_APP_DATA_PATH: 'statwrap-get-app-data-path',
   SHOW_ITEM_IN_FOLDER: 'statwrap-show-item-in-folder',

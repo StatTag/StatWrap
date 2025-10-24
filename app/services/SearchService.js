@@ -755,7 +755,7 @@ class SearchService {
     } catch (error) {
       console.error('SearchService: Initialization error:', error);
       this.indexingInProgress = false;
-      this.isInitialized = true;
+      this.isInitialized = false;
     }
   }
 

@@ -60,7 +60,7 @@ const searchSettings = (props) => {
     // Trigger the request to get the search index information once we have the list of
     // projects and search settings available (both are needed to initialize the index).
     if (props.projects && searchSettings) {
-      ipcRenderer.send(Messages.SEARCH_INDEX_STATUS_REQUEST, props.projects, searchSettings);
+      ipcRenderer.send(Messages.SEARCH_INDEX_INIT_REQUEST, props.projects, searchSettings);
     } else {
       console.log('Defering index status request until all configuration data is available');
     }
@@ -101,11 +101,16 @@ const searchSettings = (props) => {
       }
     };
 
+    ipcRenderer.on(Messages.SEARCH_INDEX_INIT_RESPONSE, handleSearchIndexStatusResponse);
     ipcRenderer.on(Messages.SEARCH_INDEX_STATUS_RESPONSE, handleSearchIndexStatusResponse);
     ipcRenderer.on(Messages.SEARCH_INDEX_REINDEX_RESPONSE, handleSearchReindexResponse);
     ipcRenderer.on(Messages.SEARCH_INDEX_DELETE_RESPONSE, handleSearchIndexDeleteResponse);
 
     return () => {
+      ipcRenderer.removeListener(
+        Messages.SEARCH_INDEX_INIT_RESPONSE,
+        handleSearchIndexStatusResponse,
+      );
       ipcRenderer.removeListener(
         Messages.SEARCH_INDEX_STATUS_RESPONSE,
         handleSearchIndexStatusResponse,

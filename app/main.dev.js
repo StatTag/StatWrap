@@ -1023,9 +1023,9 @@ ipcMain.on(Messages.OPEN_FILE_WITH_DEFAULT, (event, fullPath) => {
 });
 
 /**
- * Request the status of the search index
+ * Initialize the search index
  */
-ipcMain.on(Messages.SEARCH_INDEX_STATUS_REQUEST, async (event, projects, searchSettings) => {
+ipcMain.on(Messages.SEARCH_INDEX_INIT_REQUEST, async (event, projects, searchSettings) => {
   const response = {
     stats: null,
     info: null,
@@ -1036,7 +1036,7 @@ ipcMain.on(Messages.SEARCH_INDEX_STATUS_REQUEST, async (event, projects, searchS
   if (!searchSettings) {
     response.error = true;
     response.errorMessage = 'Invalid search settings were provided';
-    event.sender.send(Messages.SEARCH_INDEX_STATUS_RESPONSE, response);
+    event.sender.send(Messages.SEARCH_INDEX_INIT_RESPONSE, response);
     return;
   }
 
@@ -1051,6 +1051,29 @@ ipcMain.on(Messages.SEARCH_INDEX_STATUS_REQUEST, async (event, projects, searchS
   } catch (error) {
     response.error = true;
     response.errorMessage = 'Error initializing SearchService and retrieving status';
+    console.log(error);
+  }
+
+  event.sender.send(Messages.SEARCH_INDEX_INIT_RESPONSE, response);
+});
+
+/**
+ * Request the status of the search index
+ */
+ipcMain.on(Messages.SEARCH_INDEX_STATUS_REQUEST, async (event) => {
+  const response = {
+    stats: null,
+    info: null,
+    error: false,
+    errorMessage: '',
+  };
+
+  try {
+    response.stats = SearchService.getSearchStats();
+    response.info = SearchService.getIndexFileInfo();
+  } catch (error) {
+    response.error = true;
+    response.errorMessage = 'Error retrieving search index status';
     console.log(error);
   }
 
@@ -1165,4 +1188,24 @@ ipcMain.on(Messages.SEARCH_REQUEST, async (event, query, searchOptions) => {
   }
 
   event.sender.send(Messages.SEARCH_RESPONSE, response);
+});
+
+ipcMain.on(Messages.SEARCH_GET_SUGGESTIONS_REQUEST, async (event, query) => {
+  const response = {
+    results: null,
+    error: false,
+    errorMessage: ''
+  }
+
+  try {
+    if (query && query.trim().length >= 2) {
+      response.results = SearchService.getSuggestions(query);
+    }
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = e.message;
+    console.log('Error in search request: ', e);
+  }
+
+  event.sender.send(Messages.SEARCH_GET_SUGGESTIONS_RESPONSE, response);
 });

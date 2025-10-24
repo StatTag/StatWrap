@@ -51,10 +51,20 @@ import {
 import { Link } from 'react-router-dom';
 import { ipcRenderer } from 'electron';
 import routes from '../../constants/routes.json';
+import DebugPanel from './DebugPanel/DebugPanel';
 import SettingsContext from '../../contexts/Settings';
-import SearchService from '../../services/SearchService';
 import SearchConfig from '../../constants/search-config';
 import Messages from '../../constants/messages';
+
+const EMPTY_SEARCH_RESULTS = {
+  projects: [],
+  people: [],
+  assets: [],
+  files: [],
+  folders: [],
+  notes: [],
+  all: [],
+};
 
 const SearchContainer = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
@@ -133,15 +143,7 @@ const Search = (props) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState({
-    projects: [],
-    people: [],
-    assets: [],
-    files: [],
-    folders: [],
-    notes: [],
-    all: [],
-  });
+  const [searchResults, setSearchResults] = useState(EMPTY_SEARCH_RESULTS);
   const [activeTab, setActiveTab] = useState(0);
   const [expandedItems, setExpandedItems] = useState({});
   const [isInitializing, setIsInitializing] = useState(true);
@@ -173,7 +175,7 @@ const Search = (props) => {
     // Trigger the request to get the search index information once we have the list of
     // projects and search settings available (both are needed to initialize the index).
     if (props.projects && searchSettings) {
-      ipcRenderer.send(Messages.SEARCH_INDEX_STATUS_REQUEST, props.projects, searchSettings);
+      ipcRenderer.send(Messages.SEARCH_INDEX_INIT_REQUEST, props.projects, searchSettings);
     } else {
       console.log('Defering index status request until all configuration data is available');
     }
@@ -183,15 +185,13 @@ const Search = (props) => {
     console.log('Search: Starting initialization with persistent indexing');
 
     const handleSearchIndexStatusResponse = async (event, response) => {
-      console.log('Search: Got search status response, initializing service with persistent index');
-
       try {
         if (!response.error) {
           setSearchStats(response.stats);
           setIndexFileInfo(response.info);
         }
       } catch (error) {
-        console.error('Init error:', error);
+        console.error('Search status error:', error);
       }
       // Enable interface
       console.log('Search: Enabling interface');
@@ -208,8 +208,26 @@ const Search = (props) => {
       }
     }
 
+    const handleSearchSuggestionsResponse = (event, response) => {
+      if (SearchConfig.ui && SearchConfig.ui.enableSuggestions) {
+        if (response.error) {
+          console.error('Error getting suggestions:', response.errorMessage);
+          setSuggestions([]);
+          setShowSuggestions(false);
+        } else {
+          setSuggestions(response.results);
+          setShowSuggestions(response.results.length > 0);
+        }
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }
+
+    ipcRenderer.on(Messages.SEARCH_INDEX_INIT_RESPONSE, handleSearchIndexStatusResponse);
     ipcRenderer.on(Messages.SEARCH_INDEX_STATUS_RESPONSE, handleSearchIndexStatusResponse);
     ipcRenderer.on(Messages.SEARCH_RESPONSE, handleSearchResponse);
+    ipcRenderer.on(Messages.SEARCH_GET_SUGGESTIONS_RESPONSE, handleSearchSuggestionsResponse);
 
     // Keyboard shortcuts
     const handleKeyDown = (event) => {
@@ -225,34 +243,14 @@ const Search = (props) => {
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      ipcRenderer.removeListener(Messages.SEARCH_INDEX_REINDEX_RESPONSE, handleSearchIndexStatusResponse);
+      ipcRenderer.removeListener(Messages.SEARCH_INDEX_INIT_RESPONSE, handleSearchIndexStatusResponse);
+      ipcRenderer.removeListener(Messages.SEARCH_INDEX_STATUS_RESPONSE, handleSearchIndexStatusResponse);
       ipcRenderer.removeListener(Messages.SEARCH_RESPONSE, handleSearchResponse);
+      ipcRenderer.removeListener(Messages.SEARCH_GET_SUGGESTIONS_RESPONSE, handleSearchSuggestionsResponse);
 
       document.removeEventListener('keydown', handleKeyDown);
       if (searchTimeout) clearTimeout(searchTimeout);
     };
-  }, []);
-
-  const updateSearchStats = useCallback(() => {
-    try {
-      //if (SearchService && SearchService.getSearchStats) {
-        //const stats = SearchService.getSearchStats();
-        //setSearchStats(stats);
-      //}
-    } catch (error) {
-      console.error('Error updating search stats:', error);
-    }
-  }, []);
-
-  const updateIndexFileInfo = useCallback(() => {
-    try {
-      //if (SearchService && SearchService.getIndexFileInfo) {
-        //const info = SearchService.getIndexFileInfo();
-        //setIndexFileInfo(info);
-      //}
-    } catch (error) {
-      console.error('Error updating index file info:', error);
-    }
   }, []);
 
   const handleTabChange = (event, newValue) => {
@@ -263,15 +261,7 @@ const Search = (props) => {
     (query) => {
       const trimmedQuery = query.trim();
       if (!trimmedQuery) {
-        setSearchResults({
-          projects: [],
-          people: [],
-          assets: [],
-          files: [],
-          folders: [],
-          notes: [],
-          all: [],
-        });
+        setSearchResults(EMPTY_SEARCH_RESULTS);
         setExpandedItems({});
         return;
       }
@@ -298,15 +288,7 @@ const Search = (props) => {
         }
       } catch (error) {
         console.error('Search: Search error', error);
-        setSearchResults({
-          projects: [],
-          people: [],
-          assets: [],
-          files: [],
-          folders: [],
-          notes: [],
-          all: [],
-        });
+        setSearchResults(EMPTY_SEARCH_RESULTS);
       }
 
       setIsSearching(false);
@@ -337,33 +319,17 @@ const Search = (props) => {
       setSearchTimeout(null);
     }
 
-    if (SearchConfig.ui && SearchConfig.ui.enableSuggestions && value.length >= 2) {
-      try {
-        const newSuggestions = SearchService.getSuggestions
-          ? SearchService.getSuggestions(value)
-          : [];
-        setSuggestions(newSuggestions);
-        setShowSuggestions(newSuggestions.length > 0);
-      } catch (error) {
-        console.error('Error getting suggestions:', error);
-        setSuggestions([]);
-        setShowSuggestions(false);
-      }
+    // Only show suggestions if it's enabled as a feature, and we have at least two
+    // non-whitespace characters to use.
+    if (SearchConfig.ui && SearchConfig.ui.enableSuggestions && value.trim().length >= 2) {
+      ipcRenderer.send(Messages.SEARCH_GET_SUGGESTIONS_REQUEST, value);
     } else {
       setSuggestions([]);
       setShowSuggestions(false);
     }
 
     if (!value.trim()) {
-      setSearchResults({
-        projects: [],
-        people: [],
-        assets: [],
-        files: [],
-        folders: [],
-        notes: [],
-        all: [],
-      });
+      setSearchResults(EMPTY_SEARCH_RESULTS);
       setExpandedItems({});
     }
   };
@@ -422,15 +388,7 @@ const Search = (props) => {
 
   const handleClearSearch = () => {
     setSearchTerm('');
-    setSearchResults({
-      projects: [],
-      people: [],
-      assets: [],
-      files: [],
-      folders: [],
-      notes: [],
-      all: [],
-    });
+    setSearchResults(EMPTY_SEARCH_RESULTS);
     setSuggestions([]);
     setShowSuggestions(false);
     setExpandedItems({});
@@ -456,9 +414,41 @@ const Search = (props) => {
     }
   };
 
+  const handleShowStats = () => {
+    ipcRenderer.send(Messages.SEARCH_INDEX_STATUS_REQUEST);
+    // if (searchStats) {
+    //   console.log('FlexSearch Debug Info:', searchStats);
+    //   //console.log('Document Store Size:', searchService.documentStore?.size || 0);
+    //   console.log('Index File Info:', indexFileInfo);
+
+    //   alert(`Search Statistics:
+    //     - Total Documents: ${searchStats.totalDocuments || 0}
+    //     - Projects: ${searchStats.documentsByType?.project || 0}
+    //     - Files: ${searchStats.documentsByType?.file || 0}
+    //     - Folders: ${searchStats.documentsByType?.folder || 0}
+    //     - People: ${searchStats.documentsByType?.person || 0}
+    //     - Assets: ${searchStats.documentsByType?.asset || 0}
+    //     - Notes: ${searchStats.documentsByType?.note || 0}
+    //     - Content-indexed files: ${searchStats.contentIndexedFiles || 0}
+    //     - Indexed Projects: ${searchStats.indexedProjects || 0}
+    //     - Cache Size: ${searchStats.cacheStats?.size || 0}/${searchStats.cacheStats?.maxSize || 0}
+
+    //     Index File:
+    //     - Exists: ${indexFileInfo.exists}
+    //     - Size: ${indexFileInfo.sizeMB.toFixed(2) || 0}MB
+    //     - Path: ${indexFileInfo.path || 'N/A'}
+
+    //     Performance:
+    //     - Total Searches: ${searchStats.performance?.totalSearches || 0}
+    //     - Average Search Time: ${Math.round(searchStats.performance?.averageSearchTime || 0)}ms
+
+    //     Check console for more details.
+    //   `);
+    //}
+  };
+
   const totalResults = searchResults.all.length;
   const availableProjects = props?.projects ? props.projects : [];
-    //searchStats?.documentsByType && SearchService.projectsData ? SearchService.projectsData : [];
 
   const availableFileTypes = React.useMemo(() => {
     const extensions = new Set();
@@ -596,20 +586,6 @@ const Search = (props) => {
                 </FormControl>
               )}
             </SearchFilters>
-
-            <Box mt={2} display="flex" gap={1} flexWrap="wrap">
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={showPerformanceMetrics}
-                    onChange={(e) => setShowPerformanceMetrics(e.target.checked)}
-                    size="small"
-                    disabled={isInitializing}
-                  />
-                }
-                label="Show Performance"
-              />
-            </Box>
           </AdvancedSearchPanel>
         </Collapse>
 
@@ -918,11 +894,9 @@ const Search = (props) => {
 
       {process.env.NODE_ENV === 'development' && !isInitializing && (
         <DebugPanel
-          searchService={SearchService}
           searchStats={searchStats}
-          searchConfig={SearchConfig}
-          onStatsUpdate={updateSearchStats}
           indexFileInfo={indexFileInfo}
+          onShowStats={handleShowStats}
         />
       )}
     </SearchContainer>
@@ -1355,189 +1329,6 @@ const ResultItemComponent = ({
         }}
       />
     </ResultItem>
-  );
-};
-
-const DebugPanel = ({ searchService, searchStats, searchConfig, onStatsUpdate, indexFileInfo }) => {
-  const [debugExpanded, setDebugExpanded] = useState(false);
-
-  return (
-    <Box
-      mt={2}
-      p={2}
-      border={1}
-      borderColor="grey.300"
-      borderRadius={1}
-      sx={{
-        backgroundColor: 'background.paper',
-        position: 'relative',
-        zIndex: 1,
-      }}
-    >
-      <Box display="flex" alignItems="center" justifyContent="space-between">
-        <Typography variant="h6">Debug Tools & Analytics</Typography>
-        <IconButton size="small" onClick={() => setDebugExpanded(!debugExpanded)}>
-          {debugExpanded ? <ExpandLess /> : <ExpandMore />}
-        </IconButton>
-      </Box>
-
-      <Collapse in={debugExpanded}>
-        <Box mt={2}>
-          <Box display="flex" gap={1} flexWrap="wrap" mb={2}>
-            <Button
-              onClick={() => {
-                if (searchService.getSearchStats) {
-                  const stats = searchService.getSearchStats();
-                  console.log('FlexSearch Debug Info:', stats);
-                  console.log('Document Store Size:', searchService.documentStore?.size || 0);
-                  console.log('Index File Info:', indexFileInfo);
-
-                  alert(`Search Statistics:
-                    - Total Documents: ${stats.totalDocuments || 0}
-                    - Projects: ${stats.documentsByType?.project || 0}
-                    - Files: ${stats.documentsByType?.file || 0}
-                    - Folders: ${stats.documentsByType?.folder || 0}
-                    - People: ${stats.documentsByType?.person || 0}
-                    - Assets: ${stats.documentsByType?.asset || 0}
-                    - Notes: ${stats.documentsByType?.note || 0}
-                    - Content-indexed files: ${stats.contentIndexedFiles || 0}
-                    - Indexed Projects: ${stats.indexedProjects || 0}
-                    - Cache Size: ${stats.cacheStats?.size || 0}/${stats.cacheStats?.maxSize || 0}
-
-                    Index File:
-                    - Exists: ${indexFileInfo.exists}
-                    - Size: ${indexFileInfo.sizeMB.toFixed(2) || 0}MB
-                    - Path: ${indexFileInfo.path || 'N/A'}
-
-                    Performance:
-                    - Total Searches: ${stats.performance?.totalSearches || 0}
-                    - Average Search Time: ${Math.round(stats.performance?.averageSearchTime || 0)}ms
-
-                    Check console for more details.
-                  `);
-                } else {
-                  alert('Search service not fully initialized yet.');
-                }
-              }}
-              variant="outlined"
-              size="small"
-            >
-              Show Stats
-            </Button>
-
-            <Button
-              onClick={() => {
-                onStatsUpdate();
-                alert('Search statistics refreshed');
-              }}
-              variant="outlined"
-              size="small"
-            >
-              Refresh Stats
-            </Button>
-          </Box>
-
-          {searchStats && (
-            <Box>
-              <Typography variant="body2" gutterBottom>
-                <strong>Current Statistics:</strong>
-              </Typography>
-              <Box display="flex" gap={4} flexWrap="wrap">
-                <Box>
-                  <Typography variant="caption" display="block">
-                    Total Documents: {searchStats.totalDocuments || 0}
-                  </Typography>
-                  <Typography variant="caption" display="block">
-                    Content-indexed Files: {searchStats.contentIndexedFiles || 0}
-                  </Typography>
-                  <Typography variant="caption" display="block">
-                    Indexed Projects: {searchStats.indexedProjects || 0}
-                  </Typography>
-                </Box>
-
-                {searchStats.performance && (
-                  <Box>
-                    <Typography variant="caption" display="block">
-                      <strong>Performance:</strong>
-                    </Typography>
-                    <Typography variant="caption" display="block">
-                      Total Searches: {searchStats.performance.totalSearches}
-                    </Typography>
-                    <Typography variant="caption" display="block">
-                      Avg Search Time: {Math.round(searchStats.performance.averageSearchTime)}ms
-                    </Typography>
-                  </Box>
-                )}
-
-                {searchStats.cacheStats && (
-                  <Box>
-                    <Typography variant="caption" display="block">
-                      <strong>Cache:</strong>
-                    </Typography>
-                    <Typography variant="caption" display="block">
-                      Size: {searchStats.cacheStats.size}/{searchStats.cacheStats.maxSize}
-                    </Typography>
-                  </Box>
-                )}
-
-                {indexFileInfo && (
-                  <Box>
-                    <Typography variant="caption" display="block">
-                      <strong>Index File:</strong>
-                    </Typography>
-                    <Typography variant="caption" display="block">
-                      Exists: {indexFileInfo.exists ? 'Yes' : 'No'}
-                    </Typography>
-                    {indexFileInfo.exists && (
-                      <>
-                        <Typography variant="caption" display="block">
-                          Size: {indexFileInfo.sizeMB.toFixed(2)}MB
-                        </Typography>
-                        <Typography variant="caption" display="block">
-                          Path: {indexFileInfo.path}
-                        </Typography>
-                      </>
-                    )}
-                  </Box>
-                )}
-              </Box>
-
-              {searchStats.documentsByType && (
-                <Box mt={2}>
-                  <Typography variant="caption" display="block">
-                    <strong>Documents by Type:</strong>
-                  </Typography>
-                  <Box display="flex" gap={2} flexWrap="wrap">
-                    {Object.entries(searchStats.documentsByType).map(([type, count]) => (
-                      <Typography key={type} variant="caption" component="span">
-                        {type}: {count}
-                      </Typography>
-                    ))}
-                  </Box>
-                </Box>
-              )}
-            </Box>
-          )}
-
-          {searchConfig && (
-            <Box mt={2}>
-              <Typography variant="caption" display="block">
-                <strong>Configuration:</strong>
-              </Typography>
-              <Typography variant="caption" display="block">
-                Max File Size: {((searchConfig.indexing?.maxFileSize || 0) * 1.0) / (1024 * 1024)}MB
-              </Typography>
-              <Typography variant="caption" display="block">
-                Enable Fuzzy Search: {searchConfig.search?.enableFuzzySearch ? 'Yes' : 'No'}
-              </Typography>
-              <Typography variant="caption" display="block">
-                Enable Suggestions: {searchConfig.ui?.enableSuggestions ? 'Yes' : 'No'}
-              </Typography>
-            </Box>
-          )}
-        </Box>
-      </Collapse>
-    </Box>
   );
 };
 
