@@ -174,7 +174,7 @@ module.exports = {
   // UI and display settings
   ui: {
     searchHistorySize: 15,
-    enableSuggestions: true,
+    enableSuggestions: false,  // TODO - DISABLED FOR NOW. Need to correct and then re-enable.
     maxSuggestions: 8,
     showRelevanceScores: process.env.NODE_ENV === 'development',
     enableKeyboardShortcuts: true,

@@ -1242,14 +1242,15 @@ class SearchService {
     const cacheKey = this.generateCacheKey(searchQuery, options);
 
     // Check cache first
-    const cached = this.getFromCache(cacheKey);
+    console.log('Skipping cache');
+    /*const cached = this.getFromCache(cacheKey);
     if (cached) {
       console.log('SearchService: Returning cached results');
       return {
         ...cached,
         queryPreprocessing: queryPreprocessing,
       };
-    }
+    }*/
 
     try {
       const searchResults = this.performSearch(searchQuery, options);
@@ -1361,6 +1362,7 @@ class SearchService {
 
       // Apply filters
       if (type && type !== 'all') {
+        console.log('TYPE: ', type);
         searchResults = searchResults.filter((result) => result.type === type);
       }
 

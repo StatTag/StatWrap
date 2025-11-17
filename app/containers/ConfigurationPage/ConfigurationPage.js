@@ -39,7 +39,7 @@ class ConfigurationPage extends Component {
     return (
       <div className={styles.container} data-tid="container">
         <h1>Configuration</h1>
-        <SearchSettings projects={this.state.projects} />
+        <SearchSettings projects={this.state.loaded ? this.state.projects : null} />
       </div>
     );
   }

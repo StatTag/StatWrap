@@ -1,0 +1,23 @@
+.container {
+  font-size: 0.9rem;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.item {
+  padding: 2px 5px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  vertical-align: middle;
+  align-items: center;
+  margin-right: 5px;
+}
+
+.item:hover {
+  background-color: #efefef;
+}
+
+.selected {
+  border-left: 3px solid #4e2a84;
+}

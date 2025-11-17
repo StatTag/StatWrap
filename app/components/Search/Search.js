@@ -26,6 +26,8 @@ import {
   FormControlLabel,
   Slider,
   Alert,
+  Grid,
+  Stack,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import {
@@ -52,6 +54,7 @@ import { Link } from 'react-router-dom';
 import { ipcRenderer } from 'electron';
 import routes from '../../constants/routes.json';
 import DebugPanel from './DebugPanel/DebugPanel';
+import ObjectTypeFilter from './ObjectTypeFilter/ObjectTypeFilter';
 import SettingsContext from '../../contexts/Settings';
 import SearchConfig from '../../constants/search-config';
 import Messages from '../../constants/messages';
@@ -77,14 +80,6 @@ const SearchContainer = styled(Paper)(({ theme }) => ({
 
 const SearchHeader = styled(Box)(({ theme }) => ({
   marginBottom: theme.spacing(2),
-}));
-
-const SearchFilters = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  gap: theme.spacing(1),
-  marginBottom: theme.spacing(2),
-  flexWrap: 'wrap',
-  alignItems: 'center',
 }));
 
 const SearchResults = styled(Box)({
@@ -123,6 +118,10 @@ const PerformancePanel = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.grey[50],
 }));
 
+const SearchFilterPanel = styled(Stack)(({theme}) => ({
+  margin: theme.spacing(1)
+}));
+
 const TabPanel = (props) => {
   const { children, value, index, ...other } = props;
   return (
@@ -143,6 +142,9 @@ const Search = (props) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  // This will contain the unfiltered search results
+  const [fullSearchResults, setFullSearchResults] = useState(EMPTY_SEARCH_RESULTS);
+  // This will contain the currently displayed search results based on selected filters.
   const [searchResults, setSearchResults] = useState(EMPTY_SEARCH_RESULTS);
   const [activeTab, setActiveTab] = useState(0);
   const [expandedItems, setExpandedItems] = useState({});
@@ -163,7 +165,6 @@ const Search = (props) => {
   const [searchHistory, setSearchHistory] = useState([]);
   const [searchStats, setSearchStats] = useState(null);
   const [searchTimeout, setSearchTimeout] = useState(null);
-  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [showPerformanceMetrics, setShowPerformanceMetrics] = useState(false);
   const [lastSearchTime, setLastSearchTime] = useState(0);
   const [suggestions, setSuggestions] = useState([]);
@@ -181,6 +182,13 @@ const Search = (props) => {
     }
   }, [searchSettings, props.projects]);
 
+  // This effect will apply the filter to the current search results.  It will be triggered whenever
+  // we get new search results, or the filters change.
+  useEffect(() => {
+    const filteredResults = applyFilters(fullSearchResults);
+    setSearchResults(filteredResults);
+  }, [fullSearchResults, searchFilters.project, searchFilters.fileType]);
+
   useEffect(() => {
     console.log('Search: Starting initialization with persistent indexing');
 
@@ -194,20 +202,21 @@ const Search = (props) => {
         console.error('Search status error:', error);
       }
       // Enable interface
-      console.log('Search: Enabling interface');
+      // console.log('Search: Enabling interface');
       setIsInitializing(false);
     };
 
     const handleSearchResponse = async (event, response) => {
-      console.log('Search response: ', response);
+      // console.log('Search response: ', response);
 
       if (!response.error) {
-        const filteredResults = applyFilters(response.results);
-        setSearchResults(filteredResults);
+        setFullSearchResults(response.results);
         setLastSearchTime(response.searchTime);
       }
     }
 
+    // TODO - in the config (search-config.js), we have the option for suggestions turned off because it
+    // wasn't working as expected.  We will want to re-evaluate and fix this in the future.
     const handleSearchSuggestionsResponse = (event, response) => {
       if (SearchConfig.ui && SearchConfig.ui.enableSuggestions) {
         if (response.error) {
@@ -253,15 +262,11 @@ const Search = (props) => {
     };
   }, []);
 
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
-  };
-
   const performSearch = useCallback(
     (query) => {
       const trimmedQuery = query.trim();
       if (!trimmedQuery) {
-        setSearchResults(EMPTY_SEARCH_RESULTS);
+        setFullSearchResults(EMPTY_SEARCH_RESULTS);
         setExpandedItems({});
         return;
       }
@@ -274,11 +279,16 @@ const Search = (props) => {
         let results;
 
         const searchOptions = {
-          type: searchFilters.type !== 'all' ? searchFilters.type : undefined,
-          projectId: searchFilters.project !== 'all' ? searchFilters.project : undefined,
+          //type: searchFilters.type !== 'all' ? searchFilters.type : undefined,
+          //projectId: searchFilters.project !== 'all' ? searchFilters.project : undefined,
+
+          // When the user searches, we always want it to return the full search results, even if they
+          // have selected a specific type of object.  This way the full results will populate, but if
+          // they have selected a filter, the display will still filter it to what the user selected.
+          type: undefined,
+          projectId: undefined,
           maxResults: SearchConfig.search ? SearchConfig.search.maxResults : 1000,
         };
-
         ipcRenderer.send(Messages.SEARCH_REQUEST, query, searchOptions);
 
         // Add to search history
@@ -288,7 +298,7 @@ const Search = (props) => {
         }
       } catch (error) {
         console.error('Search: Search error', error);
-        setSearchResults(EMPTY_SEARCH_RESULTS);
+        setFullSearchResults(EMPTY_SEARCH_RESULTS);
       }
 
       setIsSearching(false);
@@ -329,7 +339,7 @@ const Search = (props) => {
     }
 
     if (!value.trim()) {
-      setSearchResults(EMPTY_SEARCH_RESULTS);
+      setFullSearchResults(EMPTY_SEARCH_RESULTS);
       setExpandedItems({});
     }
   };
@@ -347,11 +357,13 @@ const Search = (props) => {
 
   const applyFilters = (results) => {
     let filtered = { ...results };
-
     if (searchFilters.type !== 'all') {
       Object.keys(filtered).forEach((key) => {
-        if (key !== 'all' && key !== searchFilters.type) {
-          filtered[key] = [];
+        // We have some search metadata (non-search results) that we need to skip.
+        if (Array.isArray(filtered[key])) {
+          if (key !== 'all' && key !== searchFilters.type) {
+            filtered[key] = [];
+          }
         }
       });
       filtered.all = filtered.all.filter((result) => result.type === searchFilters.type);
@@ -359,20 +371,30 @@ const Search = (props) => {
 
     if (searchFilters.project !== 'all') {
       Object.keys(filtered).forEach((key) => {
-        filtered[key] = filtered[key].filter(
-          (result) => result.item && result.item.projectId === searchFilters.project,
-        );
+        // We have some search metadata (non-search results) that we need to skip.
+        if (Array.isArray(filtered[key])) {
+          filtered[key] = filtered[key].filter(
+            (result) => result.item && (
+              // If our result is a project, check the id.  Everything else checks projectId
+              (result.type == 'project' && result.item.id === searchFilters.project) ||
+                (result.item.projectId === searchFilters.project)
+            ),
+          );
+        }
       });
     }
 
     if (searchFilters.fileType !== 'all') {
       Object.keys(filtered).forEach((key) => {
-        filtered[key] = filtered[key].filter((result) => {
-          if (result.type === 'file' && result.item.extension) {
-            return result.item.extension === searchFilters.fileType;
-          }
-          return result.type !== 'file';
-        });
+        // We have some search metadata (non-search results) that we need to skip.
+        if (Array.isArray(filtered[key])) {
+          filtered[key] = filtered[key].filter((result) => {
+            if (result.type === 'file' && result.item.extension) {
+              return result.item.extension === searchFilters.fileType;
+            }
+            return result.type !== 'file';
+          });
+        }
       });
     }
 
@@ -388,7 +410,7 @@ const Search = (props) => {
 
   const handleClearSearch = () => {
     setSearchTerm('');
-    setSearchResults(EMPTY_SEARCH_RESULTS);
+    setFullSearchResults(EMPTY_SEARCH_RESULTS);
     setSuggestions([]);
     setShowSuggestions(false);
     setExpandedItems({});
@@ -414,37 +436,23 @@ const Search = (props) => {
     }
   };
 
+  /**
+   * Handle when the user changes the filter and selects a different type of object to
+   * filter the results to.
+   *
+   * @param {string} key The key of the selected object type to filter on (e.g., notes, people)
+   * @param {int} tabIndex The tab index to activate for the selected filter type
+   */
+  const handleSearchFilterTypeChange = (key, tabIndex) => {
+    setSearchFilters(prevFilters => ({
+      ...prevFilters,
+      type: key
+    }));
+    setActiveTab(tabIndex);
+  };
+
   const handleShowStats = () => {
     ipcRenderer.send(Messages.SEARCH_INDEX_STATUS_REQUEST);
-    // if (searchStats) {
-    //   console.log('FlexSearch Debug Info:', searchStats);
-    //   //console.log('Document Store Size:', searchService.documentStore?.size || 0);
-    //   console.log('Index File Info:', indexFileInfo);
-
-    //   alert(`Search Statistics:
-    //     - Total Documents: ${searchStats.totalDocuments || 0}
-    //     - Projects: ${searchStats.documentsByType?.project || 0}
-    //     - Files: ${searchStats.documentsByType?.file || 0}
-    //     - Folders: ${searchStats.documentsByType?.folder || 0}
-    //     - People: ${searchStats.documentsByType?.person || 0}
-    //     - Assets: ${searchStats.documentsByType?.asset || 0}
-    //     - Notes: ${searchStats.documentsByType?.note || 0}
-    //     - Content-indexed files: ${searchStats.contentIndexedFiles || 0}
-    //     - Indexed Projects: ${searchStats.indexedProjects || 0}
-    //     - Cache Size: ${searchStats.cacheStats?.size || 0}/${searchStats.cacheStats?.maxSize || 0}
-
-    //     Index File:
-    //     - Exists: ${indexFileInfo.exists}
-    //     - Size: ${indexFileInfo.sizeMB.toFixed(2) || 0}MB
-    //     - Path: ${indexFileInfo.path || 'N/A'}
-
-    //     Performance:
-    //     - Total Searches: ${searchStats.performance?.totalSearches || 0}
-    //     - Average Search Time: ${Math.round(searchStats.performance?.averageSearchTime || 0)}ms
-
-    //     Check console for more details.
-    //   `);
-    //}
   };
 
   const totalResults = searchResults.all.length;
@@ -460,446 +468,335 @@ const Search = (props) => {
     return Array.from(extensions);
   }, [searchResults.files]);
 
+  // Configures the different types of objects the user can filter by.
+  const objectTypeFilters = [
+    { label: 'All', key: 'all', count: fullSearchResults?.all.length, tabIndex: 0 },
+    { label: 'Projects', key: 'project', count: fullSearchResults?.projects.length, tabIndex: 1 },
+    { label: 'Files', key: 'file', count: fullSearchResults?.files.length, tabIndex: 2 },
+    { label: 'Folders', key: 'folder', count: fullSearchResults?.folders.length, tabIndex: 3 },
+    { label: 'People', key: 'person', count: fullSearchResults?.people.length, tabIndex: 4 },
+    { label: 'Assets', key: 'asset', count: fullSearchResults?.assets.length, tabIndex: 5 },
+    { label: 'Notes', key: 'note', count: fullSearchResults?.notes.length, tabIndex: 6 },
+  ];
+
   return (
-    <SearchContainer elevation={2}>
-      <SearchHeader>
-        <Typography variant="h5" gutterBottom>
-          Search
-        </Typography>
-
-        <Box display="flex" alignItems="center" gap={1} mb={2}>
-          <Box position="relative" flexGrow={1}>
-            <Autocomplete
-              freeSolo
+    <Grid container spacing={1}>
+      <Grid size={3}>
+        <SearchFilterPanel>
+          <Typography fontWeight={"bold"}>Filter By</Typography>
+          <ObjectTypeFilter filters={objectTypeFilters}
+            selectedType={searchFilters.type}
+            onClick={handleSearchFilterTypeChange}
+          />
+          {/*
+          <hr />
+          <FormControl size="small" sx={{ minWidth: 150, paddingBottom: '20px' }}>
+            <InputLabel>Project</InputLabel>
+            <Select
+              value={searchFilters.project}
+              label="Project"
               disabled={isInitializing}
-              options={showSuggestions ? suggestions : searchHistory}
-              value={searchTerm}
-              onInputChange={handleAutocompleteChange}
-              onClose={() => setShowSuggestions(false)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  inputRef={searchInputRef}
-                  fullWidth
-                  variant="outlined"
-                  placeholder="Search for projects, files, people, notes... (Press Enter or click Search)"
-                  disabled={isInitializing}
-                  onKeyUp={handleSearchKeyUp}
-                  onChange={handleSearchChange}
-                  InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <Box display="flex" alignItems="center">
-                        {searchTerm && !isInitializing && (
-                          <IconButton size="small" onClick={handleClearSearch} title="Clear search">
-                            <ClearOutlined />
-                          </IconButton>
-                        )}
-                        <IconButton
-                          onClick={handleSearch}
-                          disabled={!searchTerm.trim() || isSearching || isInitializing}
-                          title="Search"
-                          color="primary"
-                        >
-                          {isSearching ? <CircularProgress size={24} /> : <SearchIcon />}
-                        </IconButton>
-                      </Box>
-                    ),
-                  }}
-                />
-              )}
-            />
-          </Box>
-          <IconButton
-            onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-            color={showAdvancedSearch ? 'primary' : 'default'}
-            disabled={isInitializing}
-          >
-            <TuneOutlined />
-          </IconButton>
-        </Box>
+              onChange={(e) =>
+                setSearchFilters((prev) => ({ ...prev, project: e.target.value }))
+              }
+            >
+              <MenuItem value="all">All Projects</MenuItem>
+              {availableProjects.map((project) => (
+                <MenuItem key={project.id} value={project.id}>
+                  {project.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-        {/* Advanced Search Panel */}
-        <Collapse in={showAdvancedSearch}>
-          <AdvancedSearchPanel>
-            <Typography variant="h6" gutterBottom>
-              Advanced Filters
+          {availableFileTypes.length > 0 && (
+            <FormControl size="small" sx={{ minWidth: 120 }} spacing={2}>
+              <InputLabel>File Type</InputLabel>
+              <Select
+                value={searchFilters.fileType}
+                label="File Type"
+                disabled={isInitializing}
+                onChange={(e) =>
+                  setSearchFilters((prev) => ({ ...prev, fileType: e.target.value }))
+                }
+              >
+                <MenuItem value="all">All Types</MenuItem>
+                {availableFileTypes.map((ext) => (
+                  <MenuItem key={ext} value={ext}>
+                    {ext}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+          */}
+        </SearchFilterPanel>
+      </Grid>
+      <Grid size={9}>
+        <SearchContainer elevation={2}>
+          <SearchHeader>
+            <Typography variant="h5" gutterBottom>
+              Search
             </Typography>
-            <SearchFilters>
-              <FilterListOutlined color="action" />
 
-              <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>Type</InputLabel>
-                <Select
-                  value={searchFilters.type}
-                  label="Type"
+            <Box display="flex" alignItems="center" gap={1} mb={2}>
+              <Box position="relative" flexGrow={1}>
+                <Autocomplete
+                  freeSolo
                   disabled={isInitializing}
-                  onChange={(e) => setSearchFilters((prev) => ({ ...prev, type: e.target.value }))}
-                >
-                  <MenuItem value="all">All Types</MenuItem>
-                  <MenuItem value="project">Projects</MenuItem>
-                  <MenuItem value="file">Files</MenuItem>
-                  <MenuItem value="folder">Folders</MenuItem>
-                  <MenuItem value="person">People</MenuItem>
-                  <MenuItem value="asset">Assets</MenuItem>
-                  <MenuItem value="note">Notes</MenuItem>
-                </Select>
-              </FormControl>
-
-              <FormControl size="small" sx={{ minWidth: 150 }}>
-                <InputLabel>Project</InputLabel>
-                <Select
-                  value={searchFilters.project}
-                  label="Project"
-                  disabled={isInitializing}
-                  onChange={(e) =>
-                    setSearchFilters((prev) => ({ ...prev, project: e.target.value }))
-                  }
-                >
-                  <MenuItem value="all">All Projects</MenuItem>
-                  {availableProjects.map((project) => (
-                    <MenuItem key={project.id} value={project.id}>
-                      {project.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              {availableFileTypes.length > 0 && (
-                <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <InputLabel>File Type</InputLabel>
-                  <Select
-                    value={searchFilters.fileType}
-                    label="File Type"
-                    disabled={isInitializing}
-                    onChange={(e) =>
-                      setSearchFilters((prev) => ({ ...prev, fileType: e.target.value }))
-                    }
-                  >
-                    <MenuItem value="all">All Types</MenuItem>
-                    {availableFileTypes.map((ext) => (
-                      <MenuItem key={ext} value={ext}>
-                        {ext}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
-            </SearchFilters>
-          </AdvancedSearchPanel>
-        </Collapse>
-
-        {/* Performance Metrics */}
-        {showPerformanceMetrics && searchStats && !isInitializing && (
-          <PerformancePanel>
-            <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
-              <Box display="flex" alignItems="center" gap={0.5}>
-                <SpeedOutlined fontSize="small" />
-                <Typography variant="caption">Last Search: {lastSearchTime}ms</Typography>
+                  // TODO - search history is disabled (along with suggestions) because it isn't working properly.
+                  // if you select something from the search history, it shows 0 results even if the search actually
+                  // did have results.  Need to investigate this.
+                  options={showSuggestions ? suggestions : []} //searchHistory}
+                  value={searchTerm}
+                  onInputChange={handleAutocompleteChange}
+                  onClose={() => setShowSuggestions(false)}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      inputRef={searchInputRef}
+                      fullWidth
+                      variant="outlined"
+                      placeholder="Search for projects, files, people, notes... (Press Enter or click Search)"
+                      disabled={isInitializing}
+                      onKeyUp={handleSearchKeyUp}
+                      onChange={handleSearchChange}
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <Box display="flex" alignItems="center">
+                            {searchTerm && !isInitializing && (
+                              <IconButton size="small" onClick={handleClearSearch} title="Clear search">
+                                <ClearOutlined />
+                              </IconButton>
+                            )}
+                            <IconButton
+                              onClick={handleSearch}
+                              disabled={!searchTerm.trim() || isSearching || isInitializing}
+                              title="Search"
+                              color="primary"
+                            >
+                              {isSearching ? <CircularProgress size={24} /> : <SearchIcon />}
+                            </IconButton>
+                          </Box>
+                        ),
+                      }}
+                    />
+                  )}
+                />
               </Box>
-              <Box display="flex" alignItems="center" gap={0.5}>
-                <MemoryOutlined fontSize="small" />
-                <Typography variant="caption">
-                  Cache: {searchStats.cacheStats?.size || 0}/{searchStats.cacheStats?.maxSize || 0}
+            </Box>
+
+            {/* Performance Metrics */}
+            {showPerformanceMetrics && searchStats && !isInitializing && (
+              <PerformancePanel>
+                <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
+                  <Box display="flex" alignItems="center" gap={0.5}>
+                    <SpeedOutlined fontSize="small" />
+                    <Typography variant="caption">Last Search: {lastSearchTime}ms</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={0.5}>
+                    <MemoryOutlined fontSize="small" />
+                    <Typography variant="caption">
+                      Cache: {searchStats.cacheStats?.size || 0}/{searchStats.cacheStats?.maxSize || 0}
+                    </Typography>
+                  </Box>
+                  {searchStats.performance && (
+                    <>
+                      <Typography variant="caption">
+                        Avg Search: {Math.round(searchStats.performance.averageSearchTime)}ms
+                      </Typography>
+                      <Typography variant="caption">
+                        Total Searches: {searchStats.performance.totalSearches}
+                      </Typography>
+                    </>
+                  )}
+                </Box>
+              </PerformancePanel>
+            )}
+
+            {/* Status indicators */}
+            {isInitializing && (
+              <Box display="flex" alignItems="center" mt={1}>
+                <CircularProgress size={20} sx={{ mr: 1 }} />
+                <Typography variant="body2">
+                  {indexFileInfo.exists
+                    ? 'Loading persistent index and checking for updates...'
+                    : 'Creating new search index...'}
                 </Typography>
               </Box>
-              {searchStats.performance && (
-                <>
-                  <Typography variant="caption">
-                    Avg Search: {Math.round(searchStats.performance.averageSearchTime)}ms
-                  </Typography>
-                  <Typography variant="caption">
-                    Total Searches: {searchStats.performance.totalSearches}
-                  </Typography>
-                </>
-              )}
-            </Box>
-          </PerformancePanel>
-        )}
+            )}
 
-        {/* Status indicators */}
-        {isInitializing && (
-          <Box display="flex" alignItems="center" mt={1}>
-            <CircularProgress size={20} sx={{ mr: 1 }} />
-            <Typography variant="body2">
-              {indexFileInfo.exists
-                ? 'Loading persistent index and checking for updates...'
-                : 'Creating new search index...'}
-            </Typography>
-          </Box>
-        )}
+            {indexingStatus.inProgress && !isInitializing && (
+              <Box display="flex" alignItems="center" mt={1}>
+                <CircularProgress size={20} sx={{ mr: 1 }} />
+                <Typography variant="body2">
+                  Updating index... {indexingStatus.queueLength} projects remaining
+                </Typography>
+              </Box>
+            )}
 
-        {indexingStatus.inProgress && !isInitializing && (
-          <Box display="flex" alignItems="center" mt={1}>
-            <CircularProgress size={20} sx={{ mr: 1 }} />
-            <Typography variant="body2">
-              Updating index... {indexingStatus.queueLength} projects remaining
-            </Typography>
-          </Box>
-        )}
+            {searchStats && !isInitializing && (
+              <Box display="flex" alignItems="center" gap={2} mt={1} mb={2}>
+                <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
+                  <Tooltip title={`Total: ${searchStats.totalDocuments} documents indexed`}>
+                    <Chip
+                      icon={<TrendingUpOutlined />}
+                      label={`${searchStats.totalDocuments} docs`}
+                      size="small"
+                      variant="outlined"
+                    />
+                  </Tooltip>
 
-        {searchStats && !isInitializing && (
-          <Box display="flex" alignItems="center" gap={2} mt={1} mb={2}>
-            <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
-              <Tooltip title={`Total: ${searchStats.totalDocuments} documents indexed`}>
-                <Chip
-                  icon={<TrendingUpOutlined />}
-                  label={`${searchStats.totalDocuments} docs`}
-                  size="small"
-                  variant="outlined"
-                />
-              </Tooltip>
+                  {searchStats.indexedProjects !== undefined && (
+                    <Chip
+                      label={`${searchStats.indexedProjects}/${availableProjects.length} projects indexed`}
+                      size="small"
+                      variant="outlined"
+                      color={
+                        searchStats.indexedProjects === availableProjects.length ? 'success' : 'default'
+                      }
+                    />
+                  )}
 
-              {searchStats.indexedProjects !== undefined && (
-                <Chip
-                  label={`${searchStats.indexedProjects}/${availableProjects.length} projects indexed`}
-                  size="small"
-                  variant="outlined"
-                  color={
-                    searchStats.indexedProjects === availableProjects.length ? 'success' : 'default'
-                  }
-                />
-              )}
-
-              {searchStats.contentIndexedFiles !== undefined && (
-                <Chip
-                  label={`${searchStats.contentIndexedFiles} files with content`}
-                  size="small"
-                  variant="outlined"
-                  color={searchStats.contentIndexedFiles > 0 ? 'success' : 'error'}
-                />
-              )}
-            </Box>
-          </Box>
-        )}
-
-        {/* Index file info - small text below stats */}
-        {indexFileInfo.exists && !isInitializing && (
-          <Box mb={1}>
-            <Typography variant="caption" color="textSecondary" display="block">
-              Persistent index: {indexFileInfo.sizeMB.toFixed(2)}MB saved locally
-              {lastUpdateInfo.added > 0 ||
-              lastUpdateInfo.removed > 0 ||
-              lastUpdateInfo.updated > 0 ? (
-                <>
-                  {' '}
-                  • Last update: +{lastUpdateInfo.added} -{lastUpdateInfo.removed} ~
-                  {lastUpdateInfo.updated} projects
-                </>
-              ) : null}
-            </Typography>
-          </Box>
-        )}
-      </SearchHeader>
-
-      {!isInitializing && searchTerm && (
-        <Box mt={2} mb={1}>
-          <Typography variant="body2">
-            {isSearching
-              ? 'Searching...'
-              : totalResults > 0
-                ? `Found ${totalResults} results for "${searchTerm}"`
-                : `No results found for "${searchTerm}"`}
-          </Typography>
-        </Box>
-      )}
-
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs
-          value={activeTab}
-          onChange={handleTabChange}
-          aria-label="search results tabs"
-          variant="scrollable"
-          scrollButtons="auto"
-        >
-          <Tab
-            label={
-              <Badge badgeContent={totalResults} color="primary" max={999}>
-                All
-              </Badge>
-            }
-            id="search-tab-0"
-          />
-          <Tab
-            label={
-              <Badge badgeContent={searchResults.projects.length} color="primary" max={999}>
-                <Box display="flex" alignItems="center" gap={0.5}>
-                  <FolderOutlined fontSize="small" />
-                  Projects
+                  {searchStats.contentIndexedFiles !== undefined && (
+                    <Chip
+                      label={`${searchStats.contentIndexedFiles} files with content`}
+                      size="small"
+                      variant="outlined"
+                      color={searchStats.contentIndexedFiles > 0 ? 'success' : 'error'}
+                    />
+                  )}
                 </Box>
-              </Badge>
-            }
-            id="search-tab-1"
-          />
-          <Tab
-            label={
-              <Badge badgeContent={searchResults.files.length} color="primary" max={999}>
-                <Box display="flex" alignItems="center" gap={0.5}>
-                  <InsertDriveFileOutlined fontSize="small" />
-                  Files
-                </Box>
-              </Badge>
-            }
-            id="search-tab-2"
-          />
-          <Tab
-            label={
-              <Badge badgeContent={searchResults.folders.length} color="primary" max={999}>
-                <Box display="flex" alignItems="center" gap={0.5}>
-                  <FolderOpenOutlined fontSize="small" />
-                  Folders
-                </Box>
-              </Badge>
-            }
-            id="search-tab-3"
-          />
-          <Tab
-            label={
-              <Badge badgeContent={searchResults.people.length} color="primary" max={999}>
-                <Box display="flex" alignItems="center" gap={0.5}>
-                  <PersonOutline fontSize="small" />
-                  People
-                </Box>
-              </Badge>
-            }
-            id="search-tab-4"
-          />
-          <Tab
-            label={
-              <Badge badgeContent={searchResults.assets.length} color="primary" max={999}>
-                <Box display="flex" alignItems="center" gap={0.5}>
-                  <InsertDriveFileOutlined fontSize="small" />
-                  Assets
-                </Box>
-              </Badge>
-            }
-            id="search-tab-5"
-          />
-          <Tab
-            label={
-              <Badge badgeContent={searchResults.notes.length} color="primary" max={999}>
-                <Box display="flex" alignItems="center" gap={0.5}>
-                  <CommentOutlined fontSize="small" />
-                  Notes
-                </Box>
-              </Badge>
-            }
-            id="search-tab-6"
-          />
-        </Tabs>
-      </Box>
+              </Box>
+            )}
+          </SearchHeader>
 
-      <SearchResults>
-        {isInitializing ? (
-          <Box display="flex" justifyContent="center" alignItems="center" height="300px">
-            <Box textAlign="center">
-              <CircularProgress sx={{ mb: 2 }} />
-              <Typography variant="body1">
-                {indexFileInfo.exists ? 'Loading existing index...' : 'Creating search index...'}
-              </Typography>
-              <Typography variant="caption" color="textSecondary">
-                {indexFileInfo.exists
-                  ? 'Loading saved index and checking for changes'
-                  : 'Building new search index for all projects'}
+          {!isInitializing && searchTerm && (
+            <Box mt={2} mb={1}>
+              <Typography variant="body2">
+                {isSearching
+                  ? 'Searching...'
+                  : totalResults > 0
+                    ? `Found ${totalResults} results for "${searchTerm}"`
+                    : `No results found for "${searchTerm}"`}
               </Typography>
             </Box>
-          </Box>
-        ) : (
-          <>
-            <TabPanel value={activeTab} index={0}>
-              <AllResultsList
-                results={searchResults.all}
-                searchTerm={searchTerm}
-                expandedItems={expandedItems}
-                onToggleExpand={handleToggleExpand}
-                highlightText={highlightText}
-                showRelevanceScores={SearchConfig.ui && SearchConfig.ui.showRelevanceScores}
-              />
-            </TabPanel>
+          )}
 
-            <TabPanel value={activeTab} index={1}>
-              <ResultsList
-                results={searchResults.projects}
-                searchTerm={searchTerm}
-                expandedItems={expandedItems}
-                onToggleExpand={handleToggleExpand}
-                highlightText={highlightText}
-                showRelevanceScores={SearchConfig.ui && SearchConfig.ui.showRelevanceScores}
-                emptyMessage={`No project results found for "${searchTerm}"`}
-              />
-            </TabPanel>
+          <SearchResults>
+            {isInitializing ? (
+              <Box display="flex" justifyContent="center" alignItems="center" height="300px">
+                <Box textAlign="center">
+                  <CircularProgress sx={{ mb: 2 }} />
+                  <Typography variant="body1">
+                    {indexFileInfo.exists ? 'Loading existing index...' : 'Creating search index...'}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    {indexFileInfo.exists
+                      ? 'Loading saved index and checking for changes'
+                      : 'Building new search index for all projects'}
+                  </Typography>
+                </Box>
+              </Box>
+            ) : (
+              <>
+                <TabPanel value={activeTab} index={0}>
+                  <AllResultsList
+                    results={searchResults.all}
+                    searchTerm={searchTerm}
+                    expandedItems={expandedItems}
+                    onToggleExpand={handleToggleExpand}
+                    highlightText={highlightText}
+                    showRelevanceScores={SearchConfig.ui && SearchConfig.ui.showRelevanceScores}
+                  />
+                </TabPanel>
 
-            <TabPanel value={activeTab} index={2}>
-              <ResultsList
-                results={searchResults.files}
-                searchTerm={searchTerm}
-                expandedItems={expandedItems}
-                onToggleExpand={handleToggleExpand}
-                highlightText={highlightText}
-                showRelevanceScores={SearchConfig.ui && SearchConfig.ui.showRelevanceScores}
-                emptyMessage={`No file results found for "${searchTerm}"`}
-              />
-            </TabPanel>
+                <TabPanel value={activeTab} index={1}>
+                  <ResultsList
+                    results={searchResults.projects}
+                    searchTerm={searchTerm}
+                    expandedItems={expandedItems}
+                    onToggleExpand={handleToggleExpand}
+                    highlightText={highlightText}
+                    showRelevanceScores={SearchConfig.ui && SearchConfig.ui.showRelevanceScores}
+                    emptyMessage={`No project results found for "${searchTerm}"`}
+                  />
+                </TabPanel>
 
-            <TabPanel value={activeTab} index={3}>
-              <ResultsList
-                results={searchResults.folders}
-                searchTerm={searchTerm}
-                expandedItems={expandedItems}
-                onToggleExpand={handleToggleExpand}
-                highlightText={highlightText}
-                showRelevanceScores={SearchConfig.ui && SearchConfig.ui.showRelevanceScores}
-                emptyMessage={`No folder results found for "${searchTerm}"`}
-              />
-            </TabPanel>
+                <TabPanel value={activeTab} index={2}>
+                  <ResultsList
+                    results={searchResults.files}
+                    searchTerm={searchTerm}
+                    expandedItems={expandedItems}
+                    onToggleExpand={handleToggleExpand}
+                    highlightText={highlightText}
+                    showRelevanceScores={SearchConfig.ui && SearchConfig.ui.showRelevanceScores}
+                    emptyMessage={`No file results found for "${searchTerm}"`}
+                  />
+                </TabPanel>
 
-            <TabPanel value={activeTab} index={4}>
-              <ResultsList
-                results={searchResults.people}
-                searchTerm={searchTerm}
-                expandedItems={expandedItems}
-                onToggleExpand={handleToggleExpand}
-                highlightText={highlightText}
-                showRelevanceScores={SearchConfig.ui && SearchConfig.ui.showRelevanceScores}
-                emptyMessage={`No people results found for "${searchTerm}"`}
-              />
-            </TabPanel>
+                <TabPanel value={activeTab} index={3}>
+                  <ResultsList
+                    results={searchResults.folders}
+                    searchTerm={searchTerm}
+                    expandedItems={expandedItems}
+                    onToggleExpand={handleToggleExpand}
+                    highlightText={highlightText}
+                    showRelevanceScores={SearchConfig.ui && SearchConfig.ui.showRelevanceScores}
+                    emptyMessage={`No folder results found for "${searchTerm}"`}
+                  />
+                </TabPanel>
 
-            <TabPanel value={activeTab} index={5}>
-              <ResultsList
-                results={searchResults.assets}
-                searchTerm={searchTerm}
-                expandedItems={expandedItems}
-                onToggleExpand={handleToggleExpand}
-                highlightText={highlightText}
-                showRelevanceScores={SearchConfig.ui && SearchConfig.ui.showRelevanceScores}
-                emptyMessage={`No asset results found for "${searchTerm}"`}
-              />
-            </TabPanel>
+                <TabPanel value={activeTab} index={4}>
+                  <ResultsList
+                    results={searchResults.people}
+                    searchTerm={searchTerm}
+                    expandedItems={expandedItems}
+                    onToggleExpand={handleToggleExpand}
+                    highlightText={highlightText}
+                    showRelevanceScores={SearchConfig.ui && SearchConfig.ui.showRelevanceScores}
+                    emptyMessage={`No people results found for "${searchTerm}"`}
+                  />
+                </TabPanel>
 
-            <TabPanel value={activeTab} index={6}>
-              <ResultsList
-                results={searchResults.notes}
-                searchTerm={searchTerm}
-                expandedItems={expandedItems}
-                onToggleExpand={handleToggleExpand}
-                highlightText={highlightText}
-                showRelevanceScores={SearchConfig.ui && SearchConfig.ui.showRelevanceScores}
-                emptyMessage={`No note results found for "${searchTerm}"`}
-              />
-            </TabPanel>
-          </>
-        )}
-      </SearchResults>
+                <TabPanel value={activeTab} index={5}>
+                  <ResultsList
+                    results={searchResults.assets}
+                    searchTerm={searchTerm}
+                    expandedItems={expandedItems}
+                    onToggleExpand={handleToggleExpand}
+                    highlightText={highlightText}
+                    showRelevanceScores={SearchConfig.ui && SearchConfig.ui.showRelevanceScores}
+                    emptyMessage={`No asset results found for "${searchTerm}"`}
+                  />
+                </TabPanel>
 
-      {process.env.NODE_ENV === 'development' && !isInitializing && (
-        <DebugPanel
-          searchStats={searchStats}
-          indexFileInfo={indexFileInfo}
-          onShowStats={handleShowStats}
-        />
-      )}
-    </SearchContainer>
+                <TabPanel value={activeTab} index={6}>
+                  <ResultsList
+                    results={searchResults.notes}
+                    searchTerm={searchTerm}
+                    expandedItems={expandedItems}
+                    onToggleExpand={handleToggleExpand}
+                    highlightText={highlightText}
+                    showRelevanceScores={SearchConfig.ui && SearchConfig.ui.showRelevanceScores}
+                    emptyMessage={`No note results found for "${searchTerm}"`}
+                  />
+                </TabPanel>
+              </>
+            )}
+          </SearchResults>
+
+          {process.env.NODE_ENV === 'development' && !isInitializing && (
+            <DebugPanel
+              searchStats={searchStats}
+              indexFileInfo={indexFileInfo}
+              onShowStats={handleShowStats}
+            />
+          )}
+        </SearchContainer>
+      </Grid>
+    </Grid>
   );
 }
 

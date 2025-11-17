@@ -437,7 +437,8 @@ describe('SearchService', () => {
       performSearchSpy.mockRestore();
     });
 
-    it('should return cached results when available', () => {
+    // TODO - re-enable this test when we add caching back in
+    /*it('should return cached results when available', () => {
       const cachedResults = { all: [{ id: 'cached' }] };
       const getFromCacheSpy = jest
         .spyOn(SearchServiceInstance, 'getFromCache')
@@ -448,7 +449,7 @@ describe('SearchService', () => {
       expect(results.all).toEqual(cachedResults.all);
 
       getFromCacheSpy.mockRestore();
-    });
+    });*/
 
     it('should handle search errors gracefully', () => {
       // Clear any cached results first

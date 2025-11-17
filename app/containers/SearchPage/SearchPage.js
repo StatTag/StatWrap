@@ -38,7 +38,7 @@ class SearchPage extends Component {
   render() {
       return (
       <div className={styles.container} data-tid="container">
-        <Search projects={this.state.projects} />
+        <Search projects={this.state.loaded ? this.state.projects : null} />
       </div>
     )
   }

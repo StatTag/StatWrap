@@ -1116,7 +1116,6 @@ ipcMain.on(Messages.SEARCH_INDEX_DELETE_REQUEST, async (event) => {
   };
 
   try {
-    console.log('Search: Preparing to delete index');
     const deleteSuccess = await SearchService.deleteIndexFile();
 
     if (deleteSuccess) {
@@ -1143,8 +1142,6 @@ ipcMain.on(Messages.SEARCH_UPDATE_SETTINGS_REQUEST, async (event, searchSettings
     errorMessage: '',
   };
 
-  console.log('Updating search settings for user: ', searchSettings);
-
   if (!searchSettings) {
     response.error = true;
     response.errorMessage = 'No search settings were provided';
@@ -1158,7 +1155,6 @@ ipcMain.on(Messages.SEARCH_UPDATE_SETTINGS_REQUEST, async (event, searchSettings
     const settings = service.loadUserSettingsFromFile(userSettingsPath);
     settings.searchSettings = searchSettings;
     service.saveUserSettingsToFile(settings, userSettingsPath);
-    console.log('Saved search settings for user');
   } catch (e) {
     response.error = true;
     response.errorMessage = e.message;
@@ -1180,7 +1176,6 @@ ipcMain.on(Messages.SEARCH_REQUEST, async (event, query, searchOptions) => {
     const results = SearchService.search(query, searchOptions);
     response.results = results;
     response.searchTime = Date.now() - searchStartTime;
-    console.log('Search completed');
   } catch (e) {
     response.error = true;
     response.errorMessage = e.message;

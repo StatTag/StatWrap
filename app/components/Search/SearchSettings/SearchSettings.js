@@ -259,6 +259,7 @@ const searchSettings = (props) => {
                   Delete Index
                 </Button>
 
+                {/*
                 <Button
                   startIcon={<DownloadOutlined />}
                   onClick={handleExportIndex}
@@ -279,6 +280,7 @@ const searchSettings = (props) => {
                   Import
                   <input type="file" hidden accept=".json" onChange={handleImportIndex} />
                 </Button>
+                */}
               </Box>
 
               {indexFileInfo.exists && (
