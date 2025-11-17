@@ -1362,7 +1362,6 @@ class SearchService {
 
       // Apply filters
       if (type && type !== 'all') {
-        console.log('TYPE: ', type);
         searchResults = searchResults.filter((result) => result.type === type);
       }
 
