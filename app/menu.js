@@ -148,7 +148,7 @@ export default class MenuBuilder {
         {
           label: 'Documentation',
           click() {
-            shell.openExternal('https://sites.northwestern.edu/statwrap/');
+            shell.openExternal('https://sites.northwestern.edu/statwrap/user-guide/');
           }
         },
         {
@@ -232,7 +232,7 @@ export default class MenuBuilder {
           {
             label: 'Documentation',
             click() {
-              shell.openExternal('https://sites.northwestern.edu/statwrap/');
+              shell.openExternal('https://sites.northwestern.edu/statwrap/user-guide/');
             }
           },
           {
