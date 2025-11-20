@@ -1,5 +1,13 @@
 # StatWrap Changelog
 
+## 0.0.18 - November 20, 2025
+
+### Change Summary
+
+This release includes the "Search" feature, developed by our OSRE Summer of Reproducibility intern, @debangi29
+
+**Full Changelog**: https://github.com/StatTag/StatWrap/compare/0.0.17...0.0.18
+
 ## 0.0.17 - September 19, 2025
 
 ### Change Summary
