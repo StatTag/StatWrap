@@ -1,5 +1,13 @@
 # StatWrap Changelog
 
+## 0.0.19 - November 26, 2025
+
+### Change Summary
+
+- Improve search by excluding user folders from R, RStudio, Python, Jupyter, etc. from indexing.
+
+**Full Changelog**: https://github.com/StatTag/StatWrap/compare/0.0.18...0.0.19
+
 ## 0.0.18 - November 20, 2025
 
 ### Change Summary

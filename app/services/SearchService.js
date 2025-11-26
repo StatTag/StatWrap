@@ -7,7 +7,6 @@ import Messages from '../constants/messages';
 import Constants from '../constants/constants';
 
 const SEARCH_CONFIG_VERSION = '1.0';
-const EXCLUDED_DIRS = ['node_modules', '.git', '.statwrap', '__pycache__', '.venv', 'venv'];
 
 class SearchService {
   constructor() {
@@ -822,11 +821,17 @@ class SearchService {
             const stats = fs.statSync(fullPath);
 
             if (stats.isDirectory()) {
-              if (!EXCLUDED_DIRS.includes(item)) {
+              // Don't process ignored directories
+              if (!SearchConfig?.indexing?.excludedDirectories.includes(item)) {
                 await scanDirectory(fullPath);
               }
             } else if (stats.isFile()) {
               totalFiles++;
+
+              // Skip any ignored files
+              if (SearchConfig?.indexing?.excludedFiles.includes(item)) {
+                continue;
+              }
 
               if (stats.size > fileSizeLimit) {
                 skippedLargeFiles++;
