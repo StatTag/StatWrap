@@ -32,6 +32,7 @@ import AssetUtil from './utils/asset';
 import ProjectUtil from './utils/project';
 import LogService from './services/log';
 import ChecklistService from './services/checklist';
+import FileHandler from './services/assets/handlers/file';
 
 // Initialize @electron/remote
 initialize();
@@ -52,7 +53,6 @@ const projectListService = new ProjectListService();
 const sourceControlService = new SourceControlService();
 const logService = new LogService();
 const checklistService = new ChecklistService();
-//const searchService = new SearchService();
 
 // The LogWatcherService requires a window from which we can send messages, so we can't
 // construct it until the BrowserWindow is created.
