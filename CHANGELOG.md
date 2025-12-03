@@ -1,5 +1,13 @@
 # StatWrap Changelog
 
+## 0.0.20 - December 3, 2025
+
+### Change Summary
+
+- Fix issue with new project creation error message.
+
+**Full Changelog**: https://github.com/StatTag/StatWrap/compare/0.0.19...0.0.20
+
 ## 0.0.19 - November 26, 2025
 
 ### Change Summary
