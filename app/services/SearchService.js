@@ -7,7 +7,6 @@ import Messages from '../constants/messages';
 import Constants from '../constants/constants';
 
 const SEARCH_CONFIG_VERSION = '1.0';
-// const EXCLUDED_DIRS = ['node_modules', '.git', '.statwrap', '__pycache__', '.venv', 'venv'];
 
 class SearchService {
   constructor() {
