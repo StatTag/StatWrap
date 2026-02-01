@@ -324,6 +324,7 @@ const Search = (props) => {
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
+
     if (searchTimeout) {
       clearTimeout(searchTimeout);
       setSearchTimeout(null);
@@ -341,6 +342,19 @@ const Search = (props) => {
     if (!value.trim()) {
       setFullSearchResults(EMPTY_SEARCH_RESULTS);
       setExpandedItems({});
+      return;
+    }
+
+    // Live search with debounce - trigger search after user stops typing
+    const minLength = SearchConfig.ui?.minSearchLength || 2;
+    const delay = SearchConfig.ui?.liveSearchDelay || 400;
+
+    if (value.trim().length >= minLength) {
+      const timeout = setTimeout(() => {
+        performSearch(value);
+        setShowSuggestions(false);
+      }, delay);
+      setSearchTimeout(timeout);
     }
   };
 
@@ -557,7 +571,7 @@ const Search = (props) => {
                       inputRef={searchInputRef}
                       fullWidth
                       variant="outlined"
-                      placeholder="Search for projects, files, people, notes... (Press Enter or click Search)"
+                      placeholder="Search for projects, files, people, notes..."
                       disabled={isInitializing}
                       onKeyUp={handleSearchKeyUp}
                       onChange={handleSearchChange}

@@ -191,6 +191,8 @@ module.exports = {
     maxSuggestions: 8,
     showRelevanceScores: process.env.NODE_ENV === 'development',
     enableKeyboardShortcuts: true,
+    liveSearchDelay: 400,  // Delay in ms before triggering live search after user stops typing
+    minSearchLength: 2,    // Minimum characters required before triggering live search
   },
 
   // Performance settings
