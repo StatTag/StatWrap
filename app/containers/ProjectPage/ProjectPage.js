@@ -58,6 +58,7 @@ class ProjectPage extends Component {
 
     this.handleLoadProjectListResponse = this.handleLoadProjectListResponse.bind(this);
     this.refreshProjectsHandler = this.refreshProjectsHandler.bind(this);
+    this.handleRemoveProjectListEntryResponse = this.handleRemoveProjectListEntryResponse.bind(this);
     this.handleFavoriteClick = this.handleFavoriteClick.bind(this);
     this.handleAddProject = this.handleAddProject.bind(this);
     this.handleCloseAddProject = this.handleCloseAddProject.bind(this);
@@ -91,7 +92,7 @@ class ProjectPage extends Component {
     ipcRenderer.on(Messages.LOAD_CONFIGURATION_RESPONSE, this.handleLoadConfigurationResponse);
 
     ipcRenderer.on(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.refreshProjectsHandler);
-    ipcRenderer.on(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
+    ipcRenderer.on(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.handleRemoveProjectListEntryResponse);
     ipcRenderer.on(Messages.RENAME_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.on(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
     ipcRenderer.on(Messages.SCAN_PROJECT_RESULTS_RESPONSE, this.handleScanProjectResultsResponse);
@@ -132,7 +133,7 @@ class ProjectPage extends Component {
     );
     ipcRenderer.removeListener(
       Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE,
-      this.refreshProjectsHandler,
+      this.handleRemoveProjectListEntryResponse,
     );
     ipcRenderer.removeListener(
       Messages.RENAME_PROJECT_LIST_ENTRY_RESPONSE,
@@ -290,6 +291,20 @@ class ProjectPage extends Component {
   refreshProjectsHandler() {
     this.setState({ loaded: false });
     ipcRenderer.send(Messages.LOAD_PROJECT_LIST_REQUEST);
+  }
+
+  handleRemoveProjectListEntryResponse(sender, response) {
+    // If the removed project is currently selected, clear the selection
+    if (this.state.selectedProject && response.projectId === this.state.selectedProject.id) {
+      this.setState({
+        selectedProject: null,
+        selectedProjectLogs: null,
+        selectedProjectChecklist: null,
+        assetDynamicDetails: null,
+      });
+    }
+    // Refresh the project list
+    this.refreshProjectsHandler();
   }
 
   handleProjectExternallyChangedResponse(sender, response) {
