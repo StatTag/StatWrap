@@ -183,7 +183,31 @@ class ProjectPage extends Component {
   }
 
   handleLoadProjectListResponse(sender, response) {
+    // Auto-select default project if no project is currently selected
+    let defaultProject = null;
+    if (!this.state.selectedProject && response.projects && response.projects.length > 0) {
+      // Priority 1: Pinned/favorited projects
+      const pinnedProjects = response.projects.filter((p) => p.favorite);
+      if (pinnedProjects.length > 0) {
+        defaultProject = pinnedProjects[0];
+      } else {
+        // Priority 2: Active projects (not marked as 'past')
+        const activeProjects = response.projects.filter((p) => p.status !== 'past');
+        if (activeProjects.length > 0) {
+          defaultProject = activeProjects[0];
+        } else {
+          // Priority 3: Any project
+          defaultProject = response.projects[0];
+        }
+      }
+    }
+
     this.setState({ ...response, loaded: true });
+
+    // Select the default project after state is updated
+    if (defaultProject) {
+      this.handleSelectProjectListItem(defaultProject);
+    }
   }
 
   handleLoadConfigurationResponse(sender, response) {
