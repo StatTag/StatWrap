@@ -197,7 +197,18 @@ class ProjectPage extends Component {
   }
 
   handleLoadProjectListResponse(sender, response) {
-    this.setState({ ...response, loaded: true });
+    this.setState({ ...response, loaded: true }, () => {
+      if (
+        this.props.selectedProjectId &&
+        (!this.state.selectedProject ||
+          this.state.selectedProject.id !== this.props.selectedProjectId)
+      ) {
+        const project = this.state.projects.find((p) => p.id === this.props.selectedProjectId);
+        if (project) {
+          this.loadProject(project);
+        }
+      }
+    });
   }
 
   handleLoadConfigurationResponse(sender, response) {
@@ -421,6 +432,9 @@ class ProjectPage extends Component {
     // Handle case where user clicks off of all projects (project is null)
     if (!project) {
       this.setState({ selectedProject: null });
+      if (this.props.onSelectProject) {
+        this.props.onSelectProject(null);
+      }
       return;
     }
 
@@ -437,6 +451,9 @@ class ProjectPage extends Component {
       return;
     }
 
+    if (this.props.onSelectProject) {
+      this.props.onSelectProject(project.id);
+    }
     this.loadProject(project);
   }
 
