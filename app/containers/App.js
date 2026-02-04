@@ -25,6 +25,7 @@ import Messages from '../constants/messages';
 import routes from '../constants/routes.json';
 import UserContext from '../contexts/User';
 import SettingsContext from '../contexts/Settings';
+import ProjectContext from '../contexts/Project';
 import UserProfileDialog from './UserProfileDialog/UserProfileDialog';
 import styles from './App.css';
 import GeneralUtil from '../utils/general';
@@ -54,6 +55,7 @@ export default class App extends React.Component {
       settings: {},
       displayUserProfileDialog: false,
       userProfileDialogKey: 0,
+      selectedProjectId: null,
     };
 
     this.handleLoadUserInfoResponse = this.handleLoadUserInfoResponse.bind(this);
@@ -62,6 +64,7 @@ export default class App extends React.Component {
     this.handleCloseUserProfileDialog = this.handleCloseUserProfileDialog.bind(this);
     this.handleOpenUserProfileDialog = this.handleOpenUserProfileDialog.bind(this);
     this.handleSaveUserProfile = this.handleSaveUserProfile.bind(this);
+    this.handleSelectProject = this.handleSelectProject.bind(this);
   }
 
   componentDidMount() {
@@ -104,7 +107,7 @@ export default class App extends React.Component {
 
   handleUpdateSearchSettingsResponse(sender, response) {
     this.setState((prevState) => ({
-      settings: {...prevState.settings, searchSettings: response.searchSettings }
+      settings: { ...prevState.settings, searchSettings: response.searchSettings }
     }));
   }
 
@@ -127,6 +130,10 @@ export default class App extends React.Component {
 
   handleOpenUserProfileDialog() {
     this.setState({ displayUserProfileDialog: true });
+  }
+
+  handleSelectProject(id) {
+    this.setState({ selectedProjectId: id });
   }
 
   render() {
@@ -180,40 +187,47 @@ export default class App extends React.Component {
       <ThemeProvider theme={theme}>
         <UserContext.Provider value={this.state.user}>
           <SettingsContext.Provider value={this.state.settings}>
-            <AppBar position="static">
-              <Toolbar className={styles.toolbar}>
-                <img alt="StatWrap logo" src="images/banner.png" />
-                <section className={styles.rightToolbar}>
-                  <Link to={routes.HOME} className={styles.navigation}>
-                    <IconButton aria-label="home">
-                      <HomeIcon />
-                    </IconButton>
-                  </Link>
-                  <Link to={routes.SEARCH} className={styles.navigation}>
-                    <IconButton aria-label="search">
-                      <SearchIcon />
-                    </IconButton>
-                  </Link>
-                  <Link to={routes.CONFIGURATION} className={styles.navigation}>
-                    <IconButton aria-label="settings">
-                      <SettingsIcon />
-                    </IconButton>
-                  </Link>
-                  <Link to={routes.ABOUT} className={styles.navigation}>
-                    <IconButton aria-label="settings">
-                      <AboutIcon />
-                    </IconButton>
-                  </Link>
-                  <div className={styles.user}>
-                    <a className={styles.userButton} onClick={this.handleOpenUserProfileDialog}>
-                      {this.state.displayName}
-                    </a>
-                  </div>
-                </section>
-              </Toolbar>
-            </AppBar>
-            {children}
-            {userProfileDialog}
+            <ProjectContext.Provider
+              value={{
+                selectedProjectId: this.state.selectedProjectId,
+                onSelectProject: this.handleSelectProject,
+              }}
+            >
+              <AppBar position="static">
+                <Toolbar className={styles.toolbar}>
+                  <img alt="StatWrap logo" src="images/banner.png" />
+                  <section className={styles.rightToolbar}>
+                    <Link to={routes.HOME} className={styles.navigation}>
+                      <IconButton aria-label="home">
+                        <HomeIcon />
+                      </IconButton>
+                    </Link>
+                    <Link to={routes.SEARCH} className={styles.navigation}>
+                      <IconButton aria-label="search">
+                        <SearchIcon />
+                      </IconButton>
+                    </Link>
+                    <Link to={routes.CONFIGURATION} className={styles.navigation}>
+                      <IconButton aria-label="settings">
+                        <SettingsIcon />
+                      </IconButton>
+                    </Link>
+                    <Link to={routes.ABOUT} className={styles.navigation}>
+                      <IconButton aria-label="settings">
+                        <AboutIcon />
+                      </IconButton>
+                    </Link>
+                    <div className={styles.user}>
+                      <a className={styles.userButton} onClick={this.handleOpenUserProfileDialog}>
+                        {this.state.displayName}
+                      </a>
+                    </div>
+                  </section>
+                </Toolbar>
+              </AppBar>
+              {children}
+              {userProfileDialog}
+            </ProjectContext.Provider>
           </SettingsContext.Provider>
         </UserContext.Provider>
       </ThemeProvider>
