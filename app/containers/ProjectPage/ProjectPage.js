@@ -11,6 +11,14 @@ import UserContext from '../../contexts/User';
 import Messages from '../../constants/messages';
 import ChecklistUtil from '../../utils/checklist';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
+} from '@mui/material';
 
 class ProjectPage extends Component {
   constructor(props) {
@@ -54,7 +62,13 @@ class ProjectPage extends Component {
       // Show progress on scanning details about the project.  Allows the user to access what information
       // is available, yet be aware that more information may be arriving later.
       projectScanStatus: '',
+      isProjectDirty: false,
+      showDirtyConfirmation: false,
+      pendingProject: null,
     };
+    this.handleProjectDirtyStateChange = this.handleProjectDirtyStateChange.bind(this);
+    this.handleDiscardChanges = this.handleDiscardChanges.bind(this);
+    this.handleCancelSwitch = this.handleCancelSwitch.bind(this);
 
     this.handleLoadProjectListResponse = this.handleLoadProjectListResponse.bind(this);
     this.refreshProjectsHandler = this.refreshProjectsHandler.bind(this);
@@ -394,6 +408,9 @@ class ProjectPage extends Component {
       case Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST:
         ipcRenderer.send(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, projectId);
         break;
+      case Messages.SHOW_ITEM_IN_FOLDER:
+        ipcRenderer.send(Messages.SHOW_ITEM_IN_FOLDER, projectId);
+        break;
       default:
         console.warn(`Unknown project list entry menu event: ${event}`);
     }
@@ -407,6 +424,23 @@ class ProjectPage extends Component {
       return;
     }
 
+    // If the user clicks the project that is already selected, ignore it.
+    if (this.state.selectedProject && this.state.selectedProject.id === project.id) {
+      return;
+    }
+
+    if (this.state.isProjectDirty && this.state.selectedProject && this.state.selectedProject.id !== project.id) {
+      this.setState({
+        showDirtyConfirmation: true,
+        pendingProject: project
+      });
+      return;
+    }
+
+    this.loadProject(project);
+  }
+
+  loadProject(project) {
     // If the project is offline (has loadError), try to refresh its status
     if (project.loadError) {
       // First update the UI to show we're trying to reconnect
@@ -444,6 +478,28 @@ class ProjectPage extends Component {
       ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, project);
       ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, project);
     }
+  }
+
+  handleProjectDirtyStateChange(isDirty) {
+    this.setState({ isProjectDirty: isDirty });
+  }
+
+  handleDiscardChanges() {
+    this.setState({
+      showDirtyConfirmation: false,
+      isProjectDirty: false
+    }, () => {
+      if (this.state.pendingProject) {
+        this.loadProject(this.state.pendingProject);
+      }
+    });
+  }
+
+  handleCancelSwitch() {
+    this.setState({
+      showDirtyConfirmation: false,
+      pendingProject: null
+    });
   }
 
   handleProjectUpdate(project, actionType, entityType, entityKey, title, description, details) {
@@ -534,6 +590,7 @@ class ProjectPage extends Component {
               configuration={{ assetAttributes: this.state.assetAttributes }}
               assetDynamicDetails={this.state.assetDynamicDetails}
               scanStatus={this.state.projectScanStatus}
+              onDirtyStateChange={this.handleProjectDirtyStateChange}
             />
           </Panel>
         </PanelGroup>
@@ -547,12 +604,28 @@ class ProjectPage extends Component {
           anchorElement={
             this.state.projectListMenuAnchor ? this.state.projectListMenuAnchor.element : null
           }
-          project={
-            this.state.projectListMenuAnchor ? this.state.projectListMenuAnchor.project : null
-          }
           onClose={this.handleCloseProjectListMenu}
           onMenuClick={this.handleClickProjectListMenu}
         />
+        <Dialog
+          open={this.state.showDirtyConfirmation}
+          onClose={this.handleCancelSwitch}
+        >
+          <DialogTitle>Discard Changes?</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              You have unsaved changes in the current project. Switching to another project will discard these changes. Are you sure you want to proceed?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.handleDiscardChanges} color="primary" autoFocus>
+              Discard Changes
+            </Button>
+            <Button onClick={this.handleCancelSwitch} color="secondary">
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     );
   }
