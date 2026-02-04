@@ -611,7 +611,7 @@ class ProjectPage extends Component {
           open={this.state.showDirtyConfirmation}
           onClose={this.handleCancelSwitch}
         >
-          <DialogTitle>Discard Changes?</DialogTitle>
+          <DialogTitle style={{ color: 'white' , backgroundColor: '#aa94d1'  }}>Discard Changes</DialogTitle>
           <DialogContent>
             <DialogContentText>
               You have unsaved changes in the current project. Switching to another project will discard these changes. Are you sure you want to proceed?
