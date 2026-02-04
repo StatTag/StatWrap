@@ -48,8 +48,9 @@ function projectListEntryMenu(props) {
         onClick={() =>
           props.onMenuClick(Messages.SHOW_ITEM_IN_FOLDER, props.project.path)
         }
+        disabled={props.project.loadError}
       >
-        Show in File Explorer
+        Show in Folder
       </MenuItem>
       
       <Divider />
