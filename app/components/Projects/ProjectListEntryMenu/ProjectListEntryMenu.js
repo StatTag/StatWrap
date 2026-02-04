@@ -43,6 +43,16 @@ function projectListEntryMenu(props) {
       )}
       
       <Divider />
+
+      <MenuItem
+        onClick={() =>
+          props.onMenuClick(Messages.SHOW_ITEM_IN_FOLDER, props.project.path)
+        }
+      >
+        Show in File Explorer
+      </MenuItem>
+      
+      <Divider />
       
       {/* Remove option */}
       <MenuItem
