@@ -43,6 +43,17 @@ function projectListEntryMenu(props) {
       )}
       
       <Divider />
+
+      <MenuItem
+        onClick={() =>
+          props.onMenuClick(Messages.SHOW_ITEM_IN_FOLDER, props.project.path)
+        }
+        disabled={props.project.loadError}
+      >
+        Show in Folder
+      </MenuItem>
+      
+      <Divider />
       
       {/* Remove option */}
       <MenuItem

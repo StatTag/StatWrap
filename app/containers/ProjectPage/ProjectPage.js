@@ -409,6 +409,9 @@ class ProjectPage extends Component {
       case Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST:
         ipcRenderer.send(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, projectId);
         break;
+      case Messages.SHOW_ITEM_IN_FOLDER:
+        ipcRenderer.send(Messages.SHOW_ITEM_IN_FOLDER, projectId);
+        break;
       default:
         console.warn(`Unknown project list entry menu event: ${event}`);
     }
