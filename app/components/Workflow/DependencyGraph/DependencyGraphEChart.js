@@ -72,7 +72,7 @@ function DependencyGraphEChart(props) {
     if (assets) {
       const filteredAssets = WorkflowUtil.filterArchivedAssets(assets);
       setFilter(updatedFilter);
-      setGraphData(WorkflowUtil.getAllDependenciesAsEChartGraph(filteredAssets, filter));
+      setGraphData(WorkflowUtil.getAllDependenciesAsEChartGraph(filteredAssets, updatedFilter));
     } else {
       setGraphData(null);
     }
