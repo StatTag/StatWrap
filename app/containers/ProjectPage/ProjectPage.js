@@ -643,6 +643,9 @@ class ProjectPage extends Component {
           anchorElement={
             this.state.projectListMenuAnchor ? this.state.projectListMenuAnchor.element : null
           }
+          project={
+    this.state.projectListMenuAnchor ? this.state.projectListMenuAnchor.project : null
+  }
           onClose={this.handleCloseProjectListMenu}
           onMenuClick={this.handleClickProjectListMenu}
         />
