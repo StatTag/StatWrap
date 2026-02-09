@@ -132,6 +132,17 @@ class ProjectPage extends Component {
     );
   }
 
+  componentDidUpdate(prevProps) {
+    if (this.props.selectedProjectId && this.props.selectedProjectId !== prevProps.selectedProjectId) {
+      if (this.state.loaded && this.state.projects) {
+        const project = this.state.projects.find((p) => String(p.id) === String(this.props.selectedProjectId));
+        if (project) {
+          this.loadProject(project);
+        }
+      }
+    }
+  }
+
   componentWillUnmount() {
     ipcRenderer.removeListener(
       Messages.LOAD_PROJECT_LIST_RESPONSE,
@@ -198,31 +209,55 @@ class ProjectPage extends Component {
   }
 
   handleLoadProjectListResponse(sender, response) {
-    // Auto-select default project if no project is currently selected
+    // Determine which project ID we should try to restore. We prioritize the prop (from App state),
+    // but fallback to localStorage if that is missing.
+    let projectIdToRestore = this.props.selectedProjectId;
+    if (!projectIdToRestore) {
+      projectIdToRestore = localStorage.getItem('statwrap_selected_project_id');
+    }
+
+    // 1. Try to restore the selected project
+    if (projectIdToRestore) {
+      // Use String conversion to ensure we match even if types mismatch (e.g. string vs number)
+      const project = response.projects.find((p) => String(p.id) === String(projectIdToRestore));
+      if (project) {
+        this.setState({ ...response, loaded: true }, () => {
+          this.loadProject(project);
+        });
+        return;
+      }
+    }
+
+    // 2. If no selection found to restore, apply default selection logic (pinned/active/etc)
+    // We only skip default logic if we explicitly tried (and failed) to restore a specific project via prop.
+    // However, if we found an ID in localStorage but couldn't load it (deleted?), we probably shouldn't auto-select a default immediately?
+    // Or maybe we should?
+    // Let's stick to: if we have an ID (prop or storage), we skip defaults.
+
+    const explicitSelectionRequested = !!projectIdToRestore;
     let defaultProject = null;
-    if (!this.state.selectedProject && response.projects && response.projects.length > 0) {
-      // Priority 1: Pinned/favorited projects
+
+    // Only apply default selection if we didn't ask for a specific project
+    if (!explicitSelectionRequested && !this.state.selectedProject && response.projects && response.projects.length > 0) {
       const pinnedProjects = response.projects.filter((p) => p.favorite);
       if (pinnedProjects.length > 0) {
         defaultProject = pinnedProjects[0];
       } else {
-        // Priority 2: Active projects (not marked as 'past')
         const activeProjects = response.projects.filter((p) => p.status !== 'past');
         if (activeProjects.length > 0) {
           defaultProject = activeProjects[0];
         } else {
-          // Priority 3: Any project
           defaultProject = response.projects[0];
         }
       }
     }
 
-    this.setState({ ...response, loaded: true });
-
-    // Select the default project after state is updated
-    if (defaultProject) {
-      this.handleSelectProjectListItem(defaultProject);
-    }
+    this.setState({ ...response, loaded: true }, () => {
+      // We only auto-select a default if we are not already loading a specific restored project
+      if (defaultProject) {
+        this.handleSelectProjectListItem(defaultProject);
+      }
+    });
   }
 
   handleLoadConfigurationResponse(sender, response) {
@@ -340,6 +375,9 @@ class ProjectPage extends Component {
         selectedProjectChecklist: null,
         assetDynamicDetails: null,
       });
+      if (this.props.onSelectProject) {
+        this.props.onSelectProject(null);
+      }
     }
     // Refresh the project list
     this.refreshProjectsHandler();
@@ -460,6 +498,10 @@ class ProjectPage extends Component {
     // Handle case where user clicks off of all projects (project is null)
     if (!project) {
       this.setState({ selectedProject: null });
+      localStorage.removeItem('statwrap_selected_project_id');
+      if (this.props.onSelectProject) {
+        this.props.onSelectProject(null);
+      }
       return;
     }
 
@@ -480,6 +522,12 @@ class ProjectPage extends Component {
   }
 
   loadProject(project) {
+    if (this.props.onSelectProject && String(this.props.selectedProjectId) !== String(project.id)) {
+      this.props.onSelectProject(project.id);
+    }
+    // Persist to local storage as fallback
+    localStorage.setItem('statwrap_selected_project_id', project.id);
+
     // If the project is offline (has loadError), try to refresh its status
     if (project.loadError) {
       // First update the UI to show we're trying to reconnect
