@@ -22,7 +22,9 @@ import GeneralUtil from '../../utils/general';
 import styles from './Project.css';
 import UserContext from '../../contexts/User';
 
-type Props = {};
+type Props = {
+  onDirtyStateChange?: (boolean) => void,
+};
 
 class Project extends Component<Props> {
   props: Props;
@@ -40,7 +42,7 @@ class Project extends Component<Props> {
     // Safely get and check the previous project ID and the current project ID from
     // the properties.  If the project selection changes, we want the Dashboard tab
     // to be selected.  This is the component-class response to useEffect().
-    var previousId = (prevProps && prevProps.project ) ? prevProps.project.id : null;
+    var previousId = (prevProps && prevProps.project) ? prevProps.project.id : null;
     var currentId = (this.props && this.props.project) ? this.props.project.id : null;
     if (previousId != currentId) {
       this.setState({ selectedTab: 'about' });
@@ -297,7 +299,7 @@ class Project extends Component<Props> {
    * @param {object} note Optional parameter if there is an existing note being updated.  If not provided, a new note is assumed.
    */
   checklistUpsertNoteHandler = (checklistItem, text, note) => {
-    if (this.unchangedNote(note,text)) {
+    if (this.unchangedNote(note, text)) {
       return;
     }
 
@@ -732,7 +734,7 @@ class Project extends Component<Props> {
     const user = this.context;
     const currentProject = { ...this.props.project };
     const oldExternalAsset = cloneDeep(this.props.project.externalAssets.children ?
-        this.props.project.externalAssets.children.find(x => x.uri === asset.uri) : null);
+      this.props.project.externalAssets.children.find(x => x.uri === asset.uri) : null);
     const action = {
       type: ActionType.EXTERNAL_ASSET_UPDATED,
       title: ActionType.EXTERNAL_ASSET_UPDATED,
@@ -792,6 +794,7 @@ class Project extends Component<Props> {
           project={this.props.project}
           updates={this.props.logs ? this.props.logs.updates : null}
           onClickUpdatesLink={this.clickUpdatesLinkHandler}
+          onDirtyStateChange={this.props.onDirtyStateChange}
         />
       ) : null;
       const assets = this.props.project ? (
@@ -883,11 +886,11 @@ class Project extends Component<Props> {
           <div className={styles.header}>
             <div className={styles.titleContainer}>
               <IconButton
-            color="inherit"
-            onClick={() => this.props.onFavoriteClick(this.props.project.id)}
-          >
-            {this.props.project && this.props.project.favorite ? <Star /> : <StarBorder />}
-          </IconButton>
+                color="inherit"
+                onClick={() => this.props.onFavoriteClick(this.props.project.id)}
+              >
+                {this.props.project && this.props.project.favorite ? <Star /> : <StarBorder />}
+              </IconButton>
               <div className={styles.title}>
                 {name}
                 {projectPath}
@@ -948,6 +951,7 @@ Project.propTypes = {
   onUpdated: PropTypes.func,
   onAssetSelected: PropTypes.func,
   onChecklistUpdated: PropTypes.func,
+  onDirtyStateChange: PropTypes.func,
   // This object has the following structure:
   // {
   //   logs: array<string>   - the actual log data
@@ -975,6 +979,7 @@ Project.defaultProps = {
   onUpdated: null,
   onAssetSelected: null,
   onChecklistUpdated: null,
+  onDirtyStateChange: null,
   logs: null,
   checklistResponse: null,
   configuration: null,

@@ -72,6 +72,7 @@ class ProjectPage extends Component {
 
     this.handleLoadProjectListResponse = this.handleLoadProjectListResponse.bind(this);
     this.refreshProjectsHandler = this.refreshProjectsHandler.bind(this);
+    this.handleRemoveProjectListEntryResponse = this.handleRemoveProjectListEntryResponse.bind(this);
     this.handleFavoriteClick = this.handleFavoriteClick.bind(this);
     this.handleAddProject = this.handleAddProject.bind(this);
     this.handleCloseAddProject = this.handleCloseAddProject.bind(this);
@@ -105,7 +106,7 @@ class ProjectPage extends Component {
     ipcRenderer.on(Messages.LOAD_CONFIGURATION_RESPONSE, this.handleLoadConfigurationResponse);
 
     ipcRenderer.on(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.refreshProjectsHandler);
-    ipcRenderer.on(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
+    ipcRenderer.on(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.handleRemoveProjectListEntryResponse);
     ipcRenderer.on(Messages.RENAME_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.on(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
     ipcRenderer.on(Messages.SCAN_PROJECT_RESULTS_RESPONSE, this.handleScanProjectResultsResponse);
@@ -146,7 +147,7 @@ class ProjectPage extends Component {
     );
     ipcRenderer.removeListener(
       Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE,
-      this.refreshProjectsHandler,
+      this.handleRemoveProjectListEntryResponse,
     );
     ipcRenderer.removeListener(
       Messages.RENAME_PROJECT_LIST_ENTRY_RESPONSE,
@@ -197,6 +198,7 @@ class ProjectPage extends Component {
   }
 
   handleLoadProjectListResponse(sender, response) {
+<<<<<<< Retain-project-selection
     this.setState({ ...response, loaded: true }, () => {
       if (
         this.props.selectedProjectId &&
@@ -209,6 +211,33 @@ class ProjectPage extends Component {
         }
       }
     });
+=======
+    // Auto-select default project if no project is currently selected
+    let defaultProject = null;
+    if (!this.state.selectedProject && response.projects && response.projects.length > 0) {
+      // Priority 1: Pinned/favorited projects
+      const pinnedProjects = response.projects.filter((p) => p.favorite);
+      if (pinnedProjects.length > 0) {
+        defaultProject = pinnedProjects[0];
+      } else {
+        // Priority 2: Active projects (not marked as 'past')
+        const activeProjects = response.projects.filter((p) => p.status !== 'past');
+        if (activeProjects.length > 0) {
+          defaultProject = activeProjects[0];
+        } else {
+          // Priority 3: Any project
+          defaultProject = response.projects[0];
+        }
+      }
+    }
+
+    this.setState({ ...response, loaded: true });
+
+    // Select the default project after state is updated
+    if (defaultProject) {
+      this.handleSelectProjectListItem(defaultProject);
+    }
+>>>>>>> master
   }
 
   handleLoadConfigurationResponse(sender, response) {
@@ -315,6 +344,20 @@ class ProjectPage extends Component {
   refreshProjectsHandler() {
     this.setState({ loaded: false });
     ipcRenderer.send(Messages.LOAD_PROJECT_LIST_REQUEST);
+  }
+
+  handleRemoveProjectListEntryResponse(sender, response) {
+    // If the removed project is currently selected, clear the selection
+    if (this.state.selectedProject && response.projectId === this.state.selectedProject.id) {
+      this.setState({
+        selectedProject: null,
+        selectedProjectLogs: null,
+        selectedProjectChecklist: null,
+        assetDynamicDetails: null,
+      });
+    }
+    // Refresh the project list
+    this.refreshProjectsHandler();
   }
 
   handleProjectExternallyChangedResponse(sender, response) {
@@ -443,6 +486,14 @@ class ProjectPage extends Component {
       return;
     }
 
+<<<<<<< Retain-project-selection
+=======
+    // If the user clicks the project that is already selected, ignore it.
+    if (this.state.selectedProject && this.state.selectedProject.id === project.id) {
+      return;
+    }
+
+>>>>>>> master
     if (this.state.isProjectDirty && this.state.selectedProject && this.state.selectedProject.id !== project.id) {
       this.setState({
         showDirtyConfirmation: true,
@@ -451,9 +502,12 @@ class ProjectPage extends Component {
       return;
     }
 
+<<<<<<< Retain-project-selection
     if (this.props.onSelectProject) {
       this.props.onSelectProject(project.id);
     }
+=======
+>>>>>>> master
     this.loadProject(project);
   }
 
@@ -628,7 +682,11 @@ class ProjectPage extends Component {
           open={this.state.showDirtyConfirmation}
           onClose={this.handleCancelSwitch}
         >
+<<<<<<< Retain-project-selection
           <DialogTitle>Discard Changes?</DialogTitle>
+=======
+          <DialogTitle style={{ color: 'white' , backgroundColor: '#aa94d1'  }}>Discard Changes</DialogTitle>
+>>>>>>> master
           <DialogContent>
             <DialogContentText>
               You have unsaved changes in the current project. Switching to another project will discard these changes. Are you sure you want to proceed?
