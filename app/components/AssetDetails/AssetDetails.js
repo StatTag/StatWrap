@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FaTrash, FaEdit } from 'react-icons/fa';
-import { IconButton } from '@mui/material';
+import { IconButton, Box, Button } from '@mui/material';
 import OverflowDiv from '../OverflowDiv/OverflowDiv';
 import Constants from '../../constants/constants';
 import Accordion from '@mui/material/Accordion';
@@ -14,6 +14,8 @@ import Loading from '../Loading/Loading';
 import SourceControlHistory from '../SourceControlHistory/SourceControlHistory';
 import styles from './AssetDetails.css';
 import { styled } from '@mui/material/styles';
+const { ipcRenderer } = window.require('electron');
+const Messages = require('../../constants/messages');
 
 const CustomAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
   backgroundColor: 'rgba(0, 0, 0, .03)',
@@ -93,6 +95,24 @@ const assetDetails = (props) => {
     }
   };
 
+  const handleShowInFolder = () => {
+    if (asset) {
+      const filePath = asset.uri;
+      if (filePath) {
+        ipcRenderer.send(Messages.SHOW_ITEM_IN_FOLDER, filePath);
+      }
+    }
+  };
+
+  const handleOpenFile = () => {
+    if (asset) {
+      const filePath = asset.uri;
+      if (filePath) {
+        ipcRenderer.send(Messages.OPEN_FILE_WITH_DEFAULT, filePath);
+      }
+    }
+  };
+
   const isExternalAsset = asset && asset.type === Constants.AssetType.URL;
 
   let sourceControlAccordion = null;
@@ -151,6 +171,25 @@ const assetDetails = (props) => {
     );
   }
 
+  let fileActions = null;
+  if (asset) {
+    const filePath = asset.uri;
+    if (filePath) {
+      fileActions = (
+        <Box mt={2} mb={2} display="flex" gap={1}>
+          <Button size="small" variant="outlined" onClick={handleShowInFolder}>
+            Show in Folder
+          </Button>
+          <Button size="small" variant="outlined" onClick={handleOpenFile}>
+            Open File
+          </Button>
+        </Box>
+      );
+    } else {
+      console.warn('Asset missing file path property');
+    }
+  }
+
   return (
     <div className={styles.container}>
       <OverflowDiv>{asset.uri}</OverflowDiv>
@@ -173,6 +212,7 @@ const assetDetails = (props) => {
         </AccordionDetails>
       </Accordion>
       {attributesAccordion}
+      {fileActions}
       {sourceControlAccordion}
     </div>
   );
