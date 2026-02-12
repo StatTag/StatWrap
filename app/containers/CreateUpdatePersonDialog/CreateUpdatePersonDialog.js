@@ -143,27 +143,43 @@ class CreateUpdatePersonDialog extends Component {
     //  - The user has a directory populated
     //  - We are in create mode (not edit mode)
     let directory = null;
-    if (projectMode && this.props.directory && this.props.directory.length > 0 && !this.props.id) {
-      // Sort the directory so that the most recently added person in the MRU list/directory
-      // appears at the top.  Note that we are making a copy of the array because we are going
-      // to (possibly) add an item to it.  We don't want to update the original array with
-      // that value if we do add it.
-      const sortedDirectory = [...this.props.directory].sort((a, b) =>
-        a.added > b.added ? -1 : b.added > a.added ? 1 : 0,
-      );
+    const hasDirectory = this.props.directory && this.props.directory.length > 0;
+    const hasRecommendations = this.props.recommendations && this.props.recommendations.length > 0;
+    
+    if (projectMode && (hasDirectory || hasRecommendations) && !this.props.id) {
+      const allOptions = [];
+      
+      // Add directory entries
+      if (hasDirectory) {
+        const sortedDirectory = [...this.props.directory].sort((a, b) =>
+          a.added > b.added ? -1 : b.added > a.added ? 1 : 0,
+        );
 
-      // If there is the user's information, push that to the top of the directory
-      // as the first entry, and indicate that it is the user.
-      if (this.props.user && this.props.user.name && this.props.user.name.display) {
-        const user = { ...this.props.user, userEntry: true };
-        sortedDirectory.unshift(user);
+        if (this.props.user && this.props.user.name && this.props.user.name.display) {
+          const user = { ...this.props.user, userEntry: true };
+          allOptions.push(user);
+        }
+      }
+
+      // Add recommendations
+      if (hasRecommendations) {
+        this.props.recommendations.forEach(person => {
+          // Avoid duplicates - check if already in directory
+          const displayName = GeneralUtil.formatName(person.name);
+          const existsInDirectory = allOptions.some(
+            opt => GeneralUtil.formatName(opt.name) === displayName
+          );
+          if (!existsInDirectory) {
+            allOptions.push(person);
+          }
+        });
       }
 
       directory = (
         <div className={styles.directoryPanel}>
           <Autocomplete
             id="user-directory"
-            options={sortedDirectory}
+            options={allOptions}
             onChange={this.handleSelectPersonInDirectory}
             getOptionLabel={(option) =>
               option.userEntry
@@ -246,6 +262,7 @@ CreateUpdatePersonDialog.propTypes = {
   project: PropTypes.object,
   mode: PropTypes.string.isRequired,
   directory: PropTypes.array,
+  recommendations: PropTypes.array,
   user: PropTypes.object,
   id: PropTypes.string,
   name: PropTypes.object,
@@ -260,6 +277,7 @@ CreateUpdatePersonDialog.propTypes = {
 CreateUpdatePersonDialog.defaultProps = {
   project: null,
   directory: [],
+  recommendations: [],
   user: null,
   id: null,
   name: null,

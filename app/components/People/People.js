@@ -7,6 +7,7 @@ import CreateUpdatePersonDialog from '../../containers/CreateUpdatePersonDialog/
 import PeopleCardList from './PeopleCardList/PeopleCardList';
 import PeopleTable from './PeopleTable/PeopleTable';
 import SettingsContext from '../../contexts/Settings';
+import GeneralUtil from '../../utils/general';
 import styles from './People.css';
 
 function people(props) {
@@ -32,6 +33,11 @@ function people(props) {
   const [editPersonRoles, setEditPersonRoles] = useState(null);
 
   const settings = useContext(SettingsContext);
+
+  // Extract recommended people from project assets
+  const recommendations = project && project.assets 
+    ? GeneralUtil.getRecommendedPeopleFromAssets(project.assets)
+    : [];
 
   // UI state flag to let us know when we're in the process of adding/editing a person
   const [editing, setEditing] = useState(false);
@@ -141,6 +147,7 @@ function people(props) {
         key={dialogKey}
         mode={mode}
         directory={settings.directory}
+        recommendations={recommendations}
         user={settings.user}
         project={project}
         id={editPersonId}
