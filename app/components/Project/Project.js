@@ -1,5 +1,14 @@
 import React, { Component, useEffect } from 'react';
-import { Tab, Tabs } from '@mui/material';
+import {
+  Tab,
+  Tabs,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
+} from '@mui/material';
 import { TabPanel, TabContext } from '@mui/lab';
 import { cloneDeep } from 'lodash';
 import IconButton from '@mui/material/IconButton';
@@ -22,16 +31,14 @@ import GeneralUtil from '../../utils/general';
 import styles from './Project.css';
 import UserContext from '../../contexts/User';
 
-type Props = {
-  onDirtyStateChange?: (boolean) => void,
-};
+type Props = {};
 
 class Project extends Component<Props> {
   props: Props;
 
   constructor(props) {
     super(props);
-    this.state = { selectedTab: 'about', showLogUpdatesOnly: false };
+    this.state = { selectedTab: 'about', showLogUpdatesOnly: false, showUnarchiveConfirmation: false, pendingUnarchive: null };
   }
 
   changeHandler = (event, id) => {
@@ -366,15 +373,32 @@ class Project extends Component<Props> {
    * @param {any} value The value of the updated attribute.  Its type depends on the configuration of the attribute.
    */
   assetUpdateAttributeHandler = (asset, name, value) => {
-    const project = { ...this.props.project };
-    const assetsCopy = { ...project.assets };
+    // Check for unarchive action
+    if (name === 'archived' && value === false) {
+      if (AssetUtil.hasArchivedDescendants(asset)) {
+        this.setState({
+          showUnarchiveConfirmation: true,
+          pendingUnarchive: { assetUri: asset.uri, name, value }
+        });
+        return;
+      }
+    }
 
-    const existingAsset = AssetUtil.findDescendantAssetByUri(assetsCopy, asset.uri);
+    this.performAssetAttributeUpdate(asset.uri, name, value, false);
+  };
+
+  performAssetAttributeUpdate = (assetUri, name, value, clearDescendants) => {
+
+    const project = cloneDeep(this.props.project);
+    const assetsCopy = project.assets;
+
+    const existingAsset = AssetUtil.findDescendantAssetByUri(assetsCopy, assetUri);
     let actionDescription = '';
     if (!existingAsset) {
       console.warn('Could not find the asset to update its attribute');
+      return;
     } else {
-      actionDescription = `Updated ${asset.uri} attribute '${name}' to '${value}'`;
+      actionDescription = `Updated ${assetUri} attribute '${name}' to '${value}'`;
     }
 
     if (!existingAsset.attributes) {
@@ -382,18 +406,40 @@ class Project extends Component<Props> {
     }
 
     existingAsset.attributes[name] = value;
-    project.assets = assetsCopy;
+
+    if (clearDescendants) {
+      AssetUtil.clearArchivedAttributeForDescendants(existingAsset);
+    }
+
     if (this.props.onUpdated) {
       this.props.onUpdated(
         project,
         ActionType.ATTRIBUTE_UPDATED,
         EntityType.ASSET,
-        asset.uri,
+        assetUri,
         `Asset ${ActionType.ATTRIBUTE_UPDATED}`,
         actionDescription,
-        { name, value }
+        { name, value, clearDescendants }
       );
     }
+  };
+
+  handleCancelUnarchive = () => {
+    this.setState({ showUnarchiveConfirmation: false, pendingUnarchive: null });
+  };
+
+  handleConfirmUnarchive = (alsoDescendants) => {
+    const { pendingUnarchive } = this.state;
+    if (!pendingUnarchive) return;
+
+    this.performAssetAttributeUpdate(
+      pendingUnarchive.assetUri,
+      pendingUnarchive.name,
+      pendingUnarchive.value,
+      alsoDescendants
+    );
+
+    this.setState({ showUnarchiveConfirmation: false, pendingUnarchive: null });
   };
 
   /**
@@ -794,7 +840,6 @@ class Project extends Component<Props> {
           project={this.props.project}
           updates={this.props.logs ? this.props.logs.updates : null}
           onClickUpdatesLink={this.clickUpdatesLinkHandler}
-          onDirtyStateChange={this.props.onDirtyStateChange}
         />
       ) : null;
       const assets = this.props.project ? (
@@ -941,6 +986,28 @@ class Project extends Component<Props> {
     return (
       <div className={styles.container} data-tid="container">
         {content}
+        <Dialog
+          open={this.state.showUnarchiveConfirmation}
+          onClose={this.handleCancelUnarchive}
+        >
+          <DialogTitle style={{ color: 'white' , backgroundColor: '#aa94d1'  }} >Unarchive Descendants </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              This folder contains files or folders that were explicitly archived. Do you want to unarchive them as well?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => this.handleConfirmUnarchive(true)} color="primary">
+              Yes, Unarchive All
+            </Button>
+            <Button onClick={() => this.handleConfirmUnarchive(false)} color="primary" autoFocus>
+              No, Keep Them Archived
+            </Button>
+            <Button onClick={this.handleCancelUnarchive} color="secondary">
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     );
   }
@@ -951,7 +1018,6 @@ Project.propTypes = {
   onUpdated: PropTypes.func,
   onAssetSelected: PropTypes.func,
   onChecklistUpdated: PropTypes.func,
-  onDirtyStateChange: PropTypes.func,
   // This object has the following structure:
   // {
   //   logs: array<string>   - the actual log data
@@ -979,7 +1045,6 @@ Project.defaultProps = {
   onUpdated: null,
   onAssetSelected: null,
   onChecklistUpdated: null,
-  onDirtyStateChange: null,
   logs: null,
   checklistResponse: null,
   configuration: null,

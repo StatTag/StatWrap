@@ -22,14 +22,15 @@ const getPaddingLeft = (level) => {
   return level * 20;
 };
 
-const getNodeColor = (node) => {
-  if (!node || !node.attributes) {
+const getNodeColor = (node, ancestorArchived) => {
+  if (!node) {
     return '#000';
   }
 
-  if (node.attributes.archived) {
+  if ((node.attributes && node.attributes.archived) || ancestorArchived) {
     return "#777";
   }
+  return '#000';
 }
 
 const getNodeFontWeight = (node) => {
@@ -49,7 +50,7 @@ const StyledTreeNode = styled.div`
   padding: 5px 8px;
   padding-left: ${(props) => getPaddingLeft(props.$level)}px;
   ${(props) => (props.selected ? 'background-color: #eee;' : null)}
-  color: ${(props) => getNodeColor(props.node)};
+  color: ${(props) => getNodeColor(props.node, props.ancestorArchived)};
   font-weight: ${(props) => getNodeFontWeight(props.node)};
 `;
 
@@ -79,6 +80,7 @@ function AssetNode(props) {
     onToggle,
     onRightClick,
     onClick,
+    ancestorArchived,
   } = props;
   const isOpen = root || openNodes.includes(node.uri);
   const isChecked = checkboxes && (root || checkedNodes.includes(node.uri));
@@ -104,12 +106,16 @@ function AssetNode(props) {
     !root && checkboxes ? (
       <StyledInput checked={checked} onChange={handleChecked} type="checkbox" />
     ) : null;
+
+  const isArchived = (node.attributes && node.attributes.archived) || ancestorArchived;
+
   return (
     <>
       <StyledTreeNode
         $level={level}
         type={node.type}
         node={node}
+        ancestorArchived={ancestorArchived}
         selected={node && selectedAsset && node.uri === selectedAsset.uri}
         onContextMenu={(e) => {
           if (onRightClick) {
@@ -145,20 +151,21 @@ function AssetNode(props) {
         (!node.children
           ? null
           : node.children.map((childNode) => (
-              <AssetNode
-                key={childNode.uri}
-                node={childNode}
-                level={level + 1}
-                selectedAsset={selectedAsset}
-                openNodes={openNodes}
-                checkedNodes={checkedNodes}
-                onToggle={onToggle}
-                onClick={onClick}
-                onRightClick={onRightClick}
-                checkboxes={checkboxes}
-                onCheck={props.onCheck}
-              />
-            )))}
+            <AssetNode
+              key={childNode.uri}
+              node={childNode}
+              level={level + 1}
+              selectedAsset={selectedAsset}
+              openNodes={openNodes}
+              checkedNodes={checkedNodes}
+              onToggle={onToggle}
+              onClick={onClick}
+              onRightClick={onRightClick}
+              checkboxes={checkboxes}
+              onCheck={props.onCheck}
+              ancestorArchived={isArchived}
+            />
+          )))}
     </>
   );
 }
@@ -175,6 +182,7 @@ AssetNode.propTypes = {
   openNodes: PropTypes.array,
   checkedNodes: PropTypes.array,
   checkboxes: PropTypes.bool,
+  ancestorArchived: PropTypes.bool,
 };
 
 AssetNode.defaultProps = {
@@ -188,6 +196,7 @@ AssetNode.defaultProps = {
   openNodes: [],
   checkedNodes: [],
   checkboxes: false,
+  ancestorArchived: false,
 };
 
 export default AssetNode;

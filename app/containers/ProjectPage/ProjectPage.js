@@ -596,7 +596,7 @@ class ProjectPage extends Component {
       const { projects } = prevState;
       const foundIndex = projects.findIndex((x) => x.id === project.id);
       projects[foundIndex] = project;
-      return { projects };
+      return { projects, selectedProject: project };
     });
 
     // The update project request will handle logging if it succeeds.  No additional logging call is
