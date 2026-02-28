@@ -124,15 +124,15 @@ function AssetNode(props) {
         }}
       >
         <NodeIcon onClick={() => onToggle(node)}>
-          {node.type === Constants.AssetType.DIRECTORY &&
+          {(node.type === Constants.AssetType.DIRECTORY || node.type === Constants.AssetType.FOLDER) &&
             (isOpen ? <FaChevronDown /> : <FaChevronRight />)}
         </NodeIcon>
         {checkbox}
         <NodeIcon $marginright={10}>
           {node.type === Constants.AssetType.FILE && (!node.attributes || !node.attributes.entrypoint) && <FaFile />}
           {node.type === Constants.AssetType.FILE && node.attributes && node.attributes.entrypoint && <FaFileImport />}
-          {node.type === Constants.AssetType.DIRECTORY && isOpen === true && <FaFolderOpen />}
-          {node.type === Constants.AssetType.DIRECTORY && !isOpen && <FaFolder />}
+          {(node.type === Constants.AssetType.DIRECTORY || node.type === Constants.AssetType.FOLDER) && isOpen === true && <FaFolderOpen />}
+          {(node.type === Constants.AssetType.DIRECTORY || node.type === Constants.AssetType.FOLDER) && !isOpen && <FaFolder />}
           {node.type === Constants.AssetType.ASSET_GROUP && <FaPaperclip />}
           {node.type === Constants.AssetType.FILTER && <FaFilter />}
           {node.type === Constants.AssetType.URL && <FaGlobe />}
@@ -140,6 +140,7 @@ function AssetNode(props) {
 
         <StyledLabel role="button">{AssetUtil.getAssetNameForTree(node)}</StyledLabel>
       </StyledTreeNode>
+
 
       {isOpen &&
         (!node.children

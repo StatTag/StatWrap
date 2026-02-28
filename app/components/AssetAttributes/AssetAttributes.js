@@ -12,11 +12,13 @@ const assetAttributes = (props) => {
 
   const applicableAttributes = configuration
     .map((a) => {
-      // If the asset doesn't have a content type (needed for attribute detection),
-      // or the attribute doesn't apply to this asset, skip it
-      if (asset.contentTypes == null ||
-        (!a.appliesTo.includes('*') && !a.appliesTo.some((x) => asset.contentTypes.includes(x)))) {
-        return null;
+      const appliesToAll = a.appliesTo.includes('*');
+      // If the attribute doesn't apply to everything, we need to check the content type.
+      // If the asset has no content type, or its content types don't match our allowed ones, skip it.
+      if (!appliesToAll) {
+        if (asset.contentTypes == null || !a.appliesTo.some((x) => asset.contentTypes.includes(x))) {
+          return null;
+        }
       }
       return a;
     })

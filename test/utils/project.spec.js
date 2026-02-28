@@ -1465,6 +1465,7 @@ describe('utils', () => {
       expect(project.externalAssets.children[0]).toEqual({
         uri: '1-2-3',
         type: 'Test',
+        isExternal: true
       });
     });
     it('should update an existing external asset', () => {
@@ -1530,7 +1531,7 @@ describe('utils', () => {
       expect(project.externalAssets).toBeNull();
     });
     it('should remove an existing external asset', () => {
-      const project = { externalAssets: { children: [{ uri: '1-2-3', name: 'Test' }]} };
+      const project = { externalAssets: { children: [{ uri: '1-2-3', name: 'Test' }] } };
       const asset = {
         uri: '1-2-3',
         name: 'Test',
@@ -1539,7 +1540,7 @@ describe('utils', () => {
       expect(project.externalAssets.children.length).toEqual(0);
     });
     it('should not remove anything if there is no matching external asset URI', () => {
-      const project = { externalAssets: { children: [{ uri: '1-2-3', name: 'Test' }]} };
+      const project = { externalAssets: { children: [{ uri: '1-2-3', name: 'Test' }] } };
       const asset = {
         uri: '1-2-4',
         name: 'Test',

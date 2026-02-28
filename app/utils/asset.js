@@ -207,8 +207,8 @@ export default class AssetUtil {
     const notes =
       asset && asset.notes
         ? asset.notes.map((n) => {
-            return { ...n, uri: asset.uri };
-          })
+          return { ...n, uri: asset.uri };
+        })
         : [];
     if (!asset || !asset.children) {
       return notes.flat();
@@ -471,11 +471,11 @@ export default class AssetUtil {
    * @returns true if the object is confirmed as an external asset, and false otherwise
    */
   static isExternalAsset(asset) {
-    if (!asset || asset === undefined || !asset.type || asset.type === undefined) {
+    if (!asset || asset === undefined || (!asset.type && !asset.isExternal)) {
       return false;
     }
 
-    return asset.type === Constants.AssetType.URL;
+    return asset.type === Constants.AssetType.URL || asset.isExternal === true;
   }
 
   /**

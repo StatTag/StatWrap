@@ -128,7 +128,7 @@ const createWindow = async () => {
 
   // Shared handler to take a URL and determine if we should open it in the user's
   // browser (returns true), or if we let electron handle it normally (false).
-  async function handleUrl(url: string) {
+  async function handleUrl(url) {
     try {
       const parsedUrl = new URL(url);
       const { protocol } = parsedUrl;
@@ -794,6 +794,12 @@ ipcMain.on(
         response = ProjectUtil.saveProject(updatedProject, projectService);
         if (response && !response.error) {
           logService.writeLog(projectPath, actionType, title, description, details, level, user);
+
+          if (actionType === Constants.ActionType.EXTERNAL_ASSET_ADDED ||
+            actionType === Constants.ActionType.EXTERNAL_ASSET_UPDATED ||
+            actionType === Constants.ActionType.EXTERNAL_ASSET_DELETED) {
+            workerWindow.webContents.send(Messages.SCAN_PROJECT_WORKER_REQUEST, response.project, app.getPath('userData'));
+          }
         }
       }
     } catch (e) {

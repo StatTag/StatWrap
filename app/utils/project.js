@@ -540,12 +540,14 @@ export default class ProjectUtil {
     // If we have a URI for the asset, we need to see if it already exists.  Note that our
     // earlier check confirms the URI is set, so we proceed without any other checks.
     let addAssetToArray = false;
+    asset.isExternal = true; // explicitly flag as external
     const existingAsset = project.externalAssets.children.find((p) => p.uri === asset.uri);
     if (existingAsset) {
       // Copy over only what attributes need to be saved in the directory.
       existingAsset.uri = asset.uri;
       existingAsset.name = asset.name;
       existingAsset.type = asset.type;
+      existingAsset.isExternal = true;
     } else {
       addAssetToArray = true;
     }

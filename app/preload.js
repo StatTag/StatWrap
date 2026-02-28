@@ -95,7 +95,42 @@ contextBridge.exposeInMainWorld('workerElectronBridge', {
           projectConfig.assetGroups,
         );
 
-        response.project.externalAssets = projectConfig.externalAssets;
+        if (projectConfig.externalAssets && projectConfig.externalAssets.children) {
+          const newExternalAssets = AssetUtil.createEmptyExternalAssets();
+          for (let i = 0; i < projectConfig.externalAssets.children.length; i++) {
+            const configAsset = projectConfig.externalAssets.children[i];
+            if (configAsset.type === 'directory' || configAsset.type === 'folder' || configAsset.type === 'asset-group' || configAsset.type === 'URL') {
+              // Note: Only scan if it's actually a directory
+            }
+            if (configAsset.type === 'directory' || configAsset.type === 'folder') {
+              try {
+                const scanned = service.scan(configAsset.uri);
+                scanned.name = configAsset.name; // Keep its custom name
+                scanned.type = configAsset.type; // Preserve type
+
+                const setIsExternalRecursively = (a) => {
+                  if (a) {
+                    a.isExternal = true;
+                    if (a.children) a.children.forEach(setIsExternalRecursively);
+                  }
+                };
+                setIsExternalRecursively(scanned);
+
+                newExternalAssets.children.push(scanned);
+              } catch (e) {
+                console.log('Error scanning external asset:', e);
+                newExternalAssets.children.push(Object.assign({}, configAsset, { error: 'Unable to scan directory' }));
+              }
+            } else {
+              configAsset.isExternal = true; // Ensure basic properties are enforced
+              newExternalAssets.children.push(cloneDeep(configAsset));
+            }
+          }
+          projectService.addNotesAndAttributesToAssets(newExternalAssets, projectConfig.externalAssets);
+          response.project.externalAssets = newExternalAssets;
+        } else {
+          response.project.externalAssets = projectConfig.externalAssets;
+        }
 
         const saveResponse = ProjectUtil.saveProject(response.project, projectService);
         response.project = saveResponse.project; // Pick up any enrichment from saveProject

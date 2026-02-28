@@ -241,7 +241,7 @@ class Project extends Component<Props> {
     let assetsCopy = null;
     // Depending on if this is a core asset or an external asset, we need to select the correct container.  The rest of
     // the code will work the same.
-    const isExternalAsset = (asset.type === AssetType.URL);
+    const isExternalAsset = AssetUtil.isExternalAsset(asset);
     if (isExternalAsset) {
       assetsCopy = { ...project.externalAssets };
     } else {
@@ -367,7 +367,16 @@ class Project extends Component<Props> {
    */
   assetUpdateAttributeHandler = (asset, name, value) => {
     const project = { ...this.props.project };
-    const assetsCopy = { ...project.assets };
+
+    // Depending on if this is an external asset or a main asset, determine the right collection
+    // of assets to use.
+    let assetsCopy = null;
+    const isExternalAsset = AssetUtil.isExternalAsset(asset);
+    if (isExternalAsset) {
+      assetsCopy = { ...project.externalAssets };
+    } else {
+      assetsCopy = { ...project.assets };
+    }
 
     const existingAsset = AssetUtil.findDescendantAssetByUri(assetsCopy, asset.uri);
     let actionDescription = '';
@@ -382,12 +391,18 @@ class Project extends Component<Props> {
     }
 
     existingAsset.attributes[name] = value;
-    project.assets = assetsCopy;
+
+    if (isExternalAsset) {
+      project.externalAssets = assetsCopy;
+    } else {
+      project.assets = assetsCopy;
+    }
+
     if (this.props.onUpdated) {
       this.props.onUpdated(
         project,
         ActionType.ATTRIBUTE_UPDATED,
-        EntityType.ASSET,
+        isExternalAsset ? EntityType.EXTERNAL_ASSET : EntityType.ASSET,
         asset.uri,
         `Asset ${ActionType.ATTRIBUTE_UPDATED}`,
         actionDescription,
@@ -409,7 +424,7 @@ class Project extends Component<Props> {
     // Depending on if this is an external asset or a main asset, determine the right collection
     // of assets to use.
     let assetsCopy = null;
-    const isExternalAsset = (asset.type === AssetType.URL);
+    const isExternalAsset = AssetUtil.isExternalAsset(asset);
     if (isExternalAsset) {
       assetsCopy = { ...project.externalAssets };
     } else {

@@ -90,8 +90,14 @@ const assetsComponent = (props) => {
   // in that case.
   useEffect(() => {
     // Get a more recent copy of the asset from the updated project
-    if (project && project.assets && selectedAsset) {
-      const updatedAsset = AssetUtil.findDescendantAssetByUri(project.assets, selectedAsset.uri);
+    if (project && selectedAsset) {
+      let updatedAsset = null;
+      if (project.assets) {
+        updatedAsset = AssetUtil.findDescendantAssetByUri(project.assets, selectedAsset.uri);
+      }
+      if (!updatedAsset && project.externalAssets) {
+        updatedAsset = AssetUtil.findDescendantAssetByUri(project.externalAssets, selectedAsset.uri);
+      }
       setSelectedAsset(updatedAsset);
       if (onSelectedAsset) {
         onSelectedAsset(updatedAsset);
@@ -112,7 +118,7 @@ const assetsComponent = (props) => {
     setCurrentAssetGroup(null);
     setGroupedAssets(null);
     setFilterEnabled(true);
-    setExternalAssets(project.externalAssets ? project.externalAssets : AssetUtil.createEmptyExternalAssets());
+    setExternalAssets(project.externalAssets ? ProjectUtil._filterAssets(project.externalAssets, null) : AssetUtil.createEmptyExternalAssets());
   }, [project]);
 
   // Whenever the filter changes, update the list of assets to include only
@@ -120,11 +126,13 @@ const assetsComponent = (props) => {
   const handleFilterChanged = (updatedFilter) => {
     setFilter(updatedFilter);
     setAssets(ProjectUtil.filterProjectAssets(project, updatedFilter));
+    setExternalAssets(project.externalAssets ? ProjectUtil._filterAssets(project.externalAssets, updatedFilter) : AssetUtil.createEmptyExternalAssets());
   };
 
   const handleFilterReset = () => {
     setFilter(resetFilter(project));
     setAssets(ProjectUtil.filterProjectAssets(project, null));
+    setExternalAssets(project.externalAssets ? ProjectUtil._filterAssets(project.externalAssets, null) : AssetUtil.createEmptyExternalAssets());
   };
 
   // When the user triggers saving an Asset Group, update the UI so the dialog
@@ -292,8 +300,14 @@ const assetsComponent = (props) => {
     // The extra logic we use here is to enrich the selected asset, if it's missing some key
     // information.  The key thing we have right now is if it's missing the 'contentTypes' attribute.
     if (asset && (asset.contentTypes === null || asset.contentTypes === undefined)) {
-      if (project && project.assets) {
-        const foundAsset = AssetUtil.findDescendantAssetByUri(project.assets, asset.uri);
+      if (project) {
+        let foundAsset = null;
+        if (project.assets) {
+          foundAsset = AssetUtil.findDescendantAssetByUri(project.assets, asset.uri);
+        }
+        if (!foundAsset && project.externalAssets) {
+          foundAsset = AssetUtil.findDescendantAssetByUri(project.externalAssets, asset.uri);
+        }
         if (foundAsset !== null) {
           asset = foundAsset;
         }
@@ -474,6 +488,8 @@ const assetsComponent = (props) => {
             onSave={handleSavedExternalAsset}
             uri={editableExternalAsset ? editableExternalAsset.uri : ''}
             name={editableExternalAsset ? editableExternalAsset.name : ''}
+            type={editableExternalAsset ? editableExternalAsset.type : Constants.AssetType.URL}
+            isNew={!editableExternalAsset}
           />
         </>
       );

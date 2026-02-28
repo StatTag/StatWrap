@@ -51,7 +51,7 @@ class AssetTree extends Component {
   // node - the node to try and add (will only be added if a directory)
   // expandedNodes - the collection of URIs of expanded nodes
   setNodeExpanded = (node, expandedNodes) => {
-    if (node.type === Constants.AssetType.DIRECTORY) {
+    if (node.type === Constants.AssetType.DIRECTORY || node.type === Constants.AssetType.FOLDER) {
       expandedNodes.push(node.uri);
       if (node.children) {
         node.children.forEach((x) => this.setNodeExpanded(x, expandedNodes));

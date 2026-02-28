@@ -423,6 +423,7 @@ class ProjectPage extends Component {
       const projectWithAssets = {
         ...selectedProject,
         sourceControlEnabled: response.project.sourceControlEnabled,
+        externalAssets: response.project.externalAssets,
         assets: response.error
           ? { error: response.error, errorMessage: response.errorMessage }
           : response.assets,
@@ -692,8 +693,8 @@ class ProjectPage extends Component {
             this.state.projectListMenuAnchor ? this.state.projectListMenuAnchor.element : null
           }
           project={
-    this.state.projectListMenuAnchor ? this.state.projectListMenuAnchor.project : null
-  }
+            this.state.projectListMenuAnchor ? this.state.projectListMenuAnchor.project : null
+          }
           onClose={this.handleCloseProjectListMenu}
           onMenuClick={this.handleClickProjectListMenu}
         />
@@ -701,7 +702,7 @@ class ProjectPage extends Component {
           open={this.state.showDirtyConfirmation}
           onClose={this.handleCancelSwitch}
         >
-          <DialogTitle style={{ color: 'white' , backgroundColor: '#aa94d1'  }}>Discard Changes</DialogTitle>
+          <DialogTitle style={{ color: 'white', backgroundColor: '#aa94d1' }}>Discard Changes</DialogTitle>
           <DialogContent>
             <DialogContentText>
               You have unsaved changes in the current project. Switching to another project will discard these changes. Are you sure you want to proceed?

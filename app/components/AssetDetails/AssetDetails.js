@@ -11,6 +11,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AssetAttributes from '../AssetAttributes/AssetAttributes';
 import NoteEditor from '../NoteEditor/NoteEditor';
 import Loading from '../Loading/Loading';
+import AssetUtil from '../../utils/asset';
 import SourceControlHistory from '../SourceControlHistory/SourceControlHistory';
 import styles from './AssetDetails.css';
 import { styled } from '@mui/material/styles';
@@ -93,7 +94,7 @@ const assetDetails = (props) => {
     }
   };
 
-  const isExternalAsset = asset && asset.type === Constants.AssetType.URL;
+  const isExternalAsset = AssetUtil.isExternalAsset(asset);
 
   let sourceControlAccordion = null;
   if (!isExternalAsset && sourceControlEnabled) {
@@ -115,27 +116,24 @@ const assetDetails = (props) => {
     );
   }
 
-  let attributesAccordion = null;
-  if (!isExternalAsset) {
-    attributesAccordion = (
-      <Accordion defaultExpanded>
-        <CustomAccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="attributes-content"
-          id="attributes-header"
-        >
-          <Typography className={styles.headingTitle}>Attributes</Typography>
-        </CustomAccordionSummary>
-        <AccordionDetails className={styles.details}>
-          <AssetAttributes
-            asset={asset}
-            configuration={assetAttributes}
-            onUpdateAttribute={updateAssetAttribute}
-          />
-        </AccordionDetails>
-      </Accordion>
-    );
-  }
+  let attributesAccordion = (
+    <Accordion defaultExpanded>
+      <CustomAccordionSummary
+        expandIcon={<ExpandMoreIcon />}
+        aria-controls="attributes-content"
+        id="attributes-header"
+      >
+        <Typography className={styles.headingTitle}>Attributes</Typography>
+      </CustomAccordionSummary>
+      <AccordionDetails className={styles.details}>
+        <AssetAttributes
+          asset={asset}
+          configuration={assetAttributes}
+          onUpdateAttribute={updateAssetAttribute}
+        />
+      </AccordionDetails>
+    </Accordion>
+  );
 
   let actions = null;
   if (isExternalAsset) {
