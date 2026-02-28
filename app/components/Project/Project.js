@@ -31,7 +31,9 @@ import GeneralUtil from '../../utils/general';
 import styles from './Project.css';
 import UserContext from '../../contexts/User';
 
-type Props = {};
+type Props = {
+    onDirtyStateChange?: (boolean) => void,
+};
 
 class Project extends Component<Props> {
   props: Props;
@@ -840,6 +842,7 @@ class Project extends Component<Props> {
           project={this.props.project}
           updates={this.props.logs ? this.props.logs.updates : null}
           onClickUpdatesLink={this.clickUpdatesLinkHandler}
+          onDirtyStateChange={this.props.onDirtyStateChange}
         />
       ) : null;
       const assets = this.props.project ? (
@@ -1018,6 +1021,7 @@ Project.propTypes = {
   onUpdated: PropTypes.func,
   onAssetSelected: PropTypes.func,
   onChecklistUpdated: PropTypes.func,
+  onDirtyStateChange: PropTypes.func,
   // This object has the following structure:
   // {
   //   logs: array<string>   - the actual log data
@@ -1045,6 +1049,7 @@ Project.defaultProps = {
   onUpdated: null,
   onAssetSelected: null,
   onChecklistUpdated: null,
+  onDirtyStateChange: null,
   logs: null,
   checklistResponse: null,
   configuration: null,
