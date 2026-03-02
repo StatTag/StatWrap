@@ -471,6 +471,9 @@ export default class ProjectService {
             asset.attributes = {};
           }
           asset.attributes[details.name] = details.value;
+          if (details.clearDescendants) {
+            AssetUtil.clearArchivedAttributeForDescendants(asset);
+          }
         } else {
           return null;
         }

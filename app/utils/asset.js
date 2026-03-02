@@ -207,8 +207,8 @@ export default class AssetUtil {
     const notes =
       asset && asset.notes
         ? asset.notes.map((n) => {
-            return { ...n, uri: asset.uri };
-          })
+          return { ...n, uri: asset.uri };
+        })
         : [];
     if (!asset || !asset.children) {
       return notes.flat();
@@ -492,5 +492,45 @@ export default class AssetUtil {
       return false;
     }
     return !FILE_IGNORE_LIST.includes(fileName);
+  }
+
+  /**
+   * Determine if an asset has any descendants that are explicitly archived.
+   * @param {object} asset The asset to check
+   * @returns true if any descendant is explicitly archived
+   */
+  static hasArchivedDescendants(asset) {
+    if (!asset || !asset.children) {
+      return false;
+    }
+
+    // Check if any direct child is archived
+    const hasArchivedChild = asset.children.some(child =>
+      child.attributes && child.attributes.archived
+    );
+
+    if (hasArchivedChild) {
+      return true;
+    }
+
+    // Recursively check children
+    return asset.children.some(child => AssetUtil.hasArchivedDescendants(child));
+  }
+
+  /**
+   * Recursively clear the archived attribute for all descendants of an asset.
+   * @param {object} asset The asset to clear descendants for
+   */
+  static clearArchivedAttributeForDescendants(asset) {
+    if (!asset || !asset.children) {
+      return;
+    }
+
+    asset.children.forEach(child => {
+      if (child.attributes && child.attributes.archived) {
+        child.attributes.archived = false;
+      }
+      AssetUtil.clearArchivedAttributeForDescendants(child);
+    });
   }
 }

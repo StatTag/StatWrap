@@ -1446,17 +1446,17 @@ describe('utils', () => {
         expect(AssetUtil.isExternalAsset(undefined)).toBeFalse();
       });
       it('should return false for a null/undefined type', () => {
-        expect(AssetUtil.isExternalAsset({type: null})).toBeFalse();
-        expect(AssetUtil.isExternalAsset({type: undefined})).toBeFalse();
+        expect(AssetUtil.isExternalAsset({ type: null })).toBeFalse();
+        expect(AssetUtil.isExternalAsset({ type: undefined })).toBeFalse();
         expect(AssetUtil.isExternalAsset({})).toBeFalse();
       });
       it('should return true for a URL', () => {
-        expect(AssetUtil.isExternalAsset({type: Constants.AssetType.URL})).toBeTrue();
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.URL })).toBeTrue();
       });
       it('should return false for other types', () => {
-        expect(AssetUtil.isExternalAsset({type: Constants.AssetType.FILE})).toBeFalse();
-        expect(AssetUtil.isExternalAsset({type: 'not a url'})).toBeFalse();
-        expect(AssetUtil.isExternalAsset({type: ''})).toBeFalse();
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.FILE })).toBeFalse();
+        expect(AssetUtil.isExternalAsset({ type: 'not a url' })).toBeFalse();
+        expect(AssetUtil.isExternalAsset({ type: '' })).toBeFalse();
       });
     });
 
@@ -1465,17 +1465,17 @@ describe('utils', () => {
         expect(AssetUtil.getAssetNameForTree(null)).toBe('');
       });
       it('should return a name normally for a regular asset', () => {
-        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.FOLDER, uri: 'Test'})).toBe('Test');
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.FOLDER, uri: 'Test' })).toBe('Test');
       });
       it('should return the URL for an external asset with no name parameter', () => {
-        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com'})).toBe('http://test.com');
-        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com', name: null})).toBe('http://test.com');
-        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com', name: undefined})).toBe('http://test.com');
-        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com', name: ''})).toBe('http://test.com');
-        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com', name: '    '})).toBe('http://test.com');
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.URL, uri: 'http://test.com' })).toBe('http://test.com');
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.URL, uri: 'http://test.com', name: null })).toBe('http://test.com');
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.URL, uri: 'http://test.com', name: undefined })).toBe('http://test.com');
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.URL, uri: 'http://test.com', name: '' })).toBe('http://test.com');
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.URL, uri: 'http://test.com', name: '    ' })).toBe('http://test.com');
       });
       it('should return a formatted name for a URL with a name', () => {
-        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com', name: 'Test'})).toBe('Test (http://test.com)');
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.URL, uri: 'http://test.com', name: 'Test' })).toBe('Test (http://test.com)');
       });
     });
   });
@@ -1509,19 +1509,75 @@ describe('utils', () => {
 
     it('should return false when the asset has no attributes', () => {
       expect(AssetUtil.isArchived({})).toBeFalsy();
-      expect(AssetUtil.isArchived({attributes: null})).toBeFalsy();
-      expect(AssetUtil.isArchived({attributes: undefined})).toBeFalsy();
+      expect(AssetUtil.isArchived({ attributes: null })).toBeFalsy();
+      expect(AssetUtil.isArchived({ attributes: undefined })).toBeFalsy();
     });
 
     it('should return false when the asset is not set as archived', () => {
       expect(AssetUtil.isArchived({})).toBeFalsy();
-      expect(AssetUtil.isArchived({attributes: null})).toBeFalsy();
-      expect(AssetUtil.isArchived({attributes: {archived: null}})).toBeFalsy();
-      expect(AssetUtil.isArchived({attributes: {archived: false}})).toBeFalsy();
+      expect(AssetUtil.isArchived({ attributes: null })).toBeFalsy();
+      expect(AssetUtil.isArchived({ attributes: { archived: null } })).toBeFalsy();
+      expect(AssetUtil.isArchived({ attributes: { archived: false } })).toBeFalsy();
     });
 
     it('should return false when the asset is set as archived', () => {
-      expect(AssetUtil.isArchived({attributes: {archived: true}})).toBeTrue();
+      expect(AssetUtil.isArchived({ attributes: { archived: true } })).toBeTrue();
+    });
+  });
+
+  describe('hasArchivedDescendants', () => {
+    it('returns false for null/undefined', () => {
+      expect(AssetUtil.hasArchivedDescendants(null)).toBeFalsy();
+      expect(AssetUtil.hasArchivedDescendants(undefined)).toBeFalsy();
+      expect(AssetUtil.hasArchivedDescendants({})).toBeFalsy();
+    });
+
+    it('returns false when there are no explicitly archived descendants', () => {
+      const asset = {
+        children: [
+          { attributes: { archived: false } },
+          { children: [{ attributes: { archived: false } }] }
+        ]
+      };
+      expect(AssetUtil.hasArchivedDescendants(asset)).toBeFalsy();
+    });
+
+    it('returns true when a direct child is explicitly archived', () => {
+      const asset = {
+        children: [
+          { attributes: { archived: true } }
+        ]
+      };
+      expect(AssetUtil.hasArchivedDescendants(asset)).toBeTrue();
+    });
+
+    it('returns true when a deeper descendant is explicitly archived', () => {
+      const asset = {
+        children: [
+          { children: [{ attributes: { archived: true } }] }
+        ]
+      };
+      expect(AssetUtil.hasArchivedDescendants(asset)).toBeTrue();
+    });
+  });
+
+  describe('clearArchivedAttributeForDescendants', () => {
+    it('handles null/undefined gracefully', () => {
+      expect(() => { AssetUtil.clearArchivedAttributeForDescendants(null); }).not.toThrow();
+      expect(() => { AssetUtil.clearArchivedAttributeForDescendants(undefined); }).not.toThrow();
+      expect(() => { AssetUtil.clearArchivedAttributeForDescendants({}); }).not.toThrow();
+    });
+
+    it('clears archived attributes on all descendants', () => {
+      const asset = {
+        children: [
+          { attributes: { archived: true } },
+          { children: [{ attributes: { archived: true } }, { attributes: { archived: false } }] }
+        ]
+      };
+      AssetUtil.clearArchivedAttributeForDescendants(asset);
+      expect(asset.children[0].attributes.archived).toBeFalsy();
+      expect(asset.children[1].children[0].attributes.archived).toBeFalsy();
     });
   });
 });
