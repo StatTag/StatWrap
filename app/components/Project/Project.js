@@ -1,5 +1,14 @@
 import React, { Component, useEffect } from 'react';
-import { Tab, Tabs } from '@mui/material';
+import {
+  Tab,
+  Tabs,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
+} from '@mui/material';
 import { TabPanel, TabContext } from '@mui/lab';
 import { cloneDeep } from 'lodash';
 import IconButton from '@mui/material/IconButton';
@@ -23,7 +32,7 @@ import styles from './Project.css';
 import UserContext from '../../contexts/User';
 
 type Props = {
-  onDirtyStateChange?: (boolean) => void,
+    onDirtyStateChange?: (boolean) => void,
 };
 
 class Project extends Component<Props> {
@@ -31,7 +40,7 @@ class Project extends Component<Props> {
 
   constructor(props) {
     super(props);
-    this.state = { selectedTab: 'about', showLogUpdatesOnly: false };
+    this.state = { selectedTab: 'about', showLogUpdatesOnly: false, showUnarchiveConfirmation: false, pendingUnarchive: null };
   }
 
   changeHandler = (event, id) => {
@@ -378,12 +387,21 @@ class Project extends Component<Props> {
       assetsCopy = { ...project.assets };
     }
 
-    const existingAsset = AssetUtil.findDescendantAssetByUri(assetsCopy, asset.uri);
+    this.performAssetAttributeUpdate(asset.uri, name, value, false);
+  };
+
+  performAssetAttributeUpdate = (assetUri, name, value, clearDescendants) => {
+
+    const project = cloneDeep(this.props.project);
+    const assetsCopy = project.assets;
+
+    const existingAsset = AssetUtil.findDescendantAssetByUri(assetsCopy, assetUri);
     let actionDescription = '';
     if (!existingAsset) {
       console.warn('Could not find the asset to update its attribute');
+      return;
     } else {
-      actionDescription = `Updated ${asset.uri} attribute '${name}' to '${value}'`;
+      actionDescription = `Updated ${assetUri} attribute '${name}' to '${value}'`;
     }
 
     if (!existingAsset.attributes) {
@@ -406,9 +424,27 @@ class Project extends Component<Props> {
         asset.uri,
         `Asset ${ActionType.ATTRIBUTE_UPDATED}`,
         actionDescription,
-        { name, value }
+        { name, value, clearDescendants }
       );
     }
+  };
+
+  handleCancelUnarchive = () => {
+    this.setState({ showUnarchiveConfirmation: false, pendingUnarchive: null });
+  };
+
+  handleConfirmUnarchive = (alsoDescendants) => {
+    const { pendingUnarchive } = this.state;
+    if (!pendingUnarchive) return;
+
+    this.performAssetAttributeUpdate(
+      pendingUnarchive.assetUri,
+      pendingUnarchive.name,
+      pendingUnarchive.value,
+      alsoDescendants
+    );
+
+    this.setState({ showUnarchiveConfirmation: false, pendingUnarchive: null });
   };
 
   /**
@@ -932,7 +968,7 @@ class Project extends Component<Props> {
           <TabPanel value="about" style={{ padding: '10px' }}>
             {about}
           </TabPanel>
-          <TabPanel value="assets" style={{ padding: '10px' }}>
+          <TabPanel value="assets" keepMounted style={{ padding: '10px' }}>
             {assets}
           </TabPanel>
           <TabPanel value="workflows" style={{ padding: '10px' }}>
@@ -956,6 +992,28 @@ class Project extends Component<Props> {
     return (
       <div className={styles.container} data-tid="container">
         {content}
+        <Dialog
+          open={this.state.showUnarchiveConfirmation}
+          onClose={this.handleCancelUnarchive}
+        >
+          <DialogTitle style={{ color: 'white' , backgroundColor: '#aa94d1'  }} >Unarchive Descendants </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              This folder contains files or folders that were explicitly archived. Do you want to unarchive them as well?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => this.handleConfirmUnarchive(true)} color="primary">
+              Yes, Unarchive All
+            </Button>
+            <Button onClick={() => this.handleConfirmUnarchive(false)} color="primary" autoFocus>
+              No, Keep Them Archived
+            </Button>
+            <Button onClick={this.handleCancelUnarchive} color="secondary">
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     );
   }
