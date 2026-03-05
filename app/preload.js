@@ -14,6 +14,7 @@ import StataHandler from './services/assets/handlers/stata';
 import AssetUtil from './utils/asset';
 import ProjectUtil from './utils/project';
 import JavaHandler from './services/assets/handlers/java';
+import Constants from './constants/constants';
 
 const projectService = new ProjectService();
 const projectListService = new ProjectListService();
@@ -94,6 +95,20 @@ contextBridge.exposeInMainWorld('workerElectronBridge', {
           project.path,
           projectConfig.assetGroups,
         );
+
+        if (projectConfig.externalAssets && projectConfig.externalAssets.children) {
+          projectConfig.externalAssets.children = projectConfig.externalAssets.children.map(extAsset => {
+            if (extAsset.type === Constants.AssetType.DIRECTORY || extAsset.type === Constants.AssetType.FOLDER || extAsset.type === Constants.AssetType.FILE) {
+              const scanned = service.scan(extAsset.uri);
+              if (scanned) {
+                scanned.name = extAsset.name; // Preserve custom name
+                projectService.addNotesAndAttributesToAssets(scanned, extAsset);
+                return scanned;
+              }
+            }
+            return extAsset;
+          });
+        }
 
         response.project.externalAssets = projectConfig.externalAssets;
 

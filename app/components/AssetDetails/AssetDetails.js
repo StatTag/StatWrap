@@ -40,6 +40,7 @@ const assetDetails = (props) => {
     assetAttributes,
     sourceControlEnabled,
     dynamicDetails,
+    isExternalRootAsset,
   } = props;
 
   const [expandNotes, setExpandNotes] = useState(false);
@@ -138,7 +139,7 @@ const assetDetails = (props) => {
   }
 
   let actions = null;
-  if (isExternalAsset) {
+  if (isExternalRootAsset) {
     actions = (
       <div className={styles.actions}>
         <IconButton onClick={editHandler} aria-label="edit" className={styles.action}>

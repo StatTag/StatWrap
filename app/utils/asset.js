@@ -410,16 +410,24 @@ export default class AssetUtil {
       return '';
     }
 
-    if (this.isExternalAsset(asset)) {
-      // If there is no name provided, send back the URL
-      if (!asset.name || asset.name === undefined || asset.name.trim() === '') {
-        return asset.uri;
+    // If the asset has a custom name (applies to external assets of any type:
+    // URLs, folders, or files), display it along with the URI.
+    if (asset.name && asset.name.trim() !== '') {
+      if (this.isExternalAsset(asset)) {
+        return `${asset.name} (${asset.uri})`;
       }
-      // If we have a name, format the URL
-      return `${asset.name} (${asset.uri})`
-    } else {
-      return this.getAssetNameFromUri(asset);
+      // For directory/file assets with a custom name, show name with path
+      const uriName = this.getAssetNameFromUri(asset);
+      if (asset.name !== uriName) {
+        return `${asset.name} (${uriName})`;
+      }
     }
+
+    if (this.isExternalAsset(asset)) {
+      return asset.uri;
+    }
+
+    return this.getAssetNameFromUri(asset);
   }
 
   /**

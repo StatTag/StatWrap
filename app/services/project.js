@@ -542,12 +542,12 @@ export default class ProjectService {
         }
         break;
       case Constants.ActionType.EXTERNAL_ASSET_ADDED:
-          if (entityType === EntityType.PROJECT) {
-            ProjectUtil.upsertExternalAsset(project, details);
-          } else {
-            return null;
-          }
-          break;
+        if (entityType === EntityType.PROJECT) {
+          ProjectUtil.upsertExternalAsset(project, details);
+        } else {
+          return null;
+        }
+        break;
       case Constants.ActionType.EXTERNAL_ASSET_UPDATED:
         if (entityType === EntityType.PROJECT) {
           // const oldAsset = cloneDeep(
