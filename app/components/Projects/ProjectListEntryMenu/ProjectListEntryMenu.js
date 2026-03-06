@@ -5,7 +5,7 @@ import Messages from '../../../constants/messages';
 import Constants from '../../../constants/constants';
 
 function projectListEntryMenu(props) {
-  if (!props.project){
+  if (!props.project) {
     return null;
   }
   const isPinned = props.project.favorite;
@@ -25,9 +25,9 @@ function projectListEntryMenu(props) {
           props.onMenuClick(Messages.TOGGLE_PROJECT_FAVORITE_REQUEST, props.project.id)
         }
       >
-      {isPinned ? 'Unpin from Favorites' : 'Pin to Favorites'}
+        {isPinned ? 'Unpin Project' : 'Pin Project'}
       </MenuItem>
-      
+
       {/* Status toggle option - only for non-pinned projects */}
       {!isPinned && (
         <>
@@ -41,20 +41,18 @@ function projectListEntryMenu(props) {
           </MenuItem>
         </>
       )}
-      
+
       <Divider />
 
       <MenuItem
-        onClick={() =>
-          props.onMenuClick(Messages.SHOW_ITEM_IN_FOLDER, props.project.path)
-        }
+        onClick={() => props.onMenuClick(Messages.SHOW_ITEM_IN_FOLDER, props.project.path)}
         disabled={props.project.loadError}
       >
         Show in Folder
       </MenuItem>
-      
+
       <Divider />
-      
+
       {/* Remove option */}
       <MenuItem
         onClick={() =>
