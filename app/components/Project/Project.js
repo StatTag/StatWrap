@@ -32,7 +32,7 @@ import styles from './Project.css';
 import UserContext from '../../contexts/User';
 
 type Props = {
-    onDirtyStateChange?: (boolean) => void,
+  onDirtyStateChange?: (boolean) => void,
 };
 
 class Project extends Component<Props> {
@@ -250,7 +250,7 @@ class Project extends Component<Props> {
     let assetsCopy = null;
     // Depending on if this is a core asset or an external asset, we need to select the correct container.  The rest of
     // the code will work the same.
-    const isExternalAsset = (asset.type === AssetType.URL);
+    const isExternalAsset = AssetUtil.isExternalAsset(asset, this.props.project);
     if (isExternalAsset) {
       assetsCopy = { ...project.externalAssets };
     } else {
@@ -457,7 +457,7 @@ class Project extends Component<Props> {
     // Depending on if this is an external asset or a main asset, determine the right collection
     // of assets to use.
     let assetsCopy = null;
-    const isExternalAsset = (asset.type === AssetType.URL);
+    const isExternalAsset = AssetUtil.isExternalAsset(asset, this.props.project);
     if (isExternalAsset) {
       assetsCopy = { ...project.externalAssets };
     } else {
@@ -993,7 +993,7 @@ class Project extends Component<Props> {
           open={this.state.showUnarchiveConfirmation}
           onClose={this.handleCancelUnarchive}
         >
-          <DialogTitle style={{ color: 'white' , backgroundColor: '#aa94d1'  }} >Unarchive Descendants </DialogTitle>
+          <DialogTitle style={{ color: 'white', backgroundColor: '#aa94d1' }} >Unarchive Descendants </DialogTitle>
           <DialogContent>
             <DialogContentText>
               This folder contains files or folders that were explicitly archived. Do you want to unarchive them as well?

@@ -2,11 +2,13 @@ import React, { Component, useRef } from 'react';
 import PropTypes from 'prop-types';
 import Draggable from 'react-draggable';
 import { Dialog, DialogActions, DialogTitle, Button, Paper } from '@mui/material';
+import { dialog } from '@electron/remote';
 import Error from '../../components/Error/Error';
 import Constants from '../../constants/constants';
 import GeneralUtil from '../../utils/general';
 import UserContext from '../../contexts/User';
 import styles from './ExternalAssetDialog.css';
+import fs from 'fs';
 
 function PaperComponent(props) {
   // Fix needed for React19: https://github.com/react-grid-layout/react-draggable/blob/master/CHANGELOG.md#440-may-12-2020
@@ -23,16 +25,39 @@ class ExternalAssetDialog extends Component {
     super(props);
     this.state = {
       errorMessage: null,
-      uri: props.uri ? props.uri : '',
-      name: props.name ? props.name : '',
-      type: Constants.AssetType.URL,  // For now, always URL
-      isNew: props.isNew ? props.isNew : true,
+      uri: props.uri || '',
+      name: props.name || '',
+      type: props.type || Constants.AssetType.URL,
+      isNew: props.isNew !== undefined ? props.isNew : true,
       validPath: true
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleSave = this.handleSave.bind(this);
     this.handleValidatePath = this.handleValidatePath.bind(this);
+    this.isValidPath = this.isValidPath.bind(this);
+  }
+
+  isValidPath(type, uri) {
+    if (type === Constants.AssetType.URL) {
+      return GeneralUtil.isValidResourceUrl(uri);
+    }
+    if (!uri || uri.trim() === '') {
+      return false;
+    }
+    try {
+      const stats = fs.statSync(uri);
+      if (type === Constants.AssetType.DIRECTORY) {
+        return stats.isDirectory();
+      }
+      if (type === Constants.AssetType.FILE) {
+        return stats.isFile();
+      }
+      // For any other non-URL asset types, accept existing files or directories.
+      return stats.isFile() || stats.isDirectory();
+    } catch (e) {
+      return false;
+    }
   }
 
   handleSave() {
@@ -43,7 +68,12 @@ class ExternalAssetDialog extends Component {
     };
 
     if (asset.name.trim() === '' || asset.uri.trim() === '') {
-      this.setState({errorMessage: 'You must enter a resource name and URL'});
+      this.setState({ errorMessage: 'You must enter a resource name and path/URL' });
+      return;
+    }
+
+    if (!this.isValidPath(this.state.type, this.state.uri)) {
+      this.setState({ validPath: false, errorMessage: 'Please enter a valid and accessible path/URL' });
       return;
     }
 
@@ -57,14 +87,36 @@ class ExternalAssetDialog extends Component {
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const { name } = target;
 
-    this.setState({ [name]: value });
+    if (name === 'type') {
+      this.setState({ [name]: value, uri: '', validPath: true });
+    } else {
+      this.setState({ [name]: value });
+    }
   }
 
   handleValidatePath(event) {
     const { target } = event;
     const value = target.value;
-    this.setState({validPath: GeneralUtil.isValidResourceUrl(value)});
+    this.setState({ validPath: this.isValidPath(this.state.type, value) });
   }
+
+  handleBrowse = () => {
+    const properties = this.state.type === Constants.AssetType.DIRECTORY ? ['openDirectory'] : ['openFile'];
+    dialog
+      .showOpenDialog({
+        title: 'Select an external resource',
+        properties: properties,
+      })
+      .then((result) => {
+        if (!result.canceled && result.filePaths !== null && result.filePaths.length > 0) {
+          this.setState({ uri: result.filePaths[0], validPath: true });
+        }
+        return result;
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
 
   render() {
     let error = null;
@@ -74,7 +126,7 @@ class ExternalAssetDialog extends Component {
 
     let pathError = null;
     if (!this.state.validPath) {
-      pathError = <div className={styles.pathError}>Please check that your URL is valid</div>
+      pathError = <div className={styles.pathError}>Please check that your path/URL is valid</div>
     }
 
     let dialogAction = this.state.isNew ? 'Add' : 'Edit';
@@ -88,11 +140,25 @@ class ExternalAssetDialog extends Component {
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle classes={{ root: styles.title }} id="external-asset-dialog-title">
+        <DialogTitle style={{ color: 'white', backgroundColor: '#aa94d1' }} id="external-asset-dialog-title">
           {dialogAction} External Resource
         </DialogTitle>
-        <form onSubmit={this.onSubmit}>
+         <form onSubmit={(e) => { e.preventDefault(); this.handleSave(); }}>
           <div className={styles.formBody}>
+            <div className={styles.formRow}>
+              <label className={styles.label}>*Type:</label>
+              <select
+                className={styles.input}
+                name="type"
+                value={this.state.type}
+                onChange={this.handleInputChange}
+                style={{ height: '30px' }}
+              >
+                <option value={Constants.AssetType.URL}>URL</option>
+                <option value={Constants.AssetType.DIRECTORY}>Folder</option>
+                <option value={Constants.AssetType.FILE}>File</option>
+              </select>
+            </div>
             <div className={styles.formRow}>
               <label className={styles.label}>*Name:</label>
               <input
@@ -107,19 +173,26 @@ class ExternalAssetDialog extends Component {
               />
             </div>
             <div className={styles.formRow}>
-              <label className={styles.label}>*URL:</label>
-              <input
-                type="text"
-                id={styles.path}
-                className={styles.input}
-                name="uri"
-                placeholder="https://statwrap.org"
-                value={this.state.uri}
-                onChange={this.handleInputChange}
-                onBlur={this.handleValidatePath}
-              />
-              {pathError}
+              <label className={styles.label}>{this.state.type === Constants.AssetType.URL ? '*URL:' : '*Path:'}</label>
+              <div style={{ display: 'flex', flex: 1, gap: '10px' }}>
+                <input
+                  type="text"
+                  id={styles.path}
+                  className={styles.input}
+                  name="uri"
+                  placeholder={this.state.type === Constants.AssetType.URL ? "https://statwrap.org" : "Path to resource"}
+                  value={this.state.uri}
+                  onChange={this.handleInputChange}
+                  onBlur={this.handleValidatePath}
+                />
+                {this.state.type !== Constants.AssetType.URL && (
+                  <Button variant="contained" onClick={this.handleBrowse} style={{ whiteSpace: 'nowrap' }}>
+                    Browse...
+                  </Button>
+                )}
+              </div>
             </div>
+            {pathError}
           </div>
         </form>
         {error}

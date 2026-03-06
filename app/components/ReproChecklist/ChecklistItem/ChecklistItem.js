@@ -109,7 +109,7 @@ function ChecklistItem(props) {
       Constants.ActionType.CHECKLIST_UPDATED,
       Constants.ActionType.CHECKLIST_UPDATED,
       `Set "${updatedItem.statement}" to "${formatYesNo(newValue)}"`,
-      {oldValue: formatYesNo(item.Value), newValue: formatYesNo(newValue)}
+      { oldValue: formatYesNo(item.Value), newValue: formatYesNo(newValue) }
     );
   };
 
@@ -141,7 +141,7 @@ function ChecklistItem(props) {
       Constants.ActionType.CHECKLIST_UPDATED,
       Constants.ActionType.CHECKLIST_UPDATED,
       `Set sub-item ${subCheck.id} of ${updatedItem.statement} to "Yes"`,
-      {oldValue: 'No', newValue: 'Yes'}
+      { oldValue: 'No', newValue: 'Yes' }
     );
   };
 
@@ -179,7 +179,7 @@ function ChecklistItem(props) {
     }
 
     // Adds image asset to checklist documentation
-    const isExternalAsset = AssetUtil.isExternalAsset(selectedAsset);
+    const isExternalAsset = AssetUtil.isExternalAsset(selectedAsset, project);
     const associatedAsset = {
       uri: selectedAsset.uri,
       name: assetTitle,
@@ -207,10 +207,10 @@ function ChecklistItem(props) {
 
   const formatDisplayLink = (asset) => {
     if (asset.isExternalAsset) {
-      return(<a href={asset.uri} target="">{asset.uri}</a>);
+      return (<a href={asset.uri} target="">{asset.uri}</a>);
     }
     //return (<div>{AssetUtil.absoluteToRelativePath(project.path, asset)}</div>);
-    return(<a href={`file://${asset.uri}`} target="">{AssetUtil.absoluteToRelativePath(project.path, asset)}</a>);
+    return (<a href={`file://${asset.uri}`} target="">{AssetUtil.absoluteToRelativePath(project.path, asset)}</a>);
   };
 
   const handleCopy = (uri) => {
@@ -321,33 +321,33 @@ function ChecklistItem(props) {
                     <div className={styles.assetContent}>
                       <table className={styles.assets}>
                         <tbody>
-                        {item.assets.map((asset) => (
-                          <tr key={asset.uri}>
-                            <td className={styles.detailsCol}>
-                              <div className={styles.assetName}>{asset.name}</div>
-                              <div className={styles.assetLink}>{formatDisplayLink(asset)}</div>
-                              <div className={styles.assetDescription}>{asset.description}</div>
-                            </td>
-                            <td className={styles.actionCol}>
-                              {copiedAsset === asset.uri ? (
-                                <Done className={styles.doneButton} />
-                              ) : (
-                                <Tooltip title="Copy asset link/URL" enterDelay={300}>
-                                  <ContentCopy
-                                    className={styles.copyButton}
-                                    onClick={() => handleCopy(asset.uri)}
+                          {item.assets.map((asset) => (
+                            <tr key={asset.uri}>
+                              <td className={styles.detailsCol}>
+                                <div className={styles.assetName}>{asset.name}</div>
+                                <div className={styles.assetLink}>{formatDisplayLink(asset)}</div>
+                                <div className={styles.assetDescription}>{asset.description}</div>
+                              </td>
+                              <td className={styles.actionCol}>
+                                {copiedAsset === asset.uri ? (
+                                  <Done className={styles.doneButton} />
+                                ) : (
+                                  <Tooltip title="Copy asset link/URL" enterDelay={300}>
+                                    <ContentCopy
+                                      className={styles.copyButton}
+                                      onClick={() => handleCopy(asset.uri)}
+                                    />
+                                  </Tooltip>
+                                )}
+                                <Tooltip title="Remove asset reference" enterDelay={300}>
+                                  <Delete
+                                    className={styles.delButton}
+                                    onClick={() => handleDeleteAsset(asset.uri)}
                                   />
                                 </Tooltip>
-                              )}
-                              <Tooltip title="Remove asset reference" enterDelay={300}>
-                                <Delete
-                                  className={styles.delButton}
-                                  onClick={() => handleDeleteAsset(asset.uri)}
-                                />
-                              </Tooltip>
-                            </td>
-                          </tr>
-                        ))}
+                              </td>
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
                     </div>

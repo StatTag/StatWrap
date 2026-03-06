@@ -1,3 +1,4 @@
+import path from 'path';
 import AssetUtil from '../../app/utils/asset';
 import Constants from '../../app/constants/constants';
 
@@ -1453,10 +1454,98 @@ describe('utils', () => {
       it('should return true for a URL', () => {
         expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.URL })).toBeTrue();
       });
-      it('should return false for other types', () => {
+      it('should return true for a URL even without a project', () => {
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.URL }, null)).toBeTrue();
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.URL }, undefined)).toBeTrue();
+      });
+      it('should return false for other types without a project', () => {
         expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.FILE })).toBeFalse();
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.DIRECTORY })).toBeFalse();
         expect(AssetUtil.isExternalAsset({ type: 'not a url' })).toBeFalse();
         expect(AssetUtil.isExternalAsset({ type: '' })).toBeFalse();
+      });
+      it('should return true for a DIRECTORY asset found in project externalAssets', () => {
+        const project = {
+          externalAssets: {
+            uri: 'External Resources',
+            type: Constants.AssetType.FOLDER,
+            children: [
+              { uri: '/external/folder', type: Constants.AssetType.DIRECTORY, name: 'My Folder' },
+            ],
+          },
+        };
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.DIRECTORY, uri: '/external/folder' }, project)).toBeTrue();
+      });
+      it('should return true for a FILE asset found in project externalAssets', () => {
+        const project = {
+          externalAssets: {
+            uri: 'External Resources',
+            type: Constants.AssetType.FOLDER,
+            children: [
+              { uri: '/external/file.txt', type: Constants.AssetType.FILE, name: 'My File' },
+            ],
+          },
+        };
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.FILE, uri: '/external/file.txt' }, project)).toBeTrue();
+      });
+      it('should return false for a DIRECTORY asset NOT in project externalAssets', () => {
+        const project = {
+          externalAssets: {
+            uri: 'External Resources',
+            type: Constants.AssetType.FOLDER,
+            children: [],
+          },
+        };
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.DIRECTORY, uri: '/core/folder' }, project)).toBeFalse();
+      });
+      it('should return false for a FILE asset NOT in project externalAssets', () => {
+        const project = {
+          externalAssets: {
+            uri: 'External Resources',
+            type: Constants.AssetType.FOLDER,
+            children: [],
+          },
+        };
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.FILE, uri: '/core/file.txt' }, project)).toBeFalse();
+      });
+      it('should handle project with no externalAssets gracefully', () => {
+        const project = {};
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.DIRECTORY, uri: '/some/folder' }, project)).toBeFalse();
+      });
+    });
+
+    describe('isExternalRootAsset', () => {
+      it('should return false if asset is null or undefined', () => {
+        expect(AssetUtil.isExternalRootAsset(null, {})).toBeFalse();
+        expect(AssetUtil.isExternalRootAsset(undefined, {})).toBeFalse();
+      });
+
+      it('should return false if externalAssets or its children are missing', () => {
+        expect(AssetUtil.isExternalRootAsset({ uri: '/test' }, null)).toBeFalse();
+        expect(AssetUtil.isExternalRootAsset({ uri: '/test' }, {})).toBeFalse();
+        expect(AssetUtil.isExternalRootAsset({ uri: '/test' }, { children: null })).toBeFalse();
+      });
+
+      it('should return true if the asset is a direct child of externalAssets', () => {
+        const externalAssets = {
+          children: [
+            { uri: '/test1' },
+            { uri: '/test2' }
+          ]
+        };
+        expect(AssetUtil.isExternalRootAsset({ uri: '/test1' }, externalAssets)).toBeTrue();
+        expect(AssetUtil.isExternalRootAsset({ uri: '/test2' }, externalAssets)).toBeTrue();
+      });
+
+      it('should return false if the asset is NOT a direct child of externalAssets', () => {
+        const externalAssets = {
+          children: [
+            { uri: '/test1' },
+            { uri: '/test2', children: [{ uri: '/test3' }] }
+          ]
+        };
+        expect(AssetUtil.isExternalRootAsset({ uri: '/test3' }, externalAssets)).toBeFalse();
+        expect(AssetUtil.isExternalRootAsset({ uri: '/other' }, externalAssets)).toBeFalse();
       });
     });
 
@@ -1476,6 +1565,24 @@ describe('utils', () => {
       });
       it('should return a formatted name for a URL with a name', () => {
         expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.URL, uri: 'http://test.com', name: 'Test' })).toBe('Test (http://test.com)');
+      });
+      it('should return "Name (basename)" for a directory with a custom name different from basename', () => {
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.DIRECTORY, uri: path.join('Users', 'me', 'shared-data'), name: 'Shared Data' })).toBe('Shared Data (shared-data)');
+      });
+      it('should return "Name (basename)" for a file with a custom name different from basename', () => {
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.FILE, uri: path.join('Users', 'me', 'notes.txt'), name: 'My Notes' })).toBe('My Notes (notes.txt)');
+      });
+      it('should return just the basename for a directory with custom name same as basename', () => {
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.DIRECTORY, uri: path.join('Users', 'me', 'data'), name: 'data' })).toBe('data');
+      });
+      it('should return just the basename for a file with custom name same as basename', () => {
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.FILE, uri: path.join('Users', 'me', 'analysis.py'), name: 'analysis.py' })).toBe('analysis.py');
+      });
+      it('should return the basename for a directory without a custom name', () => {
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.DIRECTORY, uri: path.join('Users', 'me', 'project', 'src') })).toBe('src');
+      });
+      it('should return the basename for a file without a custom name', () => {
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.FILE, uri: path.join('Users', 'me', 'project', 'main.py') })).toBe('main.py');
       });
     });
   });
