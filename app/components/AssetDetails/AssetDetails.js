@@ -3,6 +3,7 @@ import { FaTrash, FaEdit } from 'react-icons/fa';
 import { IconButton } from '@mui/material';
 import OverflowDiv from '../OverflowDiv/OverflowDiv';
 import Constants from '../../constants/constants';
+import AssetUtil from '../../utils/asset';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -41,6 +42,7 @@ const assetDetails = (props) => {
     sourceControlEnabled,
     dynamicDetails,
     isExternalRootAsset,
+    isExternalAsset: isExternalProp,
   } = props;
 
   const [expandNotes, setExpandNotes] = useState(false);
@@ -94,7 +96,7 @@ const assetDetails = (props) => {
     }
   };
 
-  const isExternalAsset = asset && asset.type === Constants.AssetType.URL;
+  const isExternalAsset = isExternalRootAsset || isExternalProp || (asset && AssetUtil.isExternalAsset(asset));
 
   let sourceControlAccordion = null;
   if (!isExternalAsset && sourceControlEnabled) {

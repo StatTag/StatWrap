@@ -8,6 +8,7 @@ import Constants from '../../constants/constants';
 import GeneralUtil from '../../utils/general';
 import UserContext from '../../contexts/User';
 import styles from './ExternalAssetDialog.css';
+import fs from 'fs';
 
 function PaperComponent(props) {
   // Fix needed for React19: https://github.com/react-grid-layout/react-draggable/blob/master/CHANGELOG.md#440-may-12-2020
@@ -24,16 +25,39 @@ class ExternalAssetDialog extends Component {
     super(props);
     this.state = {
       errorMessage: null,
-      uri: props.uri ? props.uri : '',
-      name: props.name ? props.name : '',
-      type: props.type ? props.type : Constants.AssetType.URL,
-      isNew: props.isNew ? props.isNew : true,
+      uri: props.uri || '',
+      name: props.name || '',
+      type: props.type || Constants.AssetType.URL,
+      isNew: props.isNew !== undefined ? props.isNew : true,
       validPath: true
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleSave = this.handleSave.bind(this);
     this.handleValidatePath = this.handleValidatePath.bind(this);
+    this.isValidPath = this.isValidPath.bind(this);
+  }
+
+  isValidPath(type, uri) {
+    if (type === Constants.AssetType.URL) {
+      return GeneralUtil.isValidResourceUrl(uri);
+    }
+    if (!uri || uri.trim() === '') {
+      return false;
+    }
+    try {
+      const stats = fs.statSync(uri);
+      if (type === Constants.AssetType.DIRECTORY) {
+        return stats.isDirectory();
+      }
+      if (type === Constants.AssetType.FILE) {
+        return stats.isFile();
+      }
+      // For any other non-URL asset types, accept existing files or directories.
+      return stats.isFile() || stats.isDirectory();
+    } catch (e) {
+      return false;
+    }
   }
 
   handleSave() {
@@ -45,6 +69,11 @@ class ExternalAssetDialog extends Component {
 
     if (asset.name.trim() === '' || asset.uri.trim() === '') {
       this.setState({ errorMessage: 'You must enter a resource name and path/URL' });
+      return;
+    }
+
+    if (!this.isValidPath(this.state.type, this.state.uri)) {
+      this.setState({ validPath: false, errorMessage: 'Please enter a valid and accessible path/URL' });
       return;
     }
 
@@ -68,11 +97,7 @@ class ExternalAssetDialog extends Component {
   handleValidatePath(event) {
     const { target } = event;
     const value = target.value;
-    if (this.state.type === Constants.AssetType.URL) {
-      this.setState({ validPath: GeneralUtil.isValidResourceUrl(value) });
-    } else {
-      this.setState({ validPath: value.trim() !== '' });
-    }
+    this.setState({ validPath: this.isValidPath(this.state.type, value) });
   }
 
   handleBrowse = () => {
@@ -115,10 +140,10 @@ class ExternalAssetDialog extends Component {
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle classes={{ root: styles.title }} id="external-asset-dialog-title">
+        <DialogTitle style={{ color: 'white', backgroundColor: '#aa94d1' }} id="external-asset-dialog-title">
           {dialogAction} External Resource
         </DialogTitle>
-        <form onSubmit={this.onSubmit}>
+         <form onSubmit={(e) => { e.preventDefault(); this.handleSave(); }}>
           <div className={styles.formBody}>
             <div className={styles.formRow}>
               <label className={styles.label}>*Type:</label>

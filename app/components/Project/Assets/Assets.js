@@ -326,19 +326,11 @@ const assetsComponent = (props) => {
     setEditingExternalAsset(true);
   };
 
-  // Helper to determine if the selected asset is a root-level external resource
-  // (a direct child of externalAssets, i.e., an asset the user explicitly added).
-  const isExternalRootAsset = (asset) => {
-    if (!asset || !externalAssets || !externalAssets.children) {
-      return false;
-    }
-    return externalAssets.children.some((child) => child.uri === asset.uri);
-  };
-
   let assetDisplay = null;
   if (project) {
     assetDisplay = <Loading>Please wait for the list of assets to finish loading...</Loading>;
-    const selectedIsExternalRoot = isExternalRootAsset(selectedAsset);
+    const selectedIsExternalRoot = AssetUtil.isExternalRootAsset(selectedAsset, externalAssets);
+    const selectedIsExternal = AssetUtil.isExternalAsset(selectedAsset, project);
     const assetDetails = selectedAsset ? (
       <AssetDetails
         asset={selectedAsset}
@@ -352,6 +344,7 @@ const assetsComponent = (props) => {
         onEdit={handleEditExternalAsset}
         onRemove={onDeletedExternalAsset}
         isExternalRootAsset={selectedIsExternalRoot}
+        isExternalAsset={selectedIsExternal}
       />
     ) : null;
     if (assets) {
@@ -485,6 +478,8 @@ const assetsComponent = (props) => {
             onSave={handleSavedExternalAsset}
             uri={editableExternalAsset ? editableExternalAsset.uri : ''}
             name={editableExternalAsset ? editableExternalAsset.name : ''}
+            type={editableExternalAsset ? editableExternalAsset.type : Constants.AssetType.URL}
+            isNew={editableExternalAsset === null}
           />
         </>
       );

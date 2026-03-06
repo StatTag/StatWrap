@@ -805,25 +805,31 @@ ipcMain.on(
               actionType === Constants.ActionType.EXTERNAL_ASSET_UPDATED)
           ) {
             const assetService = new AssetService([new FileHandler()]);
-            response.project.externalAssets.children = response.project.externalAssets.children.map(
-              (extAsset) => {
-                if (
-                  extAsset.type === Constants.AssetType.DIRECTORY ||
-                  extAsset.type === Constants.AssetType.FILE
-                ) {
-                  try {
-                    const scanned = assetService.scan(extAsset.uri);
-                    if (scanned) {
-                      scanned.name = extAsset.name; // Preserve the user's custom name
-                      return scanned;
+            const { uri, oldUri } = details || {};
+            const targetUri = uri || oldUri;
+            if (targetUri) {
+              response.project.externalAssets.children = response.project.externalAssets.children.map(
+                (extAsset) => {
+                  if (
+                    extAsset.uri === targetUri &&
+                    (extAsset.type === Constants.AssetType.DIRECTORY ||
+                      extAsset.type === Constants.AssetType.FILE)
+                  ) {
+                    try {
+                      const scanned = assetService.scan(extAsset.uri);
+                      if (scanned) {
+                        scanned.name = extAsset.name; // Preserve the user's custom name
+                        projectService.addNotesAndAttributesToAssets(scanned, extAsset); // Preserve notes and attributes
+                        return scanned;
+                      }
+                    } catch (scanErr) {
+                      console.warn(`Could not scan external asset at ${extAsset.uri}:`, scanErr);
                     }
-                  } catch (scanErr) {
-                    console.warn(`Could not scan external asset at ${extAsset.uri}:`, scanErr);
                   }
-                }
-                return extAsset;
-              },
-            );
+                  return extAsset;
+                },
+              );
+            }
           }
         }
       }
