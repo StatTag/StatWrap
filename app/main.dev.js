@@ -1163,6 +1163,34 @@ ipcMain.on(Messages.SEARCH_UPDATE_SETTINGS_REQUEST, async (event, searchSettings
   event.sender.send(Messages.SEARCH_UPDATE_SETTINGS_RESPONSE, response);
 });
 
+ipcMain.on(Messages.CHECKLIST_UPDATE_SETTINGS_REQUEST, async (event, checklistSettings) => {
+  const response = {
+    checklistSettings: checklistSettings,
+    error: false,
+    errorMessage: '',
+  };
+
+  if (!checklistSettings) {
+    response.error = true;
+    response.errorMessage = 'No checklist settings were provided';
+    event.sender.send(Messages.CHECKLIST_UPDATE_SETTINGS_RESPONSE, response);
+    return;
+  }
+
+  try {
+    const service = new UserService();
+    const userSettingsPath = path.join(app.getPath('userData'), DefaultSettingsFile);
+    const settings = service.loadUserSettingsFromFile(userSettingsPath);
+    settings.checklistSettings = checklistSettings;
+    service.saveUserSettingsToFile(settings, userSettingsPath);
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = e.message;
+    console.log('Error updating checklist settings: ', e);
+  }
+  event.sender.send(Messages.CHECKLIST_UPDATE_SETTINGS_RESPONSE, response);
+});
+
 ipcMain.on(Messages.SEARCH_REQUEST, async (event, query, searchOptions) => {
   const response = {
     results: null,

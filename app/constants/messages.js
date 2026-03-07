@@ -82,4 +82,7 @@ module.exports = {
   GET_APP_DATA_PATH: 'statwrap-get-app-data-path',
   SHOW_ITEM_IN_FOLDER: 'statwrap-show-item-in-folder',
   OPEN_FILE_WITH_DEFAULT: 'statwrap-open-file-with-default',
+
+  CHECKLIST_UPDATE_SETTINGS_REQUEST: 'statwrap-checklist-update-settings-request',
+  CHECKLIST_UPDATE_SETTINGS_RESPONSE: 'statwrap-checklist-update-settings-response',
 };

@@ -77,6 +77,7 @@ class ProjectPage extends Component {
     this.handleAddProject = this.handleAddProject.bind(this);
     this.handleCloseAddProject = this.handleCloseAddProject.bind(this);
     this.handleLoadConfigurationResponse = this.handleLoadConfigurationResponse.bind(this);
+    this.handleLoadUserInfoResponse = this.handleLoadUserInfoResponse.bind(this);
     this.handleProjectListEntryMenu = this.handleProjectListEntryMenu.bind(this);
     this.handleCloseProjectListMenu = this.handleCloseProjectListMenu.bind(this);
     this.handleClickProjectListMenu = this.handleClickProjectListMenu.bind(this);
@@ -101,6 +102,9 @@ class ProjectPage extends Component {
   componentDidMount() {
     ipcRenderer.send(Messages.LOAD_PROJECT_LIST_REQUEST);
     ipcRenderer.on(Messages.LOAD_PROJECT_LIST_RESPONSE, this.handleLoadProjectListResponse);
+
+    ipcRenderer.send(Messages.LOAD_USER_INFO_REQUEST);
+    ipcRenderer.on(Messages.LOAD_USER_INFO_RESPONSE, this.handleLoadUserInfoResponse);
 
     ipcRenderer.send(Messages.LOAD_CONFIGURATION_REQUEST);
     ipcRenderer.on(Messages.LOAD_CONFIGURATION_RESPONSE, this.handleLoadConfigurationResponse);
@@ -152,6 +156,7 @@ class ProjectPage extends Component {
       Messages.LOAD_CONFIGURATION_RESPONSE,
       this.handleLoadConfigurationResponse,
     );
+    ipcRenderer.removeListener(Messages.LOAD_USER_INFO_RESPONSE, this.handleLoadUserInfoResponse);
     ipcRenderer.removeListener(
       Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE,
       this.refreshProjectsHandler,
@@ -267,6 +272,12 @@ class ProjectPage extends Component {
     });
   }
 
+  handleLoadUserInfoResponse(sender, response) {
+    this.setState({
+      checklistSettings: response.settings ? response.settings.checklistSettings : null,
+    });
+  }
+
   handleRefreshProjectLog() {
     ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, this.state.selectedProject);
   }
@@ -348,16 +359,44 @@ class ProjectPage extends Component {
       return;
     }
 
+    const customItems = this.state.checklistSettings
+      ? this.state.checklistSettings.customItems
+      : [];
+
     // Initialize the checklist file if it doesn't exist, for all the already existing projects
-    const projectChecklist = ChecklistUtil.initializeChecklist();
-    if (response.checklist && response.checklist.length === 0) {
+    let projectChecklist = response.checklist;
+    let updated = false;
+    if (!projectChecklist || projectChecklist.length === 0) {
+      projectChecklist = ChecklistUtil.initializeChecklist(customItems);
+      updated = true;
+    } else {
+      // Check if there are any custom items that aren't in the project checklist yet.
+      // We match by ID for custom items.
+      customItems.forEach((customItem) => {
+        if (!projectChecklist.find((item) => item.id === customItem.id)) {
+          projectChecklist.push({
+            id: customItem.id,
+            name: customItem.name,
+            statement: customItem.statement,
+            answer: false,
+            scanResult: {},
+            notes: [],
+            assets: [],
+            subChecklist: [],
+          });
+          updated = true;
+        }
+      });
+    }
+
+    if (updated) {
       // response only returns project id, we need to find the project path
       const project = this.state.projects.find((p) => p.id === response.projectId);
       ipcRenderer.send(Messages.WRITE_PROJECT_CHECKLIST_REQUEST, project.path, projectChecklist);
     }
 
     if (this.state.selectedProject && response.projectId === this.state.selectedProject.id) {
-      this.setState({ selectedProjectChecklist: response });
+      this.setState({ selectedProjectChecklist: { ...response, checklist: projectChecklist } });
     }
   }
 
@@ -374,6 +413,8 @@ class ProjectPage extends Component {
         selectedProjectLogs: null,
         selectedProjectChecklist: null,
         assetDynamicDetails: null,
+        checklistSettings: null,
+        projectScanStatus: null,
       });
       if (this.props.onSelectProject) {
         this.props.onSelectProject(null);

@@ -45,6 +45,25 @@ const settingsString = `{
   }
 }`;
 
+// v3 default version
+const V3SettingsString = `{
+  "formatVersion": "3",
+  "directory": [
+    {
+      "name" : "Test User"
+    },
+    {
+      "name" : "Other User"
+    }
+  ],
+  "searchSettings": {
+    "maxIndexableFileSize": 102400
+  },
+  "checklistSettings": {
+    "customItems": []
+  }
+}`;
+
 const settingsObject = { formatVersion: '1', directory: [] };
 
 const invalidSettingsString = `{
@@ -75,17 +94,19 @@ describe('services', () => {
       it('should return the user settings from a specified file', () => {
         fs.readFileSync.mockReturnValue(settingsString);
         const settings = new UserService().loadUserSettingsFromFile('test-user-settings.json');
-        expect(settings.formatVersion).toBe('2');
+        expect(settings.formatVersion).toBe('3');
         expect(settings.directory.length).toBe(2);
         expect(settings.searchSettings.maxIndexableFileSize).toBe(102400);
+        expect(settings.checklistSettings.customItems.length).toBe(0);
         expect(fs.readFileSync).toHaveBeenCalledWith('test-user-settings.json');
       });
       it('should return the user settings from a default file', () => {
         fs.readFileSync.mockReturnValue(settingsString);
         const settings = new UserService().loadUserSettingsFromFile();
-        expect(settings.formatVersion).toBe('2');
+        expect(settings.formatVersion).toBe('3');
         expect(settings.directory.length).toBe(2);
         expect(settings.searchSettings.maxIndexableFileSize).toBe(102400);
+        expect(settings.checklistSettings.customItems.length).toBe(0);
         expect(fs.readFileSync).toHaveBeenCalledWith('.user-settings.json');
       });
       it('should throw an exception if the JSON is invalid', () => {
@@ -98,18 +119,30 @@ describe('services', () => {
         });
         const settings = new UserService().loadUserSettingsFromFile('/Test/Path');
         expect(settings).not.toBeNull();
-        expect(settings.formatVersion).toBe('2');
+        expect(settings.formatVersion).toBe('3');
         expect(settings.directory.length).toBe(0);
         expect(settings.searchSettings.maxIndexableFileSize).toBe(102400);
+        expect(settings.checklistSettings.customItems.length).toBe(0);
         expect(fs.readFileSync).not.toHaveBeenCalled();
       });
 
-      it('should upgrade from v1 to v2', () => {
+      it('should upgrade from v1 to v3', () => {
         fs.readFileSync.mockReturnValue(V1SettingsString);
         const settings = new UserService().loadUserSettingsFromFile();
-        expect(settings.formatVersion).toBe('2');
+        expect(settings.formatVersion).toBe('3');
         expect(settings.directory.length).toBe(2);
         expect(settings.searchSettings.maxIndexableFileSize).toBe(102400);
+        expect(settings.checklistSettings.customItems.length).toBe(0);
+        expect(fs.readFileSync).toHaveBeenCalledWith('.user-settings.json');
+      });
+
+      it('should upgrade from v2 to v3', () => {
+        fs.readFileSync.mockReturnValue(settingsString); // settingsString is v2
+        const settings = new UserService().loadUserSettingsFromFile();
+        expect(settings.formatVersion).toBe('3');
+        expect(settings.directory.length).toBe(2);
+        expect(settings.searchSettings.maxIndexableFileSize).toBe(102400);
+        expect(settings.checklistSettings.customItems.length).toBe(0);
         expect(fs.readFileSync).toHaveBeenCalledWith('.user-settings.json');
       });
     });
@@ -155,7 +188,7 @@ describe('services', () => {
             name: { first: 'T', last: 'P' },
           }),
         ).not.toBeNull();
-        expect(settings.formatVersion).toBe('2');
+        expect(settings.formatVersion).toBe('3');
         expect(settings.directory).not.toBeNull();
       });
       it('should add a new person when the id is provided', () => {
@@ -450,7 +483,7 @@ describe('services', () => {
           directory: [],
         };
         new UserService().removePersonFromUserDirectory(settings, { id: '1-2-3' });
-        expect(settings.formatVersion).toBe('2');
+        expect(settings.formatVersion).toBe('3');
       });
       it('should remove a person when matched on ID', () => {
         const settings = {
