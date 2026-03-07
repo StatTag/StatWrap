@@ -10,7 +10,7 @@ export default class ChecklistUtil {
    * This function initializes the checklist with the statements and seeds other properties
    * @returns {object} The initialized checklist
    */
-  static initializeChecklist() {
+  static initializeChecklist(customItems = []) {
     const checklist = [];
     Constants.CHECKLIST.forEach((statement, index) => {
       checklist.push({
@@ -24,6 +24,22 @@ export default class ChecklistUtil {
         subChecklist: [],
       });
     });
+
+    if (customItems && customItems.length > 0) {
+      customItems.forEach((item) => {
+        checklist.push({
+          id: item.id,
+          name: item.name,
+          statement: item.statement,
+          answer: false,
+          scanResult: {},
+          notes: [],
+          assets: [],
+          subChecklist: [],
+        });
+      });
+    }
+
     return checklist;
   }
 

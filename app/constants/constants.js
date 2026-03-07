@@ -116,6 +116,10 @@ module.exports = {
 
   MAX_GRAPH_LABEL_LENGTH: 31,
 
+  DEFAULT_CHECKLIST_SETTINGS: {
+    customItems: []
+  },
+
   CHECKLIST: [
     ['Dependency', 'Software dependencies for the project are documented.'],
     ['Data', 'Data file(s) used in the project are documented.'],

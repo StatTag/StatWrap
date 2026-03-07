@@ -3,6 +3,26 @@ import Constants from '../../app/constants/constants';
 
 describe('utils', () => {
   describe('ChecklistUtil', () => {
+    describe('initializeChecklist', () => {
+      it('should return default checklist items when no custom items are provided', () => {
+        const checklist = ChecklistUtil.initializeChecklist();
+        expect(checklist.length).toBe(Constants.CHECKLIST.length);
+        expect(checklist[0].name).toBe(Constants.CHECKLIST[0][0]);
+      });
+
+      it('should include custom items when provided', () => {
+        const customItems = [
+          { id: 'custom-1', name: 'Custom Name', statement: 'Custom Statement' },
+        ];
+        const checklist = ChecklistUtil.initializeChecklist(customItems);
+        expect(checklist.length).toBe(Constants.CHECKLIST.length + 1);
+        const lastItem = checklist[checklist.length - 1];
+        expect(lastItem.id).toBe('custom-1');
+        expect(lastItem.name).toBe('Custom Name');
+        expect(lastItem.statement).toBe('Custom Statement');
+      });
+    });
+
     describe('findProjectLanguagesAndDependencies', () => {
       it('should return empty result when asset is null or undefined', () => {
         expect(ChecklistUtil.findProjectLanguagesAndDependencies(null)).toEqual({});
