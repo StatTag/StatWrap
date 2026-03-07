@@ -12,7 +12,7 @@ class SelectProjectTemplate extends Component {
       template = this.props.projectTemplates.find(
         (x) =>
           x.id === this.props.selectedTemplate.id &&
-          x.version === this.props.selectedTemplate.version,
+          (x.isCustom || x.version === this.props.selectedTemplate.version),
       );
     }
     return (

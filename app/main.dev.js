@@ -51,6 +51,7 @@ const projectTemplateService = new ProjectTemplateService();
 const projectService = new ProjectService();
 const projectListService = new ProjectListService();
 const sourceControlService = new SourceControlService();
+const userService = new UserService();
 const logService = new LogService();
 const checklistService = new ChecklistService();
 
@@ -320,8 +321,13 @@ ipcMain.on(Messages.LOAD_CONFIGURATION_REQUEST, async (event) => {
   };
 
   try {
+    const settings = userService.loadUserSettingsFromFile();
+    const customTemplates = settings.projectTemplateSettings
+      ? settings.projectTemplateSettings.customTemplates
+      : [];
     response.projectTemplates = projectTemplateService.loadProjectTemplates(
       path.join(__dirname, './templates'),
+      customTemplates,
     );
   } catch (e) {
     response.error = true;
@@ -1163,6 +1169,57 @@ ipcMain.on(Messages.SEARCH_UPDATE_SETTINGS_REQUEST, async (event, searchSettings
   event.sender.send(Messages.SEARCH_UPDATE_SETTINGS_RESPONSE, response);
 });
 
+ipcMain.on(Messages.CHECKLIST_UPDATE_SETTINGS_REQUEST, async (event, checklistSettings) => {
+  const response = {
+    checklistSettings: checklistSettings,
+    error: false,
+    errorMessage: '',
+  };
+
+  if (!checklistSettings) {
+    response.error = true;
+    response.errorMessage = 'No checklist settings were provided';
+    event.sender.send(Messages.CHECKLIST_UPDATE_SETTINGS_RESPONSE, response);
+    return;
+  }
+
+  try {
+    const service = new UserService();
+    const userSettingsPath = path.join(app.getPath('userData'), DefaultSettingsFile);
+    const settings = service.loadUserSettingsFromFile(userSettingsPath);
+    settings.checklistSettings = checklistSettings;
+    service.saveUserSettingsToFile(settings, userSettingsPath);
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = e.message;
+    console.log('Error updating checklist settings: ', e);
+  }
+  event.sender.send(Messages.CHECKLIST_UPDATE_SETTINGS_RESPONSE, response);
+});
+
+ipcMain.on(Messages.PROJECT_TEMPLATE_UPDATE_SETTINGS_REQUEST, async (event, projectTemplateSettings) => {
+  const response = {
+    error: false,
+    errorMessage: '',
+  };
+
+  try {
+    const userDataPath = app.getPath('userData');
+    const settings = userService.loadUserSettingsFromFile(
+      path.join(userDataPath, DefaultSettingsFile),
+    );
+    settings.projectTemplateSettings = projectTemplateSettings;
+    userService.saveUserSettingsToFile(settings, path.join(userDataPath, DefaultSettingsFile));
+    response.error = false;
+    response.errorMessage = '';
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = 'There was an unexpected error when updating the project template settings';
+    console.log(e);
+  }
+
+  event.sender.send(Messages.PROJECT_TEMPLATE_UPDATE_SETTINGS_RESPONSE, response);
+});
 ipcMain.on(Messages.SEARCH_REQUEST, async (event, query, searchOptions) => {
   const response = {
     results: null,

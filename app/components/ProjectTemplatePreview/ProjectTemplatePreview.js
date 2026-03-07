@@ -47,6 +47,13 @@ class ProjectTemplatePreview extends Component {
       let templateContents = [];
       if (this.props.template.contents) {
         templateContents = contentsToNodes(this.props.template.contents);
+      } else if (this.props.template.isCustom && this.props.template.folders) {
+        templateContents = this.props.template.folders.map((f) => ({
+          value: f,
+          label: f,
+          showCheckbox: false,
+          icon: <FontAwesomeIcon icon={faFolder} />,
+        }));
       }
       const templateNodes = [
         {

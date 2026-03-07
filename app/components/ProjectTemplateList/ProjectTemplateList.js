@@ -11,7 +11,7 @@ function ProjectTemplateList(props) {
         selected={
           props.selectedTemplate &&
           type.id === props.selectedTemplate.id &&
-          type.version === props.selectedTemplate.version
+          (type.isCustom || type.version === props.selectedTemplate.version)
         }
         key={type.id}
         onClick={() => props.onSelect(type.id, type.version)}

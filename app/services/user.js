@@ -7,7 +7,9 @@ const DefaultSettingsFile = '.user-settings.json';
 
 // v1 - Original
 // v2 - Added searchSettings { maxIndexableFileSize }
-const SettingsFileFormatVersion = '2';
+// v3 - Added checklistSettings { customItems }
+// v4 - Added projectTemplateSettings { customTemplates }
+const SettingsFileFormatVersion = '4';
 
 // Artificially set limit to how many people will be stored in the user's directory.  This
 // limit is imposed because the directory will act more like a 'most recently used' list than
@@ -44,6 +46,12 @@ export default class UserService {
       directory: [],
       searchSettings: {
         maxIndexableFileSize: DefaultMaxIndexableFileSize
+      },
+      checklistSettings: {
+        customItems: []
+      },
+      projectTemplateSettings: {
+        customTemplates: []
       }
     };
     try {
@@ -55,12 +63,30 @@ export default class UserService {
     const data = fs.readFileSync(filePath);
     settings = JSON.parse(data.toString());
 
-    if (settings.formatVersion == '1') {
-      // Upgrade to v2
+    if (settings.formatVersion == '1' || settings.formatVersion == '2' || settings.formatVersion == '3') {
+      if (settings.formatVersion == '1') {
+        // Upgrade to v2
+        settings.searchSettings = {
+          maxIndexableFileSize: DefaultMaxIndexableFileSize
+        };
+      }
+
+      if (settings.formatVersion == '1' || settings.formatVersion == '2') {
+        // Upgrade to v3
+        if (!settings.checklistSettings) {
+          settings.checklistSettings = {
+            customItems: []
+          };
+        }
+      }
+
+      // Upgrade to v4
       settings.formatVersion = SettingsFileFormatVersion;
-      settings.searchSettings = {
-        maxIndexableFileSize: DefaultMaxIndexableFileSize
-      };
+      if (!settings.projectTemplateSettings) {
+        settings.projectTemplateSettings = {
+          customTemplates: []
+        };
+      }
     }
 
     return settings;

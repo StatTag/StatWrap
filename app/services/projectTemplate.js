@@ -71,8 +71,9 @@ export default class ProjectTemplateService {
     this.projectTemplates = null;
   }
 
-  // Load the list of project templates, stored in templateRoot
-  loadProjectTemplates = (templateRoot) => {
+  // Load the list of project templates, stored in templateRoot.  It also accepts
+  // an optional array of custom templates to merge in.
+  loadProjectTemplates = (templateRoot, customTemplates = []) => {
     if (this.projectTemplates) {
       return this.projectTemplates;
     }
@@ -85,9 +86,17 @@ export default class ProjectTemplateService {
       }
     });
 
+    if (customTemplates && customTemplates.length > 0) {
+      customTemplates.forEach((custom) => {
+        templates.push({
+          ...custom,
+          isCustom: true,
+        });
+      });
+    }
+
     this.projectTemplates = [...templates];
 
-    // TODO: Can merge in user-defined project templates later.  Right now just our pre-defined ones
     return this.projectTemplates;
   };
 
@@ -108,16 +117,27 @@ export default class ProjectTemplateService {
     if (!templateId) {
       throw new Error(`You must specify the template ID to create`);
     }
-    if (!templateVersion) {
-      throw new Error('You must specify the version of the template to create');
-    }
-    const template = this.projectTemplates.find(
-      (t) => t.id === templateId && t.version === templateVersion,
-    );
+    // We only require version if it is NOT a custom template
+    const template = this.projectTemplates.find((t) => t.id === templateId);
+
     if (!template) {
-      throw new Error(`The template ID ${templateId} ${templateVersion} does not exist`);
+      throw new Error(`The template ID ${templateId} does not exist`);
     }
 
-    createAllTemplateItems(baseDirectory, template.contents);
+    if (template.isCustom) {
+      if (template.folders && template.folders.length > 0) {
+        template.folders.forEach((folder) => {
+          const folderPath = path.join(baseDirectory, folder);
+          if (!fs.existsSync(folderPath)) {
+            fs.mkdirSync(folderPath, { recursive: true });
+          }
+        });
+      }
+    } else {
+      if (!templateVersion) {
+        throw new Error('You must specify the version of the template to create');
+      }
+      createAllTemplateItems(baseDirectory, template.contents);
+    }
   };
 }
