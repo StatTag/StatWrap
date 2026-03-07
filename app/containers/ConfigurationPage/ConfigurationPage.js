@@ -2,6 +2,8 @@ import React, { Component, useContext } from 'react';
 import { ipcRenderer } from 'electron';
 import Messages from '../../constants/messages';
 import SearchSettings from '../../components/Search/SearchSettings/SearchSettings';
+import ChecklistSettings from '../../components/ReproChecklist/ChecklistSettings/ChecklistSettings';
+import ProjectTemplateSettings from '../../components/ProjectTemplate/ProjectTemplateSettings/ProjectTemplateSettings';
 import styles from './ConfigurationPage.css';
 
 class ConfigurationPage extends Component {
@@ -40,6 +42,8 @@ class ConfigurationPage extends Component {
       <div className={styles.container} data-tid="container">
         <h1>Configuration</h1>
         <SearchSettings projects={this.state.loaded ? this.state.projects : null} />
+        <ChecklistSettings />
+        <ProjectTemplateSettings />
       </div>
     );
   }

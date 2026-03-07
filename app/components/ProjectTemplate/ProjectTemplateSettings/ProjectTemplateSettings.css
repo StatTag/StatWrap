@@ -1,0 +1,62 @@
+.container {
+  margin-top: 10px;
+}
+
+.templateList {
+  width: 100%;
+}
+
+.templateItem {
+  margin-bottom: 10px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.templateHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.templateActions {
+  display: flex;
+  gap: 5px;
+}
+
+.templateDescription {
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+.templateFolders {
+  margin-top: 5px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  background-color: #f5f5f5;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+.folderChip {
+  margin: 2px !important;
+}
+
+.addForm {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #fafafa;
+  border-radius: 4px;
+  border: 1px solid #eee;
+}
+
+.formField {
+  margin-bottom: 15px !important;
+}
+
+.folderInputContainer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
