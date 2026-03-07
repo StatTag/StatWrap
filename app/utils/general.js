@@ -64,6 +64,90 @@ export default class GeneralUtil {
   }
 
   /**
+   * Parse an author string into a name object with first and last name
+   * Handles formats like "John Doe", "Doe, John", "John", etc.
+   * @param {string} authorString The author string to parse
+   * @returns {object} Name object with first and last properties
+   */
+  static parseAuthorName(authorString) {
+    if (!authorString || typeof authorString !== 'string') {
+      return null;
+    }
+
+    const trimmed = authorString.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    // Check if format is "Last, First"
+    if (trimmed.includes(',')) {
+      const parts = trimmed.split(',').map(p => p.trim());
+      return {
+        first: parts[1] || '',
+        last: parts[0] || '',
+      };
+    }
+
+    // Otherwise assume "First Last" or just "Name"
+    const parts = trimmed.split(/\s+/);
+    if (parts.length === 1) {
+      // Single name - use as first name
+      return {
+        first: parts[0],
+        last: '',
+      };
+    }
+
+    // Multiple parts - first word is first name, rest is last name
+    return {
+      first: parts[0],
+      last: parts.slice(1).join(' '),
+    };
+  }
+
+  /**
+   * Extract recommended people from project assets based on author metadata
+   * @param {object} assets The root asset object to scan
+   * @returns {Array} Array of person objects with name property
+   */
+  static getRecommendedPeopleFromAssets(assets) {
+    const recommendations = [];
+    const seenNames = new Set();
+
+    const extractAuthorsFromAsset = (asset) => {
+      if (!asset) {
+        return;
+      }
+
+      // Check if this asset has R handler metadata with authors
+      if (asset.metadata && Array.isArray(asset.metadata)) {
+        const rMetadata = asset.metadata.find(m => m.id === 'StatWrap.RHandler');
+        if (rMetadata && rMetadata.authors && Array.isArray(rMetadata.authors)) {
+          rMetadata.authors.forEach(authorString => {
+            const name = GeneralUtil.parseAuthorName(authorString);
+            if (name) {
+              const displayName = GeneralUtil.formatName(name);
+              // Avoid duplicates
+              if (!seenNames.has(displayName) && displayName !== DefaultDisplayName) {
+                seenNames.add(displayName);
+                recommendations.push({ name });
+              }
+            }
+          });
+        }
+      }
+
+      // Recursively process children
+      if (asset.children && Array.isArray(asset.children)) {
+        asset.children.forEach(child => extractAuthorsFromAsset(child));
+      }
+    };
+
+    extractAuthorsFromAsset(assets);
+    return recommendations;
+  }
+
+  /**
    * Given a user object, format the name for display depending on which components
    * are available
    * @param {object} user The user object we are formatting a display name for
