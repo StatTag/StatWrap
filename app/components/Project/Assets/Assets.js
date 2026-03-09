@@ -18,7 +18,7 @@ import ProjectUtil from '../../../utils/project';
 import ProjectService from '../../../services/project';
 import SourceControlService from '../../../services/sourceControl';
 import styles from './Assets.css';
-import constants from '../../../constants/constants';
+import path from 'path';
 
 /**
  * Utility function to safely reset available filters for a project's assets
@@ -131,7 +131,7 @@ const assetsComponent = (props) => {
       const sensitiveFiles = [];
       const collectSensitiveFiles = (asset) => {
         if (!asset) return;
-        if (asset.type === 'file' && asset.attributes && asset.attributes.sensitive) {
+        if (asset.type === Constants.AssetType.FILE && asset.attributes && asset.attributes.sensitive) {
           sensitiveFiles.push(asset.uri);
         }
         if (asset.children) {
@@ -148,7 +148,6 @@ const assetsComponent = (props) => {
       try {
         // Collecting all tracked files
         const trackedFiles = await sourceControlService.getTrackedFiles(project.path);
-        const path = require('path');
         const trackedFullPaths = new Set(
           trackedFiles.map((f) => path.join(project.path, f).replace(/\\/g, '/')),
         );
@@ -385,6 +384,7 @@ const assetsComponent = (props) => {
   let assetDisplay = null;
   if (project) {
     assetDisplay = <Loading>Please wait for the list of assets to finish loading...</Loading>;
+    const selectedIsExternalRoot = AssetUtil.isExternalRootAsset(selectedAsset, externalAssets);
     const assetDetails = selectedAsset ? (
       <AssetDetails
         asset={selectedAsset}
@@ -397,6 +397,7 @@ const assetsComponent = (props) => {
         dynamicDetails={dynamicDetails}
         onEdit={handleEditExternalAsset}
         onRemove={onDeletedExternalAsset}
+        isExternalRootAsset={selectedIsExternalRoot}
       />
     ) : null;
     if (assets) {
@@ -441,8 +442,8 @@ const assetsComponent = (props) => {
               <strong>Sensitive files under version control:</strong>
               <ul className={styles.sensitiveWarningList}>
                 {sensitiveTrackedFiles.map((fileUri) => {
-                  const fileName = fileUri.split(/[\\/]/).pop();
-                  return <li key={fileUri}>{fileName}</li>;
+                  const relativePathName = AssetUtil.absoluteToRelativePath(project.path, { uri: fileUri });
+                  return <li key={fileUri}>{relativePathName}</li>;
                 })}
               </ul>
               These files are marked as sensitive and also tracked by git. Be careful not to push them to remote repositories.
@@ -542,6 +543,7 @@ const assetsComponent = (props) => {
             onSave={handleSavedExternalAsset}
             uri={editableExternalAsset ? editableExternalAsset.uri : ''}
             name={editableExternalAsset ? editableExternalAsset.name : ''}
+            type={editableExternalAsset ? editableExternalAsset.type : Constants.AssetType.URL}
           />
         </>
       );
