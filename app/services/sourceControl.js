@@ -86,4 +86,21 @@ export default class SourceControlService {
 
     return this._getHistory(projectPath, filePath);
   }
+
+  async getTrackedFiles(projectPath) {
+    if (!projectPath) {
+      return [];
+    }
+
+    try {
+      const files = await git.listFiles({
+        fs,
+        dir: projectPath
+      });
+
+      return files;
+    } catch (error) {
+      return [];
+    }
+  }
 }
