@@ -38,10 +38,12 @@ class CreateUpdatePersonDialog extends Component {
       lastName: props.name ? props.name.last : '',
       affiliation: props.affiliation ? props.affiliation : '',
       roles: props.roles ? props.roles : [],
+      pendingRoleInput: '',
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleRolesChanged = this.handleRolesChanged.bind(this);
+    this.handleRolesInputChanged = this.handleRolesInputChanged.bind(this);
     this.handleCreateUpdatePerson = this.handleCreateUpdatePerson.bind(this);
     this.handleCreateUpdatePersonCompleted = this.handleCreateUpdatePersonCompleted.bind(this);
     this.handleSelectPersonInDirectory = this.handleSelectPersonInDirectory.bind(this);
@@ -79,6 +81,13 @@ class CreateUpdatePersonDialog extends Component {
   }
 
   handleCreateUpdatePerson() {
+    // If there is uncommitted text in the roles input, include it as a role
+    let { roles } = this.state;
+    const pending = this.state.pendingRoleInput.trim();
+    if (pending && !roles.includes(pending)) {
+      roles = [...roles, pending];
+    }
+
     const person = {
       id: this.state.id,
       name: {
@@ -86,13 +95,17 @@ class CreateUpdatePersonDialog extends Component {
         last: this.state.lastName,
       },
       affiliation: this.state.affiliation,
-      roles: this.state.roles,
+      roles,
     };
     this.savePerson(person);
   }
 
   handleRolesChanged(changedRoles) {
-    this.setState({ roles: changedRoles });
+    this.setState({ roles: changedRoles, pendingRoleInput: '' });
+  }
+
+  handleRolesInputChanged(value) {
+    this.setState({ pendingRoleInput: value });
   }
 
   handleInputChange(event) {
@@ -133,7 +146,7 @@ class CreateUpdatePersonDialog extends Component {
       roles = (
         <div className={styles.formRow}>
           <label className={styles.personLabel}>Roles:</label>
-          <TagEditor tags={this.state.roles} onChange={this.handleRolesChanged} />
+          <TagEditor tags={this.state.roles} onChange={this.handleRolesChanged} onInputChange={this.handleRolesInputChanged} />
         </div>
       );
     }
