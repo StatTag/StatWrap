@@ -23,6 +23,19 @@ const filterComponent = (props) => {
     }
   };
 
+  const handleUncheckAll = () => {
+    const newFilter = [...filter];
+    newFilter.forEach((category) => {
+      category.values.forEach((val) => {
+        val.value = false;
+      });
+    });
+
+    if (props.onFilterChanged) {
+      props.onFilterChanged(newFilter);
+    }
+  };
+
   const filterElements = [];
   filter.forEach((x) => {
     const valueElements = x.values.map((f) => {
@@ -49,9 +62,14 @@ const filterComponent = (props) => {
   if (filterElements != null && filterElements.length > 0) {
     filterElements.push(
       <div className={styles.reset} key="filter-reset-button">
-        <button type="button" onClick={props.onFilterReset}>
-          Reset Filter
+        <button type="button" onClick={handleUncheckAll} style={{ marginRight: '5px' }}>
+          Uncheck All
         </button>
+        {props.onFilterReset && (
+          <button type="button" onClick={props.onFilterReset}>
+            Reset Filter
+          </button>
+        )}
       </div>,
     );
   }
