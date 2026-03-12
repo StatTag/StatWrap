@@ -146,6 +146,7 @@ describe('services', () => {
           ],
           inputs: [],
           outputs: [],
+          authors: [],
         });
       });
 
@@ -189,12 +190,14 @@ describe('services', () => {
           ],
           inputs: [],
           outputs: [],
+          authors: [],
         };
         const expectedMetadata2 = {
           id: 'StatWrap.RHandler',
           libraries: [],
           inputs: [],
           outputs: [],
+          authors: [],
         };
         expect(response.metadata.length).toEqual(0);
         expect(response.children[0].metadata.length).toEqual(1);
@@ -840,6 +843,72 @@ describe('services', () => {
       });
       it('should include package name when provided', () => {
         expect(new RHandler().getLibraryId('testlib')).toEqual('testlib');
+      });
+    });
+
+    describe('getAuthors', () => {
+      it('should handle empty/blank inputs', () => {
+        expect(new RHandler().getAuthors('test.rmd', '').length).toEqual(0);
+        expect(new RHandler().getAuthors('test.rmd', null).length).toEqual(0);
+        expect(new RHandler().getAuthors('test.rmd', undefined).length).toEqual(0);
+      });
+
+      it('should only parse authors from .rmd and .qmd files', () => {
+        const rmdText = '---\nauthor: "Jane Doe"\n---';
+        expect(new RHandler().getAuthors('test.r', rmdText).length).toEqual(0);
+        expect(new RHandler().getAuthors('test.R', rmdText).length).toEqual(0);
+        expect(new RHandler().getAuthors('test.txt', rmdText).length).toEqual(0);
+        expect(new RHandler().getAuthors('test.rmd', rmdText).length).toEqual(1);
+        expect(new RHandler().getAuthors('test.qmd', rmdText).length).toEqual(1);
+        expect(new RHandler().getAuthors('test.Rmd', rmdText).length).toEqual(1);
+      });
+
+      it('should extract a simple quoted string author', () => {
+        const text = '---\nauthor: "Jane Doe"\n---';
+        const authors = new RHandler().getAuthors('test.rmd', text);
+        expect(authors.length).toEqual(1);
+        expect(authors[0]).toEqual('Jane Doe');
+      });
+
+      it('should extract a simple unquoted string author', () => {
+        const text = '---\nauthor: Jane Doe\n---';
+        const authors = new RHandler().getAuthors('test.rmd', text);
+        expect(authors.length).toEqual(1);
+        expect(authors[0]).toEqual('Jane Doe');
+      });
+
+      it('should extract an inline array of authors', () => {
+        const text = '---\nauthor: ["Jane Doe", \'John Smith\', Bob Brown]\n---';
+        const authors = new RHandler().getAuthors('test.rmd', text);
+        expect(authors.length).toEqual(3);
+        expect(authors[0]).toEqual('Jane Doe');
+        expect(authors[1]).toEqual('John Smith');
+        expect(authors[2]).toEqual('Bob Brown');
+      });
+
+      it('should extract a bulleted list of string authors', () => {
+        const text = '---\ntitle: "Test"\nauthor:\n  - Jane Doe\n  - "John Smith"\n  - \'Bob Brown\'\ndate: "2023"\n---';
+        const authors = new RHandler().getAuthors('test.rmd', text);
+        expect(authors.length).toEqual(3);
+        expect(authors[0]).toEqual('Jane Doe');
+        expect(authors[1]).toEqual('John Smith');
+        expect(authors[2]).toEqual('Bob Brown');
+      });
+
+      it('should extract a bulleted list of object authors using name attribute', () => {
+        const text = '---\nauthor:\n  - name: Jane Doe\n    affiliation: Test\n  - name: "John Smith"\n  - name:\n    first: Bob\n---';
+        const authors = new RHandler().getAuthors('test.rmd', text);
+        // The current regex parser gets the name attributes from lists.
+        expect(authors.length).toEqual(2);
+        expect(authors[0]).toEqual('Jane Doe');
+        expect(authors[1]).toEqual('John Smith');
+      });
+
+      it('should stop parsing at the next top-level key', () => {
+        const text = '---\nauthor: Jane Doe\ndate: 2023-01-01\n---';
+        const authors = new RHandler().getAuthors('test.rmd', text);
+        expect(authors.length).toEqual(1);
+        expect(authors[0]).toEqual('Jane Doe');
       });
     });
   });
