@@ -26,6 +26,9 @@
 
 .contentEditor {
   min-height: 100px;
+  max-width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
 }
 
 .icon {
