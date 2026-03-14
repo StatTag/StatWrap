@@ -55,6 +55,11 @@ module.exports = {
       categories: ['code'],
     },
     {
+      name: 'Go',
+      extensions: ['go'],
+      categories: ['code'],
+    },
+    {
       name: 'Text Data File',
       extensions: ['csv', 'tsv'],
       categories: ['data'],
