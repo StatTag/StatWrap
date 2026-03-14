@@ -255,7 +255,7 @@ export default class RHandler extends BaseCodeHandler {
 
     // Scan for .rmd and .qmd files
     const extension = this.getBaseFileName(uri).split('.').pop().toLowerCase();
-    if (extension !== FILE_EXTENSION_LIST[1] && extension !== FILE_EXTENSION_LIST[2]) {
+    if (extension !== FILE_EXTENSION_LIST["rmd"] && extension !== FILE_EXTENSION_LIST["qmd"]) {
       return authors;
     }
 

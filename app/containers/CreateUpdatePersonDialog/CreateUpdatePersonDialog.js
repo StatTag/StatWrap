@@ -235,7 +235,7 @@ class CreateUpdatePersonDialog extends Component {
               if (option.userEntry) {
                 return `${GeneralUtil.formatName(option.name)} (me)`;
               } else if (option.extractedEntry) {
-                return `${GeneralUtil.formatName(option.name)}`;
+                return `${GeneralUtil.formatName(option.name)} (extracted)`;
               }
               return GeneralUtil.formatName(option.name);
             }}
