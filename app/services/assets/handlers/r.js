@@ -4,8 +4,7 @@ import Constants from '../../../constants/constants';
 
 // R file extensions that we will scan.
 // All lookups should be lowercase - we will do lowercase conversion before comparison.
-const FILE_EXTENSION_LIST = ['r', 'rmd'];
-
+const FILE_EXTENSION_LIST = ['r', 'rmd', 'qmd'];
 /**
  * Metadata:
  * {
@@ -21,6 +20,31 @@ export default class RHandler extends BaseCodeHandler {
 
   id() {
     return RHandler.id;
+  }
+
+  scan(originalAsset) {
+    const asset = super.scan(originalAsset);
+    
+    // Add author extraction for RMarkdown/Quarto files
+    if (asset.type === 'file' && this.includeFile(asset.uri)) {
+      const fs = require('fs');
+      const AssetUtil = require('../../../utils/asset').default;
+      
+      const metadata = AssetUtil.getHandlerMetadata(RHandler.id, asset.metadata);
+      if (metadata && !metadata.error) {
+        try {
+          const contents = fs.readFileSync(asset.uri, 'utf8');
+          const authors = this.getAuthors(contents);
+          if (authors.length > 0) {
+            metadata.authors = authors;
+          }
+        } catch {
+          // Silently fail if we can't read the file
+        }
+      }
+    }
+    
+    return asset;
   }
 
   getLibraryId(packageName) {
@@ -245,5 +269,107 @@ export default class RHandler extends BaseCodeHandler {
       });
     }
     return libraries;
+  }
+
+  /**
+   * Extract author information from RMarkdown/Quarto YAML frontmatter
+   * @param {string} text The file content
+   * @returns {Array} Array of author strings found in the YAML header
+   */
+  getAuthors(text) {
+    const authors = [];
+    if (!text || text.trim() === '') {
+      return authors;
+    }
+
+    // Extract YAML frontmatter
+    const yamlMatch = text.match(/^---\s*\n([\s\S]*?)\n---/m);
+    if (!yamlMatch) {
+      return authors;
+    }
+
+    const yamlContent = yamlMatch[1];
+
+    // Pattern 1: Simple string author: "John Doe" or author: "John Doe, Jane Doe"
+    const simpleAuthorMatch = yamlContent.match(/^author:\s*["']([^"']+)["']\s*$/m);
+    if (simpleAuthorMatch) {
+      const authorString = simpleAuthorMatch[1];
+      // Split by comma for multiple authors
+      authorString.split(',').forEach(author => {
+        const trimmed = author.trim();
+        if (trimmed) {
+          authors.push(trimmed);
+        }
+      });
+      return authors;
+    }
+
+    // Pattern 2: Quarto nested name format - extract "given" and "family" fields
+    // Matches patterns like:
+    //   - name:
+    //       given: Norah
+    //       family: Jones
+    const nestedNameRegex = /^[ \t]+-[ \t]+name:\s*\n((?:[ \t]+(?:given|family|literal):.+\n?)+)/gm;
+    const nestedNameMatches = [...yamlContent.matchAll(nestedNameRegex)];
+    nestedNameMatches.forEach(match => {
+      const nameBlock = match[1];
+      const given = nameBlock.match(/given:\s*(.+)$/m);
+      const family = nameBlock.match(/family:\s*(.+)$/m);
+      const literal = nameBlock.match(/literal:\s*(.+)$/m);
+      
+      if (literal) {
+        authors.push(literal[1].trim());
+      } else if (given || family) {
+        const givenName = given ? given[1].trim() : '';
+        const familyName = family ? family[1].trim() : '';
+        const fullName = [givenName, familyName].filter(n => n).join(' ');
+        if (fullName) {
+          authors.push(fullName);
+        }
+      }
+    });
+
+    // Pattern 3: List format - extract all name: values from structured format (simple string names)
+    // Matches: - name: Norah Jones
+    const structuredNameMatches = [...yamlContent.matchAll(/^[ \t]+-[ \t]+name:\s*["']?([^"'\n:]+)["']?\s*$/gm)];
+    structuredNameMatches.forEach(match => {
+      const authorText = match[1].trim();
+      if (authorText && !authors.includes(authorText)) {
+        authors.push(authorText);
+      }
+    });
+
+    // If we found authors from patterns 2 or 3, return them
+    if (authors.length > 0) {
+      return authors;
+    }
+
+    // Pattern 4: Simple list format (with or without additional metadata on same line)
+    // author:
+    //   - John Doe
+    //   - Jane Doe, Institution
+    // Also supports "authors:" field used by Quarto
+    const listMatch = yamlContent.match(/^authors?:\s*\n((?:[ \t]+-[ \t]+.+\n?)+)/m);
+    if (listMatch) {
+      const listContent = listMatch[1];
+      // Match each list item
+      const items = listContent.matchAll(/^[ \t]+-[ \t]+(.+)$/gm);
+      for (const item of items) {
+        let authorText = item[1].trim();
+        
+        authorText = authorText.replace(/\^?\[.*?\]/g, '').trim();
+        
+        const commaIndex = authorText.indexOf(',');
+        if (commaIndex > 0) {
+          authorText = authorText.substring(0, commaIndex).trim();
+        }
+        
+        if (authorText) {
+          authors.push(authorText);
+        }
+      }
+    }
+
+    return authors;
   }
 }
