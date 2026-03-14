@@ -7,20 +7,33 @@
   margin-top: 15px;
 }
 
-.downloadContainer {
+.actionsContainer {
   position: fixed;
   bottom: 10px;
   right: 20px;
+  display: flex;
+  gap: 8px;
 }
 
 .downloadButton {
   background-color: #639;
   padding-right: 4px;
   padding-left: 5px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 8px rgb(0 0 0 / 40%);
+}
+
+.secondaryButton {
+  background-color: #1f5aa6;
+  padding-right: 4px;
+  padding-left: 5px;
+  box-shadow: 0 4px 8px rgb(0 0 0 / 30%);
 }
 
 .downloadButton:hover {
+  opacity: 0.9;
+}
+
+.secondaryButton:hover {
   opacity: 0.9;
 }
 
@@ -41,4 +54,9 @@
 
 .dialogContent {
   padding-bottom: 5px;
+}
+
+.templateMessage {
+  margin-bottom: 12px;
+  color: #1f5aa6;
 }
