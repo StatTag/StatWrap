@@ -10,6 +10,94 @@ const os = require('os');
 const path = require('path');
 
 export default class ChecklistService {
+  createTemplate(checklist) {
+    if (!Array.isArray(checklist)) {
+      throw new Error('Invalid checklist data');
+    }
+
+    return {
+      version: 1,
+      type: 'reproducibility-checklist-template',
+      exportedAt: new Date().toISOString(),
+      items: checklist.map((item) => ({
+        id: item.id,
+        name: item.name,
+        statement: item.statement,
+        answer: !!item.answer,
+        subChecklist: (item.subChecklist || []).map((subItem) => ({
+          id: subItem.id,
+          statement: subItem.statement,
+          answer: !!subItem.answer,
+        })),
+      })),
+    };
+  }
+
+  exportTemplate(checklist, templateFilePath) {
+    if (!templateFilePath) {
+      throw new Error('Invalid template file path');
+    }
+
+    const template = this.createTemplate(checklist);
+    fs.writeFileSync(templateFilePath, JSON.stringify(template, null, 2));
+  }
+
+  loadTemplate(templateFilePath) {
+    if (!templateFilePath) {
+      throw new Error('The template file path must be specified');
+    }
+
+    try {
+      const data = fs.readFileSync(templateFilePath);
+      return JSON.parse(data);
+    } catch (err) {
+      throw new Error('Error reading or parsing checklist template file');
+    }
+  }
+
+  applyTemplate(checklist, template) {
+    if (!Array.isArray(checklist)) {
+      throw new Error('Invalid checklist data');
+    }
+
+    const templateItems = this.extractTemplateItems(template);
+    return checklist.map((item) => {
+      const matchedItem = templateItems.find((templateItem) => (
+        templateItem.name === item.name
+        || templateItem.statement === item.statement
+        || templateItem.id === item.id
+      ));
+
+      if (!matchedItem) {
+        return item;
+      }
+
+      return {
+        ...item,
+        answer: !!matchedItem.answer,
+        subChecklist: (item.subChecklist || []).map((subItem) => {
+          const matchedSubItem = (matchedItem.subChecklist || []).find((templateSubItem) => (
+            templateSubItem.statement === subItem.statement || templateSubItem.id === subItem.id
+          ));
+
+          return matchedSubItem ? { ...subItem, answer: !!matchedSubItem.answer } : subItem;
+        }),
+      };
+    });
+  }
+
+  extractTemplateItems(template) {
+    if (Array.isArray(template)) {
+      return template;
+    }
+
+    if (template && Array.isArray(template.items)) {
+      return template.items;
+    }
+
+    throw new Error('Invalid checklist template data');
+  }
+
   /**
    * Writes the checklist data to the checklist file
    * @param {string} projectPath The path to the project
@@ -162,17 +250,17 @@ export default class ChecklistService {
                   },
                   subItem.answer
                     ? {
-                        image: checkedIcon,
-                        width: 16,
-                        alignment: 'right',
-                        margin: [0, 5, 25, 0],
-                      }
+                      image: checkedIcon,
+                      width: 16,
+                      alignment: 'right',
+                      margin: [0, 5, 25, 0],
+                    }
                     : {
-                        image: checkedIcon,
-                        width: 16,
-                        alignment: 'right',
-                        margin: [0, 5, 1, 0],
-                      },
+                      image: checkedIcon,
+                      width: 16,
+                      alignment: 'right',
+                      margin: [0, 5, 1, 0],
+                    },
                 ],
                 columnGap: 0,
               }));
@@ -196,18 +284,18 @@ export default class ChecklistService {
                   },
                   item.answer
                     ? {
-                        image: checkedIcon,
-                        width: 16,
-                        alignment: 'right',
-                        marginRight: 10,
-                        marginTop: 12,
-                      }
+                      image: checkedIcon,
+                      width: 16,
+                      alignment: 'right',
+                      marginRight: 10,
+                      marginTop: 12,
+                    }
                     : {
-                        image: checkedIcon,
-                        width: 16,
-                        marginLeft: 28,
-                        marginTop: 12,
-                      },
+                      image: checkedIcon,
+                      width: 16,
+                      marginLeft: 28,
+                      marginTop: 12,
+                    },
                 ],
                 columnGap: 5,
               },

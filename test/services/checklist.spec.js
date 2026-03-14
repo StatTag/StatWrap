@@ -56,6 +56,104 @@ describe('services', () => {
       });
     });
 
+    describe('template import/export helpers', () => {
+      const templateFilePath = path.join(TEST_USER_HOME_PATH, 'template.json');
+
+      it('should create a reusable checklist template without project specific fields', () => {
+        const template = checklistService.createTemplate([
+          {
+            id: 1,
+            name: 'Dependency',
+            statement: 'Dependencies documented',
+            answer: true,
+            notes: [{ id: 'note-1' }],
+            assets: [{ uri: 'asset-1' }],
+            scanResult: { Python: ['pandas'] },
+            subChecklist: [{ id: 'sub-1', statement: 'Pinned versions', answer: true }],
+          },
+        ]);
+
+        expect(template.type).toBe('reproducibility-checklist-template');
+        expect(template.version).toBe(1);
+        expect(template.items).toEqual([
+          {
+            id: 1,
+            name: 'Dependency',
+            statement: 'Dependencies documented',
+            answer: true,
+            subChecklist: [{ id: 'sub-1', statement: 'Pinned versions', answer: true }],
+          },
+        ]);
+      });
+
+      it('should export a checklist template to disk', () => {
+        fs.writeFileSync = jest.fn();
+
+        checklistService.exportTemplate(checklistData, templateFilePath);
+
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+          templateFilePath,
+          expect.stringContaining('reproducibility-checklist-template'),
+        );
+      });
+
+      it('should load a checklist template from disk', () => {
+        fs.readFileSync = jest.fn().mockReturnValue(JSON.stringify({ items: checklistData }));
+
+        const template = checklistService.loadTemplate(templateFilePath);
+
+        expect(template).toEqual({ items: checklistData });
+        expect(fs.readFileSync).toHaveBeenCalledWith(templateFilePath);
+      });
+
+      it('should apply an imported template while preserving notes, assets, and scan results', () => {
+        const mergedChecklist = checklistService.applyTemplate(
+          [
+            {
+              id: 1,
+              name: 'Dependency',
+              statement: 'Dependencies documented',
+              answer: false,
+              notes: [{ id: 'note-1' }],
+              assets: [{ uri: 'asset-1' }],
+              scanResult: { Python: ['pandas'] },
+              subChecklist: [{ id: 'sub-1', statement: 'Pinned versions', answer: false }],
+            },
+          ],
+          {
+            items: [
+              {
+                id: 1,
+                name: 'Dependency',
+                statement: 'Dependencies documented',
+                answer: true,
+                subChecklist: [{ id: 'sub-1', statement: 'Pinned versions', answer: true }],
+              },
+            ],
+          },
+        );
+
+        expect(mergedChecklist).toEqual([
+          {
+            id: 1,
+            name: 'Dependency',
+            statement: 'Dependencies documented',
+            answer: true,
+            notes: [{ id: 'note-1' }],
+            assets: [{ uri: 'asset-1' }],
+            scanResult: { Python: ['pandas'] },
+            subChecklist: [{ id: 'sub-1', statement: 'Pinned versions', answer: true }],
+          },
+        ]);
+      });
+
+      it('should reject invalid template payloads', () => {
+        expect(() => checklistService.applyTemplate(checklistData, { foo: 'bar' })).toThrow(
+          'Invalid checklist template data',
+        );
+      });
+    });
+
     describe('loadChecklist', () => {
       it('should return an error if projectPath is null or undefined', (done) => {
         checklistService.loadChecklist(null, (err, result) => {

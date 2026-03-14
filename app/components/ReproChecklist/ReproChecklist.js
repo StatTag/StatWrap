@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+import { dialog } from '@electron/remote';
 import styles from './ReproChecklist.css';
 import ChecklistItem from './ChecklistItem/ChecklistItem';
 import Error from '../Error/Error';
@@ -12,7 +13,7 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material';
-import { SaveAlt } from '@mui/icons-material';
+import { SaveAlt, FileUpload, FileDownload } from '@mui/icons-material';
 import ChecklistService from '../../services/checklist';
 import GeneralUtil from '../../utils/general';
 import ChecklistUtil from '../../utils/checklist';
@@ -39,6 +40,8 @@ function ReproChecklist(props) {
     onSelectedAsset,
   } = props;
   const [openExportDialog, setOpenExportDialog] = useState(false);
+  const [templateError, setTemplateError] = useState(null);
+  const [templateMessage, setTemplateMessage] = useState(null);
 
   // this useEffect hook is here to load the scan results for all the checklist statements
   useEffect(() => {
@@ -71,6 +74,66 @@ function ReproChecklist(props) {
     setOpenExportDialog(false);
   };
 
+  const clearTemplateFeedback = () => {
+    setTemplateError(null);
+    setTemplateMessage(null);
+  };
+
+  const handleExportTemplate = async () => {
+    clearTemplateFeedback();
+
+    try {
+      const result = await dialog.showSaveDialog({
+        title: 'Export reproducibility checklist template',
+        defaultPath: 'Reproducibility_Checklist_Template.json',
+        filters: [{ name: 'JSON Files', extensions: ['json'] }],
+      });
+
+      if (result.canceled || !result.filePath) {
+        return;
+      }
+
+      const service = new ChecklistService();
+      service.exportTemplate(checklist, result.filePath);
+      setTemplateMessage(`Checklist template exported to ${result.filePath}`);
+    } catch (err) {
+      setTemplateError(`There was an error exporting the checklist template: ${err.message || err}`);
+    }
+  };
+
+  const handleImportTemplate = async () => {
+    clearTemplateFeedback();
+
+    try {
+      const result = await dialog.showOpenDialog({
+        title: 'Import reproducibility checklist template',
+        properties: ['openFile'],
+        filters: [{ name: 'JSON Files', extensions: ['json'] }],
+      });
+
+      if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
+        return;
+      }
+
+      const service = new ChecklistService();
+      const template = service.loadTemplate(result.filePaths[0]);
+      const updatedChecklist = service.applyTemplate(checklist, template);
+      onUpdated(
+        project,
+        updatedChecklist,
+        Constants.ActionType.CHECKLIST_UPDATED,
+        Constants.EntityType.CHECKLIST,
+        'template',
+        'Checklist Template Imported',
+        `Imported reproducibility checklist template from ${result.filePaths[0]}`,
+        { filePath: result.filePaths[0] },
+      );
+      setTemplateMessage(`Checklist template imported from ${result.filePaths[0]}`);
+    } catch (err) {
+      setTemplateError(`There was an error importing the checklist template: ${err.message || err}`);
+    }
+  };
+
   let content = <div className={styles.empty}>Checklist not configured.</div>;
 
   if (checklist && checklist.length > 0) {
@@ -80,6 +143,8 @@ function ReproChecklist(props) {
           Reproducibility Checklist
         </Typography>
         <br />
+        {templateError ? <Error>{templateError}</Error> : null}
+        {templateMessage ? <Typography className={styles.templateMessage}>{templateMessage}</Typography> : null}
         {checklist.map((item) => (
           <ChecklistItem
             key={item.id}
@@ -93,7 +158,19 @@ function ReproChecklist(props) {
           />
         ))}
         <br />
-        <div className={styles.downloadContainer}>
+        <div className={styles.actionsContainer}>
+          <button onClick={handleImportTemplate} className={styles.secondaryButton}>
+            <div className={styles.buttonContent}>
+              <span className={styles.buttonText}>Import Template</span>
+              <FileUpload />
+            </div>
+          </button>
+          <button onClick={handleExportTemplate} className={styles.secondaryButton}>
+            <div className={styles.buttonContent}>
+              <span className={styles.buttonText}>Export Template</span>
+              <FileDownload />
+            </div>
+          </button>
           <button onClick={() => setOpenExportDialog(true)} className={styles.downloadButton}>
             <div className={styles.buttonContent}>
               <span className={styles.buttonText}>Report</span>
