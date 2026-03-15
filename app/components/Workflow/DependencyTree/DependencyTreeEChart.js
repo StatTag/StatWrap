@@ -25,8 +25,9 @@ const dependencyGraphEChart = (props) => {
           edgeForkPosition: '63%',
           initialTreeDepth: 2,
           label: {
-            position: 'left',
-            align: 'right',
+            // Keep labels on the node's right to avoid clipping long root names.
+            position: 'right',
+            align: 'left',
           },
           leaves: {
             label: {
