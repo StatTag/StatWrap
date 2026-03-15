@@ -87,31 +87,35 @@ body {
   border: solid 1px #1f3195 !important;
 }
 
+.react-tagsinput-input {
+  width: 100% !important;
+}
+
 #graph-id-graph-wrapper {
   width: inherit;
   height: inherit;
 }
 
 .tabIndicator {
-  background-color: 'white';
+  background-color: white;
 }
 
 .scrollButtons {
-  color: 'white';
+  color: white;
 }
 
 .tabRoot {
-  background-color: '#cccccc';
-  border: 'solid 1px #000';
-  font-size: '0.8rem';
+  background-color: #ccc;
+  border: solid 1px #000;
+  font-size: 0.8rem;
 }
 
 .tabSelected {
-  background-color: '#ffffff';
-  color: '#000000';
-  font-size: '0.9rem';
+  background-color: #fff;
+  color: #000;
+  font-size: 0.9rem;
 }
 
 .tabPanel {
-  padding: '10px';
+  padding: 10px;
 }
