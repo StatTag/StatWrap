@@ -55,6 +55,11 @@ module.exports = {
       categories: ['code'],
     },
     {
+      name: 'C++',
+      extensions: ['cc', 'cpp', 'cxx', 'c++', 'h', 'hh', 'hpp', 'hxx', 'ipp', 'tpp', 'inl'],
+      categories: ['code'],
+    },
+    {
       name: 'Text Data File',
       extensions: ['csv', 'tsv'],
       categories: ['data'],

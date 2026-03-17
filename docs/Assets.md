@@ -179,6 +179,28 @@ We collect 3 categories of metadata for Stata code files:
 
 External programs and plugins, and references to Do files to run via another script.
 
+### C++ Code Files
+
+We collect 3 categories of metadata for C++ code files:
+
+**Inputs**
+
+| Category         | Example Functions / Patterns                 | Data Type |
+| ---------------- | -------------------------------------------- | --------- |
+| C++ stream reads | `ifstream`, `fstream`, `open` with read mode | `data`    |
+| C stdio reads    | `fopen`, `freopen` with read mode            | `data`    |
+
+**Outputs**
+
+| Category          | Example Functions / Patterns                         | Data Type |
+| ----------------- | ---------------------------------------------------- | --------- |
+| C++ stream writes | `ofstream`, `fstream`, `open` with write/append mode | `data`    |
+| C stdio writes    | `fopen`, `freopen` with write/append mode            | `data`    |
+
+**Libraries**
+
+Includes from `#include` directives.
+
 ## Asset Groups
 
 By default StatWrap mimics the traditional hierarchical file system view. However, we realize that not all assets will be within a single file system (or may not even be files / folders). Also, we want to allow users to establish other groups of assets that make sense to them. Asset Groups will be a way for users to do this, and StatWrap will store these within the [Project](Projects.md) metadata.

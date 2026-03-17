@@ -15,6 +15,7 @@ const ICON_TYPES = {
   R: `${ICON_PATH}r.svg`,
   SAS: `${ICON_PATH}sas.svg`,
   STATA: `${ICON_PATH}stata.png`,
+  CPP: `${ICON_PATH}cpp.svg`,
   GENERIC: `${ICON_PATH}generic.svg`,
   LIBRARY: `${ICON_PATH}library.svg`,
   DATA: `${ICON_PATH}data.svg`,
@@ -36,6 +37,8 @@ function getIcon(node) {
     iconUrl = ICON_TYPES.SAS;
   } else if (node.value === 'stata') {
     iconUrl = ICON_TYPES.STATA;
+  } else if (node.value === 'cpp') {
+    iconUrl = ICON_TYPES.CPP;
   } else if (node.value === 'dependency') {
     iconUrl = ICON_TYPES.LIBRARY;
   } else if (node.value === Constants.DependencyType.DATA) {

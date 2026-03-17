@@ -81,6 +81,45 @@ describe('utils', () => {
         expect(dependencies[2].dependencies.length).toEqual(1);
         expect(dependencies[3].dependencies.length).toEqual(1);
       });
+
+      it('should include C++ metadata dependencies in the workflow list', () => {
+        const asset = {
+          uri: '/test/cpp',
+          metadata: [
+            {
+              id: 'StatWrap.CppHandler',
+              libraries: [
+                {
+                  id: 'vector',
+                  module: 'system',
+                  import: 'vector',
+                  alias: null,
+                },
+              ],
+              inputs: [
+                {
+                  id: 'ifstream - "input.csv"',
+                  type: Constants.DependencyType.DATA,
+                  path: '"input.csv"',
+                },
+              ],
+              outputs: [
+                {
+                  id: 'ofstream - "output.csv"',
+                  type: Constants.DependencyType.DATA,
+                  path: '"output.csv"',
+                },
+              ],
+            },
+          ],
+          children: [],
+        };
+
+        const dependencies = WorkflowUtil.getAllDependencies(asset);
+        expect(dependencies.length).toEqual(1);
+        expect(dependencies[0].assetType).toEqual('cpp');
+        expect(dependencies[0].dependencies.length).toEqual(3);
+      });
     });
 
     describe('getAllDependenciesAsGraph', () => {
@@ -567,6 +606,9 @@ describe('utils', () => {
       it('should return a default value for known types', () => {
         expect(WorkflowUtil.getAssetType({ metadata: [{ id: 'StatWrap.PythonHandler' }] })).toEqual(
           'python',
+        );
+        expect(WorkflowUtil.getAssetType({ metadata: [{ id: 'StatWrap.CppHandler' }] })).toEqual(
+          'cpp',
         );
       });
 
