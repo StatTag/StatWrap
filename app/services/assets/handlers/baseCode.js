@@ -101,6 +101,10 @@ export default class BaseCodeHandler {
         metadata.libraries = this.getLibraries(asset.uri, contents);
         metadata.outputs = this.getOutputs(asset.uri, contents);
         metadata.inputs = this.getInputs(asset.uri, contents);
+        // If it's implemented anywhere, it will run automatically and attach the extracted authors.                 
+        if (this.getAuthors) {
+          metadata.authors = this.getAuthors(asset.uri, contents);
+        }
       } catch {
         metadata.error = 'Unable to read code file';
         asset.metadata.push(metadata);

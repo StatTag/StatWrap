@@ -4,7 +4,7 @@ import Constants from '../../../constants/constants';
 
 // R file extensions that we will scan.
 // All lookups should be lowercase - we will do lowercase conversion before comparison.
-const FILE_EXTENSION_LIST = ['r', 'rmd'];
+const FILE_EXTENSION_LIST = ['r', 'rmd', 'qmd'];
 
 /**
  * Metadata:
@@ -245,5 +245,92 @@ export default class RHandler extends BaseCodeHandler {
       });
     }
     return libraries;
+  }
+
+  getAuthors(uri, text) {
+    const authors = [];
+    if (!text || text.trim() === '') {
+      return authors;
+    }
+
+    // Scan for .rmd and .qmd files
+    const extension = this.getBaseFileName(uri).split('.').pop().toLowerCase();
+    if (extension !== 'rmd' && extension !== 'qmd') {
+      return authors;
+    }
+
+    // Extract the YAML front matter
+    const yamlMatches = text.match(/^(?:---\r?\n)([\s\S]*?)(?:\r?\n---)/);
+    if (!yamlMatches || yamlMatches.length < 2) {
+      return authors;
+    }
+
+    const yamlContent = yamlMatches[1];
+    // we are going to support 3 fomrat :- Inline Array , Single List , Bullets List
+
+    // Finding the author field
+    // Using regex to extract everything after author
+    const authorBlockMatch = yamlContent.match(/(?:^|\n)author:\s*([\s\S]*?)(?=\n[a-zA-Z0-9_-]+:|$)/);
+
+    if (!authorBlockMatch || authorBlockMatch.length < 2) {
+      return authors;
+    }
+
+    let authorContent = authorBlockMatch[1].trim();
+
+    // format-1 :- [name1, name2]
+    if (authorContent.startsWith('[')) {
+      const inlineArrayMatch = authorContent.match(/\[(.*?)\]/);
+      if (inlineArrayMatch) {
+        const items = inlineArrayMatch[1].split(',').map(item => item.trim().replace(/^['"]|['"]$/g, ''));
+        authors.push(...items.filter(item => item !== ''));
+      }
+      return authors;
+    }
+
+    // format-2 :- "name" or name
+    if (authorContent && !authorContent.includes('\n')) {
+      const item = authorContent.replace(/^['"]|['"]$/g, '').trim();
+      if (item !== '') {
+        authors.push(item);
+      }
+      return authors;
+    }
+
+    // format-3 :- Bulleted list , This one also able to handle Quarto format too
+    // - name1
+    // - name: name2
+    // - first: name3
+    //   last: last3
+    const lines = authorContent.split('\n');
+    let currentObject = null;
+
+    for (let line of lines) {
+      line = line.trim();
+      if (!line) continue;
+
+      // new list item
+      if (line.startsWith('-')) {
+        let val = line.substring(1).trim();
+        if (val === '') {
+        } else if (val.startsWith('name:')) {
+          const parsedName = val.replace('name:', '').trim().replace(/^['"]|['"]$/g, '');
+          if (parsedName) authors.push(parsedName);
+        } else if (val.includes(':')) {
+          // grabs the value of the first attribute
+        } else {
+          // Simple array element
+          authors.push(val.replace(/^['"]|['"]$/g, ''));
+        }
+      } else {
+        // Not starting with '-', its a property of an object in a list
+        if (line.startsWith('name:')) {
+          const parsedName = line.replace('name:', '').trim().replace(/^['"]|['"]$/g, '');
+          if (parsedName) authors.push(parsedName);
+        }
+      }
+    }
+
+    return authors;
   }
 }

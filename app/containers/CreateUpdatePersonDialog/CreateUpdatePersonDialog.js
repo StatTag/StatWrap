@@ -172,17 +172,73 @@ class CreateUpdatePersonDialog extends Component {
         sortedDirectory.unshift(user);
       }
 
+      // Aggregate authors from project assets if we have a project loaded
+      const extractedAuthors = [];
+      const extractedAuthorKeys = new Set();
+      if (this.props.project && this.props.project.assets) {
+        const gatherAuthors = (asset) => {
+          if (asset && asset.metadata) {
+            asset.metadata.forEach(m => {
+              if (m.authors && Array.isArray(m.authors)) {
+                m.authors.forEach(author => {
+                  if (typeof author === 'string') {
+                    // Normalize the author string
+                    let normalizedString = author.trim().replace(/\s+/g, ' ');
+                    if (normalizedString.length > 0) {
+                      const lowerKey = normalizedString.toLowerCase();
+                      if (!extractedAuthorKeys.has(lowerKey)) {
+                        extractedAuthorKeys.add(lowerKey);
+
+                        // Parses it into first and last name field
+                        const parts = normalizedString.split(' ');
+                        const first = parts[0];
+                        const last = parts.length > 1 ? parts.slice(1).join(' ') : '';
+
+                        extractedAuthors.push({
+                          id: `extracted-${lowerKey}`,
+                          name: { first, last },
+                          affiliation: '',
+                          roles: [],
+                          userEntry: false,
+                          extractedEntry: true
+                        });
+                      }
+                    }
+                  }
+                });
+              }
+            });
+          }
+          if (asset && asset.children) {
+            asset.children.forEach(gatherAuthors);
+          }
+        };
+        gatherAuthors(this.props.project.assets);
+      }
+
+      // Combines and filter out extracted authors that are already in the file
+      const directoryLowercaseKeys = new Set(
+        sortedDirectory.filter(d => d.name).map(d => GeneralUtil.formatName(d.name).toLowerCase())
+      );
+
+      const uniqueExtracted = extractedAuthors.filter(ea => !directoryLowercaseKeys.has(GeneralUtil.formatName(ea.name).toLowerCase()));
+
+      const fullDirectoryOptions = [...sortedDirectory, ...uniqueExtracted];
+
       directory = (
         <div className={styles.directoryPanel}>
           <Autocomplete
             id="user-directory"
-            options={sortedDirectory}
+            options={fullDirectoryOptions}
             onChange={this.handleSelectPersonInDirectory}
-            getOptionLabel={(option) =>
-              option.userEntry
-                ? `${GeneralUtil.formatName(option.name)} (me)`
-                : GeneralUtil.formatName(option.name)
-            }
+            getOptionLabel={(option) => {
+              if (option.userEntry) {
+                return `${GeneralUtil.formatName(option.name)} (me)`;
+              } else if (option.extractedEntry) {
+                return `${GeneralUtil.formatName(option.name)} (Detected)`;
+              }
+              return GeneralUtil.formatName(option.name);
+            }}
             renderInput={(params) => (
               <TextField {...params} label="Select a recently added person" variant="outlined" />
             )}
