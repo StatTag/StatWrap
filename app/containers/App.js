@@ -97,7 +97,7 @@ export default class App extends React.Component {
       user: response.user,
       displayName: GeneralUtil.formatDisplayName(response.settings.user),
       settings: response.settings,
-      userProfileDialogKey: prevState + 1,
+      userProfileDialogKey: prevState.userProfileDialogKey + 1,
       displayUserProfileDialog: firstTimeRun,
     }));
   }
