@@ -71,8 +71,9 @@ export default class SQLHandler extends BaseCodeHandler {
 
     // PostgreSQL / Redshift: COPY table_name FROM 'filename'
     // Snowflake: COPY INTO table_name FROM 'filename'
+    // psql client: \copy table_name FROM 'filename'
     const copyFromMatches = [
-      ...cleanedText.matchAll(/\bCOPY\s+(?:INTO\s+)?[a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)?\s+FROM\s+['"]([^'"]+)['"]/gim),
+      ...cleanedText.matchAll(/\\?\bCOPY\s+(?:INTO\s+)?[a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)?\s+FROM\s+['"]([^'"]+)['"]/gim),
     ];
     for (let index = 0; index < copyFromMatches.length; index++) {
       const fileName = copyFromMatches[index][1].trim();
@@ -85,7 +86,7 @@ export default class SQLHandler extends BaseCodeHandler {
 
     // Snowflake Reverse COPY: COPY INTO 'filename' FROM table_name (Table is the input)
     const copyIntoFileMatches = [
-      ...cleanedText.matchAll(/\bCOPY\s+INTO\s+['"][^'"]+['"]\s+FROM\s+([a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)?)/gim),
+      ...cleanedText.matchAll(/\\?\bCOPY\s+INTO\s+['"][^'"]+['"]\s+FROM\s+([a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)?)/gim),
     ];
     for (let index = 0; index < copyIntoFileMatches.length; index++) {
       const tableName = copyIntoFileMatches[index][1].trim();
@@ -99,9 +100,10 @@ export default class SQLHandler extends BaseCodeHandler {
       }
     }
 
-    // PostgreSQL Reverse COPY: COPY table_name TO 'filename' (Table is the input)
+    // PostgreSQL: COPY table_name TO 'filename' (Table is the input)
+    // psql client: \copy table_name TO 'filename'
     const copyToMatches = [
-      ...cleanedText.matchAll(/\bCOPY\s+([a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)?)\s+TO\s+['"][^'"]+['"]/gim),
+      ...cleanedText.matchAll(/\\?\bCOPY\s+([a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)?)\s+TO\s+['"][^'"]+['"]/gim),
     ];
     for (let index = 0; index < copyToMatches.length; index++) {
       const tableName = copyToMatches[index][1].trim();
@@ -112,6 +114,26 @@ export default class SQLHandler extends BaseCodeHandler {
           path: tableName,
         });
         processedTables.add(tableName.toLowerCase());
+      }
+    }
+
+    // psql client: \copy (select * from table) TO 'filename' 
+    const copyQueryToMatches = [
+      ...cleanedText.matchAll(/\\?\bCOPY\s+\(([^)]+)\)\s+TO\s+['"][^'"]+['"]/gim),
+    ];
+    for (let index = 0; index < copyQueryToMatches.length; index++) {
+      const subquery = copyQueryToMatches[index][1];
+      const tableRefs = [...subquery.matchAll(/\bFROM\s+([a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)?)/gim)];
+      for (let j = 0; j < tableRefs.length; j++) {
+        const tableName = tableRefs[j][1].trim();
+        if (!processedTables.has(tableName.toLowerCase())) {
+          inputs.push({
+            id: `Table Read (COPY TO FILE) - ${tableName}`,
+            type: Constants.DependencyType.DATA,
+            path: tableName,
+          });
+          processedTables.add(tableName.toLowerCase());
+        }
       }
     }
 
@@ -259,8 +281,9 @@ export default class SQLHandler extends BaseCodeHandler {
 
     // PostgreSQL / Redshift: COPY table_name FROM 'filename'
     // Snowflake: COPY INTO table_name FROM 'filename' (Table is the output)
+    // psql client: \copy table_name FROM 'filename'
     const copyFromTableMatches = [
-      ...cleanedText.matchAll(/\bCOPY\s+(?:INTO\s+)?([a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)?)\s+FROM\s+['"][^'"]+['"]/gim),
+      ...cleanedText.matchAll(/\\?\bCOPY\s+(?:INTO\s+)?([a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)?)\s+FROM\s+['"][^'"]+['"]/gim),
     ];
     for (let index = 0; index < copyFromTableMatches.length; index++) {
       const tableName = copyFromTableMatches[index][1].trim();
@@ -276,7 +299,7 @@ export default class SQLHandler extends BaseCodeHandler {
 
     // Snowflake Reverse COPY: COPY INTO 'filename' FROM table_name (File is the output)
     const copyIntoFileOutMatches = [
-      ...cleanedText.matchAll(/\bCOPY\s+INTO\s+['"]([^'"]+)['"]\s+FROM\s+[a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)?/gim),
+      ...cleanedText.matchAll(/\\?\bCOPY\s+INTO\s+['"]([^'"]+)['"]\s+FROM\s+[a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)?/gim),
     ];
     for (let index = 0; index < copyIntoFileOutMatches.length; index++) {
       const fileName = copyIntoFileOutMatches[index][1].trim();
@@ -287,12 +310,26 @@ export default class SQLHandler extends BaseCodeHandler {
       });
     }
 
-    // PostgreSQL Reverse COPY: COPY table_name TO 'filename' (File is the output)
+    // PostgreSQL: COPY table_name TO 'filename' (File is the output)
+    // psql client: \copy table_name TO 'filename'
     const copyToOutMatches = [
-      ...cleanedText.matchAll(/\bCOPY\s+[a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)?\s+TO\s+['"]([^'"]+)['"]/gim),
+      ...cleanedText.matchAll(/\\?\bCOPY\s+[a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)?\s+TO\s+['"]([^'"]+)['"]/gim),
     ];
     for (let index = 0; index < copyToOutMatches.length; index++) {
       const fileName = copyToOutMatches[index][1].trim();
+      outputs.push({
+        id: `File Write (COPY TO) - ${fileName}`,
+        type: Constants.DependencyType.DATA,
+        path: `"${fileName}"`,
+      });
+    }
+
+    // psql client: \copy (query) TO 'filename' (File is the output)
+    const copyQueryToOutMatches = [
+      ...cleanedText.matchAll(/\\?\bCOPY\s+\([^)]+\)\s+TO\s+['"]([^'"]+)['"]/gim),
+    ];
+    for (let index = 0; index < copyQueryToOutMatches.length; index++) {
+      const fileName = copyQueryToOutMatches[index][1].trim();
       outputs.push({
         id: `File Write (COPY TO) - ${fileName}`,
         type: Constants.DependencyType.DATA,

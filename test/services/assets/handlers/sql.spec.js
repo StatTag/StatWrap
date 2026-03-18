@@ -183,6 +183,31 @@ describe('services', () => {
           path: '"C:\\Data\\file.csv"',
         });
       });
+
+      it('should detect psql \\copy import as file read', () => {
+        const inputs = new SQLHandler().getInputs(
+          'test.uri',
+          "\\copy dbo.PERSON FROM 'person.csv' DELIMITER ',' CSV HEADER;"
+        );
+        expect(inputs.length).toEqual(1);
+        expect(inputs[0]).toMatchObject({
+          id: 'File Read (COPY) - person.csv',
+          type: 'data',
+          path: '"person.csv"',
+        });
+      });
+
+      it('should detect psql \\copy (subquery) TO as table read', () => {
+        const inputs = new SQLHandler().getInputs(
+          'test.uri',
+          "\\copy (select * from dbo.PERSON) TO 'PERSON.csv' csv header;"
+        );
+        expect(inputs.length).toEqual(1);
+        expect(inputs[0]).toMatchObject({
+          type: 'data',
+          path: 'dbo.PERSON',
+        });
+      });
     });
 
     describe('getOutputs', () => {
@@ -364,6 +389,32 @@ describe('services', () => {
           id: 'Table Write (BULK INSERT) - records',
           type: 'data',
           path: 'records',
+        });
+      });
+
+      it('should detect psql \\copy import as table write', () => {
+        const outputs = new SQLHandler().getOutputs(
+          'test.uri',
+          "\\copy dbo.PERSON FROM 'person.csv' DELIMITER ',' CSV HEADER;"
+        );
+        expect(outputs.length).toEqual(1);
+        expect(outputs[0]).toMatchObject({
+          id: 'Table Write (COPY FROM) - dbo.PERSON',
+          type: 'data',
+          path: 'dbo.PERSON',
+        });
+      });
+
+      it('should detect psql \\copy (subquery) TO as file write', () => {
+        const outputs = new SQLHandler().getOutputs(
+          'test.uri',
+          "\\copy (select * from dbo.PERSON) TO 'PERSON.csv' csv header;"
+        );
+        expect(outputs.length).toEqual(1);
+        expect(outputs[0]).toMatchObject({
+          id: 'File Write (COPY TO) - PERSON.csv',
+          type: 'data',
+          path: '"PERSON.csv"',
         });
       });
     });
