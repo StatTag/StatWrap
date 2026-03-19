@@ -16,6 +16,7 @@ import ProjectUtil from './utils/project';
 import JavaHandler from './services/assets/handlers/java';
 import GoHandler from './services/assets/handlers/go';
 import Constants from './constants/constants';
+import SQLHandler from './services/assets/handlers/sql';
 
 const projectService = new ProjectService();
 const projectListService = new ProjectListService();
@@ -55,6 +56,7 @@ contextBridge.exposeInMainWorld('workerElectronBridge', {
           new SASHandler(),
           new StataHandler(),
           new JavaHandler(),
+          new SQLHandler(),
           new GoHandler(),
         ]);
         response.assets = service.scan(project.path); // Returns absolute paths
