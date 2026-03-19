@@ -19,6 +19,7 @@ const ICON_TYPES = {
   LIBRARY: `${ICON_PATH}library.svg`,
   DATA: `${ICON_PATH}data.svg`,
   FIGURE: `${ICON_PATH}figure.svg`,
+  RUST: `${ICON_PATH}rust.svg`,
 };
 
 /**
@@ -38,6 +39,8 @@ function getIcon(node) {
     iconUrl = ICON_TYPES.STATA;
   } else if (node.value === 'dependency') {
     iconUrl = ICON_TYPES.LIBRARY;
+  } else if(node.value === 'rust'){
+    iconUrl = ICON_TYPES.RUST;
   } else if (node.value === Constants.DependencyType.DATA) {
     iconUrl = ICON_TYPES.DATA;
   } else if (node.value === Constants.DependencyType.FIGURE) {

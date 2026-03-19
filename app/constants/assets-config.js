@@ -55,6 +55,11 @@ module.exports = {
       categories: ['code'],
     },
     {
+      name: 'Rust',
+      extensions: ['rs'],
+      categories: ['code'],
+    },
+    {
       name: 'Text Data File',
       extensions: ['csv', 'tsv'],
       categories: ['data'],
