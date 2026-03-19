@@ -78,6 +78,7 @@ function FilterComponent({ filterText, onFilter, onClear }) {
 function projectLog(props) {
   const [filterText, setFilterText] = useState('');
   const [expandAll, setExpandAll] = useState(false);
+  const [tableKey, setTableKey] = useState(0);
   const { feed, error, updates } = props;
   const hasWhatsNewUpdates = updates !== null && !updates.upToDate;
   const [filterWhatsNew, setFilterWhatsNew] = useState(hasWhatsNewUpdates);
@@ -109,10 +110,10 @@ function projectLog(props) {
     return (
       <>
         <div className={styles.headerButton}>
-          <Button variant="outlined" onClick={() => setExpandAll(true)}>
+          <Button variant="outlined" onClick={() => { setExpandAll(true); setTableKey(k => k + 1); }}>
             Expand All
           </Button>
-          <Button variant="outlined" onClick={() => setExpandAll(false)}>
+          <Button variant="outlined" onClick={() => { setExpandAll(false); setTableKey(k => k + 1); }}>
             Collapse All
           </Button>
           {showUpdatesControl}
@@ -158,6 +159,7 @@ function projectLog(props) {
       );
     contents = (
       <DataTable
+        key={tableKey}
         title="Project Log"
         columns={columns}
         data={data}
