@@ -24,7 +24,6 @@ export default class RustHandler extends BaseCodeHandler {
       return libraries;
     }
 
-    // Match nested `use` blocks like `use std::io::{self, Read, Write};`
     // First we extract the base and the braces part
     const useBlockMatches = [
       ...text.matchAll(/^\s*use\s+([a-zA-Z0-9_:]+)::\s*\{([^}]+)\};/gm),
@@ -59,7 +58,6 @@ export default class RustHandler extends BaseCodeHandler {
     }
 
     // Match single `use` like `use std::fs;` or `use std::fs as filesystem;`
-    // Ensure we don't accidentally match the base part of a block by checking it doesn't end with `{`
     const useMatches = [
       ...text.matchAll(/^\s*use\s+([a-zA-Z0-9_:]+)(?:\s+as\s+([a-zA-Z0-9_]+))?\s*;/gm),
     ];
@@ -163,7 +161,7 @@ export default class RustHandler extends BaseCodeHandler {
       }
     }
 
-    // Match BufReader::new(file_path) (if passing string instead of File object)
+    // Match BufReader::new(file_path)
     const bufReaderMatches = [
       ...text.matchAll(/BufReader::new\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
     ];
@@ -226,9 +224,6 @@ export default class RustHandler extends BaseCodeHandler {
     }
 
     // Match OpenOptions::new()...open("path") (write mode)
-    // Note: Since this overlaps with the .open() reader matching, it will be added twice in theory if not guarded, 
-    // but the getInputs and getOutputs are separate so it just appears in both if we match loosely.
-    // For writes we assume any .create(true) or .write(true) or .append(true) before .open() is a write.
     const openOptionsWriteRegex = /(?:create|write|append)\s*\(\s*true\s*\)[\s\S]*?\.open\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim;
     const openOptionsWriteMatches = [...text.matchAll(openOptionsWriteRegex)];
     for (let index = 0; index < openOptionsWriteMatches.length; index++) {
