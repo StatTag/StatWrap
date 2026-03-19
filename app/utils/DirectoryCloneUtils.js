@@ -51,9 +51,11 @@ export const cloneDirectoryStructure = async (sourceDir, targetDir) => {
  * Creates a new StatWrap configuration folder in the target directory
  *
  * @param {string} targetDir - The target directory where the StatWrap project file will be created
+ * @param {string} [id] - Optional project ID. If not provided, a new UUID will be generated.
+ * @param {string} [name] - Optional project name. Falls back to the directory name if not provided.
  * @returns {Promise<void>}
  */
-export const createStatWrapConfig = async (targetDir) => {
+export const createStatWrapConfig = async (targetDir, id, name) => {
   try {
     // Create the .statwrap base folder
     const configDir = path.join(targetDir, Constants.StatWrapFiles.BASE_FOLDER);
@@ -61,7 +63,7 @@ export const createStatWrapConfig = async (targetDir) => {
 
     const projectConfigFile = path.join(configDir, Constants.StatWrapFiles.PROJECT);
     const projectService = new ProjectService();
-    const projectConfig = projectService.createProjectConfig(null, path.basename(targetDir));
+    const projectConfig = projectService.createProjectConfig(id ?? null, name ?? path.basename(targetDir));
     fs.writeFileSync(projectConfigFile, JSON.stringify(projectConfig));
   } catch (error) {
     throw new Error(`Failed to create StatWrap configuration: ${error.message}`);

@@ -15,6 +15,7 @@ import AssetUtil from './utils/asset';
 import ProjectUtil from './utils/project';
 import JavaHandler from './services/assets/handlers/java';
 import RustHandler from './services/assets/handlers/rust';
+import GoHandler from './services/assets/handlers/go';
 import Constants from './constants/constants';
 
 const projectService = new ProjectService();
@@ -56,6 +57,7 @@ contextBridge.exposeInMainWorld('workerElectronBridge', {
           new StataHandler(),
           new JavaHandler(),
           new RustHandler(),
+          new GoHandler(),
         ]);
         response.assets = service.scan(project.path); // Returns absolute paths
 

@@ -24,7 +24,6 @@ module.exports = {
     FILE: 'file',
     URL: 'url',
     GENERIC: 'generic',
-    URL: 'url',
 
     // These are not a real asset types, but are used in our various controls
     ASSET_GROUP: 'asset-group',
