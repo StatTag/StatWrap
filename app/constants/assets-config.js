@@ -57,6 +57,8 @@ module.exports = {
     {
       name: 'SQL',
       extensions: ['sql'],
+      name: 'Go',
+      extensions: ['go'],
       categories: ['code'],
     },
     {

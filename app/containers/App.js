@@ -122,11 +122,11 @@ export default class App extends React.Component {
   }
 
   handleCloseUserProfileDialog() {
-    this.setState({ displayUserProfileDialog: false });
+    this.setState((prevState) => ({ displayUserProfileDialog: false, userProfileDialogKey: prevState.userProfileDialogKey + 1 }));
   }
 
   handleOpenUserProfileDialog() {
-    this.setState({ displayUserProfileDialog: true });
+    this.setState((prevState) => ({ displayUserProfileDialog: true, userProfileDialogKey: prevState.userProfileDialogKey + 1 }));
   }
 
   render() {

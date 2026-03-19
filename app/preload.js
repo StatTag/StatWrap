@@ -14,6 +14,7 @@ import StataHandler from './services/assets/handlers/stata';
 import AssetUtil from './utils/asset';
 import ProjectUtil from './utils/project';
 import JavaHandler from './services/assets/handlers/java';
+import GoHandler from './services/assets/handlers/go';
 import Constants from './constants/constants';
 import SQLHandler from './services/assets/handlers/sql';
 
@@ -56,6 +57,7 @@ contextBridge.exposeInMainWorld('workerElectronBridge', {
           new StataHandler(),
           new JavaHandler(),
           new SQLHandler(),
+          new GoHandler(),
         ]);
         response.assets = service.scan(project.path); // Returns absolute paths
 
