@@ -155,6 +155,10 @@ export default class WorkflowUtil {
       ? filters.findIndex((x) => x.category === Constants.FilterCategory.ATTRIBUTE)
       : -1;
     const attributeFilter = attributeFilterIndex === -1 ? null : filters[attributeFilterIndex];
+    const directoryFilterIndex = applyFilter
+      ? filters.findIndex((x) => x.category === Constants.FilterCategory.DIRECTORY)
+      : -1;
+    const directoryFilter = directoryFilterIndex === -1 ? null : filters[directoryFilterIndex];
 
     const allDeps = WorkflowUtil.getAllDependencies(filteredAsset, filteredAsset.uri);
     // Create a map of relative URIs to assets for faster lookup
@@ -191,6 +195,19 @@ export default class WorkflowUtil {
             if (shouldFilter) {
               continue;
             }
+          }
+        }
+
+        if (directoryFilter) {
+          const normalizedAsset = entry.asset.split('\\').join('/');
+          const shouldFilter = directoryFilter.values.some((v) => {
+            if (!v.value) {
+              return normalizedAsset === v.key || normalizedAsset.startsWith(v.key + '/');
+            }
+            return false;
+          });
+          if (shouldFilter) {
+            continue;
           }
         }
 
