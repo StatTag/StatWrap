@@ -13,6 +13,7 @@ const ICON_TYPES = {
   LIBRARY: `${ICON_PATH}library.svg`,
   DATA: `${ICON_PATH}data.svg`,
   FIGURE: `${ICON_PATH}figure.svg`,
+  DART: `${ICON_PATH}dart.svg`,
   SQL: `${ICON_PATH}sql.svg`,
   GO: `${ICON_PATH}go.svg`,
 };
@@ -37,6 +38,8 @@ function CodeNode({ node, renderType }) {
     iconUrl = ICON_TYPES.SQL;
   } else if (node.assetType === 'go') {
     iconUrl = ICON_TYPES.GO;
+  } else if (node.assetType === 'dart') {
+    iconUrl = ICON_TYPES.DART;
   } else if (node.assetType === Constants.DependencyType.DATA) {
     iconUrl = ICON_TYPES.DATA;
   } else if (node.assetType === Constants.DependencyType.FIGURE) {
