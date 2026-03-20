@@ -9,6 +9,7 @@ const ICON_TYPES = {
   R: `${ICON_PATH}r.svg`,
   SAS: `${ICON_PATH}sas.svg`,
   STATA: `${ICON_PATH}stata.png`,
+  CPP: `${ICON_PATH}cpp.svg`,
   GENERIC: `${ICON_PATH}generic.svg`,
   LIBRARY: `${ICON_PATH}library.svg`,
   DATA: `${ICON_PATH}data.svg`,
@@ -31,6 +32,8 @@ function CodeNode({ node, renderType }) {
     iconUrl = ICON_TYPES.SAS;
   } else if (node.assetType === 'stata') {
     iconUrl = ICON_TYPES.STATA;
+  } else if (node.assetType === 'cpp') {
+    iconUrl = ICON_TYPES.CPP;
   } else if (node.assetType === 'dependency') {
     iconUrl = ICON_TYPES.LIBRARY;
   } else if (node.assetType === 'sql') {

@@ -319,6 +319,31 @@ describe('services', () => {
         expect(service.assetContentTypes('folder.do', stat)).toStrictEqual(['other']);
       });
 
+      it('should identify C++ code files as code', () => {
+        const stat = new fs.Stats();
+        stat.isFile.mockReturnValue(true);
+        const service = new AssetService();
+        expect(service.assetContentTypes('test.cc', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.cpp', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.cxx', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.c++', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.h', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.hh', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.hpp', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.hxx', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.ipp', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.tpp', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.inl', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.CPP', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.HPP', stat)).toStrictEqual(['code']);
+        // False leads...
+        expect(service.assetContentTypes('test.c', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.cpp.other', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.cpp', stat)).toStrictEqual(['other']);
+        stat.isFile.mockReturnValue(false);
+        expect(service.assetContentTypes('folder.cpp', stat)).toStrictEqual(['other']);
+      });
+
       it('should identify Stata data files as data', () => {
         const stat = new fs.Stats();
         stat.isFile.mockReturnValue(true);
