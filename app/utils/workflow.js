@@ -10,6 +10,7 @@ import SQLHandler from '../services/assets/handlers/sql';
 import GoHandler from '../services/assets/handlers/go';
 import CppHandler from '../services/assets/handlers/cpp';
 import CHandler from '../services/assets/handlers/c';
+import DartHandler from '../services/assets/handlers/dart';
 import path from 'path';
 
 export default class WorkflowUtil {
@@ -67,6 +68,8 @@ export default class WorkflowUtil {
       assetType = 'go';
     } else if (AssetUtil.getHandlerMetadata(CHandler.id, asset.metadata)) {
       assetType = 'c';
+    } else if (AssetUtil.getHandlerMetadata(DartHandler.id, asset.metadata)) {
+      assetType = 'dart';
     }
     return assetType;
   }
@@ -371,6 +374,7 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, CppHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, CHandler.id, libraries, inputs, outputs);
 
+    WorkflowUtil._getMetadataDependencies(asset, DartHandler.id, libraries, inputs, outputs);
     return libraries
       .map((e) => {
         return { ...e, direction: Constants.DependencyDirection.IN };
@@ -438,7 +442,7 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, GoHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, CppHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, CHandler.id, libraries, [], []);
-
+    WorkflowUtil._getMetadataDependencies(asset, DartHandler.id, libraries, [], []);
     return libraries;
   }
 
