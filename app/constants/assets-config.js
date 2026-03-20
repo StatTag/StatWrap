@@ -57,8 +57,16 @@ module.exports = {
     {
       name: 'SQL',
       extensions: ['sql'],
+      categories: ['code'],
+    },
+    {
       name: 'Go',
       extensions: ['go'],
+      categories: ['code'],
+    },
+    {
+      name: 'JavaScript',
+      extensions: ['js', 'jsx', 'mjs', 'cjs'],
       categories: ['code'],
     },
     {
