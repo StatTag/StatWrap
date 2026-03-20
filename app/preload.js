@@ -16,6 +16,7 @@ import ProjectUtil from './utils/project';
 import JavaHandler from './services/assets/handlers/java';
 import CppHandler from './services/assets/handlers/cpp';
 import Constants from './constants/constants';
+import SQLHandler from './services/assets/handlers/sql';
 
 const projectService = new ProjectService();
 const projectListService = new ProjectListService();

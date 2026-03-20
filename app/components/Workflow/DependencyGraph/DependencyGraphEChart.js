@@ -20,6 +20,8 @@ const ICON_TYPES = {
   LIBRARY: `${ICON_PATH}library.svg`,
   DATA: `${ICON_PATH}data.svg`,
   FIGURE: `${ICON_PATH}figure.svg`,
+  SQL: `${ICON_PATH}sql.svg`,
+  GO: `${ICON_PATH}go.svg`,
 };
 
 /**
@@ -41,6 +43,10 @@ function getIcon(node) {
     iconUrl = ICON_TYPES.CPP;
   } else if (node.value === 'dependency') {
     iconUrl = ICON_TYPES.LIBRARY;
+  } else if (node.value === 'sql') {
+    iconUrl = ICON_TYPES.SQL;
+  } else if (node.value === 'go') {
+    iconUrl = ICON_TYPES.GO;
   } else if (node.value === Constants.DependencyType.DATA) {
     iconUrl = ICON_TYPES.DATA;
   } else if (node.value === Constants.DependencyType.FIGURE) {

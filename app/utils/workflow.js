@@ -56,7 +56,6 @@ export default class WorkflowUtil {
     } else if (AssetUtil.getHandlerMetadata(CppHandler.id, asset.metadata)) {
       assetType = 'cpp';
     }
-
     return assetType;
   }
 
