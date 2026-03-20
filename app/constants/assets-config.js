@@ -60,6 +60,11 @@ module.exports = {
       categories: ['code'],
     },
     {
+      name: 'Dart',
+      extensions: ['dart'],
+      categories: ['code'],
+    },
+    {
       name: 'SQL',
       extensions: ['sql'],
       categories: ['code'],
