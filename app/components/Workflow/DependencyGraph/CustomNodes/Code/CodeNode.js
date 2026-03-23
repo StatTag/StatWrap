@@ -20,6 +20,7 @@ const ICON_TYPES = {
   SQL: `${ICON_PATH}sql.svg`,
   GO: `${ICON_PATH}go.svg`,
   C: `${ICON_PATH}c.svg`,
+  SCALA: `${ICON_PATH}scala.svg`,
 };
 
 /**
@@ -54,6 +55,8 @@ function CodeNode({ node, renderType }) {
     iconUrl = ICON_TYPES.C;    
   } else if (node.assetType === 'dart') {
     iconUrl = ICON_TYPES.DART;
+  } else if (node.assetType === 'scala') {
+    iconUrl = ICON_TYPES.SCALA;
   } else if (node.assetType === Constants.DependencyType.DATA) {
     iconUrl = ICON_TYPES.DATA;
   } else if (node.assetType === Constants.DependencyType.FIGURE) {
