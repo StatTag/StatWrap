@@ -16,6 +16,7 @@ import ProjectUtil from './utils/project';
 import JavaHandler from './services/assets/handlers/java';
 import RustHandler from './services/assets/handlers/rust';
 import GoHandler from './services/assets/handlers/go';
+import ScalaHandler from './services/assets/handlers/scala';
 import Constants from './constants/constants';
 import SQLHandler from './services/assets/handlers/sql';
 
@@ -60,6 +61,7 @@ contextBridge.exposeInMainWorld('workerElectronBridge', {
           new RustHandler(),
           new SQLHandler(),
           new GoHandler(),
+          new ScalaHandler(),
         ]);
         response.assets = service.scan(project.path); // Returns absolute paths
 
