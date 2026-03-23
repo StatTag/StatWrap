@@ -31,6 +31,8 @@ function CodeNode({ node, renderType }) {
     iconUrl = ICON_TYPES.SAS;
   } else if (node.assetType === 'stata') {
     iconUrl = ICON_TYPES.STATA;
+  } else if (node.assetType === 'java') {
+    iconUrl = ICON_TYPES.JAVA;
   } else if (node.assetType === 'dependency') {
     iconUrl = ICON_TYPES.LIBRARY;
   } else if (node.assetType === 'sql') {
