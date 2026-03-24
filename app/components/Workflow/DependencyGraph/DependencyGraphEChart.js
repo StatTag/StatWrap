@@ -39,6 +39,8 @@ function getIcon(node) {
     iconUrl = ICON_TYPES.SAS;
   } else if (node.value === 'stata') {
     iconUrl = ICON_TYPES.STATA;
+  } else if (node.value === 'java') {
+    iconUrl = ICON_TYPES.JAVA;
   } else if (node.value === 'dependency') {
     iconUrl = ICON_TYPES.LIBRARY;
   } else if(node.value === 'rust'){
