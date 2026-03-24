@@ -55,8 +55,16 @@ module.exports = {
       categories: ['code'],
     },
     {
+      name: 'Rust',
+      extensions: ['rs'],
+      categories: ['code'],
+    },
+    {
       name: 'SQL',
       extensions: ['sql'],
+      categories: ['code'],
+    },
+    {
       name: 'Go',
       extensions: ['go'],
       categories: ['code'],
