@@ -16,6 +16,7 @@ const ICON_TYPES = {
   RUST: `${ICON_PATH}rust.svg`,
   SQL: `${ICON_PATH}sql.svg`,
   GO: `${ICON_PATH}go.svg`,
+  C: `${ICON_PATH}c.svg`,
 };
 
 /**
@@ -42,6 +43,8 @@ function CodeNode({ node, renderType }) {
     iconUrl = ICON_TYPES.SQL;
   } else if (node.assetType === 'go') {
     iconUrl = ICON_TYPES.GO;
+  } else if (node.assetType === 'c') {
+    iconUrl = ICON_TYPES.C;    
   } else if (node.assetType === Constants.DependencyType.DATA) {
     iconUrl = ICON_TYPES.DATA;
   } else if (node.assetType === Constants.DependencyType.FIGURE) {

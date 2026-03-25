@@ -15,6 +15,7 @@ const ICON_TYPES = {
   R: `${ICON_PATH}r.svg`,
   SAS: `${ICON_PATH}sas.svg`,
   STATA: `${ICON_PATH}stata.png`,
+  JAVA: `${ICON_PATH}java.svg`,
   GENERIC: `${ICON_PATH}generic.svg`,
   LIBRARY: `${ICON_PATH}library.svg`,
   DATA: `${ICON_PATH}data.svg`,
@@ -22,6 +23,7 @@ const ICON_TYPES = {
   RUST: `${ICON_PATH}rust.svg`,
   SQL: `${ICON_PATH}sql.svg`,
   GO: `${ICON_PATH}go.svg`,
+  C: `${ICON_PATH}c.svg`,
 };
 
 /**
@@ -49,6 +51,8 @@ function getIcon(node) {
     iconUrl = ICON_TYPES.SQL;
   } else if (node.value === 'go') {
     iconUrl = ICON_TYPES.GO;
+  } else if (node.value === 'c') {
+    iconUrl = ICON_TYPES.C;
   } else if (node.value === Constants.DependencyType.DATA) {
     iconUrl = ICON_TYPES.DATA;
   } else if (node.value === Constants.DependencyType.FIGURE) {
