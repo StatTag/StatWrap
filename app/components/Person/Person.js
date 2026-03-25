@@ -85,7 +85,7 @@ function person(props) {
       {tagViewer}
       {noteEditor}
       <Dialog open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
-        <DialogTitle style={{ color: 'white', backgroundColor: '#aa94d1' }}>Remove Person</DialogTitle>
+        <DialogTitle classes={{ root: styles.title }}>Remove Person</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Are you sure you want to remove{' '}
