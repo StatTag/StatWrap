@@ -14,6 +14,7 @@ import StataHandler from './services/assets/handlers/stata';
 import AssetUtil from './utils/asset';
 import ProjectUtil from './utils/project';
 import JavaHandler from './services/assets/handlers/java';
+import RustHandler from './services/assets/handlers/rust';
 import GoHandler from './services/assets/handlers/go';
 import SQLHandler from './services/assets/handlers/sql';
 import JavaScriptHandler from './services/assets/handlers/javascript';
@@ -57,6 +58,7 @@ contextBridge.exposeInMainWorld('workerElectronBridge', {
           new SASHandler(),
           new StataHandler(),
           new JavaHandler(),
+          new RustHandler(),
           new SQLHandler(),
           new GoHandler(),
           new JavaScriptHandler(),

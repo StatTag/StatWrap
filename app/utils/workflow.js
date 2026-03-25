@@ -5,6 +5,7 @@ import SASHandler from '../services/assets/handlers/sas';
 import StataHandler from '../services/assets/handlers/stata';
 import Constants from '../constants/constants';
 import JavaHandler from '../services/assets/handlers/java';
+import RustHandler from '../services/assets/handlers/rust';
 import SQLHandler from '../services/assets/handlers/sql';
 import GoHandler from '../services/assets/handlers/go';
 import JavaScriptHandler from '../services/assets/handlers/javascript';
@@ -55,6 +56,8 @@ export default class WorkflowUtil {
       assetType = 'stata';
     } else if (AssetUtil.getHandlerMetadata(JavaHandler.id, asset.metadata)) {
       assetType = 'java';
+    } else if (AssetUtil.getHandlerMetadata(RustHandler.id, asset.metadata)) {
+      assetType = 'rust';
     } else if (AssetUtil.getHandlerMetadata(SQLHandler.id, asset.metadata)) {
       assetType = 'sql';
     } else if (AssetUtil.getHandlerMetadata(GoHandler.id, asset.metadata)) {
@@ -351,6 +354,7 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, SASHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, StataHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, JavaHandler.id, libraries, inputs, outputs);
+    WorkflowUtil._getMetadataDependencies(asset, RustHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, SQLHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, GoHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, JavaScriptHandler.id, libraries, inputs, outputs);
@@ -417,6 +421,7 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, SASHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, StataHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, JavaHandler.id, libraries, [], []);
+    WorkflowUtil._getMetadataDependencies(asset, RustHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, SQLHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, GoHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, JavaScriptHandler.id, libraries, [], []);
