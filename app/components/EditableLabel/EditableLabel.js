@@ -111,7 +111,7 @@ export default class EditableLabel extends React.Component {
               }}
               value={this.state.text}
               onChange={this.handleChange}
-              onBlur={this.props.showSaveCancel ? undefined : this.handleFocus}
+              onBlur={this.props.showSaveCancel ? this.handleSave : this.handleFocus}
               style={{
                 width: this.props.inputWidth,
                 height: this.props.inputHeight,
