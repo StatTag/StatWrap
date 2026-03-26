@@ -110,6 +110,58 @@ describe('services', () => {
         );
         expect(inputs.length).toEqual(1);
       });
+
+      it('should detect loadString operations', () => {
+        const inputs = new DartHandler().getInputs(
+          'test.uri',
+          'rootBundle.loadString("assets/data.json");'
+        );
+        expect(inputs.length).toEqual(1);
+        expect(inputs[0]).toMatchObject({
+          id: 'File Read - "assets/data.json"',
+          type: 'data',
+          path: '"assets/data.json"',
+        });
+      });
+
+      it('should detect file reads with fully qualified linux/macos paths', () => {
+        const inputs = new DartHandler().getInputs(
+          'test.uri',
+          'File("/test/dir/test.txt").readAsStringSync();'
+        );
+        expect(inputs.length).toEqual(1);
+        expect(inputs[0]).toMatchObject({
+          id: 'File Read - "/test/dir/test.txt"',
+          type: 'data',
+          path: '"/test/dir/test.txt"',
+        });
+      });
+
+      it('should detect file reads with fully qualified windows paths', () => {
+        const inputs = new DartHandler().getInputs(
+          'test.uri',
+          'File("C:\\\\test\\\\dir\\\\test.txt").readAsStringSync();'
+        );
+        expect(inputs.length).toEqual(1);
+        expect(inputs[0]).toMatchObject({
+          id: 'File Read - "C:\\\\test\\\\dir\\\\test.txt"',
+          type: 'data',
+          path: '"C:\\\\test\\\\dir\\\\test.txt"',
+        });
+      });
+
+      it('should detect file reads with relative paths', () => {
+        const inputs = new DartHandler().getInputs(
+          'test.uri',
+          'File("../data/test.csv").readAsStringSync();'
+        );
+        expect(inputs.length).toEqual(1);
+        expect(inputs[0]).toMatchObject({
+          id: 'File Read - "../data/test.csv"',
+          type: 'data',
+          path: '"../data/test.csv"',
+        });
+      });
     });
 
     describe('getOutputs', () => {
