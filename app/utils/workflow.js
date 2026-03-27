@@ -8,6 +8,7 @@ import JavaHandler from '../services/assets/handlers/java';
 import RustHandler from '../services/assets/handlers/rust';
 import SQLHandler from '../services/assets/handlers/sql';
 import GoHandler from '../services/assets/handlers/go';
+import ScalaHandler from '../services/assets/handlers/scala';
 import path from 'path';
 
 export default class WorkflowUtil {
@@ -61,6 +62,8 @@ export default class WorkflowUtil {
       assetType = 'sql';
     } else if (AssetUtil.getHandlerMetadata(GoHandler.id, asset.metadata)) {
       assetType = 'go';
+    } else if (AssetUtil.getHandlerMetadata(ScalaHandler.id, asset.metadata)) {
+      assetType = 'scala';
     }
     return assetType;
   }
@@ -354,6 +357,7 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, RustHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, SQLHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, GoHandler.id, libraries, inputs, outputs);
+    WorkflowUtil._getMetadataDependencies(asset, ScalaHandler.id, libraries, inputs, outputs);
 
     return libraries
       .map((e) => {
@@ -420,6 +424,7 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, RustHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, SQLHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, GoHandler.id, libraries, [], []);
+    WorkflowUtil._getMetadataDependencies(asset, ScalaHandler.id, libraries, [], []);
 
     return libraries;
   }
