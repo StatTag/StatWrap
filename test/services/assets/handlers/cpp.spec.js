@@ -60,10 +60,10 @@ describe('services', () => {
         const inputs = new CppHandler().getInputs(
           'test.uri',
           `
-          std::ifstream inFile("input1.csv");
-          std::fstream ioFile("input2.csv", std::ios::in);
-          dataStream.open("input3.csv", std::ios::in);
-          FILE* fp = fopen("input4.csv", "r");
+          std::ifstream inFile("C:\\data\\input1.csv");
+          std::fstream ioFile("/var/data/input2.csv", std::ios::in);
+          dataStream.open("../data/input3.csv", std::ios::in);
+          FILE* fp = fopen("data/input4.csv", "r");
           `,
         );
 
@@ -72,17 +72,24 @@ describe('services', () => {
         expect(inputs[1].id).toContain('fstream');
         expect(inputs[2].id).toContain('open');
         expect(inputs[3].id).toContain('fopen');
+        expect(inputs.map((input) => input.path)).toEqual([
+          'C:\\data\\input1.csv',
+          '/var/data/input2.csv',
+          '../data/input3.csv',
+          'data/input4.csv',
+        ]);
       });
 
       it('should detect POSIX open read operations', () => {
         const inputs = new CppHandler().getInputs(
           'test.uri',
-          'int fd = open("input_posix.txt", O_RDONLY);\nint fd2 = open("input_rw.txt", O_RDWR);',
+          'int fd = open("/etc/input_posix.txt", O_RDONLY);\nint fd2 = open("./input_rw.txt", O_RDWR);',
         );
 
         expect(inputs.length).toEqual(2);
         expect(inputs[0].id).toContain('open');
         expect(inputs[1].id).toContain('open');
+        expect(inputs.map((input) => input.path)).toEqual(['/etc/input_posix.txt', './input_rw.txt']);
       });
     });
 
@@ -91,9 +98,9 @@ describe('services', () => {
         const outputs = new CppHandler().getOutputs(
           'test.uri',
           `
-          std::ofstream outFile("output1.csv");
-          std::fstream ioFile("output2.csv", std::ios::out);
-          dataStream.open("output3.csv", std::ios::app);
+          std::ofstream outFile("C:\\tmp\\output1.csv");
+          std::fstream ioFile("/var/tmp/output2.csv", std::ios::out);
+          dataStream.open("../output3.csv", std::ios::app);
           FILE* fp = fopen("output4.csv", "w+");
           `,
         );
@@ -103,17 +110,27 @@ describe('services', () => {
         expect(outputs[1].id).toContain('fstream');
         expect(outputs[2].id).toContain('open');
         expect(outputs[3].id).toContain('fopen');
+        expect(outputs.map((output) => output.path)).toEqual([
+          'C:\\tmp\\output1.csv',
+          '/var/tmp/output2.csv',
+          '../output3.csv',
+          'output4.csv',
+        ]);
       });
 
       it('should detect POSIX open and creat write operations', () => {
         const outputs = new CppHandler().getOutputs(
           'test.uri',
-          'int fd = open("output_posix.txt", O_WRONLY | O_CREAT);\nint fd2 = creat("created_output.txt", 0644);',
+          'int fd = open("/var/output_posix.txt", O_WRONLY | O_CREAT);\nint fd2 = creat("./created_output.txt", 0644);',
         );
 
         expect(outputs.length).toEqual(2);
         expect(outputs[0].id).toContain('open');
         expect(outputs[1].id).toContain('creat');
+        expect(outputs.map((output) => output.path)).toEqual([
+          '/var/output_posix.txt',
+          './created_output.txt',
+        ]);
       });
     });
 

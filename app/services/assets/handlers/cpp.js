@@ -78,15 +78,16 @@ export default class CppHandler extends BaseCodeHandler {
 
     const processed = new Set();
     const addInput = (operation, filePath) => {
-      const key = `${operation}:${filePath}`;
+      const normalizedPath = CppHandler._stripQuotes(filePath);
+      const key = `${operation}:${normalizedPath}`;
       if (processed.has(key)) {
         return;
       }
 
       inputs.push({
-        id: `${operation} - ${filePath}`,
+        id: `${operation} - ${normalizedPath}`,
         type: Constants.DependencyType.DATA,
-        path: filePath,
+        path: normalizedPath,
       });
       processed.add(key);
     };
@@ -161,15 +162,16 @@ export default class CppHandler extends BaseCodeHandler {
 
     const processed = new Set();
     const addOutput = (operation, filePath) => {
-      const key = `${operation}:${filePath}`;
+      const normalizedPath = CppHandler._stripQuotes(filePath);
+      const key = `${operation}:${normalizedPath}`;
       if (processed.has(key)) {
         return;
       }
 
       outputs.push({
-        id: `${operation} - ${filePath}`,
+        id: `${operation} - ${normalizedPath}`,
         type: Constants.DependencyType.DATA,
-        path: filePath,
+        path: normalizedPath,
       });
       processed.add(key);
     };
