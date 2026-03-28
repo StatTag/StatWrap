@@ -70,6 +70,11 @@ module.exports = {
       categories: ['code'],
     },
     {
+      name: 'JavaScript',
+      extensions: ['js', 'jsx', 'mjs', 'cjs'],
+      categories: ['code'],
+    },
+    {
       name: 'Text Data File',
       extensions: ['csv', 'tsv'],
       categories: ['data'],

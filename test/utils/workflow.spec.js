@@ -81,6 +81,44 @@ describe('utils', () => {
         expect(dependencies[2].dependencies.length).toEqual(1);
         expect(dependencies[3].dependencies.length).toEqual(1);
       });
+
+      it('should include JavaScript metadata dependencies in the workflow list', () => {
+        const asset = {
+          uri: '/test/js',
+          metadata: [
+            {
+              id: 'StatWrap.JavaScriptHandler',
+              libraries: [
+                {
+                  id: 'react',
+                  module: 'react',
+                  import: 'React',
+                  alias: null,
+                },
+              ],
+              inputs: [
+                {
+                  id: 'readFile - "data/input.csv"',
+                  type: Constants.DependencyType.DATA,
+                  path: '"data/input.csv"',
+                },
+              ],
+              outputs: [
+                {
+                  id: 'writeFile - "data/output.csv"',
+                  type: Constants.DependencyType.DATA,
+                  path: '"data/output.csv"',
+                },
+              ],
+            },
+          ],
+          children: [],
+        };
+        const dependencies = WorkflowUtil.getAllDependencies(asset);
+        expect(dependencies.length).toEqual(1);
+        expect(dependencies[0].assetType).toEqual('javascript');
+        expect(dependencies[0].dependencies.length).toEqual(3);
+      });
     });
 
     describe('getAllDependenciesAsGraph', () => {
@@ -567,6 +605,9 @@ describe('utils', () => {
       it('should return a default value for known types', () => {
         expect(WorkflowUtil.getAssetType({ metadata: [{ id: 'StatWrap.PythonHandler' }] })).toEqual(
           'python',
+        );
+        expect(WorkflowUtil.getAssetType({ metadata: [{ id: 'StatWrap.JavaScriptHandler' }] })).toEqual(
+          'javascript',
         );
       });
 
