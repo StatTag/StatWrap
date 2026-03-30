@@ -8,6 +8,7 @@ import JavaHandler from '../services/assets/handlers/java';
 import RustHandler from '../services/assets/handlers/rust';
 import SQLHandler from '../services/assets/handlers/sql';
 import GoHandler from '../services/assets/handlers/go';
+import CppHandler from '../services/assets/handlers/cpp';
 import CHandler from '../services/assets/handlers/c';
 import path from 'path';
 
@@ -56,6 +57,8 @@ export default class WorkflowUtil {
       assetType = 'stata';
     } else if (AssetUtil.getHandlerMetadata(JavaHandler.id, asset.metadata)) {
       assetType = 'java';
+    } else if (AssetUtil.getHandlerMetadata(CppHandler.id, asset.metadata)) {
+      assetType = 'cpp';
     } else if (AssetUtil.getHandlerMetadata(RustHandler.id, asset.metadata)) {
       assetType = 'rust';
     } else if (AssetUtil.getHandlerMetadata(SQLHandler.id, asset.metadata)) {
@@ -365,6 +368,7 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, RustHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, SQLHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, GoHandler.id, libraries, inputs, outputs);
+    WorkflowUtil._getMetadataDependencies(asset, CppHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, CHandler.id, libraries, inputs, outputs);
 
     return libraries
@@ -432,6 +436,7 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, RustHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, SQLHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, GoHandler.id, libraries, [], []);
+    WorkflowUtil._getMetadataDependencies(asset, CppHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, CHandler.id, libraries, [], []);
 
     return libraries;
