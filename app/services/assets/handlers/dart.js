@@ -29,8 +29,8 @@ export default class DartHandler extends BaseCodeHandler {
     // Typical Dart file read operations:
     // e.g. File('path/to/file')
     const fileMatches = [
-      ...text.matchAll(/File\s*\(\s*(['"]{1}[^'"]+['"]{1})\s*\)/gim),
-      ...text.matchAll(/loadString\s*\(\s*(['"]{1}[^'"]+['"]{1})\s*\)/gim),
+      ...text.matchAll(/File\s*\(\s*(r?['"]{1}[^'"]+['"]{1})\s*\)/gim),
+      ...text.matchAll(/loadString\s*\(\s*(r?['"]{1}[^'"]+['"]{1})\s*\)/gim),
     ];
     for (let index = 0; index < fileMatches.length; index++) {
       const match = fileMatches[index];
@@ -48,7 +48,7 @@ export default class DartHandler extends BaseCodeHandler {
     // Typical SQLite/database open operations:
     // e.g. openDatabase('my_db.db')
     const dbMatches = [
-      ...text.matchAll(/openDatabase\s*\(\s*(['"]{1,}[\s\S]+?['"]{1,})[\s\S]*?\)/gim)
+      ...text.matchAll(/openDatabase\s*\(\s*(r?['"]{1,}[\s\S]+?['"]{1,})[\s\S]*?\)/gim)
     ];
     for (let index = 0; index < dbMatches.length; index++) {
       const match = dbMatches[index];
@@ -77,7 +77,7 @@ export default class DartHandler extends BaseCodeHandler {
     // Typical Dart file write operations:
     // e.g. File('path/to/file').writeAsString()
     const fileMatches = [
-      ...text.matchAll(/File\s*\(\s*(['"]{1,}[\s\S]+?['"]{1,})\s*\)\s*\.\s*write[a-zA-Z]*\s*\(/gim),
+      ...text.matchAll(/File\s*\(\s*(r?['"]{1,}[\s\S]+?['"]{1,})\s*\)\s*\.\s*write[a-zA-Z]*\s*\(/gim),
     ];
     for (let index = 0; index < fileMatches.length; index++) {
       const match = fileMatches[index];

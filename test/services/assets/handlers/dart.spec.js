@@ -140,13 +140,23 @@ describe('services', () => {
       it('should detect file reads with fully qualified windows paths', () => {
         const inputs = new DartHandler().getInputs(
           'test.uri',
-          'File("C:\\\\test\\\\dir\\\\test.txt").readAsStringSync();'
+          `File(r'C:\\test\\dir\\file.txt');\nFile('C:/test/dir/file.txt');\nFile('C:\\\\test\\\\dir\\\\file.txt');`
         );
-        expect(inputs.length).toEqual(1);
+        expect(inputs.length).toEqual(3);
         expect(inputs[0]).toMatchObject({
-          id: 'File Read - "C:\\\\test\\\\dir\\\\test.txt"',
+          id: `File Read - r'C:\\test\\dir\\file.txt'`,
           type: 'data',
-          path: '"C:\\\\test\\\\dir\\\\test.txt"',
+          path: `r'C:\\test\\dir\\file.txt'`,
+        });
+        expect(inputs[1]).toMatchObject({
+          id: `File Read - 'C:/test/dir/file.txt'`,
+          type: 'data',
+          path: `'C:/test/dir/file.txt'`,
+        });
+        expect(inputs[2]).toMatchObject({
+          id: `File Read - 'C:\\\\test\\\\dir\\\\file.txt'`,
+          type: 'data',
+          path: `'C:\\\\test\\\\dir\\\\file.txt'`,
         });
       });
 
