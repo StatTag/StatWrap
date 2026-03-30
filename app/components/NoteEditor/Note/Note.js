@@ -28,11 +28,13 @@ function noteDetails(props) {
       {metadata}
       <EditableLabel
         labelClassName={hasText ? styles.content : styles.emptyContent}
+        labelContainerClassName={styles.labelContainer}
         inputClassName={styles.contentEditor}
         text={note ? note.content : ''}
         labelPlaceHolder={note ? '(Empty)' : 'Click to enter a new note'}
         inputWidth="100%"
         multiline
+        showSaveCancel
         onFocusOut={(text) => onEditingComplete(note, text)}
       />
     </div>

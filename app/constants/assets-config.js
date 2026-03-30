@@ -75,6 +75,11 @@ module.exports = {
       categories: ['code'],
     },
     {
+      name: 'C',
+      extensions: ['c', 'h'],
+      categories: ['code'],
+    },
+    {
       name: 'Text Data File',
       extensions: ['csv', 'tsv'],
       categories: ['data'],
