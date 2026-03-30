@@ -201,7 +201,15 @@ export default class WorkflowUtil {
         }
 
         // Given how we traverse, we can assume assets will be unique
-        graph.nodes.push({ id: entry.asset, assetType: entry.assetType });
+        const existingAssetNodeIndex = graph.nodes.findIndex((n) => n.id === entry.asset);
+        if (existingAssetNodeIndex === -1) {
+          graph.nodes.push({ id: entry.asset, assetType: entry.assetType });
+        } else {
+          graph.nodes[existingAssetNodeIndex] = {
+            id: entry.asset,
+            assetType: entry.assetType,
+          };
+        }
         for (let depIndex = 0; depIndex < entry.dependencies.length; depIndex++) {
           const dependency = entry.dependencies[depIndex];
 
