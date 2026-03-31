@@ -20,6 +20,7 @@ import CppHandler from './services/assets/handlers/cpp';
 import CHandler from './services/assets/handlers/c';
 import Constants from './constants/constants';
 import SQLHandler from './services/assets/handlers/sql';
+import DartHandler from './services/assets/handlers/dart';
 
 const projectService = new ProjectService();
 const projectListService = new ProjectListService();
@@ -64,6 +65,7 @@ contextBridge.exposeInMainWorld('workerElectronBridge', {
           new GoHandler(),
           new CppHandler(),
           new CHandler(),
+          new DartHandler(),
         ]);
         response.assets = service.scan(project.path); // Returns absolute paths
 
