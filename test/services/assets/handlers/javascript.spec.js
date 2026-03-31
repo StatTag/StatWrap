@@ -92,6 +92,29 @@ describe('services', () => {
           module: 'path',
         });
       });
+
+      it('should detect ES module imports using double quotes', () => {
+        const libraries = new JavaScriptHandler().getLibraries(
+          'test.uri',
+          'import { readFile, writeFile } from "fs/promises";'
+        );
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          module: 'fs/promises',
+          import: '{ readFile, writeFile }',
+        });
+      });
+
+      it('should detect CommonJS require using double quotes', () => {
+        const libraries = new JavaScriptHandler().getLibraries(
+          'test.uri',
+          'const path = require("path");'
+        );
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          module: 'path',
+        });
+      });
     });
 
     describe('getInputs', () => {
@@ -142,6 +165,52 @@ describe('services', () => {
           "fs.readFileSync('data.csv');\nfs.readFileSync('data.csv');"
         );
         expect(inputs.length).toEqual(1);
+      });
+
+      it('should detect paths using double quotes', () => {
+        const inputs = new JavaScriptHandler().getInputs(
+          'test.uri',
+          'const data = fs.readFileSync("input.csv", "utf8");'
+        );
+        expect(inputs.length).toEqual(1);
+        expect(inputs[0]).toMatchObject({
+          id: 'readFile - "input.csv"',
+          type: Constants.DependencyType.DATA,
+          path: '"input.csv"',
+        });
+      });
+
+      it('should detect fully qualified Linux/Mac paths', () => {
+        const inputs = new JavaScriptHandler().getInputs(
+          'test.uri',
+          "fs.readFileSync('/home/user/data/test.csv', 'utf8');"
+        );
+        expect(inputs.length).toEqual(1);
+        expect(inputs[0]).toMatchObject({
+          type: Constants.DependencyType.DATA,
+          path: "'/home/user/data/test.csv'",
+        });
+      });
+
+      it('should detect fully qualified Windows paths', () => {
+        const inputs = new JavaScriptHandler().getInputs(
+          'test.uri',
+          "fs.readFileSync('C:\\\\Users\\\\user\\\\data\\\\test.csv', 'utf8');"
+        );
+        expect(inputs.length).toEqual(1);
+        expect(inputs[0]).toMatchObject({
+          type: Constants.DependencyType.DATA,
+        });
+      });
+
+      it('should detect relative paths', () => {
+        const inputs = new JavaScriptHandler().getInputs(
+          'test.uri',
+          "fs.readFileSync('data/test.csv');\nfs.readFileSync('../data/test.csv');"
+        );
+        expect(inputs.length).toEqual(2);
+        expect(inputs[0]).toMatchObject({ path: "'data/test.csv'" });
+        expect(inputs[1]).toMatchObject({ path: "'../data/test.csv'" });
       });
     });
 
@@ -201,6 +270,52 @@ describe('services', () => {
           "fs.writeFileSync('out.csv', data);\nfs.writeFileSync('out.csv', data);"
         );
         expect(outputs.length).toEqual(1);
+      });
+
+      it('should detect paths using double quotes', () => {
+        const outputs = new JavaScriptHandler().getOutputs(
+          'test.uri',
+          'fs.writeFileSync("output.csv", data);'
+        );
+        expect(outputs.length).toEqual(1);
+        expect(outputs[0]).toMatchObject({
+          id: 'writeFile - "output.csv"',
+          type: Constants.DependencyType.DATA,
+          path: '"output.csv"',
+        });
+      });
+
+      it('should detect fully qualified Linux/Mac paths', () => {
+        const outputs = new JavaScriptHandler().getOutputs(
+          'test.uri',
+          "fs.writeFileSync('/home/user/results/output.csv', data);"
+        );
+        expect(outputs.length).toEqual(1);
+        expect(outputs[0]).toMatchObject({
+          type: Constants.DependencyType.DATA,
+          path: "'/home/user/results/output.csv'",
+        });
+      });
+
+      it('should detect fully qualified Windows paths', () => {
+        const outputs = new JavaScriptHandler().getOutputs(
+          'test.uri',
+          "fs.writeFileSync('C:\\\\Users\\\\user\\\\results\\\\output.csv', data);"
+        );
+        expect(outputs.length).toEqual(1);
+        expect(outputs[0]).toMatchObject({
+          type: Constants.DependencyType.DATA,
+        });
+      });
+
+      it('should detect relative paths', () => {
+        const outputs = new JavaScriptHandler().getOutputs(
+          'test.uri',
+          "fs.writeFileSync('results/output.csv', data);\nfs.writeFileSync('../results/output.csv', data);"
+        );
+        expect(outputs.length).toEqual(2);
+        expect(outputs[0]).toMatchObject({ path: "'results/output.csv'" });
+        expect(outputs[1]).toMatchObject({ path: "'../results/output.csv'" });
       });
     });
 
