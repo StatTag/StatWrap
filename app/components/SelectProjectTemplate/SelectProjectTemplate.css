@@ -7,3 +7,14 @@
   display: block;
   margin: 0 auto;
 }
+
+.templateList {
+  width: 60%;
+  display: inline-block;
+}
+
+.templatePreview {
+  width: 40%;
+  display: inline-block;
+  vertical-align: top;
+}

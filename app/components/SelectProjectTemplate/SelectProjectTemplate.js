@@ -17,19 +17,17 @@ class SelectProjectTemplate extends Component {
     }
     return (
       <div className={styles.container} data-tid="container">
-        <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <strong>Available templates:</strong>
-            <ProjectTemplateList
-              templates={this.props.projectTemplates}
-              selectedTemplate={this.props.selectedTemplate}
-              onSelect={this.props.onSelectProjectTemplate}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <ProjectTemplatePreview template={template} />
-          </Grid>
-        </Grid>
+        <div className={styles.templateList}>
+          <strong>Available templates:</strong>
+          <ProjectTemplateList
+            templates={this.props.projectTemplates}
+            selectedTemplate={this.props.selectedTemplate}
+            onSelect={this.props.onSelectProjectTemplate}
+          />
+        </div>
+        <div className={styles.templatePreview}>
+          <ProjectTemplatePreview template={template} />
+        </div>
       </div>
     );
   }

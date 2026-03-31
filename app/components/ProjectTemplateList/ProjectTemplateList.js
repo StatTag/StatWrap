@@ -1,23 +1,22 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { List, ListItem, ListItemText } from '@mui/material';
+import { List, ListItemButton, ListItemText } from '@mui/material';
 
 function ProjectTemplateList(props) {
   let projectTypeList = null;
   if (props.templates !== null) {
     projectTypeList = props.templates.map((type) => (
-      <ListItem
-        button
+      <ListItemButton
         selected={
-          props.selectedTemplate &&
+          (props.selectedTemplate &&
           type.id === props.selectedTemplate.id &&
-          type.version === props.selectedTemplate.version
+          type.version === props.selectedTemplate.version)
         }
         key={type.id}
         onClick={() => props.onSelect(type.id, type.version)}
       >
         <ListItemText primary={type.name} secondary={type.description} />
-      </ListItem>
+      </ListItemButton>
     ));
   }
 
