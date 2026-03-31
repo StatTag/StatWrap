@@ -115,6 +115,14 @@ describe('services', () => {
           module: 'path',
         });
       });
+
+      it('should not detect commented-out imports', () => {
+        const libraries = new JavaScriptHandler().getLibraries(
+          'test.uri',
+          "// import React from 'react';\n// const fs = require('fs');"
+        );
+        expect(libraries.length).toEqual(0);
+      });
     });
 
     describe('getInputs', () => {
