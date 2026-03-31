@@ -16,13 +16,17 @@ const ICON_TYPES = {
   SAS: `${ICON_PATH}sas.svg`,
   STATA: `${ICON_PATH}stata.png`,
   JAVASCRIPT: `${ICON_PATH}js.svg`,
+  CPP: `${ICON_PATH}cpp.svg`,
+  JAVA: `${ICON_PATH}java.svg`,
   GENERIC: `${ICON_PATH}generic.svg`,
   LIBRARY: `${ICON_PATH}library.svg`,
   DATA: `${ICON_PATH}data.svg`,
   FIGURE: `${ICON_PATH}figure.svg`,
   RUST: `${ICON_PATH}rust.svg`,
+  DART: `${ICON_PATH}dart.svg`,
   SQL: `${ICON_PATH}sql.svg`,
   GO: `${ICON_PATH}go.svg`,
+  C: `${ICON_PATH}c.svg`,
 };
 
 /**
@@ -42,6 +46,8 @@ function getIcon(node) {
     iconUrl = ICON_TYPES.STATA;
   } else if (node.value === 'javascript') {
     iconUrl = ICON_TYPES.JAVASCRIPT;
+  } else if (node.value === 'cpp') {
+    iconUrl = ICON_TYPES.CPP;
   } else if (node.value === 'java') {
     iconUrl = ICON_TYPES.JAVA;
   } else if (node.value === 'dependency') {
@@ -52,6 +58,10 @@ function getIcon(node) {
     iconUrl = ICON_TYPES.SQL;
   } else if (node.value === 'go') {
     iconUrl = ICON_TYPES.GO;
+  } else if (node.value === 'c') {
+    iconUrl = ICON_TYPES.C;
+  } else if (node.value === 'dart') {
+    iconUrl = ICON_TYPES.DART;
   } else if (node.value === Constants.DependencyType.DATA) {
     iconUrl = ICON_TYPES.DATA;
   } else if (node.value === Constants.DependencyType.FIGURE) {

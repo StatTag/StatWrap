@@ -9,6 +9,9 @@ import RustHandler from '../services/assets/handlers/rust';
 import SQLHandler from '../services/assets/handlers/sql';
 import GoHandler from '../services/assets/handlers/go';
 import JavaScriptHandler from '../services/assets/handlers/javascript';
+import CppHandler from '../services/assets/handlers/cpp';
+import CHandler from '../services/assets/handlers/c';
+import DartHandler from '../services/assets/handlers/dart';
 import path from 'path';
 
 export default class WorkflowUtil {
@@ -56,6 +59,8 @@ export default class WorkflowUtil {
       assetType = 'stata';
     } else if (AssetUtil.getHandlerMetadata(JavaHandler.id, asset.metadata)) {
       assetType = 'java';
+    } else if (AssetUtil.getHandlerMetadata(CppHandler.id, asset.metadata)) {
+      assetType = 'cpp';
     } else if (AssetUtil.getHandlerMetadata(RustHandler.id, asset.metadata)) {
       assetType = 'rust';
     } else if (AssetUtil.getHandlerMetadata(SQLHandler.id, asset.metadata)) {
@@ -64,6 +69,10 @@ export default class WorkflowUtil {
       assetType = 'go';
     } else if (AssetUtil.getHandlerMetadata(JavaScriptHandler.id, asset.metadata)) {
       assetType = 'javascript';
+    } else if (AssetUtil.getHandlerMetadata(CHandler.id, asset.metadata)) {
+      assetType = 'c';
+    } else if (AssetUtil.getHandlerMetadata(DartHandler.id, asset.metadata)) {
+      assetType = 'dart';
     }
     return assetType;
   }
@@ -201,7 +210,15 @@ export default class WorkflowUtil {
         }
 
         // Given how we traverse, we can assume assets will be unique
-        graph.nodes.push({ id: entry.asset, assetType: entry.assetType });
+        const existingAssetNodeIndex = graph.nodes.findIndex((n) => n.id === entry.asset);
+        if (existingAssetNodeIndex === -1) {
+          graph.nodes.push({ id: entry.asset, assetType: entry.assetType });
+        } else {
+          graph.nodes[existingAssetNodeIndex] = {
+            id: entry.asset,
+            assetType: entry.assetType,
+          };
+        }
         for (let depIndex = 0; depIndex < entry.dependencies.length; depIndex++) {
           const dependency = entry.dependencies[depIndex];
 
@@ -358,7 +375,10 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, SQLHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, GoHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, JavaScriptHandler.id, libraries, inputs, outputs);
+    WorkflowUtil._getMetadataDependencies(asset, CppHandler.id, libraries, inputs, outputs);
+    WorkflowUtil._getMetadataDependencies(asset, CHandler.id, libraries, inputs, outputs);
 
+    WorkflowUtil._getMetadataDependencies(asset, DartHandler.id, libraries, inputs, outputs);
     return libraries
       .map((e) => {
         return { ...e, direction: Constants.DependencyDirection.IN };
@@ -425,7 +445,9 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, SQLHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, GoHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, JavaScriptHandler.id, libraries, [], []);
-
+    WorkflowUtil._getMetadataDependencies(asset, CppHandler.id, libraries, [], []);
+    WorkflowUtil._getMetadataDependencies(asset, CHandler.id, libraries, [], []);
+    WorkflowUtil._getMetadataDependencies(asset, DartHandler.id, libraries, [], []);
     return libraries;
   }
 

@@ -11,13 +11,16 @@ import PythonHandler from './services/assets/handlers/python';
 import RHandler from './services/assets/handlers/r';
 import SASHandler from './services/assets/handlers/sas';
 import StataHandler from './services/assets/handlers/stata';
-import AssetUtil from './utils/asset';
-import ProjectUtil from './utils/project';
 import JavaHandler from './services/assets/handlers/java';
 import RustHandler from './services/assets/handlers/rust';
 import GoHandler from './services/assets/handlers/go';
 import SQLHandler from './services/assets/handlers/sql';
 import JavaScriptHandler from './services/assets/handlers/javascript';
+import CppHandler from './services/assets/handlers/cpp';
+import CHandler from './services/assets/handlers/c';
+import DartHandler from './services/assets/handlers/dart';
+import AssetUtil from './utils/asset';
+import ProjectUtil from './utils/project';
 import Constants from './constants/constants';
 
 const projectService = new ProjectService();
@@ -62,6 +65,9 @@ contextBridge.exposeInMainWorld('workerElectronBridge', {
           new SQLHandler(),
           new GoHandler(),
           new JavaScriptHandler(),
+          new CppHandler(),
+          new CHandler(),
+          new DartHandler(),
         ]);
         response.assets = service.scan(project.path); // Returns absolute paths
 

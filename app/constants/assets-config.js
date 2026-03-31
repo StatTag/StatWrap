@@ -60,6 +60,11 @@ module.exports = {
       categories: ['code'],
     },
     {
+      name: 'Dart',
+      extensions: ['dart'],
+      categories: ['code'],
+    },
+    {
       name: 'SQL',
       extensions: ['sql'],
       categories: ['code'],
@@ -72,6 +77,16 @@ module.exports = {
     {
       name: 'JavaScript',
       extensions: ['js', 'jsx', 'mjs', 'cjs'],
+      categories: ['code'],
+    },
+    {
+      name: 'C++',
+      extensions: ['cc', 'cpp', 'cxx', 'c++', 'h', 'hh', 'hpp', 'hxx', 'ipp', 'tpp', 'inl'],
+      categories: ['code'],
+    },
+    {
+      name: 'C',
+      extensions: ['c', 'h'],
       categories: ['code'],
     },
     {

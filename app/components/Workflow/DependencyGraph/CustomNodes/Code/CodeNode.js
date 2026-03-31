@@ -10,13 +10,16 @@ const ICON_TYPES = {
   SAS: `${ICON_PATH}sas.svg`,
   STATA: `${ICON_PATH}stata.png`,
   JAVASCRIPT: `${ICON_PATH}js.svg`,
+  CPP: `${ICON_PATH}cpp.svg`,
   GENERIC: `${ICON_PATH}generic.svg`,
   LIBRARY: `${ICON_PATH}library.svg`,
   DATA: `${ICON_PATH}data.svg`,
   FIGURE: `${ICON_PATH}figure.svg`,
   RUST: `${ICON_PATH}rust.svg`,
+  DART: `${ICON_PATH}dart.svg`,
   SQL: `${ICON_PATH}sql.svg`,
   GO: `${ICON_PATH}go.svg`,
+  C: `${ICON_PATH}c.svg`,
 };
 
 /**
@@ -35,6 +38,8 @@ function CodeNode({ node, renderType }) {
     iconUrl = ICON_TYPES.STATA;
   } else if (node.assetType === 'javascript') {
     iconUrl = ICON_TYPES.JAVASCRIPT;
+  } else if (node.assetType === 'cpp') {
+    iconUrl = ICON_TYPES.CPP;
   } else if (node.assetType === 'rust') {
     iconUrl = ICON_TYPES.RUST;
   } else if (node.assetType === 'java') {
@@ -45,6 +50,10 @@ function CodeNode({ node, renderType }) {
     iconUrl = ICON_TYPES.SQL;
   } else if (node.assetType === 'go') {
     iconUrl = ICON_TYPES.GO;
+  } else if (node.assetType === 'c') {
+    iconUrl = ICON_TYPES.C;    
+  } else if (node.assetType === 'dart') {
+    iconUrl = ICON_TYPES.DART;
   } else if (node.assetType === Constants.DependencyType.DATA) {
     iconUrl = ICON_TYPES.DATA;
   } else if (node.assetType === Constants.DependencyType.FIGURE) {
