@@ -21,6 +21,7 @@ export default class EditableLabel extends React.Component {
     this.state = {
       isEditing: this.props.isEditing || false,
       text: this.props.text || '',
+      originalText: this.props.text || '',
     };
   }
 
@@ -52,16 +53,32 @@ export default class EditableLabel extends React.Component {
     if (this.isTextValueValid()) {
       this.setState((prevState) => ({
         isEditing: !prevState.isEditing,
+        originalText: prevState.isEditing ? prevState.originalText : prevState.text,
       }));
     } else if (this.state.isEditing) {
       this.setState({
         isEditing: this.props.emptyEdit || false,
       });
     } else {
-      this.setState({
+      this.setState((prevState) => ({
         isEditing: true,
-      });
+        originalText: prevState.text,
+      }));
     }
+  };
+
+  handleSave = () => {
+    if (typeof this.props.onFocusOut === 'function') {
+      this.props.onFocusOut(this.state.text);
+    }
+    this.setState({ isEditing: false });
+  };
+
+  handleCancel = () => {
+    this.setState((prevState) => ({
+      isEditing: false,
+      text: prevState.originalText,
+    }));
   };
 
   handleChange = () => {
@@ -94,7 +111,7 @@ export default class EditableLabel extends React.Component {
               }}
               value={this.state.text}
               onChange={this.handleChange}
-              onBlur={this.handleFocus}
+              onBlur={this.props.showSaveCancel ? this.handleSave : this.handleFocus}
               style={{
                 width: this.props.inputWidth,
                 height: this.props.inputHeight,
@@ -106,6 +123,26 @@ export default class EditableLabel extends React.Component {
               placeholder={this.props.inputPlaceHolder}
               tabIndex={this.props.inputTabIndex}
             />
+            {this.props.showSaveCancel && (
+              <div style={{ marginTop: '4px', display: 'flex', gap: '6px' }}>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={this.handleSave}
+                  style={{ fontSize: '0.75rem', padding: '2px 8px', cursor: 'pointer' }}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={this.handleCancel}
+                  style={{ fontSize: '0.75rem', padding: '2px 8px', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
           </div>
         );
       }
@@ -142,7 +179,11 @@ export default class EditableLabel extends React.Component {
       ? this.state.text
       : this.props.labelPlaceHolder || DEFAULT_LABEL_PLACEHOLDER;
     return (
-      <div className={this.props.containerClassName} onClick={this.handleFocus}>
+      <div
+        className={`${this.props.containerClassName || ''} ${this.props.labelContainerClassName || ''}`.trim()}
+        onClick={this.handleFocus}
+        style={{ cursor: 'text' }}
+      >
         <label
           className={this.props.labelClassName}
           style={{
@@ -164,10 +205,12 @@ EditableLabel.propTypes = {
   multiline: PropTypes.bool,
 
   labelClassName: PropTypes.string,
+  labelContainerClassName: PropTypes.string,
   labelFontSize: PropTypes.string,
   labelFontWeight: PropTypes.string,
   labelPlaceHolder: PropTypes.string,
 
+  showSaveCancel: PropTypes.bool,
   containerClassName: PropTypes.string,
 
   inputMaxLength: PropTypes.number,
@@ -190,10 +233,12 @@ EditableLabel.defaultProps = {
   multiline: false,
 
   labelClassName: null,
+  labelContainerClassName: null,
   labelFontSize: null,
   labelFontWeight: null,
   labelPlaceHolder: null,
 
+  showSaveCancel: false,
   containerClassName: null,
 
   inputMaxLength: 524288,

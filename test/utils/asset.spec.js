@@ -1,3 +1,4 @@
+import path from 'path';
 import AssetUtil from '../../app/utils/asset';
 import Constants from '../../app/constants/constants';
 
@@ -1446,17 +1447,105 @@ describe('utils', () => {
         expect(AssetUtil.isExternalAsset(undefined)).toBeFalse();
       });
       it('should return false for a null/undefined type', () => {
-        expect(AssetUtil.isExternalAsset({type: null})).toBeFalse();
-        expect(AssetUtil.isExternalAsset({type: undefined})).toBeFalse();
+        expect(AssetUtil.isExternalAsset({ type: null })).toBeFalse();
+        expect(AssetUtil.isExternalAsset({ type: undefined })).toBeFalse();
         expect(AssetUtil.isExternalAsset({})).toBeFalse();
       });
       it('should return true for a URL', () => {
-        expect(AssetUtil.isExternalAsset({type: Constants.AssetType.URL})).toBeTrue();
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.URL })).toBeTrue();
       });
-      it('should return false for other types', () => {
-        expect(AssetUtil.isExternalAsset({type: Constants.AssetType.FILE})).toBeFalse();
-        expect(AssetUtil.isExternalAsset({type: 'not a url'})).toBeFalse();
-        expect(AssetUtil.isExternalAsset({type: ''})).toBeFalse();
+      it('should return true for a URL even without a project', () => {
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.URL }, null)).toBeTrue();
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.URL }, undefined)).toBeTrue();
+      });
+      it('should return false for other types without a project', () => {
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.FILE })).toBeFalse();
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.DIRECTORY })).toBeFalse();
+        expect(AssetUtil.isExternalAsset({ type: 'not a url' })).toBeFalse();
+        expect(AssetUtil.isExternalAsset({ type: '' })).toBeFalse();
+      });
+      it('should return true for a DIRECTORY asset found in project externalAssets', () => {
+        const project = {
+          externalAssets: {
+            uri: 'External Resources',
+            type: Constants.AssetType.FOLDER,
+            children: [
+              { uri: '/external/folder', type: Constants.AssetType.DIRECTORY, name: 'My Folder' },
+            ],
+          },
+        };
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.DIRECTORY, uri: '/external/folder' }, project)).toBeTrue();
+      });
+      it('should return true for a FILE asset found in project externalAssets', () => {
+        const project = {
+          externalAssets: {
+            uri: 'External Resources',
+            type: Constants.AssetType.FOLDER,
+            children: [
+              { uri: '/external/file.txt', type: Constants.AssetType.FILE, name: 'My File' },
+            ],
+          },
+        };
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.FILE, uri: '/external/file.txt' }, project)).toBeTrue();
+      });
+      it('should return false for a DIRECTORY asset NOT in project externalAssets', () => {
+        const project = {
+          externalAssets: {
+            uri: 'External Resources',
+            type: Constants.AssetType.FOLDER,
+            children: [],
+          },
+        };
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.DIRECTORY, uri: '/core/folder' }, project)).toBeFalse();
+      });
+      it('should return false for a FILE asset NOT in project externalAssets', () => {
+        const project = {
+          externalAssets: {
+            uri: 'External Resources',
+            type: Constants.AssetType.FOLDER,
+            children: [],
+          },
+        };
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.FILE, uri: '/core/file.txt' }, project)).toBeFalse();
+      });
+      it('should handle project with no externalAssets gracefully', () => {
+        const project = {};
+        expect(AssetUtil.isExternalAsset({ type: Constants.AssetType.DIRECTORY, uri: '/some/folder' }, project)).toBeFalse();
+      });
+    });
+
+    describe('isExternalRootAsset', () => {
+      it('should return false if asset is null or undefined', () => {
+        expect(AssetUtil.isExternalRootAsset(null, {})).toBeFalse();
+        expect(AssetUtil.isExternalRootAsset(undefined, {})).toBeFalse();
+      });
+
+      it('should return false if externalAssets or its children are missing', () => {
+        expect(AssetUtil.isExternalRootAsset({ uri: '/test' }, null)).toBeFalse();
+        expect(AssetUtil.isExternalRootAsset({ uri: '/test' }, {})).toBeFalse();
+        expect(AssetUtil.isExternalRootAsset({ uri: '/test' }, { children: null })).toBeFalse();
+      });
+
+      it('should return true if the asset is a direct child of externalAssets', () => {
+        const externalAssets = {
+          children: [
+            { uri: '/test1' },
+            { uri: '/test2' }
+          ]
+        };
+        expect(AssetUtil.isExternalRootAsset({ uri: '/test1' }, externalAssets)).toBeTrue();
+        expect(AssetUtil.isExternalRootAsset({ uri: '/test2' }, externalAssets)).toBeTrue();
+      });
+
+      it('should return false if the asset is NOT a direct child of externalAssets', () => {
+        const externalAssets = {
+          children: [
+            { uri: '/test1' },
+            { uri: '/test2', children: [{ uri: '/test3' }] }
+          ]
+        };
+        expect(AssetUtil.isExternalRootAsset({ uri: '/test3' }, externalAssets)).toBeFalse();
+        expect(AssetUtil.isExternalRootAsset({ uri: '/other' }, externalAssets)).toBeFalse();
       });
     });
 
@@ -1465,17 +1554,35 @@ describe('utils', () => {
         expect(AssetUtil.getAssetNameForTree(null)).toBe('');
       });
       it('should return a name normally for a regular asset', () => {
-        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.FOLDER, uri: 'Test'})).toBe('Test');
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.FOLDER, uri: 'Test' })).toBe('Test');
       });
       it('should return the URL for an external asset with no name parameter', () => {
-        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com'})).toBe('http://test.com');
-        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com', name: null})).toBe('http://test.com');
-        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com', name: undefined})).toBe('http://test.com');
-        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com', name: ''})).toBe('http://test.com');
-        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com', name: '    '})).toBe('http://test.com');
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.URL, uri: 'http://test.com' })).toBe('http://test.com');
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.URL, uri: 'http://test.com', name: null })).toBe('http://test.com');
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.URL, uri: 'http://test.com', name: undefined })).toBe('http://test.com');
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.URL, uri: 'http://test.com', name: '' })).toBe('http://test.com');
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.URL, uri: 'http://test.com', name: '    ' })).toBe('http://test.com');
       });
       it('should return a formatted name for a URL with a name', () => {
-        expect(AssetUtil.getAssetNameForTree({type: Constants.AssetType.URL, uri: 'http://test.com', name: 'Test'})).toBe('Test (http://test.com)');
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.URL, uri: 'http://test.com', name: 'Test' })).toBe('Test (http://test.com)');
+      });
+      it('should return "Name (basename)" for a directory with a custom name different from basename', () => {
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.DIRECTORY, uri: path.join('Users', 'me', 'shared-data'), name: 'Shared Data' })).toBe('Shared Data (shared-data)');
+      });
+      it('should return "Name (basename)" for a file with a custom name different from basename', () => {
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.FILE, uri: path.join('Users', 'me', 'notes.txt'), name: 'My Notes' })).toBe('My Notes (notes.txt)');
+      });
+      it('should return just the basename for a directory with custom name same as basename', () => {
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.DIRECTORY, uri: path.join('Users', 'me', 'data'), name: 'data' })).toBe('data');
+      });
+      it('should return just the basename for a file with custom name same as basename', () => {
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.FILE, uri: path.join('Users', 'me', 'analysis.py'), name: 'analysis.py' })).toBe('analysis.py');
+      });
+      it('should return the basename for a directory without a custom name', () => {
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.DIRECTORY, uri: path.join('Users', 'me', 'project', 'src') })).toBe('src');
+      });
+      it('should return the basename for a file without a custom name', () => {
+        expect(AssetUtil.getAssetNameForTree({ type: Constants.AssetType.FILE, uri: path.join('Users', 'me', 'project', 'main.py') })).toBe('main.py');
       });
     });
   });
@@ -1509,19 +1616,75 @@ describe('utils', () => {
 
     it('should return false when the asset has no attributes', () => {
       expect(AssetUtil.isArchived({})).toBeFalsy();
-      expect(AssetUtil.isArchived({attributes: null})).toBeFalsy();
-      expect(AssetUtil.isArchived({attributes: undefined})).toBeFalsy();
+      expect(AssetUtil.isArchived({ attributes: null })).toBeFalsy();
+      expect(AssetUtil.isArchived({ attributes: undefined })).toBeFalsy();
     });
 
     it('should return false when the asset is not set as archived', () => {
       expect(AssetUtil.isArchived({})).toBeFalsy();
-      expect(AssetUtil.isArchived({attributes: null})).toBeFalsy();
-      expect(AssetUtil.isArchived({attributes: {archived: null}})).toBeFalsy();
-      expect(AssetUtil.isArchived({attributes: {archived: false}})).toBeFalsy();
+      expect(AssetUtil.isArchived({ attributes: null })).toBeFalsy();
+      expect(AssetUtil.isArchived({ attributes: { archived: null } })).toBeFalsy();
+      expect(AssetUtil.isArchived({ attributes: { archived: false } })).toBeFalsy();
     });
 
     it('should return false when the asset is set as archived', () => {
-      expect(AssetUtil.isArchived({attributes: {archived: true}})).toBeTrue();
+      expect(AssetUtil.isArchived({ attributes: { archived: true } })).toBeTrue();
+    });
+  });
+
+  describe('hasArchivedDescendants', () => {
+    it('returns false for null/undefined', () => {
+      expect(AssetUtil.hasArchivedDescendants(null)).toBeFalsy();
+      expect(AssetUtil.hasArchivedDescendants(undefined)).toBeFalsy();
+      expect(AssetUtil.hasArchivedDescendants({})).toBeFalsy();
+    });
+
+    it('returns false when there are no explicitly archived descendants', () => {
+      const asset = {
+        children: [
+          { attributes: { archived: false } },
+          { children: [{ attributes: { archived: false } }] }
+        ]
+      };
+      expect(AssetUtil.hasArchivedDescendants(asset)).toBeFalsy();
+    });
+
+    it('returns true when a direct child is explicitly archived', () => {
+      const asset = {
+        children: [
+          { attributes: { archived: true } }
+        ]
+      };
+      expect(AssetUtil.hasArchivedDescendants(asset)).toBeTrue();
+    });
+
+    it('returns true when a deeper descendant is explicitly archived', () => {
+      const asset = {
+        children: [
+          { children: [{ attributes: { archived: true } }] }
+        ]
+      };
+      expect(AssetUtil.hasArchivedDescendants(asset)).toBeTrue();
+    });
+  });
+
+  describe('clearArchivedAttributeForDescendants', () => {
+    it('handles null/undefined gracefully', () => {
+      expect(() => { AssetUtil.clearArchivedAttributeForDescendants(null); }).not.toThrow();
+      expect(() => { AssetUtil.clearArchivedAttributeForDescendants(undefined); }).not.toThrow();
+      expect(() => { AssetUtil.clearArchivedAttributeForDescendants({}); }).not.toThrow();
+    });
+
+    it('clears archived attributes on all descendants', () => {
+      const asset = {
+        children: [
+          { attributes: { archived: true } },
+          { children: [{ attributes: { archived: true } }, { attributes: { archived: false } }] }
+        ]
+      };
+      AssetUtil.clearArchivedAttributeForDescendants(asset);
+      expect(asset.children[0].attributes.archived).toBeFalsy();
+      expect(asset.children[1].children[0].attributes.archived).toBeFalsy();
     });
   });
 });

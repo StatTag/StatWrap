@@ -207,8 +207,8 @@ export default class AssetUtil {
     const notes =
       asset && asset.notes
         ? asset.notes.map((n) => {
-            return { ...n, uri: asset.uri };
-          })
+          return { ...n, uri: asset.uri };
+        })
         : [];
     if (!asset || !asset.children) {
       return notes.flat();
@@ -396,7 +396,7 @@ export default class AssetUtil {
     if (typeof item === 'object') {
       uri = item.uri ? item.uri : '';
     }
-    return last(uri.split(path.sep));
+    return last(uri.split(/[\\/]/));
   }
 
   /**
@@ -410,16 +410,25 @@ export default class AssetUtil {
       return '';
     }
 
-    if (this.isExternalAsset(asset)) {
-      // If there is no name provided, send back the URL
-      if (!asset.name || asset.name === undefined || asset.name.trim() === '') {
-        return asset.uri;
+    // If the asset has a custom name, display it with additional context:
+    // - For URL (external) assets: "name (uri)"
+    // - For file/directory assets: "name (basename)" when the basename differs
+    if (asset.name && asset.name.trim() !== '') {
+      if (this.isExternalAsset(asset)) {
+        return `${asset.name} (${asset.uri})`;
       }
-      // If we have a name, format the URL
-      return `${asset.name} (${asset.uri})`
-    } else {
-      return this.getAssetNameFromUri(asset);
+      // For directory/file assets with a custom name, show name with basename
+      const uriName = this.getAssetNameFromUri(asset);
+      if (asset.name !== uriName) {
+        return `${asset.name} (${uriName})`;
+      }
     }
+
+    if (this.isExternalAsset(asset)) {
+      return asset.uri;
+    }
+
+    return this.getAssetNameFromUri(asset);
   }
 
   /**
@@ -467,15 +476,47 @@ export default class AssetUtil {
 
   /**
    * Determine if the asset provided as a parameter is an external asset or a primary asset.
+   * When a project is provided, this checks if the asset exists within the project's
+   * externalAssets collection (which correctly handles URL, DIRECTORY, and FILE external assets).
+   * When no project is provided, it falls back to checking if the asset type is URL only.
    * @param {object} asset The asset to check
+   * @param {object} project Optional - the project to check external asset membership against
    * @returns true if the object is confirmed as an external asset, and false otherwise
    */
-  static isExternalAsset(asset) {
+  static isExternalAsset(asset, project) {
     if (!asset || asset === undefined || !asset.type || asset.type === undefined) {
       return false;
     }
 
-    return asset.type === Constants.AssetType.URL;
+    // URL type is always external
+    if (asset.type === Constants.AssetType.URL) {
+      return true;
+    }
+
+    // If a project is provided, check if the asset exists in the externalAssets collection.
+    // This handles DIRECTORY and FILE type external assets that share the same type values
+    // as core assets.
+    if (project && project.externalAssets) {
+      const found = AssetUtil.findDescendantAssetByUri(project.externalAssets, asset.uri);
+      return found !== null;
+    }
+
+    return false;
+  }
+
+  /**
+   * Helper to determine if the selected asset is a root-level external resource
+   * (a direct child of externalAssets, i.e., an asset the user explicitly added).
+   *
+   * @param {object} asset The asset to check
+   * @param {object} externalAssets The project's externalAssets collection
+   * @returns true if the asset is a direct child of externalAssets
+   */
+  static isExternalRootAsset(asset, externalAssets) {
+    if (!asset || !externalAssets || !externalAssets.children) {
+      return false;
+    }
+    return externalAssets.children.some((child) => child.uri === asset.uri);
   }
 
   /**
@@ -492,5 +533,45 @@ export default class AssetUtil {
       return false;
     }
     return !FILE_IGNORE_LIST.includes(fileName);
+  }
+
+  /**
+   * Determine if an asset has any descendants that are explicitly archived.
+   * @param {object} asset The asset to check
+   * @returns true if any descendant is explicitly archived
+   */
+  static hasArchivedDescendants(asset) {
+    if (!asset || !asset.children) {
+      return false;
+    }
+
+    // Check if any direct child is archived
+    const hasArchivedChild = asset.children.some(child =>
+      child.attributes && child.attributes.archived
+    );
+
+    if (hasArchivedChild) {
+      return true;
+    }
+
+    // Recursively check children
+    return asset.children.some(child => AssetUtil.hasArchivedDescendants(child));
+  }
+
+  /**
+   * Recursively clear the archived attribute for all descendants of an asset.
+   * @param {object} asset The asset to clear descendants for
+   */
+  static clearArchivedAttributeForDescendants(asset) {
+    if (!asset || !asset.children) {
+      return;
+    }
+
+    asset.children.forEach(child => {
+      if (child.attributes && child.attributes.archived) {
+        child.attributes.archived = false;
+      }
+      AssetUtil.clearArchivedAttributeForDescendants(child);
+    });
   }
 }

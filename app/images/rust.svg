@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <radialGradient id="rustGrad" cx="35%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#cc6b3d"/>
+      <stop offset="35%" stop-color="#8a4424"/>
+      <stop offset="70%" stop-color="#3d1d0e"/>
+      <stop offset="100%" stop-color="#140904"/>
+    </radialGradient>
+
+    <filter id="rust-texture" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="4" result="noise" />
+      <feColorMatrix type="matrix" values="
+        0 0 0 0 0.1
+        0 0 0 0 0.05
+        0 0 0 0 0.02
+        0 0 0 0.6 0" in="noise" result="coloredNoise" />
+      <feComposite operator="in" in="coloredNoise" in2="SourceGraphic" result="maskedNoise" />
+      <feBlend mode="multiply" in="maskedNoise" in2="SourceGraphic" result="textured" />
+      <feDropShadow dx="1.5" dy="1.5" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.9" in="textured" />
+    </filter>
+
+    <mask id="rust-mask">
+      <rect width="100" height="100" fill="black"/>
+      
+      <circle cx="50" cy="50" r="42" fill="white"/>
+      <circle cx="50" cy="50" r="28" fill="black"/> <g id="teeth" fill="white">
+        <polygon id="tooth" points="47,8 53,8 51,1 49,1"/>
+        <use href="#tooth" transform="rotate(11.25 50 50)"/>
+        <use href="#tooth" transform="rotate(22.5 50 50)"/>
+        <use href="#tooth" transform="rotate(33.75 50 50)"/>
+        <use href="#tooth" transform="rotate(45 50 50)"/>
+        <use href="#tooth" transform="rotate(56.25 50 50)"/>
+        <use href="#tooth" transform="rotate(67.5 50 50)"/>
+        <use href="#tooth" transform="rotate(78.75 50 50)"/>
+        <use href="#tooth" transform="rotate(90 50 50)"/>
+        <use href="#tooth" transform="rotate(101.25 50 50)"/>
+        <use href="#tooth" transform="rotate(112.5 50 50)"/>
+        <use href="#tooth" transform="rotate(123.75 50 50)"/>
+        <use href="#tooth" transform="rotate(135 50 50)"/>
+        <use href="#tooth" transform="rotate(146.25 50 50)"/>
+        <use href="#tooth" transform="rotate(157.5 50 50)"/>
+        <use href="#tooth" transform="rotate(168.75 50 50)"/>
+        <use href="#tooth" transform="rotate(180 50 50)"/>
+        <use href="#tooth" transform="rotate(191.25 50 50)"/>
+        <use href="#tooth" transform="rotate(202.5 50 50)"/>
+        <use href="#tooth" transform="rotate(213.75 50 50)"/>
+        <use href="#tooth" transform="rotate(225 50 50)"/>
+        <use href="#tooth" transform="rotate(236.25 50 50)"/>
+        <use href="#tooth" transform="rotate(247.5 50 50)"/>
+        <use href="#tooth" transform="rotate(258.75 50 50)"/>
+        <use href="#tooth" transform="rotate(270 50 50)"/>
+        <use href="#tooth" transform="rotate(281.25 50 50)"/>
+        <use href="#tooth" transform="rotate(292.5 50 50)"/>
+        <use href="#tooth" transform="rotate(303.75 50 50)"/>
+        <use href="#tooth" transform="rotate(315 50 50)"/>
+        <use href="#tooth" transform="rotate(326.25 50 50)"/>
+        <use href="#tooth" transform="rotate(337.5 50 50)"/>
+        <use href="#tooth" transform="rotate(348.75 50 50)"/>
+      </g>
+
+      <circle id="hole" cx="50" cy="15" r="3.5" fill="black"/>
+      <use href="#hole" transform="rotate(72 50 50)"/>
+      <use href="#hole" transform="rotate(144 50 50)"/>
+      <use href="#hole" transform="rotate(216 50 50)"/>
+      <use href="#hole" transform="rotate(288 50 50)"/>
+
+      <path d="M 28 72 V 28 H 50 C 68 28, 68 52, 50 52 H 28 M 42 52 L 58 72" 
+            fill="none" stroke="white" stroke-width="11" stroke-linejoin="miter"/>
+    </mask>
+  </defs>
+
+  <rect width="100" height="100" fill="url(#rustGrad)" mask="url(#rust-mask)" filter="url(#rust-texture)"/>
+</svg>

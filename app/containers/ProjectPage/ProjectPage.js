@@ -11,6 +11,14 @@ import UserContext from '../../contexts/User';
 import Messages from '../../constants/messages';
 import ChecklistUtil from '../../utils/checklist';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
+} from '@mui/material';
 
 class ProjectPage extends Component {
   constructor(props) {
@@ -54,10 +62,17 @@ class ProjectPage extends Component {
       // Show progress on scanning details about the project.  Allows the user to access what information
       // is available, yet be aware that more information may be arriving later.
       projectScanStatus: '',
+      isProjectDirty: false,
+      showDirtyConfirmation: false,
+      pendingProject: null,
     };
+    this.handleProjectDirtyStateChange = this.handleProjectDirtyStateChange.bind(this);
+    this.handleDiscardChanges = this.handleDiscardChanges.bind(this);
+    this.handleCancelSwitch = this.handleCancelSwitch.bind(this);
 
     this.handleLoadProjectListResponse = this.handleLoadProjectListResponse.bind(this);
     this.refreshProjectsHandler = this.refreshProjectsHandler.bind(this);
+    this.handleRemoveProjectListEntryResponse = this.handleRemoveProjectListEntryResponse.bind(this);
     this.handleFavoriteClick = this.handleFavoriteClick.bind(this);
     this.handleAddProject = this.handleAddProject.bind(this);
     this.handleCloseAddProject = this.handleCloseAddProject.bind(this);
@@ -91,7 +106,7 @@ class ProjectPage extends Component {
     ipcRenderer.on(Messages.LOAD_CONFIGURATION_RESPONSE, this.handleLoadConfigurationResponse);
 
     ipcRenderer.on(Messages.TOGGLE_PROJECT_FAVORITE_RESPONSE, this.refreshProjectsHandler);
-    ipcRenderer.on(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
+    ipcRenderer.on(Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE, this.handleRemoveProjectListEntryResponse);
     ipcRenderer.on(Messages.RENAME_PROJECT_LIST_ENTRY_RESPONSE, this.refreshProjectsHandler);
     ipcRenderer.on(Messages.SCAN_PROJECT_RESPONSE, this.handleScanProjectResponse);
     ipcRenderer.on(Messages.SCAN_PROJECT_RESULTS_RESPONSE, this.handleScanProjectResultsResponse);
@@ -117,6 +132,17 @@ class ProjectPage extends Component {
     );
   }
 
+  componentDidUpdate(prevProps) {
+    if (this.props.selectedProjectId && this.props.selectedProjectId !== prevProps.selectedProjectId) {
+      if (this.state.loaded && this.state.projects) {
+        const project = this.state.projects.find((p) => String(p.id) === String(this.props.selectedProjectId));
+        if (project) {
+          this.loadProject(project);
+        }
+      }
+    }
+  }
+
   componentWillUnmount() {
     ipcRenderer.removeListener(
       Messages.LOAD_PROJECT_LIST_RESPONSE,
@@ -132,7 +158,7 @@ class ProjectPage extends Component {
     );
     ipcRenderer.removeListener(
       Messages.REMOVE_PROJECT_LIST_ENTRY_RESPONSE,
-      this.refreshProjectsHandler,
+      this.handleRemoveProjectListEntryResponse,
     );
     ipcRenderer.removeListener(
       Messages.RENAME_PROJECT_LIST_ENTRY_RESPONSE,
@@ -183,7 +209,55 @@ class ProjectPage extends Component {
   }
 
   handleLoadProjectListResponse(sender, response) {
-    this.setState({ ...response, loaded: true });
+    // Determine which project ID we should try to restore. We prioritize the prop (from App state),
+    // but fallback to localStorage if that is missing.
+    let projectIdToRestore = this.props.selectedProjectId;
+    if (!projectIdToRestore) {
+      projectIdToRestore = localStorage.getItem('statwrap_selected_project_id');
+    }
+
+    // 1. Try to restore the selected project
+    if (projectIdToRestore) {
+      // Use String conversion to ensure we match even if types mismatch (e.g. string vs number)
+      const project = response.projects.find((p) => String(p.id) === String(projectIdToRestore));
+      if (project) {
+        this.setState({ ...response, loaded: true }, () => {
+          this.loadProject(project);
+        });
+        return;
+      }
+    }
+
+    // 2. If no selection found to restore, apply default selection logic (pinned/active/etc)
+    // We only skip default logic if we explicitly tried (and failed) to restore a specific project via prop.
+    // However, if we found an ID in localStorage but couldn't load it (deleted?), we probably shouldn't auto-select a default immediately?
+    // Or maybe we should?
+    // Let's stick to: if we have an ID (prop or storage), we skip defaults.
+
+    const explicitSelectionRequested = !!projectIdToRestore;
+    let defaultProject = null;
+
+    // Only apply default selection if we didn't ask for a specific project
+    if (!explicitSelectionRequested && !this.state.selectedProject && response.projects && response.projects.length > 0) {
+      const pinnedProjects = response.projects.filter((p) => p.favorite);
+      if (pinnedProjects.length > 0) {
+        defaultProject = pinnedProjects[0];
+      } else {
+        const activeProjects = response.projects.filter((p) => p.status !== 'past');
+        if (activeProjects.length > 0) {
+          defaultProject = activeProjects[0];
+        } else {
+          defaultProject = response.projects[0];
+        }
+      }
+    }
+
+    this.setState({ ...response, loaded: true }, () => {
+      // We only auto-select a default if we are not already loading a specific restored project
+      if (defaultProject) {
+        this.handleSelectProjectListItem(defaultProject);
+      }
+    });
   }
 
   handleLoadConfigurationResponse(sender, response) {
@@ -292,6 +366,23 @@ class ProjectPage extends Component {
     ipcRenderer.send(Messages.LOAD_PROJECT_LIST_REQUEST);
   }
 
+  handleRemoveProjectListEntryResponse(sender, response) {
+    // If the removed project is currently selected, clear the selection
+    if (this.state.selectedProject && response.projectId === this.state.selectedProject.id) {
+      this.setState({
+        selectedProject: null,
+        selectedProjectLogs: null,
+        selectedProjectChecklist: null,
+        assetDynamicDetails: null,
+      });
+      if (this.props.onSelectProject) {
+        this.props.onSelectProject(null);
+      }
+    }
+    // Refresh the project list
+    this.refreshProjectsHandler();
+  }
+
   handleProjectExternallyChangedResponse(sender, response) {
     // If any project externally changes - even if it's not the one we currently have selected - we want
     // to reload the project log and checklist, so we can detect changes and notify (if needed);
@@ -335,6 +426,7 @@ class ProjectPage extends Component {
         assets: response.error
           ? { error: response.error, errorMessage: response.errorMessage }
           : response.assets,
+        externalAssets: response.project.externalAssets || selectedProject.externalAssets,
       };
       return { selectedProject: projectWithAssets, projectScanStatus: null };
     });
@@ -394,6 +486,9 @@ class ProjectPage extends Component {
       case Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST:
         ipcRenderer.send(Messages.REMOVE_PROJECT_LIST_ENTRY_REQUEST, projectId);
         break;
+      case Messages.SHOW_ITEM_IN_FOLDER:
+        ipcRenderer.send(Messages.SHOW_ITEM_IN_FOLDER, projectId);
+        break;
       default:
         console.warn(`Unknown project list entry menu event: ${event}`);
     }
@@ -404,8 +499,35 @@ class ProjectPage extends Component {
     // Handle case where user clicks off of all projects (project is null)
     if (!project) {
       this.setState({ selectedProject: null });
+      localStorage.removeItem('statwrap_selected_project_id');
+      if (this.props.onSelectProject) {
+        this.props.onSelectProject(null);
+      }
       return;
     }
+
+    // If the user clicks the project that is already selected, ignore it.
+    if (this.state.selectedProject && this.state.selectedProject.id === project.id) {
+      return;
+    }
+
+    if (this.state.isProjectDirty && this.state.selectedProject && this.state.selectedProject.id !== project.id) {
+      this.setState({
+        showDirtyConfirmation: true,
+        pendingProject: project
+      });
+      return;
+    }
+
+    this.loadProject(project);
+  }
+
+  loadProject(project) {
+    if (this.props.onSelectProject && String(this.props.selectedProjectId) !== String(project.id)) {
+      this.props.onSelectProject(project.id);
+    }
+    // Persist to local storage as fallback
+    localStorage.setItem('statwrap_selected_project_id', project.id);
 
     // If the project is offline (has loadError), try to refresh its status
     if (project.loadError) {
@@ -446,6 +568,28 @@ class ProjectPage extends Component {
     }
   }
 
+  handleProjectDirtyStateChange(isDirty) {
+    this.setState({ isProjectDirty: isDirty });
+  }
+
+  handleDiscardChanges() {
+    this.setState({
+      showDirtyConfirmation: false,
+      isProjectDirty: false
+    }, () => {
+      if (this.state.pendingProject) {
+        this.loadProject(this.state.pendingProject);
+      }
+    });
+  }
+
+  handleCancelSwitch() {
+    this.setState({
+      showDirtyConfirmation: false,
+      pendingProject: null
+    });
+  }
+
   handleProjectUpdate(project, actionType, entityType, entityKey, title, description, details) {
     // Update our cached list of projects from which we get the selected projects.  We want to ensure
     // these are kept in sync with any updates.
@@ -453,7 +597,7 @@ class ProjectPage extends Component {
       const { projects } = prevState;
       const foundIndex = projects.findIndex((x) => x.id === project.id);
       projects[foundIndex] = project;
-      return { projects };
+      return { projects, selectedProject: project };
     });
 
     // The update project request will handle logging if it succeeds.  No additional logging call is
@@ -534,6 +678,7 @@ class ProjectPage extends Component {
               configuration={{ assetAttributes: this.state.assetAttributes }}
               assetDynamicDetails={this.state.assetDynamicDetails}
               scanStatus={this.state.projectScanStatus}
+              onDirtyStateChange={this.handleProjectDirtyStateChange}
             />
           </Panel>
         </PanelGroup>
@@ -553,6 +698,25 @@ class ProjectPage extends Component {
           onClose={this.handleCloseProjectListMenu}
           onMenuClick={this.handleClickProjectListMenu}
         />
+        <Dialog
+          open={this.state.showDirtyConfirmation}
+          onClose={this.handleCancelSwitch}
+        >
+          <DialogTitle style={{ color: 'white', backgroundColor: '#aa94d1' }}>Discard Changes</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              You have unsaved changes in the current project. Switching to another project will discard these changes. Are you sure you want to proceed?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.handleDiscardChanges} color="primary" autoFocus>
+              Discard Changes
+            </Button>
+            <Button onClick={this.handleCancelSwitch} color="secondary">
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     );
   }

@@ -177,6 +177,24 @@ function About(props) {
       JSON.stringify(notes) !== JSON.stringify(initialState.notes)
     );
   };
+ 
+    useEffect(() => {
+    // Only check for description changes
+    const isDescriptionDirty =
+      descriptionEditor !== initialState.descriptionEditor ||
+      descriptionText !== initialState.descriptionText ||
+      descriptionUri !== initialState.descriptionUri;
+
+    if (props.onDirtyStateChange) {
+      props.onDirtyStateChange(isDescriptionDirty);
+    }
+  }, [
+    descriptionEditor,
+    descriptionText,
+    descriptionUri,
+    initialState,
+    props.onDirtyStateChange,
+  ]);
 
   const updatedNoteHandler = (note, text) => {
     if (note) {
@@ -368,6 +386,7 @@ About.propTypes = {
   onAddedNote: PropTypes.func,
   onDeletedNote: PropTypes.func,
   onClickUpdatesLink: PropTypes.func,
+  onDirtyStateChange: PropTypes.func,
 };
 
 export default About;

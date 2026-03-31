@@ -471,6 +471,9 @@ export default class ProjectService {
             asset.attributes = {};
           }
           asset.attributes[details.name] = details.value;
+          if (details.clearDescendants) {
+            AssetUtil.clearArchivedAttributeForDescendants(asset);
+          }
         } else {
           return null;
         }
@@ -539,12 +542,12 @@ export default class ProjectService {
         }
         break;
       case Constants.ActionType.EXTERNAL_ASSET_ADDED:
-          if (entityType === EntityType.PROJECT) {
-            ProjectUtil.upsertExternalAsset(project, details);
-          } else {
-            return null;
-          }
-          break;
+        if (entityType === EntityType.PROJECT) {
+          ProjectUtil.upsertExternalAsset(project, details);
+        } else {
+          return null;
+        }
+        break;
       case Constants.ActionType.EXTERNAL_ASSET_UPDATED:
         if (entityType === EntityType.PROJECT) {
           // const oldAsset = cloneDeep(

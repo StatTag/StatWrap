@@ -97,7 +97,7 @@ export default class App extends React.Component {
       user: response.user,
       displayName: GeneralUtil.formatDisplayName(response.settings.user),
       settings: response.settings,
-      userProfileDialogKey: prevState + 1,
+      userProfileDialogKey: prevState.userProfileDialogKey + 1,
       displayUserProfileDialog: firstTimeRun,
     }));
   }
@@ -122,11 +122,11 @@ export default class App extends React.Component {
   }
 
   handleCloseUserProfileDialog() {
-    this.setState({ displayUserProfileDialog: false });
+    this.setState((prevState) => ({ displayUserProfileDialog: false, userProfileDialogKey: prevState.userProfileDialogKey + 1 }));
   }
 
   handleOpenUserProfileDialog() {
-    this.setState({ displayUserProfileDialog: true });
+    this.setState((prevState) => ({ displayUserProfileDialog: true, userProfileDialogKey: prevState.userProfileDialogKey + 1 }));
   }
 
   render() {

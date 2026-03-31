@@ -38,10 +38,12 @@ class CreateUpdatePersonDialog extends Component {
       lastName: props.name ? props.name.last : '',
       affiliation: props.affiliation ? props.affiliation : '',
       roles: props.roles ? props.roles : [],
+      pendingRoleInput: '',
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleRolesChanged = this.handleRolesChanged.bind(this);
+    this.handleRolesInputChanged = this.handleRolesInputChanged.bind(this);
     this.handleCreateUpdatePerson = this.handleCreateUpdatePerson.bind(this);
     this.handleCreateUpdatePersonCompleted = this.handleCreateUpdatePersonCompleted.bind(this);
     this.handleSelectPersonInDirectory = this.handleSelectPersonInDirectory.bind(this);
@@ -79,6 +81,13 @@ class CreateUpdatePersonDialog extends Component {
   }
 
   handleCreateUpdatePerson() {
+    // If there is uncommitted text in the roles input, include it as a role
+    let { roles } = this.state;
+    const pending = this.state.pendingRoleInput.trim();
+    if (pending && !roles.includes(pending)) {
+      roles = [...roles, pending];
+    }
+
     const person = {
       id: this.state.id,
       name: {
@@ -86,13 +95,17 @@ class CreateUpdatePersonDialog extends Component {
         last: this.state.lastName,
       },
       affiliation: this.state.affiliation,
-      roles: this.state.roles,
+      roles,
     };
     this.savePerson(person);
   }
 
   handleRolesChanged(changedRoles) {
-    this.setState({ roles: changedRoles });
+    this.setState({ roles: changedRoles, pendingRoleInput: '' });
+  }
+
+  handleRolesInputChanged(value) {
+    this.setState({ pendingRoleInput: value });
   }
 
   handleInputChange(event) {
@@ -133,7 +146,7 @@ class CreateUpdatePersonDialog extends Component {
       roles = (
         <div className={styles.formRow}>
           <label className={styles.personLabel}>Roles:</label>
-          <TagEditor tags={this.state.roles} onChange={this.handleRolesChanged} />
+          <TagEditor tags={this.state.roles} onChange={this.handleRolesChanged} onInputChange={this.handleRolesInputChanged} />
         </div>
       );
     }
@@ -159,17 +172,73 @@ class CreateUpdatePersonDialog extends Component {
         sortedDirectory.unshift(user);
       }
 
+      // Aggregate authors from project assets if we have a project loaded
+      const extractedAuthors = [];
+      const extractedAuthorKeys = new Set();
+      if (this.props.project && this.props.project.assets) {
+        const gatherAuthors = (asset) => {
+          if (asset && asset.metadata) {
+            asset.metadata.forEach(m => {
+              if (m.authors && Array.isArray(m.authors)) {
+                m.authors.forEach(author => {
+                  if (typeof author === 'string') {
+                    // Normalize the author string
+                    let normalizedString = author.trim().replace(/\s+/g, ' ');
+                    if (normalizedString.length > 0) {
+                      const lowerKey = normalizedString.toLowerCase();
+                      if (!extractedAuthorKeys.has(lowerKey)) {
+                        extractedAuthorKeys.add(lowerKey);
+
+                        // Parses it into first and last name field
+                        const parts = normalizedString.split(' ');
+                        const first = parts[0];
+                        const last = parts.length > 1 ? parts.slice(1).join(' ') : '';
+
+                        extractedAuthors.push({
+                          id: `extracted-${lowerKey}`,
+                          name: { first, last },
+                          affiliation: '',
+                          roles: [],
+                          userEntry: false,
+                          extractedEntry: true
+                        });
+                      }
+                    }
+                  }
+                });
+              }
+            });
+          }
+          if (asset && asset.children) {
+            asset.children.forEach(gatherAuthors);
+          }
+        };
+        gatherAuthors(this.props.project.assets);
+      }
+
+      // Combines and filter out extracted authors that are already in the file
+      const directoryLowercaseKeys = new Set(
+        sortedDirectory.filter(d => d.name).map(d => GeneralUtil.formatName(d.name).toLowerCase())
+      );
+
+      const uniqueExtracted = extractedAuthors.filter(ea => !directoryLowercaseKeys.has(GeneralUtil.formatName(ea.name).toLowerCase()));
+
+      const fullDirectoryOptions = [...sortedDirectory, ...uniqueExtracted];
+
       directory = (
         <div className={styles.directoryPanel}>
           <Autocomplete
             id="user-directory"
-            options={sortedDirectory}
+            options={fullDirectoryOptions}
             onChange={this.handleSelectPersonInDirectory}
-            getOptionLabel={(option) =>
-              option.userEntry
-                ? `${GeneralUtil.formatName(option.name)} (me)`
-                : GeneralUtil.formatName(option.name)
-            }
+            getOptionLabel={(option) => {
+              if (option.userEntry) {
+                return `${GeneralUtil.formatName(option.name)} (me)`;
+              } else if (option.extractedEntry) {
+                return `${GeneralUtil.formatName(option.name)} (Detected)`;
+              }
+              return GeneralUtil.formatName(option.name);
+            }}
             renderInput={(params) => (
               <TextField {...params} label="Select a recently added person" variant="outlined" />
             )}

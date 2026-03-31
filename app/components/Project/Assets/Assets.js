@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { IconButton } from '@mui/material';
+import { IconButton, Alert } from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusSquare, faSave, faBan, faFolderOpen, faFolderMinus, faFileCirclePlus } from '@fortawesome/free-solid-svg-icons';
 import { cloneDeep } from 'lodash';
@@ -16,8 +16,9 @@ import Loading from '../../Loading/Loading';
 import AssetUtil from '../../../utils/asset';
 import ProjectUtil from '../../../utils/project';
 import ProjectService from '../../../services/project';
+import SourceControlService from '../../../services/sourceControl';
 import styles from './Assets.css';
-import constants from '../../../constants/constants';
+import path from 'path';
 
 /**
  * Utility function to safely reset available filters for a project's assets
@@ -82,7 +83,10 @@ const assetsComponent = (props) => {
   const [assets, setAssets] = useState(filteredProjectAssets);
   const [externalAssets, setExternalAssets] = useState(project && project.externalAssets ?
     project.externalAssets : AssetUtil.createEmptyExternalAssets());
+  // Sensitive file state that are under version control
+  const [sensitiveTrackedFiles, setSensitiveTrackedFiles] = useState([]);
 
+  const sourceControlService = new SourceControlService();
   const projectService = new ProjectService();
 
   // Because our project property can change, the asset that we have in state as the selected
@@ -113,6 +117,57 @@ const assetsComponent = (props) => {
     setGroupedAssets(null);
     setFilterEnabled(true);
     setExternalAssets(project.externalAssets ? project.externalAssets : AssetUtil.createEmptyExternalAssets());
+  }, [project]);
+
+  // Hook for warning both If file is sensitive and tracked too.
+  useEffect(() => {
+    const checkSensitiveTrackedFiles = async () => {
+      if (!project || !project.assets) {
+        setSensitiveTrackedFiles([]);
+        return;
+      }
+
+      // Collecting all sensitive marked files
+      const sensitiveFiles = [];
+      const collectSensitiveFiles = (asset) => {
+        if (!asset) return;
+        if (asset.type === Constants.AssetType.FILE && asset.attributes && asset.attributes.sensitive) {
+          sensitiveFiles.push(asset.uri);
+        }
+        if (asset.children) {
+          asset.children.forEach((child) => collectSensitiveFiles(child));
+        }
+      };
+      collectSensitiveFiles(project.assets);
+
+      if (sensitiveFiles.length === 0) {
+        setSensitiveTrackedFiles([]);
+        return;
+      }
+
+      try {
+        // Collecting all tracked files
+        const trackedFiles = await sourceControlService.getTrackedFiles(project.path);
+        const trackedFullPaths = new Set(
+          trackedFiles.map((f) => path.join(project.path, f).replace(/\\/g, '/')),
+        );
+
+        // Checking for both sensitive & tracked files
+        const matches = [];
+        for (const fileUri of sensitiveFiles) {
+          const normalizedUri = fileUri.replace(/\\/g, '/');
+          if (trackedFullPaths.has(normalizedUri)) {
+            matches.push(fileUri);
+          }
+        }
+
+        setSensitiveTrackedFiles(matches);
+      } catch (err) {
+        setSensitiveTrackedFiles([]);
+      }
+    };
+
+    checkSensitiveTrackedFiles();
   }, [project]);
 
   // Whenever the filter changes, update the list of assets to include only
@@ -329,6 +384,7 @@ const assetsComponent = (props) => {
   let assetDisplay = null;
   if (project) {
     assetDisplay = <Loading>Please wait for the list of assets to finish loading...</Loading>;
+    const selectedIsExternalRoot = AssetUtil.isExternalRootAsset(selectedAsset, externalAssets);
     const assetDetails = selectedAsset ? (
       <AssetDetails
         asset={selectedAsset}
@@ -341,6 +397,7 @@ const assetsComponent = (props) => {
         dynamicDetails={dynamicDetails}
         onEdit={handleEditExternalAsset}
         onRemove={onDeletedExternalAsset}
+        isExternalRootAsset={selectedIsExternalRoot}
       />
     ) : null;
     if (assets) {
@@ -380,6 +437,18 @@ const assetsComponent = (props) => {
         <Error>{assets.errorMessage}</Error>
       ) : (
         <>
+          {sensitiveTrackedFiles && sensitiveTrackedFiles.length > 0 && (
+            <Alert severity="warning" className={styles.sensitiveWarning}>
+              <strong>Sensitive files under version control:</strong>
+              <ul className={styles.sensitiveWarningList}>
+                {sensitiveTrackedFiles.map((fileUri) => {
+                  const relativePathName = AssetUtil.absoluteToRelativePath(project.path, { uri: fileUri });
+                  return <li key={fileUri}>{relativePathName}</li>;
+                })}
+              </ul>
+              These files are marked as sensitive and also tracked by git. Be careful not to push them to remote repositories.
+            </Alert>
+          )}
           <AssetFilter
             filter={filter}
             mode="asset"
@@ -474,6 +543,7 @@ const assetsComponent = (props) => {
             onSave={handleSavedExternalAsset}
             uri={editableExternalAsset ? editableExternalAsset.uri : ''}
             name={editableExternalAsset ? editableExternalAsset.name : ''}
+            type={editableExternalAsset ? editableExternalAsset.type : Constants.AssetType.URL}
           />
         </>
       );

@@ -8,6 +8,18 @@
   align-items: center;
 }
 
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.directorySelect {
+  min-width: 200px !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
 .buttonsWrapper {
   margin-left: auto;
   display: flex;
