@@ -6,7 +6,7 @@ import EditableLabel from '../../EditableLabel/EditableLabel';
 import styles from './Note.css';
 
 function noteDetails(props) {
-  const { note, onEditingComplete, onDelete } = props;
+  const { note = null, onEditingComplete = null, onDelete = null } = props;
   const metadata = note ? (
     <div className={styles.metadata}>
       {note.author} @ {note.updated}
@@ -45,12 +45,6 @@ noteDetails.propTypes = {
   note: PropTypes.object,
   onEditingComplete: PropTypes.func,
   onDelete: PropTypes.func,
-};
-
-noteDetails.defaultProps = {
-  note: null,
-  onEditingComplete: null,
-  onDelete: null,
 };
 
 export default noteDetails;

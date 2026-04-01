@@ -4,7 +4,8 @@ import PropTypes from 'prop-types';
 import Messages from '../../../constants/messages';
 import Constants from '../../../constants/constants';
 
-function projectListEntryMenu(props) {
+function projectListEntryMenu({ anchorElement = null, project = null, ...rest }) {
+  const props = { anchorElement, project, ...rest };
   if (!props.project) {
     return null;
   }
@@ -70,11 +71,6 @@ projectListEntryMenu.propTypes = {
   project: PropTypes.object,
   onClose: PropTypes.func.isRequired,
   onMenuClick: PropTypes.func.isRequired,
-};
-
-projectListEntryMenu.defaultProps = {
-  anchorElement: null,
-  project: null,
 };
 
 export default projectListEntryMenu;

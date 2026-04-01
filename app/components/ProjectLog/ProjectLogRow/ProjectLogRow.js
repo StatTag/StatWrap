@@ -6,7 +6,7 @@ import { ActionType } from '../../../constants/constants';
 import styles from './ProjectLogRow.css';
 
 function projectLogRow(props) {
-  const { data } = props;
+  const { data = null } = props;
   let detail = null;
   if (data) {
     switch (data.type) {
@@ -24,10 +24,6 @@ function projectLogRow(props) {
 
 projectLogRow.propTypes = {
   data: PropTypes.object,
-};
-
-projectLogRow.defaultProps = {
-  data: null,
 };
 
 export default projectLogRow;

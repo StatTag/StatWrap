@@ -54,7 +54,7 @@ function FilterComponent({ filterText, onFilter, onClear }) {
 }
 
 function peopleTable(props) {
-  const { mode, list, onEdit, onDelete } = props;
+  const { mode, list = [], onEdit = null, onDelete = null } = props;
   const [filterText, setFilterText] = React.useState('');
 
   const subHeaderComponentMemo = React.useMemo(() => {
@@ -178,12 +178,6 @@ peopleTable.propTypes = {
   mode: PropTypes.string.isRequired,
   onEdit: PropTypes.func,
   onDelete: PropTypes.func,
-};
-
-peopleTable.defaultProps = {
-  list: [],
-  onEdit: null,
-  onDelete: null,
 };
 
 export default peopleTable;
