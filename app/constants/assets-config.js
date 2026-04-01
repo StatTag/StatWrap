@@ -75,6 +75,11 @@ module.exports = {
       categories: ['code'],
     },
     {
+      name: 'JavaScript',
+      extensions: ['js', 'jsx', 'mjs', 'cjs'],
+      categories: ['code'],
+    },
+    {
       name: 'C++',
       extensions: ['cc', 'cpp', 'cxx', 'c++', 'h', 'hh', 'hpp', 'hxx', 'ipp', 'tpp', 'inl'],
       categories: ['code'],

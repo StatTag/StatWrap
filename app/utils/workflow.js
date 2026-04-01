@@ -8,6 +8,7 @@ import JavaHandler from '../services/assets/handlers/java';
 import RustHandler from '../services/assets/handlers/rust';
 import SQLHandler from '../services/assets/handlers/sql';
 import GoHandler from '../services/assets/handlers/go';
+import JavaScriptHandler from '../services/assets/handlers/javascript';
 import CppHandler from '../services/assets/handlers/cpp';
 import CHandler from '../services/assets/handlers/c';
 import DartHandler from '../services/assets/handlers/dart';
@@ -66,6 +67,8 @@ export default class WorkflowUtil {
       assetType = 'sql';
     } else if (AssetUtil.getHandlerMetadata(GoHandler.id, asset.metadata)) {
       assetType = 'go';
+    } else if (AssetUtil.getHandlerMetadata(JavaScriptHandler.id, asset.metadata)) {
+      assetType = 'javascript';
     } else if (AssetUtil.getHandlerMetadata(CHandler.id, asset.metadata)) {
       assetType = 'c';
     } else if (AssetUtil.getHandlerMetadata(DartHandler.id, asset.metadata)) {
@@ -371,6 +374,7 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, RustHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, SQLHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, GoHandler.id, libraries, inputs, outputs);
+    WorkflowUtil._getMetadataDependencies(asset, JavaScriptHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, CppHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, CHandler.id, libraries, inputs, outputs);
 
@@ -440,6 +444,7 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, RustHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, SQLHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, GoHandler.id, libraries, [], []);
+    WorkflowUtil._getMetadataDependencies(asset, JavaScriptHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, CppHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, CHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, DartHandler.id, libraries, [], []);
