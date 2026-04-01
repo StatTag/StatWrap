@@ -159,8 +159,8 @@ export default class JavaScriptHandler extends BaseCodeHandler {
 
     // CommonJS require: require('module') or const x = require('module')
     const requireMatches = [
-      ...text.matchAll(/(?:const|let|var)\s+(?:\{[^}]*\}|\w+)\s*=\s*require\s*\(\s*(['"]{1,}[\s\S]+?['"]{1,})\s*\)/gim),
-      ...text.matchAll(/require\s*\(\s*(['"]{1,}[\s\S]+?['"]{1,})\s*\)/gim),
+      ...text.matchAll(/^[^/]*?(?:const|let|var)\s+(?:\{[^}]*\}|\w+)\s*=\s*require\s*\(\s*(['"]{1,}[\s\S]+?['"]{1,})\s*\)/gim),
+      ...text.matchAll(/^[^/]*?require\s*\(\s*(['"]{1,}[\s\S]+?['"]{1,})\s*\)/gim),
     ];
     const seenModules = new Set(libraries.map((l) => l.module));
     for (let index = 0; index < requireMatches.length; index++) {

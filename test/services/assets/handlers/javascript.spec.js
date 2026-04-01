@@ -203,7 +203,7 @@ describe('services', () => {
       it('should detect fully qualified Windows paths', () => {
         const inputs = new JavaScriptHandler().getInputs(
           'test.uri',
-          "fs.readFileSync('C:\\\\Users\\\\user\\\\data\\\\test.csv', 'utf8');"
+          "fs.readFileSync('C:\\Users\\user\\data\\test.csv', 'utf8');"
         );
         expect(inputs.length).toEqual(1);
         expect(inputs[0]).toMatchObject({
@@ -308,7 +308,7 @@ describe('services', () => {
       it('should detect fully qualified Windows paths', () => {
         const outputs = new JavaScriptHandler().getOutputs(
           'test.uri',
-          "fs.writeFileSync('C:\\\\Users\\\\user\\\\results\\\\output.csv', data);"
+          "fs.writeFileSync('C:\\Users\\user\\results\\output.csv', data);"
         );
         expect(outputs.length).toEqual(1);
         expect(outputs[0]).toMatchObject({
