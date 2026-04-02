@@ -184,7 +184,9 @@ const assetDetails = (props) => {
             Show in Folder
           </Button>
           <Button size="small" variant="outlined" onClick={handleOpenFile}>
-            Open File
+            {asset.type === Constants.AssetType.DIRECTORY || asset.type === Constants.AssetType.FOLDER
+              ? 'Open Folder'
+              : 'Open File'}
           </Button>
         </Box>
       );
