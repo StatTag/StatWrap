@@ -174,19 +174,22 @@ const assetDetails = (props) => {
     );
   }
 
+  const isURL = asset && asset.type === Constants.AssetType.URL;
+  const isFolder = asset && (asset.type === Constants.AssetType.DIRECTORY || asset.type === Constants.AssetType.FOLDER);
+
   let fileActions = null;
   if (asset) {
     const filePath = asset.uri;
     if (filePath) {
       fileActions = (
         <Box mt={2} mb={2} display="flex" gap={1}>
-          <Button size="small" variant="outlined" onClick={handleShowInFolder}>
-            Show in Folder
-          </Button>
+          {!isURL && (
+            <Button size="small" variant="outlined" onClick={handleShowInFolder}>
+              Show in Folder
+            </Button>
+          )}
           <Button size="small" variant="outlined" onClick={handleOpenFile}>
-            {asset.type === Constants.AssetType.DIRECTORY || asset.type === Constants.AssetType.FOLDER
-              ? 'Open Folder'
-              : 'Open File'}
+            {isURL ? 'Open URL' : (isFolder ? 'Open Folder' : 'Open File')}
           </Button>
         </Box>
       );
