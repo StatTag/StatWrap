@@ -16,6 +16,7 @@ import RustHandler from './services/assets/handlers/rust';
 import GoHandler from './services/assets/handlers/go';
 import SQLHandler from './services/assets/handlers/sql';
 import JavaScriptHandler from './services/assets/handlers/javascript';
+import TypeScriptHandler from './services/assets/handlers/typescript';
 import CppHandler from './services/assets/handlers/cpp';
 import CHandler from './services/assets/handlers/c';
 import DartHandler from './services/assets/handlers/dart';
@@ -65,6 +66,7 @@ contextBridge.exposeInMainWorld('workerElectronBridge', {
           new SQLHandler(),
           new GoHandler(),
           new JavaScriptHandler(),
+          new TypeScriptHandler(),
           new CppHandler(),
           new CHandler(),
           new DartHandler(),

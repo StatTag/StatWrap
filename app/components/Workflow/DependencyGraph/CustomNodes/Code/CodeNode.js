@@ -10,6 +10,7 @@ const ICON_TYPES = {
   SAS: `${ICON_PATH}sas.svg`,
   STATA: `${ICON_PATH}stata.png`,
   JAVASCRIPT: `${ICON_PATH}js.svg`,
+  TYPESCRIPT: `${ICON_PATH}ts.svg`,
   CPP: `${ICON_PATH}cpp.svg`,
   GENERIC: `${ICON_PATH}generic.svg`,
   LIBRARY: `${ICON_PATH}library.svg`,
@@ -38,6 +39,8 @@ function CodeNode({ node, renderType }) {
     iconUrl = ICON_TYPES.STATA;
   } else if (node.assetType === 'javascript') {
     iconUrl = ICON_TYPES.JAVASCRIPT;
+  } else if (node.assetType === 'typescript') {
+    iconUrl = ICON_TYPES.TYPESCRIPT;
   } else if (node.assetType === 'cpp') {
     iconUrl = ICON_TYPES.CPP;
   } else if (node.assetType === 'rust') {

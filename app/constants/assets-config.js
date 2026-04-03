@@ -80,6 +80,11 @@ module.exports = {
       categories: ['code'],
     },
     {
+      name: 'TypeScript',
+      extensions: ['ts', 'tsx', 'mts', 'cts'],
+      categories: ['code'],
+    },
+    {
       name: 'C++',
       extensions: ['cc', 'cpp', 'cxx', 'c++', 'h', 'hh', 'hpp', 'hxx', 'ipp', 'tpp', 'inl'],
       categories: ['code'],
