@@ -34,6 +34,9 @@ import LogService from './services/log';
 import ChecklistService from './services/checklist';
 import FileHandler from './services/assets/handlers/file';
 
+// Start the stopwatch!
+console.time('App-Startup-Time');
+
 // Initialize @electron/remote
 initialize();
 
@@ -152,6 +155,10 @@ const createWindow = async () => {
   // @TODO: Use 'ready-to-show' event
   //        https://github.com/electron/electron/blob/master/docs/api/browser-window.md#using-ready-to-show-event
   mainWindow.webContents.on('did-finish-load', () => {
+
+    // Stop the stopwatch and print the result to the console!
+    console.timeEnd('App-Startup-Time');
+
     if (!mainWindow) {
       throw new Error('"mainWindow" is not defined');
     }
@@ -210,7 +217,8 @@ app.on('window-all-closed', () => {
   }
 });
 
-app.on('ready', createWindow);
+// Modernize the window creation process as newer electron version strongly prefer promise based functions
+app.whenReady().then(createWindow);
 
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
