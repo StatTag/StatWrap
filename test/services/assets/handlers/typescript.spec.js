@@ -131,7 +131,7 @@ describe('services', () => {
       it('should not detect commented-out imports', () => {
         const libraries = new TypeScriptHandler().getLibraries(
           'test.uri',
-          "// import React from 'react';\n// const fs = require('fs');"
+          "// import React from 'react';\n// const fs = require('fs');\n//const fs = require('fs');\n  //     const fs = require('fs');\n/*const fs = require('fs');*/"
         );
         expect(libraries.length).toEqual(0);
       });
