@@ -12,6 +12,7 @@ import JavaScriptHandler from '../services/assets/handlers/javascript';
 import CppHandler from '../services/assets/handlers/cpp';
 import CHandler from '../services/assets/handlers/c';
 import DartHandler from '../services/assets/handlers/dart';
+import ScalaHandler from '../services/assets/handlers/scala';
 import path from 'path';
 
 export default class WorkflowUtil {
@@ -73,6 +74,8 @@ export default class WorkflowUtil {
       assetType = 'c';
     } else if (AssetUtil.getHandlerMetadata(DartHandler.id, asset.metadata)) {
       assetType = 'dart';
+    } else if (AssetUtil.getHandlerMetadata(ScalaHandler.id, asset.metadata)) {
+      assetType = 'scala';
     }
     return assetType;
   }
@@ -377,7 +380,7 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, JavaScriptHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, CppHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, CHandler.id, libraries, inputs, outputs);
-
+    WorkflowUtil._getMetadataDependencies(asset, ScalaHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, DartHandler.id, libraries, inputs, outputs);
     return libraries
       .map((e) => {
@@ -448,6 +451,8 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, CppHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, CHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, DartHandler.id, libraries, [], []);
+    WorkflowUtil._getMetadataDependencies(asset, ScalaHandler.id, libraries, [], []);
+
     return libraries;
   }
 

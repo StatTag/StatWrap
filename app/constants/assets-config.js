@@ -65,6 +65,11 @@ module.exports = {
       categories: ['code'],
     },
     {
+      name : 'Scala',
+      extensions: ['scala'],
+      categories: ['code'],
+    },
+    {
       name: 'SQL',
       extensions: ['sql'],
       categories: ['code'],
