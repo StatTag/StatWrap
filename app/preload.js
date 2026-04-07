@@ -15,7 +15,6 @@ import JavaHandler from './services/assets/handlers/java';
 import RustHandler from './services/assets/handlers/rust';
 import GoHandler from './services/assets/handlers/go';
 import ScalaHandler from './services/assets/handlers/scala';
-import Constants from './constants/constants';
 import SQLHandler from './services/assets/handlers/sql';
 import JavaScriptHandler from './services/assets/handlers/javascript';
 import CppHandler from './services/assets/handlers/cpp';
