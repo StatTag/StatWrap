@@ -15,6 +15,10 @@ const FILE_EXTENSION_LIST = ['r', 'rmd', 'qmd'];
 export default class RHandler extends BaseCodeHandler {
   static id = 'StatWrap.RHandler';
 
+  static argumentDelimiter = ',';
+
+  static keyValueDelimiter = '=';
+
   constructor() {
     super(RHandler.id, FILE_EXTENSION_LIST);
   }
@@ -25,6 +29,199 @@ export default class RHandler extends BaseCodeHandler {
 
   getLibraryId(packageName) {
     return packageName || '(unknown)';
+  }
+
+  isQuotedString(value) {
+    if (!value || value.length < 2) {
+      return false;
+    }
+    const start = value[0];
+    const end = value[value.length - 1];
+    return (start === '"' && end === '"') || (start === "'" && end === "'");
+  }
+
+  extractLeadingQuotedString(value) {
+    if (!value) {
+      return '';
+    }
+    const match = value.match(/^\s*(['"](?:.|\s)*?['"])/);
+    return match ? match[1].trim() : '';
+  }
+
+  splitArguments(text) {
+    const argumentsList = [];
+    if (!text || text.trim() === '') {
+      return argumentsList;
+    }
+
+    let segmentStart = 0;
+    let inSingleQuote = false;
+    let inDoubleQuote = false;
+    let isEscaped = false;
+    let parenDepth = 0;
+
+    const pushSegment = endIndex => {
+      const value = text.substring(segmentStart, endIndex).trim();
+      if (value !== '') {
+        argumentsList.push(value);
+      }
+      segmentStart = endIndex + 1;
+    };
+
+    for (let index = 0; index < text.length; index++) {
+      const chr = text[index];
+      if (isEscaped) {
+        isEscaped = false;
+        continue;
+      }
+
+      if ((inSingleQuote || inDoubleQuote) && chr === '\\') {
+        isEscaped = true;
+        continue;
+      }
+
+      if (!inDoubleQuote && chr === "'") {
+        inSingleQuote = !inSingleQuote;
+        continue;
+      }
+
+      if (!inSingleQuote && chr === '"') {
+        inDoubleQuote = !inDoubleQuote;
+        continue;
+      }
+
+      if (inSingleQuote || inDoubleQuote) {
+        continue;
+      }
+
+      if (chr === '(') {
+        parenDepth++;
+        continue;
+      }
+
+      if (chr === ')') {
+        parenDepth = Math.max(parenDepth - 1, 0);
+        continue;
+      }
+
+      if (chr === RHandler.argumentDelimiter && parenDepth === 0) {
+        pushSegment(index);
+      }
+    }
+
+    pushSegment(text.length);
+    return argumentsList;
+  }
+
+  splitNamedArgument(text) {
+    let inSingleQuote = false;
+    let inDoubleQuote = false;
+    let isEscaped = false;
+    let parenDepth = 0;
+
+    for (let index = 0; index < text.length; index++) {
+      const chr = text[index];
+      if (isEscaped) {
+        isEscaped = false;
+        continue;
+      }
+
+      if ((inSingleQuote || inDoubleQuote) && chr === '\\') {
+        isEscaped = true;
+        continue;
+      }
+
+      if (!inDoubleQuote && chr === "'") {
+        inSingleQuote = !inSingleQuote;
+        continue;
+      }
+
+      if (!inSingleQuote && chr === '"') {
+        inDoubleQuote = !inDoubleQuote;
+        continue;
+      }
+
+      if (inSingleQuote || inDoubleQuote) {
+        continue;
+      }
+
+      if (chr === '(') {
+        parenDepth++;
+        continue;
+      }
+
+      if (chr === ')') {
+        parenDepth = Math.max(parenDepth - 1, 0);
+        continue;
+      }
+
+      if (chr === RHandler.keyValueDelimiter && parenDepth === 0) {
+        const key = text.substring(0, index).trim();
+        const value = text.substring(index + 1).trim();
+        if (!/^[A-Za-z.][A-Za-z0-9._]*$/.test(key)) {
+          return null;
+        }
+        return {
+          key,
+          value,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  parseFunctionArguments(argumentsText) {
+    const segments = this.splitArguments(argumentsText);
+    return segments.map((segment, index) => {
+      const named = this.splitNamedArgument(segment);
+      if (named) {
+        return {
+          index,
+          key: named.key,
+          value: named.value,
+        };
+      }
+      return {
+        index,
+        key: '',
+        value: segment,
+      };
+    });
+  }
+
+  resolveFileArgument(argumentsText, fileParameterName, positionalIndex) {
+    const parsedArguments = this.parseFunctionArguments(argumentsText);
+    if (parsedArguments.length === 0) {
+      return '';
+    }
+
+    const normalizedParameterName = fileParameterName.toLowerCase();
+    let match = parsedArguments.find(arg => arg.key.toLowerCase() === normalizedParameterName);
+    if (!match) {
+      match = parsedArguments.find(
+        arg => arg.key && normalizedParameterName.startsWith(arg.key.toLowerCase()),
+      );
+    }
+    if (match) {
+      if (this.isQuotedString(match.value)) {
+        return match.value;
+      }
+      const leadingQuoted = this.extractLeadingQuotedString(match.value);
+      if (leadingQuoted) {
+        return leadingQuoted;
+      }
+    }
+
+    const unnamedArguments = parsedArguments.filter(arg => !arg.key);
+    const positional = unnamedArguments[positionalIndex - 1];
+    if (!positional) {
+      return '';
+    }
+    if (this.isQuotedString(positional.value)) {
+      return positional.value;
+    }
+    return this.extractLeadingQuotedString(positional.value);
   }
 
   getInputs(uri, text) {
@@ -41,12 +238,15 @@ export default class RHandler extends BaseCodeHandler {
     // Tidyverse is similar, just uses _ instead of .
     const baseMatches = [
       ...text.matchAll(
-        /^[^#]*?(read\.table|read\.csv|read\.csv2|read\.DIF|read\.fortran|read\.fwf|read\.ftable|read\.dcf|read\.csv|read\.csv2|scan|read_delim|read_csv|read_csv2|read_excel|read_xls|read_xlsx|read_tsv|read_fwf|read_log|read_table|read_file|read_file_raw|read_lines|read_lines_raw|read_rds)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)\s*$/gm,
+        /^[^#]*?(read\.table|read\.csv|read\.csv2|read\.DIF|read\.fortran|read\.fwf|read\.ftable|read\.dcf|scan|read_delim|read_csv|read_csv2|read_excel|read_xls|read_xlsx|read_tsv|read_fwf|read_log|read_table|read_file|read_file_raw|read_lines|read_lines_raw|read_rds)\s*\(([\s\S]*?)\)\s*$/gm,
       ),
     ];
     for (let index = 0; index < baseMatches.length; index++) {
       const match = baseMatches[index];
-      const path = match[2].trim();
+      const path = this.resolveFileArgument(match[2], 'file', 1);
+      if (!path) {
+        continue;
+      }
       inputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.DATA,
@@ -55,14 +255,13 @@ export default class RHandler extends BaseCodeHandler {
     }
 
     // source from other code file
-    const sourceMatches = [
-      ...text.matchAll(
-        /^[^#]*?(source|sys\.source)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)\s*$/gm,
-      ),
-    ];
+    const sourceMatches = [...text.matchAll(/^[^#]*?(source|sys\.source)\s*\(([\s\S]*?)\)\s*$/gm)];
     for (let index = 0; index < sourceMatches.length; index++) {
       const match = sourceMatches[index];
-      const path = match[2].trim();
+      const path = this.resolveFileArgument(match[2], 'file', 1);
+      if (!path) {
+        continue;
+      }
       inputs.push({
         id: `${match[1]} - ${path}`,
         type: 'code',
@@ -77,14 +276,15 @@ export default class RHandler extends BaseCodeHandler {
     // https://stat.ethz.ch/R-manual/R-devel/library/base/html/connections.html
     // TODO: Handle 'open=' parameter
     const fileMatches = [
-      ...text.matchAll(
-        /^[^#]*?(file|url|gzfile|bzfile|xzfile|unz|fifo)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s,]*(['"]{1,}[\s\S]+?['"]{1,})?[\s\S]*?\)/gm,
-      ),
+      ...text.matchAll(/^[^#]*?(file|url|gzfile|bzfile|xzfile|unz|fifo)\s*\(([\s\S]*?)\)\s*$/gm),
     ];
     for (let index = 0; index < fileMatches.length; index++) {
       const match = fileMatches[index];
-      const path = match[2].trim();
-      const mode = match[3];
+      const path = this.resolveFileArgument(match[2], 'description', 1);
+      if (!path) {
+        continue;
+      }
+      const mode = this.resolveFileArgument(match[2], 'open', 2);
       const isOutput = !mode || mode.match(/[r+]/);
       if (isOutput) {
         inputs.push({
@@ -139,13 +339,14 @@ export default class RHandler extends BaseCodeHandler {
     }
 
     const figureMatches = [
-      ...text.matchAll(
-        /^\s*(pdf|win\.metafile|png|jpeg|bmp|postscript|ggsave)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)\s*$/gm,
-      ),
+      ...text.matchAll(/^\s*(pdf|win\.metafile|png|jpeg|bmp|postscript|ggsave)\s*\(([\s\S]*?)\)\s*$/gm),
     ];
     for (let index = 0; index < figureMatches.length; index++) {
       const match = figureMatches[index];
-      const path = match[2].trim();
+      const path = this.resolveFileArgument(match[2], 'file', 1);
+      if (!path) {
+        continue;
+      }
       outputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.FIGURE,
@@ -158,12 +359,15 @@ export default class RHandler extends BaseCodeHandler {
     // Tidyverse is similar, just uses _ instead of .
     const baseMatches = [
       ...text.matchAll(
-        /^\s*(write\.table|write|write\.csv|write\.csv2|write\.ftable|write\.dcf|sink|write_delim|write_csv|write_csv2|write_excel_csv|write_excel_csv2|write_tsv|write_file|write_lines|write_rds)\s*\([\s\S]+?\s*,\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)\s*$/gm,
+        /^\s*(write\.table|write|write\.csv|write\.csv2|write\.ftable|write\.dcf|sink|write_delim|write_csv|write_csv2|write_excel_csv|write_excel_csv2|write_tsv|write_file|write_lines|write_rds)\s*\(([\s\S]*?)\)\s*$/gm,
       ),
     ];
     for (let index = 0; index < baseMatches.length; index++) {
       const match = baseMatches[index];
-      const path = match[2].trim();
+      const path = this.resolveFileArgument(match[2], 'file', 2);
+      if (!path) {
+        continue;
+      }
       outputs.push({
         id: `${match[1]} - ${path}`,
         type: Constants.DependencyType.DATA,
@@ -175,14 +379,15 @@ export default class RHandler extends BaseCodeHandler {
     // https://stat.ethz.ch/R-manual/R-devel/library/base/html/connections.html
     // TODO: Handle 'open=' parameter
     const fileMatches = [
-      ...text.matchAll(
-        /^[^#]*?(file|url|gzfile|bzfile|xzfile|unz|fifo)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s,]*(['"]{1,}[\s\S]+?['"]{1,})?[\s\S]*?\)/gm,
-      ),
+      ...text.matchAll(/^[^#]*?(file|url|gzfile|bzfile|xzfile|unz|fifo)\s*\(([\s\S]*?)\)\s*$/gm),
     ];
     for (let index = 0; index < fileMatches.length; index++) {
       const match = fileMatches[index];
-      const path = match[2].trim();
-      const mode = match[3];
+      const path = this.resolveFileArgument(match[2], 'description', 1);
+      if (!path) {
+        continue;
+      }
+      const mode = this.resolveFileArgument(match[2], 'open', 2);
       const isOutput = mode && mode.match(/[aw+]/);
       if (isOutput) {
         outputs.push({
