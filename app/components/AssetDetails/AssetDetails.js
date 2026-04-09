@@ -111,7 +111,7 @@ const assetDetails = (props) => {
     if (asset) {
       const filePath = asset.uri;
       if (filePath) {
-        ipcRenderer.send(Messages.OPEN_FILE_WITH_DEFAULT, filePath);
+        ipcRenderer.send(Messages.OPEN_FILE_WITH_DEFAULT, filePath, isURL);
       }
     }
   };
