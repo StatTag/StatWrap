@@ -1054,7 +1054,7 @@ ipcMain.on(Messages.SHOW_ITEM_IN_FOLDER, (event, fullPath) => {
 });
 
 // Handler to open file with default application
-ipcMain.on(Messages.OPEN_FILE_WITH_DEFAULT, (event, fullPath, isURL) => {
+ipcMain.on(Messages.OPEN_FILE_WITH_DEFAULT, (event, fullPath, isURL = false) => {
   const { shell } = require('electron');
   if (isURL) {
     shell.openExternal(fullPath);
