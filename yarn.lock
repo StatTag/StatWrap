@@ -1326,9 +1326,9 @@
   optionalDependencies:
     global-agent "^3.0.0"
 
-"@electron/node-gyp@git+https://github.com/electron/node-gyp.git#06b29aafb7708acef8b3669835c8a7857ebc92d2":
+"@electron/node-gyp@https://github.com/electron/node-gyp#06b29aafb7708acef8b3669835c8a7857ebc92d2":
   version "10.2.0-electron.1"
-  resolved "git+https://github.com/electron/node-gyp.git#06b29aafb7708acef8b3669835c8a7857ebc92d2"
+  resolved "https://github.com/electron/node-gyp#06b29aafb7708acef8b3669835c8a7857ebc92d2"
   dependencies:
     env-paths "^2.2.0"
     exponential-backoff "^3.1.1"
@@ -5457,7 +5457,7 @@ electron-builder-notarize@^1.5.2:
     js-yaml "^3.14.0"
     read-pkg-up "^7.0.0"
 
-electron-builder@^24.15.0:
+electron-builder@^26.8.2:
   version "26.8.2"
   resolved "https://registry.yarnpkg.com/electron-builder/-/electron-builder-26.8.2.tgz#e0e43b0a17a1aadd5b18e3151011cc9f37dd93d7"
   integrity sha512-ieiiXPdgH3qrG6lcvy2mtnI5iEmAopmLuVRMSJ5j40weU0tgpNx0OAk9J5X5nnO0j9+KIkxHzwFZVUDk1U3aGw==
@@ -5511,7 +5511,7 @@ electron-localshortcut@^3.1.0:
     keyboardevent-from-electron-accelerator "^2.0.0"
     keyboardevents-areequal "^0.2.1"
 
-electron-log@^5.5.0:
+electron-log@^5.4.3:
   version "5.4.3"
   resolved "https://registry.yarnpkg.com/electron-log/-/electron-log-5.4.3.tgz#02a90baf4256950ca416095db6e5745268584d20"
   integrity sha512-sOUsM3LjZdugatazSQ/XTyNcw8dfvH1SYhXWiJyfYodAAKOZdHs0txPiLDXFzOZbhXgAgshQkshH2ccq0feyLQ==
@@ -5543,7 +5543,7 @@ electron-to-chromium@^1.5.263:
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.286.tgz#142be1ab5e1cd5044954db0e5898f60a4960384e"
   integrity sha512-9tfDXhJ4RKFNerfjdCcZfufu49vg620741MNs26a9+bhLThdB+plgMeou98CAaHu/WATj2iHOOHTp1hWtABj2A==
 
-electron-updater@^6.10.0:
+electron-updater@^6.8.3:
   version "6.8.3"
   resolved "https://registry.yarnpkg.com/electron-updater/-/electron-updater-6.8.3.tgz#bb0c8ef6509e5c67663f6481a729244d1bce21fb"
   integrity sha512-Z6sgw3jgbikWKXei1ENdqFOxBP0WlXg3TtKfz0rgw2vIZFJUyI4pD7ZN7jrkm7EoMK+tcm/qTnPUdqfZukBlBQ==
