@@ -210,7 +210,7 @@ app.on('window-all-closed', () => {
   }
 });
 
-// Modernize the window creation process as newer electron version strongly prefer promise based functions
+// Modernize the window creation process as newer electron version strongly prefer promise based approach
 app.whenReady().then(createWindow);
 
 app.on('activate', () => {
