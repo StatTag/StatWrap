@@ -1,6 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { IconButton } from '@mui/material';
+import {
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
+} from '@mui/material';
 import { FaTrash, FaEdit } from 'react-icons/fa';
 import styled from 'styled-components';
 import DataTable from 'react-data-table-component';
@@ -56,6 +64,18 @@ function FilterComponent({ filterText, onFilter, onClear }) {
 function peopleTable(props) {
   const { mode, list, onEdit, onDelete } = props;
   const [filterText, setFilterText] = React.useState('');
+  const [personToDelete, setPersonToDelete] = React.useState(null);
+
+  const closeDeleteConfirm = () => {
+    setPersonToDelete(null);
+  };
+
+  const confirmDeletePersonHandler = () => {
+    if (onDelete && personToDelete && personToDelete.id) {
+      onDelete(personToDelete);
+    }
+    closeDeleteConfirm();
+  };
 
   const subHeaderComponentMemo = React.useMemo(() => {
     const handleClear = () => {
@@ -120,8 +140,8 @@ function peopleTable(props) {
         return (
           <IconButton
             onClick={() => {
-              if (onDelete && record && record.id) {
-                onDelete(record);
+              if (record && record.id) {
+                setPersonToDelete(record);
               }
             }}
             aria-label="delete"
@@ -170,7 +190,27 @@ function peopleTable(props) {
     );
   }
 
-  return <div className={styles.container}>{contents}</div>;
+  return (
+    <div className={styles.container}>
+      {contents}
+      <Dialog open={!!personToDelete} onClose={closeDeleteConfirm}>
+        <DialogTitle classes={{ root: styles.title }}>Remove Person</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to remove{' '}
+            <strong>{personToDelete ? GeneralUtil.formatName(personToDelete.name) : ''}</strong>{' '}
+            from this project?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDeleteConfirm}>Cancel</Button>
+          <Button onClick={confirmDeletePersonHandler} color="error">
+            Remove
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </div>
+  );
 }
 
 peopleTable.propTypes = {
