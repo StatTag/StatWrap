@@ -287,7 +287,7 @@ export default class WorkflowUtil {
   static getAllDependenciesAsTree(asset) {
     const filteredAsset = WorkflowUtil.filterArchivedAssets(asset);
 
-    if (!filteredAsset) {
+    if (!filteredAsset || !AssetUtil.includeAsset(filteredAsset.uri)) {
       return null;
     }
 
@@ -302,7 +302,10 @@ export default class WorkflowUtil {
     if (filteredAsset.children) {
       tree.children = [];
       for (let index = 0; index < filteredAsset.children.length; index++) {
-        tree.children.push(WorkflowUtil.getAllDependenciesAsTree(filteredAsset.children[index]));
+        const childTree = WorkflowUtil.getAllDependenciesAsTree(filteredAsset.children[index]);
+        if (childTree) {
+          tree.children.push(childTree);
+        }
       }
     }
 
@@ -412,12 +415,12 @@ export default class WorkflowUtil {
   static getAllDependencies(asset, rootUri) {
     const dependencies = asset
       ? [
-          {
-            asset: rootUri ? asset.uri.replace(rootUri, '').replace(/^\\+|\/+/, '') : asset.uri,
-            assetType: WorkflowUtil.getAssetType(asset),
-            dependencies: WorkflowUtil.getDependencies(asset),
-          },
-        ]
+        {
+          asset: rootUri ? asset.uri.replace(rootUri, '').replace(/^\\+|\/+/, '') : asset.uri,
+          assetType: WorkflowUtil.getAssetType(asset),
+          dependencies: WorkflowUtil.getDependencies(asset),
+        },
+      ]
       : [];
     if (!asset || !asset.children) {
       return dependencies.flat();
@@ -464,12 +467,12 @@ export default class WorkflowUtil {
   static getAllLibraryDependencies(asset) {
     const libraries = asset
       ? [
-          {
-            asset: asset.uri,
-            assetType: WorkflowUtil.getAssetType(asset),
-            dependencies: WorkflowUtil.getLibraryDependencies(asset),
-          },
-        ]
+        {
+          asset: asset.uri,
+          assetType: WorkflowUtil.getAssetType(asset),
+          dependencies: WorkflowUtil.getLibraryDependencies(asset),
+        },
+      ]
       : [];
     if (!asset || !asset.children) {
       return libraries.flat();
