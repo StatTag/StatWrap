@@ -210,7 +210,8 @@ app.on('window-all-closed', () => {
   }
 });
 
-app.on('ready', createWindow);
+// Modernize the window creation process as newer electron version strongly prefer promise based approach
+app.whenReady().then(createWindow);
 
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
@@ -1054,9 +1055,13 @@ ipcMain.on(Messages.SHOW_ITEM_IN_FOLDER, (event, fullPath) => {
 });
 
 // Handler to open file with default application
-ipcMain.on(Messages.OPEN_FILE_WITH_DEFAULT, (event, fullPath) => {
+ipcMain.on(Messages.OPEN_FILE_WITH_DEFAULT, (event, fullPath, isURL = false) => {
   const { shell } = require('electron');
-  shell.openPath(fullPath);
+  if (isURL) {
+    shell.openExternal(fullPath);
+  } else {
+    shell.openPath(fullPath);
+  }
 });
 
 /**

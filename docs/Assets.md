@@ -199,6 +199,26 @@ We collect 3 categories of metadata for JavaScript code files (`.js`, `.jsx`, `.
 
 ES module imports (`import x from 'module'`, `import { x } from 'module'`, `import * as x from 'module'`, `import 'module'`) and CommonJS requires (`require('module')`).
 
+### TypeScript Code Files
+
+We collect 3 categories of metadata for TypeScript code files (`.ts`, `.tsx`, `.mts`, `.cts`):
+
+**Inputs**
+
+| Category           | Example Functions / Patterns                            | Data Type |
+| ------------------ | ------------------------------------------------------- | --------- |
+| Node.js file reads | `fs.readFileSync`, `fs.readFile`, `fs.createReadStream` | `data`    |
+
+**Outputs**
+
+| Category            | Example Functions / Patterns                                                                     | Data Type |
+| ------------------- | ------------------------------------------------------------------------------------------------ | --------- |
+| Node.js file writes | `fs.writeFileSync`, `fs.writeFile`, `fs.appendFile`, `fs.appendFileSync`, `fs.createWriteStream` | `data`    |
+
+**Libraries**
+
+ES module imports (`import x from 'module'`, `import { x } from 'module'`, `import * as x from 'module'`, `import 'module'`), TypeScript type-only imports (`import type { x } from 'module'`), and CommonJS requires (`require('module')`).
+
 ## Asset Groups
 
 By default StatWrap mimics the traditional hierarchical file system view. However, we realize that not all assets will be within a single file system (or may not even be files / folders). Also, we want to allow users to establish other groups of assets that make sense to them. Asset Groups will be a way for users to do this, and StatWrap will store these within the [Project](Projects.md) metadata.

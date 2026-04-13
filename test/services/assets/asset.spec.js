@@ -330,11 +330,27 @@ describe('services', () => {
         expect(service.assetContentTypes('test.JS', stat)).toStrictEqual(['code']);
         expect(service.assetContentTypes('test.JSX', stat)).toStrictEqual(['code']);
         // False leads...
-        expect(service.assetContentTypes('test.ts', stat)).toStrictEqual(['other']);
         expect(service.assetContentTypes('test.js.bak', stat)).toStrictEqual(['other']);
         expect(service.assetContentTypes('.js', stat)).toStrictEqual(['other']);
         stat.isFile.mockReturnValue(false);
         expect(service.assetContentTypes('folder.js', stat)).toStrictEqual(['other']);
+      });
+
+      it('should identify TypeScript code files as code', () => {
+        const stat = new fs.Stats();
+        stat.isFile.mockReturnValue(true);
+        const service = new AssetService();
+        expect(service.assetContentTypes('test.ts', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.tsx', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.mts', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.cts', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.TS', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.TSX', stat)).toStrictEqual(['code']);
+        // False leads...
+        expect(service.assetContentTypes('test.ts.bak', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.ts', stat)).toStrictEqual(['other']);
+        stat.isFile.mockReturnValue(false);
+        expect(service.assetContentTypes('folder.ts', stat)).toStrictEqual(['other']);
       });
 
       it('should identify Stata data files as data', () => {

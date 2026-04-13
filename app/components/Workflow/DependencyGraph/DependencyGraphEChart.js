@@ -16,6 +16,7 @@ const ICON_TYPES = {
   SAS: `${ICON_PATH}sas.svg`,
   STATA: `${ICON_PATH}stata.png`,
   JAVASCRIPT: `${ICON_PATH}js.svg`,
+  TYPESCRIPT: `${ICON_PATH}ts.svg`,
   CPP: `${ICON_PATH}cpp.svg`,
   JAVA: `${ICON_PATH}java.svg`,
   GENERIC: `${ICON_PATH}generic.svg`,
@@ -47,6 +48,8 @@ function getIcon(node) {
     iconUrl = ICON_TYPES.STATA;
   } else if (node.value === 'javascript') {
     iconUrl = ICON_TYPES.JAVASCRIPT;
+  } else if (node.value === 'typescript') {
+    iconUrl = ICON_TYPES.TYPESCRIPT;
   } else if (node.value === 'cpp') {
     iconUrl = ICON_TYPES.CPP;
   } else if (node.value === 'java') {
