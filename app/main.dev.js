@@ -210,7 +210,8 @@ app.on('window-all-closed', () => {
   }
 });
 
-app.on('ready', createWindow);
+// Modernize the window creation process as newer electron version strongly prefer promise based approach
+app.whenReady().then(createWindow);
 
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
