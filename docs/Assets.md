@@ -67,7 +67,7 @@ Because we will only ever send in a directory as the URI to scan, we always retu
 
 Once this structure of assets is built, it is sent to our collection of handlers for additional annotation.
 
-> NOTE: We don't assume that only one handler applies to any asset. This will allow us to be a little more flexible in how we define and implement the asset handlers, while realizing that we will need to avoid signficant extra processing overhead.
+> NOTE: We don't assume that only one handler applies to any asset. This will allow us to be a little more flexible in how we define and implement the asset handlers, while realizing that we will need to avoid significant extra processing overhead.
 
 Every handler should implement the following interface:
 

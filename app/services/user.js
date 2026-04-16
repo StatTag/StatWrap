@@ -136,7 +136,7 @@ export default class UserService {
       const existingPerson = settings.directory.find((p) => p.id === personCopy.id);
       if (existingPerson) {
         // Copy over only what attributes need to be saved in the directory.  Some
-        // attributs may be specific to the project entry for the person.
+        // attributes may be specific to the project entry for the person.
         existingPerson.name = personCopy.name;
         existingPerson.affiliation = personCopy.affiliation;
         existingPerson.added = personCopy.added;

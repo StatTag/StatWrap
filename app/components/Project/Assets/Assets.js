@@ -226,7 +226,7 @@ const assetsComponent = (props) => {
       const newAssetGroup = prevState ? [...prevState] : [];
       const index = newAssetGroup.findIndex((x) => x.uri === asset.uri);
       // We only need to consider adding and removing - there are other branches of logic
-      // that are essentialy noops.
+      // that are essentially noops.
       if (index === -1 && value) {
         // Add it to the array if it's not there and we need it added.  Note we are only pulling
         // over a subset of the fields - the minimum needed for managing the group.
@@ -341,7 +341,7 @@ const assetsComponent = (props) => {
     setEditingExternalAsset(true);
   };
 
-  const handlSelectAsset = (selAsset) => {
+  const handleSelectAsset = (selAsset) => {
     let asset = selAsset;
     // When we are showing an asset group, the actual asset objects aren't the complete picture.
     // The extra logic we use here is to enrich the selected asset, if it's missing some key
@@ -432,7 +432,7 @@ const assetsComponent = (props) => {
 
       // Note that for the AssetFilter component, we always want that to be the original
       // full list of assets.  That's why we use project.assets for that component's
-      // propery, and the assets state variable for the AssetTree.
+      // property, and the assets state variable for the AssetTree.
       assetDisplay = project.assets?.error ? (
         <Error>{assets.errorMessage}</Error>
       ) : (
@@ -506,13 +506,13 @@ const assetsComponent = (props) => {
               ref={treeRef}
               checkboxes={mode === 'paperclip'}
               onCheckAsset={handleCheckAsset}
-              onSelectAsset={handlSelectAsset}
+              onSelectAsset={handleSelectAsset}
               selectedAsset={selectedAsset}
             />
             <AssetTree
               assets={externalAssets}
               ref={externalTreeRef}
-              onSelectAsset={handlSelectAsset}
+              onSelectAsset={handleSelectAsset}
               selectedAsset={selectedAsset}
               rootSelectable={false}
             />

@@ -1,6 +1,6 @@
 # Notes
 
-Notes are designed to be associated with any object in StatWrap, although additional coding is needed to do the association in the user interface, and to manage persistance. Initially, notes were added for assets, then extended for projects.
+Notes are designed to be associated with any object in StatWrap, although additional coding is needed to do the association in the user interface, and to manage persistence. Initially, notes were added for assets, then extended for projects.
 
 Any entity that has notes associated with it must allow for an `Array` of `Objects`. We recommend the convention of the array field that stores these to be `notes`, but recognize variation may be needed in the future.
 

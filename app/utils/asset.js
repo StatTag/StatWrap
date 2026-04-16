@@ -285,7 +285,7 @@ export default class AssetUtil {
   /**
    * Internal worker method to handle the recursive calls.
    * @param {string} projectPath The URI to the root path of the project
-   * @param {object} asset The current asset that we want to conver paths for (including all children)
+    * @param {object} asset The current asset that we want to convert paths for (including all children)
    * @param {function} workerFn The conversion function to call.
    * @returns The original version of assets with uri fields updated
    */
@@ -403,7 +403,7 @@ export default class AssetUtil {
    * Given an asset, format the name for displaying in the tree control
    *
    * @param {object} asset The asset to get the display name for
-   * @returns A string contianing the correct display text
+    * @returns A string containing the correct display text
    */
   static getAssetNameForTree(asset) {
     if (!asset) {

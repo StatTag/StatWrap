@@ -101,8 +101,8 @@ export default class ChecklistUtil {
    */
   static findAssetDependencies(asset) {
     const dependencies = [];
-    const assetDepedencies = WorkflowUtil.getAllLibraryDependencies(asset);
-    assetDepedencies.forEach((x) => {
+    const assetDependencies = WorkflowUtil.getAllLibraryDependencies(asset);
+    assetDependencies.forEach((x) => {
       if (x.assetType && x.assetType !== Constants.AssetType.GENERIC) {
         x.dependencies.forEach((dep) => {
           if (dependencies.findIndex((i) => i === dep.id) === -1) {

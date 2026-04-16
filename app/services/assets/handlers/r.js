@@ -471,7 +471,7 @@ export default class RHandler extends BaseCodeHandler {
     }
 
     const yamlContent = yamlMatches[1];
-    // we are going to support 3 fomrat :- Inline Array , Single List , Bullets List
+    // we are going to support 3 format :- Inline Array , Single List , Bullets List
 
     // Finding the author field
     // Using regex to extract everything after author
