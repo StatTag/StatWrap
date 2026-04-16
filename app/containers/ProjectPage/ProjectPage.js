@@ -50,7 +50,7 @@ class ProjectPage extends Component {
       projectListMenuAnchor: null,
 
       // The dynamic details for the selected asset.  Maybe should think of a better way to pass this
-      // down the compoonent chain, but for now it works
+      // down the component chain, but for now it works
       assetDynamicDetails: null,
 
       // This key is part of a trick to get React to throw out and recreate the Create Project

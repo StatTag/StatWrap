@@ -24,7 +24,7 @@ export default class GeneralUtil {
 
   /**
    * Internal function to handle common code used to append a name part to
-   * an overal displaly string for names.
+    * an overall display string for names.
    * @param {string} displayName The currently formatted display name string
    * @param {string} namePart The name part to append
    * @returns String containing namePart and a trailing space appended to displayName
@@ -39,7 +39,7 @@ export default class GeneralUtil {
   }
 
   /**
-   * Given a name object, format the name for disply depending on which components
+    * Given a name object, format the name for display depending on which components
    * are available
    * @param {object} name Structure containing the components of the name
    */

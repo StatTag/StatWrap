@@ -190,7 +190,7 @@ function ChecklistItem(props) {
     const updatedItem = {
       ...item,
       assets: [
-        // Note, item.assets can be null or undefind
+        // Note, item.assets can be null or undefined
         ...(item.assets ? item.assets : []),
         associatedAsset,
       ],
@@ -480,7 +480,7 @@ ChecklistItem.propTypes = {
         content: PropTypes.string.isRequired,
       }),
     ),
-    asssets: PropTypes.arrayOf(
+    assets: PropTypes.arrayOf(
       PropTypes.shape({
         uri: PropTypes.string.isRequired,
         name: PropTypes.string.isRequired,
