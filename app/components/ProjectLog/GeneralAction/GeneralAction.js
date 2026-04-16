@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 import Constants from '../../../constants/constants';
+import GeneralUtil from '../../../utils/general';
 import styles from './GeneralAction.css';
 
 const CollapsibleMarkdown = ({ content }) => {
@@ -33,11 +34,20 @@ CollapsibleMarkdown.propTypes = {
   content: PropTypes.string,
 };
 
-const formatValue = (value) => {
+const formatValue = (key, value) => {
   if (Array.isArray(value)) {
     return value.length > 0 ? value.join(', ') : <span className={styles.emptyContent}>(Empty)</span>;
   }
   if (typeof value === 'object' && value !== null) {
+    // Render person-style names as readable text instead of raw JSON.
+    if (
+      key === 'name' &&
+      (Object.prototype.hasOwnProperty.call(value, 'first') ||
+        Object.prototype.hasOwnProperty.call(value, 'last'))
+    ) {
+      return GeneralUtil.formatName(value);
+    }
+
     if (value.contentType === Constants.DescriptionContentType.MARKDOWN) {
       if (!value.content) {
         return <span className={styles.emptyContent}>(Empty description)</span>;
@@ -52,7 +62,7 @@ const formatValue = (value) => {
 const generateRow = (key, value) => {
   return (
     <div key={key} className={styles.row}>
-      <span className={styles.label}>{key}:</span> {formatValue(value)}
+      <span className={styles.label}>{key}:</span> {formatValue(key, value)}
     </div>
   );
 };
