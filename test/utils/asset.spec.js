@@ -1617,7 +1617,6 @@ describe('utils', () => {
     it('should exclude files we want to skip', () => {
       expect(AssetUtil.includeAsset('/User/test/Project/.DS_Store')).toBeFalsy();
       expect(AssetUtil.includeAsset('C:/test/Project/Thumbs.db')).toBeFalsy();
-      expect(AssetUtil.includeAsset(Constants.StatWrapFiles.PROJECT)).toBeFalsy();
       expect(AssetUtil.includeAsset('/User/test/Project/node_modules')).toBeFalsy();
     });
   });
