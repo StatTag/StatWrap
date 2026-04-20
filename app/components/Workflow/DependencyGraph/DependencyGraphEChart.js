@@ -56,7 +56,7 @@ function getIcon(node) {
     iconUrl = ICON_TYPES.JAVA;
   } else if (node.value === 'dependency') {
     iconUrl = ICON_TYPES.LIBRARY;
-  } else if(node.value === 'rust'){
+  } else if (node.value === 'rust') {
     iconUrl = ICON_TYPES.RUST;
   } else if (node.value === 'sql') {
     iconUrl = ICON_TYPES.SQL;
@@ -100,7 +100,8 @@ function DependencyGraphEChart(props) {
   // those that should be displayed.
   const handleFilterChanged = (updatedFilter) => {
     if (assets) {
-      const filteredAssets = WorkflowUtil.filterArchivedAssets(assets);
+      const archivedFilteredAssets = WorkflowUtil.filterArchivedAssets(assets);
+      const filteredAssets = AssetUtil.filterIncludedFileAssets(archivedFilteredAssets);
       setFilter(updatedFilter);
       setGraphData(WorkflowUtil.getAllDependenciesAsEChartGraph(filteredAssets, updatedFilter));
     } else {

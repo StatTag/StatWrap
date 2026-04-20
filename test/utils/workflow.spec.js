@@ -835,6 +835,56 @@ describe('utils', () => {
           },
         });
       });
+
+      it.onMac('should exclude ignored folders from the tree', () => {
+        const asset = {
+          uri: '/test/1',
+          children: [
+            {
+              uri: '/test/1/.git',
+            },
+            {
+              uri: '/test/1/src',
+              metadata: [
+                {
+                  id: 'StatWrap.PythonHandler',
+                  libraries: [
+                    {
+                      id: 'sys',
+                      module: 'sys',
+                      import: null,
+                      alias: null,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        };
+
+        expect(WorkflowUtil.getAllDependenciesAsTree(asset)).toEqual({
+          name: '1',
+          children: [
+            {
+              name: 'src',
+              children: [
+                {
+                  name: 'sys',
+                  attributes: {
+                    assetType: 'dependency',
+                  },
+                },
+              ],
+              attributes: {
+                assetType: 'python',
+              },
+            },
+          ],
+          attributes: {
+            assetType: 'generic',
+          },
+        });
+      });
     });
 
     describe('getDependencyName', () => {
@@ -897,7 +947,7 @@ describe('utils', () => {
         expect(WorkflowUtil.filterArchivedAssets({
           uri: '/test/1',
           attributes: { archived: true }
-         })).toBeNull();
+        })).toBeNull();
       });
 
       it('should filter out a single descendant that is archived but leave the rest', () => {
@@ -910,34 +960,32 @@ describe('utils', () => {
               children: [
                 {
                   uri: '/test/1/2/3',
-                  attributes: {archived: true}
+                  attributes: { archived: true },
                 },
                 {
                   uri: '/test/1/2/4',
-                  attributes: {archived: false}
-                }
-              ]
+                  attributes: { archived: false },
+                },
+              ],
             },
           ],
         };
 
-        expect(WorkflowUtil.filterArchivedAssets(asset)).toEqual(
-          {
-            uri: '/test/1',
-            children: [
-              {
-                uri: '/test/1/2',
-                attributes: {},
-                children: [
-                  {
-                    uri: '/test/1/2/4',
-                    attributes: {archived: false}
-                  }
-                ]
-              },
-            ],
-          }
-        );
+        expect(WorkflowUtil.filterArchivedAssets(asset)).toEqual({
+          uri: '/test/1',
+          children: [
+            {
+              uri: '/test/1/2',
+              attributes: {},
+              children: [
+                {
+                  uri: '/test/1/2/4',
+                  attributes: { archived: false },
+                },
+              ],
+            },
+          ],
+        });
       });
 
       it('should filter out all descendants by removing an archived folder', () => {
@@ -946,15 +994,15 @@ describe('utils', () => {
           children: [
             {
               uri: '/test/1/2',
-              attributes: {archived: true},
+              attributes: { archived: true },
               children: [
                 {
                   uri: '/test/1/2/3',
-                  attributes: {archived: false}
+                  attributes: { archived: false }
                 },
                 {
                   uri: '/test/1/2/4',
-                  attributes: {archived: false}
+                  attributes: { archived: false }
                 }
               ]
             },

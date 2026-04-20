@@ -18,8 +18,14 @@ const FILE_IGNORE_LIST = [
   '.git',
   '.gitignore',
   '.vs',
+  'node_modules',
   '.pytest_cache',
   '.ipynb_checkpoints',
+  '__pycache__',
+  '.venv',
+  'venv',
+  '.pybuilder',
+  '__pypackages__',
   '.Rhistory',
   '.Rproj.user',
 ];
@@ -67,6 +73,10 @@ export default class AssetUtil {
    */
   static filterIncludedFileAssets(asset) {
     if (!asset) {
+      return null;
+    }
+
+    if (!AssetUtil.includeAsset(asset.uri)) {
       return null;
     }
 
