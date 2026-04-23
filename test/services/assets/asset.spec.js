@@ -353,6 +353,19 @@ describe('services', () => {
         expect(service.assetContentTypes('folder.ts', stat)).toStrictEqual(['other']);
       });
 
+      it('should identify Julia code files as code', () => {
+        const stat = new fs.Stats();
+        stat.isFile.mockReturnValue(true);
+        const service = new AssetService();
+        expect(service.assetContentTypes('test.jl', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.JL', stat)).toStrictEqual(['code']);
+        // False leads...
+        expect(service.assetContentTypes('test.jl.bak', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.jl', stat)).toStrictEqual(['other']);
+        stat.isFile.mockReturnValue(false);
+        expect(service.assetContentTypes('folder.jl', stat)).toStrictEqual(['other']);
+      });
+
       it('should identify Stata data files as data', () => {
         const stat = new fs.Stats();
         stat.isFile.mockReturnValue(true);

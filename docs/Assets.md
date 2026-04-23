@@ -219,6 +219,31 @@ We collect 3 categories of metadata for TypeScript code files (`.ts`, `.tsx`, `.
 
 ES module imports (`import x from 'module'`, `import { x } from 'module'`, `import * as x from 'module'`, `import 'module'`), TypeScript type-only imports (`import type { x } from 'module'`), and CommonJS requires (`require('module')`).
 
+### Julia Code Files
+
+We collect 3 categories of metadata for Julia code files (`.jl`):
+
+**Inputs**
+
+| Category   | Example Functions / Patterns                                         | Data Type |
+| ---------- | -------------------------------------------------------------------- | --------- |
+| File reads | `open("file")`, `open("file", "r")`, `read`, `readlines`, `readline` | `data`    |
+| CSV reads  | `CSV.read`, `CSV.File`                                               | `data`    |
+| Data loads | `load`, `@load`                                                      | `data`    |
+
+**Outputs**
+
+| Category     | Example Functions / Patterns                      | Data Type |
+| ------------ | ------------------------------------------------- | --------- |
+| File writes  | `open("file", "w")`, `open("file", "a")`, `write` | `data`    |
+| CSV writes   | `CSV.write`                                       | `data`    |
+| Figure saves | `savefig`                                         | `figure`  |
+| Data saves   | `save`, `@save`                                   | `data`    |
+
+**Libraries**
+
+`using Package`, `using Package: func1, func2`, `import Package`, `import Package: func1`, and `import Package as Alias`.
+
 ## Asset Groups
 
 By default StatWrap mimics the traditional hierarchical file system view. However, we realize that not all assets will be within a single file system (or may not even be files / folders). Also, we want to allow users to establish other groups of assets that make sense to them. Asset Groups will be a way for users to do this, and StatWrap will store these within the [Project](Projects.md) metadata.
