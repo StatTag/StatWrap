@@ -48,8 +48,6 @@ export default merge(baseConfig, {
   target: 'electron-renderer',
 
   entry: [
-    'webpack-dev-server/client?/',
-    'webpack/hot/only-dev-server',
     require.resolve('../app/index.js'),
   ],
 
