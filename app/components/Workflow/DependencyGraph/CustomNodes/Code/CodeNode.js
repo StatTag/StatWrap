@@ -21,6 +21,7 @@ const ICON_TYPES = {
   SQL: `${ICON_PATH}sql.svg`,
   GO: `${ICON_PATH}go.svg`,
   C: `${ICON_PATH}c.svg`,
+  CSHARP: `${ICON_PATH}csharp.svg`,
   SCALA: `${ICON_PATH}scala.svg`,
 };
 
@@ -56,6 +57,8 @@ function CodeNode({ node, renderType }) {
     iconUrl = ICON_TYPES.GO;
   } else if (node.assetType === 'c') {
     iconUrl = ICON_TYPES.C;    
+  } else if (node.assetType === 'csharp') {
+    iconUrl = ICON_TYPES.CSHARP;
   } else if (node.assetType === 'dart') {
     iconUrl = ICON_TYPES.DART;
   } else if (node.assetType === 'scala') {

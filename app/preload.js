@@ -20,6 +20,7 @@ import JavaScriptHandler from './services/assets/handlers/javascript';
 import TypeScriptHandler from './services/assets/handlers/typescript';
 import CppHandler from './services/assets/handlers/cpp';
 import CHandler from './services/assets/handlers/c';
+import CSharpHandler from './services/assets/handlers/csharp';
 import DartHandler from './services/assets/handlers/dart';
 import AssetUtil from './utils/asset';
 import ProjectUtil from './utils/project';
@@ -70,6 +71,7 @@ contextBridge.exposeInMainWorld('workerElectronBridge', {
           new TypeScriptHandler(),
           new CppHandler(),
           new CHandler(),
+          new CSharpHandler(),
           new DartHandler(),
           new ScalaHandler(),
         ]);
