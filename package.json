@@ -135,7 +135,8 @@
     "transform": {
       "^.+\\.jsx?$": "babel-jest"
     },
-    "setupFiles": ["./internals/scripts/CheckBuildsExist.js"]
+    "setupFiles": ["./internals/scripts/CheckBuildsExist.js"],
+    "transformIgnorePatterns": ["/node_modules/(?!(uuid)/)"]
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",
