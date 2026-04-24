@@ -135,7 +135,8 @@
     "transform": {
       "^.+\\.jsx?$": "babel-jest"
     },
-    "setupFiles": ["./internals/scripts/CheckBuildsExist.js"]
+    "setupFiles": ["./internals/scripts/CheckBuildsExist.js"],
+    "transformIgnorePatterns": ["/node_modules/(?!(uuid)/)"]
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",
@@ -274,7 +275,7 @@
     "url": "^0.11.4",
     "url-parse": "^1.5.9",
     "username": "^5.1.0",
-    "uuid": "^9.0.1",
+    "uuid": "^14.0.0",
     "winston": "^3.17.0",
     "y18n": "^5.0.8"
   },
