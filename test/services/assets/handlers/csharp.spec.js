@@ -43,12 +43,48 @@ describe('services', () => {
         expect(libraries.length).toEqual(4);
         expect(libraries).toEqual(
           expect.arrayContaining([
-            expect.objectContaining({ id: 'System', module: 'System' }),
-            expect.objectContaining({ id: 'System.IO', module: 'System', import: 'IO' }),
-            expect.objectContaining({ id: 'System.IO', alias: 'IO' }),
-            expect.objectContaining({ id: 'System.Math' }),
+            {
+              id: 'System',
+              module: 'System',
+              import: null,
+              alias: null,
+            },
+            {
+              id: 'System.IO',
+              module: 'System',
+              import: 'IO',
+              alias: null,
+            },
+            {
+              id: 'System.IO',
+              module: 'System',
+              import: 'IO',
+              alias: 'IO',
+            },
+            {
+              id: 'System.Math',
+              module: 'System',
+              import: 'Math',
+              alias: null,
+            },
           ]),
         );
+      });
+
+      it('should detect deeply nested using statements', () => {
+        const libraries = new CSharpHandler().getLibraries(
+          'test.uri',
+          'using Package.SubPackage.SubSubPackage.SubSubSubPackage;',
+        );
+
+        expect(libraries).toEqual([
+          {
+            id: 'Package.SubPackage.SubSubPackage.SubSubSubPackage',
+            module: 'Package.SubPackage.SubSubPackage',
+            import: 'SubSubSubPackage',
+            alias: null,
+          },
+        ]);
       });
     });
 
@@ -70,6 +106,27 @@ describe('services', () => {
         expect(inputs[2].path).toEqual('"input3.txt"');
         expect(inputs[3].path).toEqual('"input4.txt"');
       });
+
+      it('should detect async and additional File read methods', () => {
+        const inputs = new CSharpHandler().getInputs(
+          'test.uri',
+          `
+          var text = await File.ReadAllTextAsync("inputAsync1.txt");
+          var bytes = await File.ReadAllBytesAsync("inputAsync2.bin");
+          var lines = File.ReadLines("inputLines.txt");
+          using var tr = File.OpenText("inputOpenText.txt");
+          `,
+        );
+
+        expect(inputs).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ path: '"inputAsync1.txt"' }),
+            expect.objectContaining({ path: '"inputAsync2.bin"' }),
+            expect.objectContaining({ path: '"inputLines.txt"' }),
+            expect.objectContaining({ path: '"inputOpenText.txt"' }),
+          ]),
+        );
+      });
     });
 
     describe('getOutputs', () => {
@@ -89,6 +146,31 @@ describe('services', () => {
         expect(outputs[1].path).toEqual('"output2.log"');
         expect(outputs[2].path).toEqual('"output3.txt"');
         expect(outputs[3].path).toEqual('"output4.txt"');
+      });
+
+      it('should detect async and additional File write methods', () => {
+        const outputs = new CSharpHandler().getOutputs(
+          'test.uri',
+          `
+          await File.WriteAllTextAsync("outputAsync1.txt", "x");
+          await File.AppendAllTextAsync("outputAsync2.log", "x");
+          await File.WriteAllLinesAsync("outputAsync3.txt", new[] { "x" });
+          await File.AppendAllBytesAsync("outputAsync4.bin", bytes);
+          File.AppendText("outputAppendText.txt");
+          File.CreateText("outputCreateText.txt");
+          `,
+        );
+
+        expect(outputs).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ path: '"outputAsync1.txt"' }),
+            expect.objectContaining({ path: '"outputAsync2.log"' }),
+            expect.objectContaining({ path: '"outputAsync3.txt"' }),
+            expect.objectContaining({ path: '"outputAsync4.bin"' }),
+            expect.objectContaining({ path: '"outputAppendText.txt"' }),
+            expect.objectContaining({ path: '"outputCreateText.txt"' }),
+          ]),
+        );
       });
     });
 

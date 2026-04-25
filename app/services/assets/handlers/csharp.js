@@ -3,6 +3,28 @@ import Constants from '../../../constants/constants';
 
 const FILE_EXTENSION_LIST = ['cs', 'csx'];
 
+const FILE_READ_METHODS = [
+  'ReadAllText',
+  'ReadAllLines',
+  'ReadAllBytes',
+  'ReadLines',
+  'OpenRead',
+  'OpenText',
+];
+
+const FILE_WRITE_METHODS = [
+  'AppendAllBytes',
+  'WriteAllText',
+  'WriteAllLines',
+  'WriteAllBytes',
+  'AppendAllText',
+  'AppendAllLines',
+  'AppendText',
+  'Create',
+  'CreateText',
+  'OpenWrite',
+];
+
 export default class CSharpHandler extends BaseCodeHandler {
   static id = 'StatWrap.CSharpHandler';
 
@@ -75,8 +97,10 @@ export default class CSharpHandler extends BaseCodeHandler {
       processedPaths.add(key);
     };
 
+    const readMethodPattern = FILE_READ_METHODS.map((method) => `${method}(?:Async)?`).join('|');
+
     const readMatches = [
-      ...text.matchAll(/File\.(?:ReadAllText|ReadAllLines|ReadAllBytes|OpenRead)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
+      ...text.matchAll(new RegExp(`File\\.(?:${readMethodPattern})\\s*\\(\\s*(['\"]{1,}\\s*?[\\s\\S]+?['\"]{1,})[\\s\\S]*?\\)`, 'gim')),
       ...text.matchAll(/new\s+StreamReader\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
       ...text.matchAll(/new\s+FileStream\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})\s*,\s*FileMode\.(?:Open|OpenOrCreate)[\s\S]*?\)/gim),
     ];
@@ -112,8 +136,10 @@ export default class CSharpHandler extends BaseCodeHandler {
       processedPaths.add(key);
     };
 
+    const writeMethodPattern = FILE_WRITE_METHODS.map((method) => `${method}(?:Async)?`).join('|');
+
     const writeMatches = [
-      ...text.matchAll(/File\.(?:WriteAllText|WriteAllLines|WriteAllBytes|AppendAllText|Create|OpenWrite)\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
+      ...text.matchAll(new RegExp(`File\\.(?:${writeMethodPattern})\\s*\\(\\s*(['\"]{1,}\\s*?[\\s\\S]+?['\"]{1,})[\\s\\S]*?\\)`, 'gim')),
       ...text.matchAll(/new\s+StreamWriter\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
       ...text.matchAll(/new\s+FileStream\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})\s*,\s*FileMode\.(?:Create|CreateNew|Append|Truncate)[\s\S]*?\)/gim),
     ];
