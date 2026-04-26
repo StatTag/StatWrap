@@ -5,6 +5,9 @@ import Constants from '../../../constants/constants';
 // All lookups should be lowercase - we will do lowercase conversion before comparison.
 const FILE_EXTENSION_LIST = ['jl'];
 
+// Matches a single-quoted or double-quoted string without spanning into adjacent quoted strings.
+const QUOTED_STRING = '(?:"[^"]*"|\'[^\']*\')';
+
 export default class JuliaHandler extends BaseCodeHandler {
   static id = 'StatWrap.JuliaHandler';
 
@@ -38,9 +41,16 @@ export default class JuliaHandler extends BaseCodeHandler {
 
     const processedPaths = new Set();
 
-    // open("file", "r") or open("file") for reading
+    // open("file") or open("file", "r") for reading, including do-block form:
+    //   open("file") do io ... end
+    //   open("file", "r") do io ... end
+    // Excluded: write/append modes — after the path, only an optional ", "r"" satisfies
+    // the regex before ")", so open("file", "w") will not match here.
     const openReadMatches = [
-      ...text.matchAll(/^[^#]*?open\s*\(\s*(['"]{1,}[\s\S]+?['"]{1,})\s*(?:,\s*['"]{1,}r['"]{1,})?\s*\)/gim),
+      ...text.matchAll(new RegExp(
+        `^[^#]*?open\\s*\\(\\s*(${QUOTED_STRING})\\s*(?:,\\s*(?:"r"|'r'))?\\s*\\)`,
+        'gim'
+      )),
     ];
     for (const match of openReadMatches) {
       const filePath = match[1].trim();
@@ -56,7 +66,10 @@ export default class JuliaHandler extends BaseCodeHandler {
 
     // read("file", String) and readlines/readline (not CSV.read etc.)
     const readMatches = [
-      ...text.matchAll(/^[^#]*?(?<!\.)(?:read|readlines|readline)\s*\(\s*(['"]{1,}[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
+      ...text.matchAll(new RegExp(
+        `^[^#]*?(?<!\\.)(?:read|readlines|readline)\\s*\\(\\s*(${QUOTED_STRING})[\\s\\S]*?\\)`,
+        'gim'
+      )),
     ];
     for (const match of readMatches) {
       const filePath = match[1].trim();
@@ -72,7 +85,10 @@ export default class JuliaHandler extends BaseCodeHandler {
 
     // CSV.read("file", ...) or CSV.File("file")
     const csvReadMatches = [
-      ...text.matchAll(/^[^#]*?CSV\.(?:read|File)\s*\(\s*(['"]{1,}[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
+      ...text.matchAll(new RegExp(
+        `^[^#]*?CSV\\.(?:read|File)\\s*\\(\\s*(${QUOTED_STRING})[\\s\\S]*?\\)`,
+        'gim'
+      )),
     ];
     for (const match of csvReadMatches) {
       const filePath = match[1].trim();
@@ -86,10 +102,54 @@ export default class JuliaHandler extends BaseCodeHandler {
       }
     }
 
-    // load("file") - for JLD/JLD2/MAT etc.
+    // readdlm("file", ...) from DelimitedFiles standard library
+    const readdlmMatches = [
+      ...text.matchAll(new RegExp(
+        `^[^#]*?readdlm\\s*\\(\\s*(${QUOTED_STRING})[\\s\\S]*?\\)`,
+        'gim'
+      )),
+    ];
+    for (const match of readdlmMatches) {
+      const filePath = match[1].trim();
+      if (!processedPaths.has(filePath)) {
+        inputs.push({
+          id: `readdlm - ${filePath}`,
+          type: Constants.DependencyType.DATA,
+          path: filePath,
+        });
+        processedPaths.add(filePath);
+      }
+    }
+
+    // deserialize("file") from Serialization standard library
+    const deserializeMatches = [
+      ...text.matchAll(new RegExp(
+        `^[^#]*?deserialize\\s*\\(\\s*(${QUOTED_STRING})[\\s\\S]*?\\)`,
+        'gim'
+      )),
+    ];
+    for (const match of deserializeMatches) {
+      const filePath = match[1].trim();
+      if (!processedPaths.has(filePath)) {
+        inputs.push({
+          id: `deserialize - ${filePath}`,
+          type: Constants.DependencyType.DATA,
+          path: filePath,
+        });
+        processedPaths.add(filePath);
+      }
+    }
+
+    // load("file") and @load "file" - for JLD2/MAT/FileIO etc.
     const loadMatches = [
-      ...text.matchAll(/^[^#]*?(?:load|@load)\s*\(\s*(['"]{1,}[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
-      ...text.matchAll(/^[^#]*?@load\s+(['"]{1,}[\s\S]+?['"]{1,})/gim),
+      ...text.matchAll(new RegExp(
+        `^[^#]*?load\\s*\\(\\s*(${QUOTED_STRING})[\\s\\S]*?\\)`,
+        'gim'
+      )),
+      ...text.matchAll(new RegExp(
+        `^[^#]*?@load\\s+(${QUOTED_STRING})`,
+        'gim'
+      )),
     ];
     for (const match of loadMatches) {
       const filePath = match[1].trim();
@@ -114,9 +174,13 @@ export default class JuliaHandler extends BaseCodeHandler {
 
     const processedPaths = new Set();
 
-    // open("file", "w"/"a"/"w+"/"a+") for writing
+    // open("file", "w"/"a"/"w+"/"a+") for writing, including do-block form:
+    //   open("file", "w") do io ... end
     const openWriteMatches = [
-      ...text.matchAll(/^[^#]*?open\s*\(\s*(['"]{1,}[\s\S]+?['"]{1,})\s*,\s*['"]{1,}[wa][+]?['"]{1,}\s*\)/gim),
+      ...text.matchAll(new RegExp(
+        `^[^#]*?open\\s*\\(\\s*(${QUOTED_STRING})\\s*,\\s*(?:"[wa][+]?"|'[wa][+]?')\\s*\\)`,
+        'gim'
+      )),
     ];
     for (const match of openWriteMatches) {
       const filePath = match[1].trim();
@@ -132,7 +196,10 @@ export default class JuliaHandler extends BaseCodeHandler {
 
     // write("file", content) (not CSV.write etc.)
     const writeMatches = [
-      ...text.matchAll(/^[^#]*?(?<!\.)write\s*\(\s*(['"]{1,}[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
+      ...text.matchAll(new RegExp(
+        `^[^#]*?(?<!\\.)write\\s*\\(\\s*(${QUOTED_STRING})[\\s\\S]*?\\)`,
+        'gim'
+      )),
     ];
     for (const match of writeMatches) {
       const filePath = match[1].trim();
@@ -148,7 +215,10 @@ export default class JuliaHandler extends BaseCodeHandler {
 
     // CSV.write("file", df)
     const csvWriteMatches = [
-      ...text.matchAll(/^[^#]*?CSV\.write\s*\(\s*(['"]{1,}[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
+      ...text.matchAll(new RegExp(
+        `^[^#]*?CSV\\.write\\s*\\(\\s*(${QUOTED_STRING})[\\s\\S]*?\\)`,
+        'gim'
+      )),
     ];
     for (const match of csvWriteMatches) {
       const filePath = match[1].trim();
@@ -162,9 +232,31 @@ export default class JuliaHandler extends BaseCodeHandler {
       }
     }
 
+    // writedlm("file", data, ...) from DelimitedFiles standard library
+    const writedlmMatches = [
+      ...text.matchAll(new RegExp(
+        `^[^#]*?writedlm\\s*\\(\\s*(${QUOTED_STRING})[\\s\\S]*?\\)`,
+        'gim'
+      )),
+    ];
+    for (const match of writedlmMatches) {
+      const filePath = match[1].trim();
+      if (!processedPaths.has(filePath)) {
+        outputs.push({
+          id: `writedlm - ${filePath}`,
+          type: Constants.DependencyType.DATA,
+          path: filePath,
+        });
+        processedPaths.add(filePath);
+      }
+    }
+
     // savefig("file") for Plots.jl / Makie.jl
     const savefigMatches = [
-      ...text.matchAll(/^[^#]*?savefig\s*\(\s*(['"]{1,}[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
+      ...text.matchAll(new RegExp(
+        `^[^#]*?savefig\\s*\\(\\s*(${QUOTED_STRING})[\\s\\S]*?\\)`,
+        'gim'
+      )),
     ];
     for (const match of savefigMatches) {
       const filePath = match[1].trim();
@@ -178,10 +270,35 @@ export default class JuliaHandler extends BaseCodeHandler {
       }
     }
 
-    // save("file", ...) and @save "file" ... - for JLD/JLD2/MAT etc.
+    // serialize("file", obj) from Serialization standard library
+    const serializeMatches = [
+      ...text.matchAll(new RegExp(
+        `^[^#]*?serialize\\s*\\(\\s*(${QUOTED_STRING})[\\s\\S]*?\\)`,
+        'gim'
+      )),
+    ];
+    for (const match of serializeMatches) {
+      const filePath = match[1].trim();
+      if (!processedPaths.has(filePath)) {
+        outputs.push({
+          id: `serialize - ${filePath}`,
+          type: Constants.DependencyType.DATA,
+          path: filePath,
+        });
+        processedPaths.add(filePath);
+      }
+    }
+
+    // save("file", ...) and @save "file" ... - for JLD2/FileIO etc.
     const saveMatches = [
-      ...text.matchAll(/^[^#]*?save\s*\(\s*(['"]{1,}[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
-      ...text.matchAll(/^[^#]*?@save\s+(['"]{1,}[\s\S]+?['"]{1,})/gim),
+      ...text.matchAll(new RegExp(
+        `^[^#]*?save\\s*\\(\\s*(${QUOTED_STRING})[\\s\\S]*?\\)`,
+        'gim'
+      )),
+      ...text.matchAll(new RegExp(
+        `^[^#]*?@save\\s+(${QUOTED_STRING})`,
+        'gim'
+      )),
     ];
     for (const match of saveMatches) {
       const filePath = match[1].trim();
@@ -204,38 +321,102 @@ export default class JuliaHandler extends BaseCodeHandler {
       return libraries;
     }
 
-    // using Package or using Package: func1, func2
-    const usingMatches = [
-      ...text.matchAll(/^[^#]*?using\s+([\w.]+)(?:\s*:\s*([\w,\s!.]+))?/gim),
-    ];
-    for (const match of usingMatches) {
-      const moduleName = match[1].trim();
-      const importName = match[2] ? match[2].trim() : null;
-      libraries.push({
-        id: this.getLibraryId(moduleName, importName),
-        module: moduleName,
-        import: importName,
-        alias: null,
-      });
-    }
+    const seenModules = new Set();
 
-    // import Package or import Package: func1, func2 or import Package as Alias
-    const importMatches = [
-      ...text.matchAll(/^[^#]*?import\s+([\w.]+)(?:\s*:\s*([\w,\s!.]+))?(?:\s+as\s+(\w+))?/gim),
+    // using Package: func1, func2 (specific imports from one package, WITH colon)
+    // \.{0,2} handles relative imports: ..Statistics, .Module
+    // [ \t]+ (not \s+) prevents the import list from spanning to the next line
+    const usingSpecificMatches = [
+      ...text.matchAll(/^[^#]*?using\s+(\.{0,2}[\w.]+)[ \t]*:[ \t]*([\w,!. \t]+)/gim),
     ];
-    const seenModules = new Set(libraries.map((l) => l.module));
-    for (const match of importMatches) {
+    for (const match of usingSpecificMatches) {
       const moduleName = match[1].trim();
-      const importName = match[2] ? match[2].trim() : null;
-      const alias = match[3] ? match[3].trim() : null;
+      const importName = match[2].trim();
       if (!seenModules.has(moduleName)) {
         libraries.push({
           id: this.getLibraryId(moduleName, importName),
           module: moduleName,
           import: importName,
+          alias: null,
+        });
+        seenModules.add(moduleName);
+      }
+    }
+
+    // using Package or using Package1, Package2, Package3 (WITHOUT colon)
+    // Positive lookahead (?=[ \t]*(?:#|$)) anchors to end-of-line, preventing the regex
+    // engine from backtracking [\w.]+ to a shorter match when "using A: f" is present.
+    const usingGeneralMatches = [
+      ...text.matchAll(/^[^#]*?using\s+(\.{0,2}[\w.]+(?:[ \t]*,[ \t]*\.{0,2}[\w.]+)*)(?=[ \t]*(?:#|$))/gim),
+    ];
+    for (const match of usingGeneralMatches) {
+      const packages = match[1].split(',').map((p) => p.trim()).filter(Boolean);
+      for (const pkg of packages) {
+        if (!seenModules.has(pkg)) {
+          libraries.push({
+            id: pkg,
+            module: pkg,
+            import: null,
+            alias: null,
+          });
+          seenModules.add(pkg);
+        }
+      }
+    }
+
+    // import Package: func1, func2 (specific imports WITH colon)
+    const importSpecificMatches = [
+      ...text.matchAll(/^[^#]*?import\s+(\.{0,2}[\w.]+)\s*:\s*([\w,!. \t]+)/gim),
+    ];
+    for (const match of importSpecificMatches) {
+      const moduleName = match[1].trim();
+      const importName = match[2].trim();
+      if (!seenModules.has(moduleName)) {
+        libraries.push({
+          id: this.getLibraryId(moduleName, importName),
+          module: moduleName,
+          import: importName,
+          alias: null,
+        });
+        seenModules.add(moduleName);
+      }
+    }
+
+    // import Package as Alias (single module with alias)
+    const importAliasMatches = [
+      ...text.matchAll(/^[^#]*?import\s+(\.{0,2}[\w.]+)[ \t]+as[ \t]+(\w+)/gim),
+    ];
+    for (const match of importAliasMatches) {
+      const moduleName = match[1].trim();
+      const alias = match[2].trim();
+      if (!seenModules.has(moduleName)) {
+        libraries.push({
+          id: moduleName,
+          module: moduleName,
+          import: null,
           alias,
         });
         seenModules.add(moduleName);
+      }
+    }
+
+    // import Package or import Package1, Package2, Package3 (WITHOUT colon or alias)
+    // Same positive end-of-line lookahead as usingGeneralMatches to prevent backtracking issues.
+    const importGeneralMatches = [
+      ...text.matchAll(/^[^#]*?import\s+(\.{0,2}[\w.]+(?:[ \t]*,[ \t]*\.{0,2}[\w.]+)*)(?=[ \t]*(?:#|$))/gim),
+    ];
+    for (const match of importGeneralMatches) {
+      const packages = match[1].split(',').map((p) => p.trim()).filter(Boolean);
+      for (const pkg of packages) {
+        if (!seenModules.has(pkg)) {
+          libraries.push({
+            id: pkg,
+            module: pkg,
+            import: null,
+            alias: null,
+          });
+          seenModules.add(pkg);
+        }
       }
     }
 
