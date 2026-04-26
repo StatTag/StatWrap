@@ -141,9 +141,10 @@ export default class JuliaHandler extends BaseCodeHandler {
     }
 
     // load("file") and @load "file" - for JLD2/MAT/FileIO etc.
+    // Negative lookbehind prevents matching preload(), reload(), autoload(), etc.
     const loadMatches = [
       ...text.matchAll(new RegExp(
-        `^[^#]*?load\\s*\\(\\s*(${QUOTED_STRING})[\\s\\S]*?\\)`,
+        `^[^#]*?(?<![a-zA-Z])load\\s*\\(\\s*(${QUOTED_STRING})[\\s\\S]*?\\)`,
         'gim'
       )),
       ...text.matchAll(new RegExp(
@@ -290,9 +291,10 @@ export default class JuliaHandler extends BaseCodeHandler {
     }
 
     // save("file", ...) and @save "file" ... - for JLD2/FileIO etc.
+    // Negative lookbehind prevents matching savefig(), saveas(), etc.
     const saveMatches = [
       ...text.matchAll(new RegExp(
-        `^[^#]*?save\\s*\\(\\s*(${QUOTED_STRING})[\\s\\S]*?\\)`,
+        `^[^#]*?(?<![a-zA-Z])save\\s*\\(\\s*(${QUOTED_STRING})[\\s\\S]*?\\)`,
         'gim'
       )),
       ...text.matchAll(new RegExp(

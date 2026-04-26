@@ -236,6 +236,20 @@ describe('services', () => {
         expect(inputs[0]).toMatchObject({ id: 'load - "results.jld2"', type: Constants.DependencyType.DATA });
       });
 
+      it('should detect @load macro', () => {
+        const inputs = new JuliaHandler().getInputs('test.uri', '@load "checkpoint.jld2"');
+        expect(inputs.length).toEqual(1);
+        expect(inputs[0]).toMatchObject({ id: 'load - "checkpoint.jld2"', type: Constants.DependencyType.DATA });
+      });
+
+      it('should not detect preload() or reload() as load inputs', () => {
+        const inputs = new JuliaHandler().getInputs(
+          'test.uri',
+          'preload("data.bin")\nreload("module.jl")'
+        );
+        expect(inputs.length).toEqual(0);
+      });
+
       it('should not duplicate the same path', () => {
         const inputs = new JuliaHandler().getInputs(
           'test.uri',
@@ -331,6 +345,17 @@ describe('services', () => {
         const outputs = new JuliaHandler().getOutputs('test.uri', 'save("results.jld2", "data", data)');
         expect(outputs.length).toEqual(1);
         expect(outputs[0]).toMatchObject({ id: 'save - "results.jld2"', type: Constants.DependencyType.DATA });
+      });
+
+      it('should detect @save macro', () => {
+        const outputs = new JuliaHandler().getOutputs('test.uri', '@save "checkpoint.jld2" model');
+        expect(outputs.length).toEqual(1);
+        expect(outputs[0]).toMatchObject({ id: 'save - "checkpoint.jld2"', type: Constants.DependencyType.DATA });
+      });
+
+      it('should not detect savefig() as a save output', () => {
+        const outputs = new JuliaHandler().getOutputs('test.uri', 'savefig("plot.png")');
+        expect(outputs.filter((o) => o.id.startsWith('save -')).length).toEqual(0);
       });
 
       it('should not duplicate the same path', () => {
