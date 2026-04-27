@@ -12,6 +12,7 @@ import JavaScriptHandler from '../services/assets/handlers/javascript';
 import TypeScriptHandler from '../services/assets/handlers/typescript';
 import CppHandler from '../services/assets/handlers/cpp';
 import CHandler from '../services/assets/handlers/c';
+import CSharpHandler from '../services/assets/handlers/csharp';
 import DartHandler from '../services/assets/handlers/dart';
 import ScalaHandler from '../services/assets/handlers/scala';
 import JuliaHandler from '../services/assets/handlers/julia';
@@ -76,6 +77,8 @@ export default class WorkflowUtil {
       assetType = 'typescript';
     } else if (AssetUtil.getHandlerMetadata(CHandler.id, asset.metadata)) {
       assetType = 'c';
+    } else if (AssetUtil.getHandlerMetadata(CSharpHandler.id, asset.metadata)) {
+      assetType = 'csharp';
     } else if (AssetUtil.getHandlerMetadata(DartHandler.id, asset.metadata)) {
       assetType = 'dart';
     } else if (AssetUtil.getHandlerMetadata(ScalaHandler.id, asset.metadata)) {
@@ -390,6 +393,7 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, TypeScriptHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, CppHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, CHandler.id, libraries, inputs, outputs);
+    WorkflowUtil._getMetadataDependencies(asset, CSharpHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, ScalaHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, DartHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, JuliaHandler.id, libraries, inputs, outputs);
@@ -462,6 +466,7 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, TypeScriptHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, CppHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, CHandler.id, libraries, [], []);
+    WorkflowUtil._getMetadataDependencies(asset, CSharpHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, DartHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, ScalaHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, JuliaHandler.id, libraries, [], []);

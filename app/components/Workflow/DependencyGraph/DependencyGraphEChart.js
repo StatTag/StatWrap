@@ -28,6 +28,7 @@ const ICON_TYPES = {
   SQL: `${ICON_PATH}sql.svg`,
   GO: `${ICON_PATH}go.svg`,
   C: `${ICON_PATH}c.svg`,
+  CSHARP: `${ICON_PATH}csharp.svg`,
   SCALA: `${ICON_PATH}scala.svg`,
   JULIA: `${ICON_PATH}julia.svg`,
 };
@@ -69,6 +70,8 @@ function getIcon(node) {
     iconUrl = ICON_TYPES.DART;
   } else if (node.value === 'scala') {
     iconUrl = ICON_TYPES.SCALA;
+  } else if (node.value === 'csharp') {
+    iconUrl = ICON_TYPES.CSHARP;
   } else if (node.value === 'julia') {
     iconUrl = ICON_TYPES.JULIA;
   } else if (node.value === Constants.DependencyType.DATA) {
