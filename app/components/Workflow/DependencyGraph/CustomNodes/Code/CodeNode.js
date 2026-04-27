@@ -23,6 +23,7 @@ const ICON_TYPES = {
   C: `${ICON_PATH}c.svg`,
   CSHARP: `${ICON_PATH}csharp.svg`,
   SCALA: `${ICON_PATH}scala.svg`,
+  JULIA: `${ICON_PATH}julia.svg`,
 };
 
 /**
@@ -63,6 +64,8 @@ function CodeNode({ node, renderType }) {
     iconUrl = ICON_TYPES.DART;
   } else if (node.assetType === 'scala') {
     iconUrl = ICON_TYPES.SCALA;
+  } else if (node.assetType === 'julia') {
+    iconUrl = ICON_TYPES.JULIA;
   } else if (node.assetType === Constants.DependencyType.DATA) {
     iconUrl = ICON_TYPES.DATA;
   } else if (node.assetType === Constants.DependencyType.FIGURE) {
