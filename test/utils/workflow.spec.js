@@ -612,6 +612,9 @@ describe('utils', () => {
         expect(WorkflowUtil.getAssetType({ metadata: [{ id: 'StatWrap.TypeScriptHandler' }] })).toEqual(
           'typescript',
         );
+        expect(WorkflowUtil.getAssetType({ metadata: [{ id: 'StatWrap.JuliaHandler' }] })).toEqual(
+          'julia',
+        );
       });
 
       it('should return a default value for unkown types', () => {
