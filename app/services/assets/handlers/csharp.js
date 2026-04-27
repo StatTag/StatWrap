@@ -25,6 +25,9 @@ const FILE_WRITE_METHODS = [
   'OpenWrite',
 ];
 
+// C# string literals used for file paths: regular ("...") and verbatim (@"...").
+const CSHARP_PATH_LITERAL = `(?:@"(?:[^"]|"")*"|"(?:\\\\.|[^"\\\\])*")`;
+
 export default class CSharpHandler extends BaseCodeHandler {
   static id = 'StatWrap.CSharpHandler';
 
@@ -100,9 +103,9 @@ export default class CSharpHandler extends BaseCodeHandler {
     const readMethodPattern = FILE_READ_METHODS.map((method) => `${method}(?:Async)?`).join('|');
 
     const readMatches = [
-      ...text.matchAll(new RegExp(`File\\.(?:${readMethodPattern})\\s*\\(\\s*(['\"]{1,}\\s*?[\\s\\S]+?['\"]{1,})[\\s\\S]*?\\)`, 'gim')),
-      ...text.matchAll(/new\s+StreamReader\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
-      ...text.matchAll(/new\s+FileStream\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})\s*,\s*FileMode\.(?:Open|OpenOrCreate)[\s\S]*?\)/gim),
+      ...text.matchAll(new RegExp(`File\\.(?:${readMethodPattern})\\s*\\(\\s*(${CSHARP_PATH_LITERAL})[\\s\\S]*?\\)`, 'gim')),
+      ...text.matchAll(new RegExp(`new\\s+StreamReader\\s*\\(\\s*(${CSHARP_PATH_LITERAL})[\\s\\S]*?\\)`, 'gim')),
+      ...text.matchAll(new RegExp(`new\\s+FileStream\\s*\\(\\s*(${CSHARP_PATH_LITERAL})\\s*,\\s*FileMode\\.(?:Open|OpenOrCreate)[\\s\\S]*?\\)`, 'gim')),
     ];
 
     for (let index = 0; index < readMatches.length; index++) {
@@ -139,9 +142,9 @@ export default class CSharpHandler extends BaseCodeHandler {
     const writeMethodPattern = FILE_WRITE_METHODS.map((method) => `${method}(?:Async)?`).join('|');
 
     const writeMatches = [
-      ...text.matchAll(new RegExp(`File\\.(?:${writeMethodPattern})\\s*\\(\\s*(['\"]{1,}\\s*?[\\s\\S]+?['\"]{1,})[\\s\\S]*?\\)`, 'gim')),
-      ...text.matchAll(/new\s+StreamWriter\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})[\s\S]*?\)/gim),
-      ...text.matchAll(/new\s+FileStream\s*\(\s*(['"]{1,}\s*?[\s\S]+?['"]{1,})\s*,\s*FileMode\.(?:Create|CreateNew|Append|Truncate)[\s\S]*?\)/gim),
+      ...text.matchAll(new RegExp(`File\\.(?:${writeMethodPattern})\\s*\\(\\s*(${CSHARP_PATH_LITERAL})[\\s\\S]*?\\)`, 'gim')),
+      ...text.matchAll(new RegExp(`new\\s+StreamWriter\\s*\\(\\s*(${CSHARP_PATH_LITERAL})[\\s\\S]*?\\)`, 'gim')),
+      ...text.matchAll(new RegExp(`new\\s+FileStream\\s*\\(\\s*(${CSHARP_PATH_LITERAL})\\s*,\\s*FileMode\\.(?:Create|CreateNew|Append|Truncate)[\\s\\S]*?\\)`, 'gim')),
     ];
 
     for (let index = 0; index < writeMatches.length; index++) {

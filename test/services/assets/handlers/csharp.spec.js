@@ -172,6 +172,30 @@ describe('services', () => {
           ]),
         );
       });
+
+      it('should detect verbatim C# string literals in file operations', () => {
+        const outputs = new CSharpHandler().getOutputs(
+          'test.uri',
+          'File.CreateText(@"c:\\temp\\MyTest.txt");',
+        );
+
+        const inputs = new CSharpHandler().getInputs(
+          'test.uri',
+          'File.ReadAllText(@"c:\\temp\\MyTest.txt");',
+        );
+
+        expect(outputs).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ path: '@"c:\\temp\\MyTest.txt"' }),
+          ]),
+        );
+
+        expect(inputs).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ path: '@"c:\\temp\\MyTest.txt"' }),
+          ]),
+        );
+      });
     });
 
     describe('scan', () => {
