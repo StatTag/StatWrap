@@ -24,6 +24,36 @@ const FILE_IGNORE_LIST = [
   '.Rproj.user',
 ];
 
+// Directories that should be completely skipped during scanning to improve performance.
+// These directories are typically large and don't contain relevant assets.
+const DIRECTORY_IGNORE_LIST = [
+  'node_modules',
+  '.git',
+  'dist',
+  'build',
+  '.next',
+  '.venv',
+  'venv',
+  'env',
+  '__pycache__',
+  '.pytest_cache',
+  '.coverage',
+  'coverage',
+  'target',
+  'out',
+  'bin',
+  'obj',
+  '.gradle',
+  '.m2',
+  '.cmake',
+  'CMakeFiles',
+  '.idea',
+  '.vs',
+  '.vscode',
+  '*.egg-info',
+  '.DS_Store',
+];
+
 export default class AssetUtil {
 
   /**
@@ -517,6 +547,35 @@ export default class AssetUtil {
       return false;
     }
     return externalAssets.children.some((child) => child.uri === asset.uri);
+  }
+
+  /**
+   * Determine if a directory should be completely excluded from scanning.
+   * This improves performance by skipping large directories that typically don't contain relevant assets.
+   * @param {string} uri - A string containing the URI of the directory to check
+   * @returns {boolean} true if the directory should be excluded from scanning
+   */
+  static shouldExcludeDirectory(uri) {
+    if (!uri || uri === undefined) {
+      return false;
+    }
+
+    const dirName = path.basename(uri.trim());
+    if (dirName === '') {
+      return false;
+    }
+
+    // Check for exact directory name matches
+    if (DIRECTORY_IGNORE_LIST.includes(dirName)) {
+      return true;
+    }
+
+    // Check for directories that end with .egg-info
+    if (dirName.endsWith('.egg-info')) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
