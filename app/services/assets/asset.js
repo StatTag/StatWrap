@@ -110,15 +110,21 @@ export default class AssetService {
     // If this is a directory, we are going to traverse and get details
     // about the contained files and sub-folders
     if (result.type === 'directory') {
-      const self = this;
-      const files = fs.readdirSync(uri);
-      const children = [];
-      files.forEach(function eachFile(file) {
-        const filePath = path.join(uri, file);
-        children.push(self.scan(filePath));
-      });
+      // Check if this directory should be excluded from scanning (performance optimization)
+      if (!AssetUtil.shouldExcludeDirectory(uri)) {
+        const self = this;
+        const files = fs.readdirSync(uri);
+        const children = [];
+        files.forEach(function eachFile(file) {
+          const filePath = path.join(uri, file);
+          children.push(self.scan(filePath));
+        });
 
-      result.children = children;
+        result.children = children;
+      } else {
+        // Directory is excluded, don't recurse into it
+        result.children = [];
+      }
     }
 
     if (!this.handlers) {

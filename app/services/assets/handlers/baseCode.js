@@ -83,8 +83,11 @@ export default class BaseCodeHandler {
     // If this is a directory, we are going to traverse and get details
     // about the contained files and sub-folders
     if (asset.type === 'directory' && asset.children) {
-      const self = this;
-      asset.children.forEach((child, index) => (asset.children[index] = self.scan(child)));
+      // Skip processing if this directory was excluded during the initial scan
+      if (!AssetUtil.shouldExcludeDirectory(asset.uri)) {
+        const self = this;
+        asset.children.forEach((child, index) => (asset.children[index] = self.scan(child)));
+      }
     } else {
       if (!this.includeFile(asset.uri)) {
         return asset;
