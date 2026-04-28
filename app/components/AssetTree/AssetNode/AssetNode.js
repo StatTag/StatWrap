@@ -71,16 +71,16 @@ const StyledLabel = styled.span`
 function AssetNode(props) {
   const {
     node,
-    root,
-    openNodes,
-    checkedNodes,
-    selectedAsset,
-    level,
-    checkboxes,
-    onToggle,
-    onRightClick,
-    onClick,
-    ancestorArchived,
+    root = false,
+    openNodes = [],
+    checkedNodes = [],
+    selectedAsset = null,
+    level = 0,
+    checkboxes = false,
+    onToggle = null,
+    onRightClick = null,
+    onClick = null,
+    ancestorArchived = false,
   } = props;
   const isOpen = root || openNodes.includes(node.uri);
   const isChecked = checkboxes && (root || checkedNodes.includes(node.uri));
@@ -183,20 +183,6 @@ AssetNode.propTypes = {
   checkedNodes: PropTypes.array,
   checkboxes: PropTypes.bool,
   ancestorArchived: PropTypes.bool,
-};
-
-AssetNode.defaultProps = {
-  root: false,
-  onToggle: null,
-  onRightClick: null,
-  onClick: null,
-  onCheck: null,
-  level: 0,
-  selectedAsset: null,
-  openNodes: [],
-  checkedNodes: [],
-  checkboxes: false,
-  ancestorArchived: false,
 };
 
 export default AssetNode;

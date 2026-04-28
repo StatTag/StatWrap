@@ -5,7 +5,8 @@ import PropTypes from 'prop-types';
 import Error from '../../Error/Error';
 import styles from './LinkedDescription.css';
 
-function linkedDescription(props) {
+function linkedDescription({ projectPath = '', ...rest }) {
+  const props = { projectPath, ...rest };
   const [validationErrorMessage, setValidationErrorMessage] = useState(null);
   const [linkedUri, setLinkedUri] = useState(null);
 
@@ -57,10 +58,6 @@ linkedDescription.propTypes = {
   uri: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
   projectPath: PropTypes.string,
-};
-
-linkedDescription.defaultProps = {
-  projectPath: '',
 };
 
 export default linkedDescription;

@@ -15,7 +15,17 @@ import NoteEditor from '../NoteEditor/NoteEditor';
 import GeneralUtil from '../../utils/general';
 import styles from './Person.css';
 
-function person(props) {
+function person({
+  id = '',
+  name = null,
+  affiliation = '',
+  roles = [],
+  notes = [],
+  onEditPerson = null,
+  onDeletePerson = null,
+  ...rest
+}) {
+  const props = { id, name, affiliation, roles, notes, onEditPerson, onDeletePerson, ...rest };
   const { mode } = props;
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -112,16 +122,6 @@ person.propTypes = {
   notes: PropTypes.array,
   onEditPerson: PropTypes.func,
   onDeletePerson: PropTypes.func,
-};
-
-person.defaultProps = {
-  id: '',
-  name: null,
-  affiliation: '',
-  roles: [],
-  notes: [],
-  onEditPerson: null,
-  onDeletePerson: null,
 };
 
 export default person;
