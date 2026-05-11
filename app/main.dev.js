@@ -128,11 +128,11 @@ const createWindow = async () => {
 
   // Shared handler to take a URL and determine if we should open it in the user's
   // browser (returns true), or if we let electron handle it normally (false).
-  async function handleUrl(url: string) {
+  function handleUrl(url) {
     try {
       const parsedUrl = new URL(url);
       const { protocol } = parsedUrl;
-      if (protocol === "http:" || protocol === "https:") {
+      if (protocol === 'http:' || protocol === 'https:') {
         shell.openExternal(url); // Open in external browser
         return true;
       }
