@@ -131,9 +131,14 @@ const createWindow = async () => {
   function handleUrl(url) {
     try {
       const parsedUrl = new URL(url);
-      const { protocol } = parsedUrl;
+      const { protocol, pathname } = parsedUrl;
       if (protocol === 'http:' || protocol === 'https:') {
         shell.openExternal(url); // Open in external browser
+        return true;
+      } else if (protocol === 'file:') {
+        // We will default to showing in the folder (for now) instead of opening the file.
+        // Depending on user feedback we might adjust this in the future.
+        shell.showItemInFolder(pathname);
         return true;
       }
     } catch (err) {
@@ -1050,13 +1055,11 @@ ipcMain.handle(Messages.GET_APP_DATA_PATH, async () => {
 
 // Handler to show item in folder
 ipcMain.on(Messages.SHOW_ITEM_IN_FOLDER, (event, fullPath) => {
-  const { shell } = require('electron');
   shell.showItemInFolder(fullPath);
 });
 
 // Handler to open file with default application
 ipcMain.on(Messages.OPEN_FILE_WITH_DEFAULT, (event, fullPath, isURL = false) => {
-  const { shell } = require('electron');
   if (isURL) {
     shell.openExternal(fullPath);
   } else {
