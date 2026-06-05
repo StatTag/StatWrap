@@ -73,6 +73,7 @@ module.exports = {
     EXTERNAL_ASSET_UPDATED: 'External Asset Updated',
     EXTERNAL_ASSET_DELETED: 'External Asset Deleted',
 
+    CHECKLIST_CREATED: 'Checklist Created',
     CHECKLIST_UPDATED: 'Checklist Updated',
 
     ASSET_ADDED: 'Asset Added',

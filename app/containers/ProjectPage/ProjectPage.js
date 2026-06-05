@@ -9,6 +9,7 @@ import styles from './ProjectPage.css';
 import UserContext from '../../contexts/User';
 
 import Messages from '../../constants/messages';
+import Constants from '../../constants/constants';
 import ChecklistUtil from '../../utils/checklist';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import {
@@ -353,7 +354,16 @@ class ProjectPage extends Component {
     if (response.checklist && response.checklist.length === 0) {
       // response only returns project id, we need to find the project path
       const project = this.state.projects.find((p) => p.id === response.projectId);
-      ipcRenderer.send(Messages.WRITE_PROJECT_CHECKLIST_REQUEST, project.path, projectChecklist);
+      this.handleChecklistUpdate(
+        project,
+        projectChecklist,
+        Constants.ActionType.CHECKLIST_CREATED,
+        null,
+        null,
+        `${Constants.ActionType.CHECKLIST_CREATED} - Existing Project`,
+        'Initialized the checklist for an existing project',
+        projectChecklist
+      );
     }
 
     if (this.state.selectedProject && response.projectId === this.state.selectedProject.id) {

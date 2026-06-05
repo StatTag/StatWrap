@@ -254,6 +254,14 @@ class CreateProjectDialog extends Component {
           Messages.WRITE_PROJECT_CHECKLIST_REQUEST,
           response.project.path,
           projectChecklist,
+          Constants.ActionType.CHECKLIST_CREATED,
+          null,
+          null,
+          `${Constants.ActionType.CHECKLIST_CREATED} - New Project`,
+          'Initialized the checklist for a newly created project',
+          projectChecklist,
+          'info',
+          this.context
         )
       }
       this.props.onClose(true);
