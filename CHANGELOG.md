@@ -1,5 +1,70 @@
 # StatWrap Changelog
 
+## 0.0.21 - June 5, 2026
+
+### Change Summary
+
+This release includes a **large** list of changes, with many thanks to several new contributors!
+
+- Update dependencies
+- Implement live search with debounce (@aabhinavvvvvvv)
+- Clear project selection after removing a project by (@aabhinavvvvvvv)
+- Add "Show in File Explorer" context menu option to project list (@dibyanshu-pal-kushwaha)
+- Guard against losing project description changes (@dibyanshu-pal-kushwaha)
+- Auto-select default project on app load (@aabhinavvvvvvv)
+- Fix retaining selected project after navigation by (@dibyanshu-pal-kushwaha)
+- Add feature to select sub-folder of project for dependency view (@dibyanshu-pal-kushwaha)
+- Fix three dots menu option making clickable (@dibyanshu-pal-kushwaha)
+- Preserve the asset expansion state when in the same project view (@dibyanshu-pal-kushwaha)
+- Fixed archive inherits at folders (@dibyanshu-pal-kushwaha)
+- Fix inconsistent naming for project pinning (@adityai0)
+- Add additional folders/file from External Resource (@dibyanshu-pal-kushwaha)
+- Warn when sensitive files are tracked by version control (@Ayush4958)
+- Added saving roles by clicking save button (@dibyanshu-pal-kushwaha)
+- Fixed Notes content overflow (@dibyanshu-pal-kushwaha)
+- Add "uncheck all" option in workflow filters (@adityai0)
+- fixes the note component (@Ayush4958)
+- fix: dashboard input bar (@Ayush4958)
+- fix the project name clipping issue for longer project names (@hellosamyak)
+- Feature: recommended people name to add from RMarkDown & Quarto (@Ayush4958)
+- fix: correctly increment userProfileDialogKey in setState (@aabhinavvvvvvv)
+- style: remove dead css code in app.global.css (@adityai0)
+- fix: remove duplicate URL key in AssetType constant (@aabhinavvvvvvv)
+- fix: reset DataTable state on Expand All / Collapse All click (@aabhinavvvvvvv)
+- fix: pass id and name through createStatWrapConfig for cloned projects (@aabhinavvvvvvv)
+- fix(bug): Cancel "Edit Profile" doesn't discard changes (@adityai0)
+- fix: UI rendering of Categories & Description attribute (@Ayush4958)
+- fix: improve notes UX and add person delete confirmation (@aabhinavvvvvvv)
+- Added functionality to open file from assets (@debangi29)
+- fix(ui): update 'Open File' label to 'Open Folder' for folders (@adityai0)
+- Made Uniform Title Background color for all cards (@dibyanshu-pal-kushwaha)
+- Enhanced R Parameter parsing (@dibyanshu-pal-kushwaha)
+- feat(assets): replace file actions with 'Open URL' for external assets (URL) (@adityai0)
+- Added Confirming card before deleting the person in the table's view (@dibyanshu-pal-kushwaha)
+- Perf: Exclude heavy directories from workflow rendering and align graph preprocessing (@hellosamyak)
+- Fixing Typos & Grammatical mistakes (@dibyanshu-pal-kushwaha)
+- Fixing Project Log Name issue (@dibyanshu-pal-kushwaha)
+- feat: add java icon for the language support (@Ayush4958)
+- Fix external URL handler signature in main.dev.js (@hellosamyak)
+- Checklist file links should open in folder (@lrasmus)
+- Create a detailed log entry when creating checklist (@lrasmus)
+- Scrollbar for large project lists (@lrasmus)
+- Remove references to defaultProps (@lrasmus)
+
+New language support added in this version:
+
+- C/C++ (@dibyanshu-pal-kushwaha)
+- C# (@dibyanshu-pal-kushwaha)
+- Dart (@adityai0)
+- Go (@Ayush4958)
+- JavaScript/TypeScript (@aabhinavvvvvvv)
+- Julia (@aabhinavvvvvvv)
+- Rust (@Ayush4958)
+- Scala (@adityai0)
+- SQL (@Ayush4958)
+
+**Full Changelog**: https://github.com/StatTag/StatWrap/compare/0.0.20...0.0.21
+
 ## 0.0.20 - December 3, 2025
 
 ### Change Summary
