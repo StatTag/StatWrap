@@ -24,7 +24,7 @@ Across the entire application, we will centralize logging via an IPC call using 
 
 ## Generating Actions
 
-Within the React portion of StatWrap, project updates are managed by sending a completely updated `project` object that can be writting to the configuration JSON file. Because this doesn't provide information about what was actually done, that needs to be supplemented with a user-friendly description of the action.
+Within the React portion of StatWrap, project updates are managed by sending a completely updated `project` object that can be written to the configuration JSON file. Because this doesn't provide information about what was actually done, that needs to be supplemented with a user-friendly description of the action.
 
 All React actions related to a project will ultimately be routed up through `ProjectPage.js`'s `handleProjectUpdate`. This takes the following parameters:
 

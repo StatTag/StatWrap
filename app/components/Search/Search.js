@@ -58,6 +58,7 @@ import ObjectTypeFilter from './ObjectTypeFilter/ObjectTypeFilter';
 import SettingsContext from '../../contexts/Settings';
 import SearchConfig from '../../constants/search-config';
 import Messages from '../../constants/messages';
+import Constants from '../../constants/constants';
 
 const EMPTY_SEARCH_RESULTS = {
   projects: [],
@@ -178,7 +179,7 @@ const Search = (props) => {
     if (props.projects && searchSettings) {
       ipcRenderer.send(Messages.SEARCH_INDEX_INIT_REQUEST, props.projects, searchSettings);
     } else {
-      console.log('Defering index status request until all configuration data is available');
+      console.log('Deferring index status request until all configuration data is available');
     }
   }, [searchSettings, props.projects]);
 
@@ -1161,7 +1162,7 @@ const ResultItemComponent = ({
                     size="small"
                     variant="outlined"
                     onClick={() => {
-                      ipcRenderer.send(Messages.OPEN_FILE_WITH_DEFAULT, item.fullPath);
+                      ipcRenderer.send(Messages.OPEN_FILE_WITH_DEFAULT, item.fullPath, item.type == Constants.AssetType.URL);
                     }}
                   >
                     Open File

@@ -9,9 +9,13 @@ import RustHandler from '../services/assets/handlers/rust';
 import SQLHandler from '../services/assets/handlers/sql';
 import GoHandler from '../services/assets/handlers/go';
 import JavaScriptHandler from '../services/assets/handlers/javascript';
+import TypeScriptHandler from '../services/assets/handlers/typescript';
 import CppHandler from '../services/assets/handlers/cpp';
 import CHandler from '../services/assets/handlers/c';
+import CSharpHandler from '../services/assets/handlers/csharp';
 import DartHandler from '../services/assets/handlers/dart';
+import ScalaHandler from '../services/assets/handlers/scala';
+import JuliaHandler from '../services/assets/handlers/julia';
 import path from 'path';
 
 export default class WorkflowUtil {
@@ -69,10 +73,18 @@ export default class WorkflowUtil {
       assetType = 'go';
     } else if (AssetUtil.getHandlerMetadata(JavaScriptHandler.id, asset.metadata)) {
       assetType = 'javascript';
+    } else if (AssetUtil.getHandlerMetadata(TypeScriptHandler.id, asset.metadata)) {
+      assetType = 'typescript';
     } else if (AssetUtil.getHandlerMetadata(CHandler.id, asset.metadata)) {
       assetType = 'c';
+    } else if (AssetUtil.getHandlerMetadata(CSharpHandler.id, asset.metadata)) {
+      assetType = 'csharp';
     } else if (AssetUtil.getHandlerMetadata(DartHandler.id, asset.metadata)) {
       assetType = 'dart';
+    } else if (AssetUtil.getHandlerMetadata(ScalaHandler.id, asset.metadata)) {
+      assetType = 'scala';
+    } else if (AssetUtil.getHandlerMetadata(JuliaHandler.id, asset.metadata)) {
+      assetType = 'julia';
     }
     return assetType;
   }
@@ -284,7 +296,7 @@ export default class WorkflowUtil {
   static getAllDependenciesAsTree(asset) {
     const filteredAsset = WorkflowUtil.filterArchivedAssets(asset);
 
-    if (!filteredAsset) {
+    if (!filteredAsset || !AssetUtil.includeAsset(filteredAsset.uri)) {
       return null;
     }
 
@@ -299,7 +311,10 @@ export default class WorkflowUtil {
     if (filteredAsset.children) {
       tree.children = [];
       for (let index = 0; index < filteredAsset.children.length; index++) {
-        tree.children.push(WorkflowUtil.getAllDependenciesAsTree(filteredAsset.children[index]));
+        const childTree = WorkflowUtil.getAllDependenciesAsTree(filteredAsset.children[index]);
+        if (childTree) {
+          tree.children.push(childTree);
+        }
       }
     }
 
@@ -375,10 +390,13 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, SQLHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, GoHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, JavaScriptHandler.id, libraries, inputs, outputs);
+    WorkflowUtil._getMetadataDependencies(asset, TypeScriptHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, CppHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, CHandler.id, libraries, inputs, outputs);
-
+    WorkflowUtil._getMetadataDependencies(asset, CSharpHandler.id, libraries, inputs, outputs);
+    WorkflowUtil._getMetadataDependencies(asset, ScalaHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, DartHandler.id, libraries, inputs, outputs);
+    WorkflowUtil._getMetadataDependencies(asset, JuliaHandler.id, libraries, inputs, outputs);
     return libraries
       .map((e) => {
         return { ...e, direction: Constants.DependencyDirection.IN };
@@ -409,12 +427,12 @@ export default class WorkflowUtil {
   static getAllDependencies(asset, rootUri) {
     const dependencies = asset
       ? [
-          {
-            asset: rootUri ? asset.uri.replace(rootUri, '').replace(/^\\+|\/+/, '') : asset.uri,
-            assetType: WorkflowUtil.getAssetType(asset),
-            dependencies: WorkflowUtil.getDependencies(asset),
-          },
-        ]
+        {
+          asset: rootUri ? asset.uri.replace(rootUri, '').replace(/^\\+|\/+/, '') : asset.uri,
+          assetType: WorkflowUtil.getAssetType(asset),
+          dependencies: WorkflowUtil.getDependencies(asset),
+        },
+      ]
       : [];
     if (!asset || !asset.children) {
       return dependencies.flat();
@@ -445,9 +463,14 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, SQLHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, GoHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, JavaScriptHandler.id, libraries, [], []);
+    WorkflowUtil._getMetadataDependencies(asset, TypeScriptHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, CppHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, CHandler.id, libraries, [], []);
+    WorkflowUtil._getMetadataDependencies(asset, CSharpHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, DartHandler.id, libraries, [], []);
+    WorkflowUtil._getMetadataDependencies(asset, ScalaHandler.id, libraries, [], []);
+    WorkflowUtil._getMetadataDependencies(asset, JuliaHandler.id, libraries, [], []);
+
     return libraries;
   }
 
@@ -459,12 +482,12 @@ export default class WorkflowUtil {
   static getAllLibraryDependencies(asset) {
     const libraries = asset
       ? [
-          {
-            asset: asset.uri,
-            assetType: WorkflowUtil.getAssetType(asset),
-            dependencies: WorkflowUtil.getLibraryDependencies(asset),
-          },
-        ]
+        {
+          asset: asset.uri,
+          assetType: WorkflowUtil.getAssetType(asset),
+          dependencies: WorkflowUtil.getLibraryDependencies(asset),
+        },
+      ]
       : [];
     if (!asset || !asset.children) {
       return libraries.flat();

@@ -10,6 +10,7 @@ const ICON_TYPES = {
   SAS: `${ICON_PATH}sas.svg`,
   STATA: `${ICON_PATH}stata.png`,
   JAVASCRIPT: `${ICON_PATH}js.svg`,
+  TYPESCRIPT: `${ICON_PATH}ts.svg`,
   CPP: `${ICON_PATH}cpp.svg`,
   GENERIC: `${ICON_PATH}generic.svg`,
   LIBRARY: `${ICON_PATH}library.svg`,
@@ -20,6 +21,9 @@ const ICON_TYPES = {
   SQL: `${ICON_PATH}sql.svg`,
   GO: `${ICON_PATH}go.svg`,
   C: `${ICON_PATH}c.svg`,
+  CSHARP: `${ICON_PATH}csharp.svg`,
+  SCALA: `${ICON_PATH}scala.svg`,
+  JULIA: `${ICON_PATH}julia.svg`,
 };
 
 /**
@@ -38,6 +42,8 @@ function CodeNode({ node, renderType }) {
     iconUrl = ICON_TYPES.STATA;
   } else if (node.assetType === 'javascript') {
     iconUrl = ICON_TYPES.JAVASCRIPT;
+  } else if (node.assetType === 'typescript') {
+    iconUrl = ICON_TYPES.TYPESCRIPT;
   } else if (node.assetType === 'cpp') {
     iconUrl = ICON_TYPES.CPP;
   } else if (node.assetType === 'rust') {
@@ -52,8 +58,14 @@ function CodeNode({ node, renderType }) {
     iconUrl = ICON_TYPES.GO;
   } else if (node.assetType === 'c') {
     iconUrl = ICON_TYPES.C;    
+  } else if (node.assetType === 'csharp') {
+    iconUrl = ICON_TYPES.CSHARP;
   } else if (node.assetType === 'dart') {
     iconUrl = ICON_TYPES.DART;
+  } else if (node.assetType === 'scala') {
+    iconUrl = ICON_TYPES.SCALA;
+  } else if (node.assetType === 'julia') {
+    iconUrl = ICON_TYPES.JULIA;
   } else if (node.assetType === Constants.DependencyType.DATA) {
     iconUrl = ICON_TYPES.DATA;
   } else if (node.assetType === Constants.DependencyType.FIGURE) {

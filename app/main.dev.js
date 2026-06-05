@@ -128,12 +128,17 @@ const createWindow = async () => {
 
   // Shared handler to take a URL and determine if we should open it in the user's
   // browser (returns true), or if we let electron handle it normally (false).
-  async function handleUrl(url: string) {
+  function handleUrl(url) {
     try {
       const parsedUrl = new URL(url);
-      const { protocol } = parsedUrl;
-      if (protocol === "http:" || protocol === "https:") {
+      const { protocol, pathname } = parsedUrl;
+      if (protocol === 'http:' || protocol === 'https:') {
         shell.openExternal(url); // Open in external browser
+        return true;
+      } else if (protocol === 'file:') {
+        // We will default to showing in the folder (for now) instead of opening the file.
+        // Depending on user feedback we might adjust this in the future.
+        shell.showItemInFolder(pathname);
         return true;
       }
     } catch (err) {
@@ -210,7 +215,8 @@ app.on('window-all-closed', () => {
   }
 });
 
-app.on('ready', createWindow);
+// Modernize the window creation process as newer electron version strongly prefer promise based approach
+app.whenReady().then(createWindow);
 
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
@@ -1049,14 +1055,16 @@ ipcMain.handle(Messages.GET_APP_DATA_PATH, async () => {
 
 // Handler to show item in folder
 ipcMain.on(Messages.SHOW_ITEM_IN_FOLDER, (event, fullPath) => {
-  const { shell } = require('electron');
   shell.showItemInFolder(fullPath);
 });
 
 // Handler to open file with default application
-ipcMain.on(Messages.OPEN_FILE_WITH_DEFAULT, (event, fullPath) => {
-  const { shell } = require('electron');
-  shell.openPath(fullPath);
+ipcMain.on(Messages.OPEN_FILE_WITH_DEFAULT, (event, fullPath, isURL = false) => {
+  if (isURL) {
+    shell.openExternal(fullPath);
+  } else {
+    shell.openPath(fullPath);
+  }
 });
 
 /**

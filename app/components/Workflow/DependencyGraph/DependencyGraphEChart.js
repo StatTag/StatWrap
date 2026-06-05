@@ -16,6 +16,7 @@ const ICON_TYPES = {
   SAS: `${ICON_PATH}sas.svg`,
   STATA: `${ICON_PATH}stata.png`,
   JAVASCRIPT: `${ICON_PATH}js.svg`,
+  TYPESCRIPT: `${ICON_PATH}ts.svg`,
   CPP: `${ICON_PATH}cpp.svg`,
   JAVA: `${ICON_PATH}java.svg`,
   GENERIC: `${ICON_PATH}generic.svg`,
@@ -27,6 +28,9 @@ const ICON_TYPES = {
   SQL: `${ICON_PATH}sql.svg`,
   GO: `${ICON_PATH}go.svg`,
   C: `${ICON_PATH}c.svg`,
+  CSHARP: `${ICON_PATH}csharp.svg`,
+  SCALA: `${ICON_PATH}scala.svg`,
+  JULIA: `${ICON_PATH}julia.svg`,
 };
 
 /**
@@ -46,13 +50,15 @@ function getIcon(node) {
     iconUrl = ICON_TYPES.STATA;
   } else if (node.value === 'javascript') {
     iconUrl = ICON_TYPES.JAVASCRIPT;
+  } else if (node.value === 'typescript') {
+    iconUrl = ICON_TYPES.TYPESCRIPT;
   } else if (node.value === 'cpp') {
     iconUrl = ICON_TYPES.CPP;
   } else if (node.value === 'java') {
     iconUrl = ICON_TYPES.JAVA;
   } else if (node.value === 'dependency') {
     iconUrl = ICON_TYPES.LIBRARY;
-  } else if(node.value === 'rust'){
+  } else if (node.value === 'rust') {
     iconUrl = ICON_TYPES.RUST;
   } else if (node.value === 'sql') {
     iconUrl = ICON_TYPES.SQL;
@@ -62,6 +68,12 @@ function getIcon(node) {
     iconUrl = ICON_TYPES.C;
   } else if (node.value === 'dart') {
     iconUrl = ICON_TYPES.DART;
+  } else if (node.value === 'scala') {
+    iconUrl = ICON_TYPES.SCALA;
+  } else if (node.value === 'csharp') {
+    iconUrl = ICON_TYPES.CSHARP;
+  } else if (node.value === 'julia') {
+    iconUrl = ICON_TYPES.JULIA;
   } else if (node.value === Constants.DependencyType.DATA) {
     iconUrl = ICON_TYPES.DATA;
   } else if (node.value === Constants.DependencyType.FIGURE) {
@@ -93,7 +105,8 @@ function DependencyGraphEChart({ assets = null, zoomLevel = 1 }) {
   // those that should be displayed.
   const handleFilterChanged = (updatedFilter) => {
     if (assets) {
-      const filteredAssets = WorkflowUtil.filterArchivedAssets(assets);
+      const archivedFilteredAssets = WorkflowUtil.filterArchivedAssets(assets);
+      const filteredAssets = AssetUtil.filterIncludedFileAssets(archivedFilteredAssets);
       setFilter(updatedFilter);
       setGraphData(WorkflowUtil.getAllDependenciesAsEChartGraph(filteredAssets, updatedFilter));
     } else {

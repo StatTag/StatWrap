@@ -67,7 +67,7 @@ Because we will only ever send in a directory as the URI to scan, we always retu
 
 Once this structure of assets is built, it is sent to our collection of handlers for additional annotation.
 
-> NOTE: We don't assume that only one handler applies to any asset. This will allow us to be a little more flexible in how we define and implement the asset handlers, while realizing that we will need to avoid signficant extra processing overhead.
+> NOTE: We don't assume that only one handler applies to any asset. This will allow us to be a little more flexible in how we define and implement the asset handlers, while realizing that we will need to avoid significant extra processing overhead.
 
 Every handler should implement the following interface:
 
@@ -198,6 +198,51 @@ We collect 3 categories of metadata for JavaScript code files (`.js`, `.jsx`, `.
 **Libraries**
 
 ES module imports (`import x from 'module'`, `import { x } from 'module'`, `import * as x from 'module'`, `import 'module'`) and CommonJS requires (`require('module')`).
+
+### TypeScript Code Files
+
+We collect 3 categories of metadata for TypeScript code files (`.ts`, `.tsx`, `.mts`, `.cts`):
+
+**Inputs**
+
+| Category           | Example Functions / Patterns                            | Data Type |
+| ------------------ | ------------------------------------------------------- | --------- |
+| Node.js file reads | `fs.readFileSync`, `fs.readFile`, `fs.createReadStream` | `data`    |
+
+**Outputs**
+
+| Category            | Example Functions / Patterns                                                                     | Data Type |
+| ------------------- | ------------------------------------------------------------------------------------------------ | --------- |
+| Node.js file writes | `fs.writeFileSync`, `fs.writeFile`, `fs.appendFile`, `fs.appendFileSync`, `fs.createWriteStream` | `data`    |
+
+**Libraries**
+
+ES module imports (`import x from 'module'`, `import { x } from 'module'`, `import * as x from 'module'`, `import 'module'`), TypeScript type-only imports (`import type { x } from 'module'`), and CommonJS requires (`require('module')`).
+
+### Julia Code Files
+
+We collect 3 categories of metadata for Julia code files (`.jl`):
+
+**Inputs**
+
+| Category   | Example Functions / Patterns                                         | Data Type |
+| ---------- | -------------------------------------------------------------------- | --------- |
+| File reads | `open("file")`, `open("file", "r")`, `read`, `readlines`, `readline` | `data`    |
+| CSV reads  | `CSV.read`, `CSV.File`                                               | `data`    |
+| Data loads | `load`, `@load`                                                      | `data`    |
+
+**Outputs**
+
+| Category     | Example Functions / Patterns                      | Data Type |
+| ------------ | ------------------------------------------------- | --------- |
+| File writes  | `open("file", "w")`, `open("file", "a")`, `write` | `data`    |
+| CSV writes   | `CSV.write`                                       | `data`    |
+| Figure saves | `savefig`                                         | `figure`  |
+| Data saves   | `save`, `@save`                                   | `data`    |
+
+**Libraries**
+
+`using Package`, `using Package: func1, func2`, `import Package`, `import Package: func1`, and `import Package as Alias`.
 
 ## Asset Groups
 

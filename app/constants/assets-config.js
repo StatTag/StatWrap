@@ -65,6 +65,11 @@ module.exports = {
       categories: ['code'],
     },
     {
+      name : 'Scala',
+      extensions: ['scala'],
+      categories: ['code'],
+    },
+    {
       name: 'SQL',
       extensions: ['sql'],
       categories: ['code'],
@@ -80,6 +85,16 @@ module.exports = {
       categories: ['code'],
     },
     {
+      name: 'TypeScript',
+      extensions: ['ts', 'tsx', 'mts', 'cts'],
+      categories: ['code'],
+    },
+    {
+      name: 'Julia',
+      extensions: ['jl'],
+      categories: ['code'],
+    },
+    {
       name: 'C++',
       extensions: ['cc', 'cpp', 'cxx', 'c++', 'h', 'hh', 'hpp', 'hxx', 'ipp', 'tpp', 'inl'],
       categories: ['code'],
@@ -87,6 +102,11 @@ module.exports = {
     {
       name: 'C',
       extensions: ['c', 'h'],
+      categories: ['code'],
+    },
+    {
+      name: 'C#',
+      extensions: ['cs', 'csx'],
       categories: ['code'],
     },
     {

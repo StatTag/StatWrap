@@ -642,6 +642,49 @@ describe('services', () => {
         new RHandler().getOutputs('test.uri', '   #    f <- file("test.dat", "w")').length,
       ).toEqual(0);
     });
+    it('should retrieve output file locations from named file parameters', () => {
+      let libraries = new RHandler().getOutputs('test.uri', "write_csv(df_mod, file='mod2.csv')");
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: "write_csv - 'mod2.csv'",
+        type: 'data',
+        path: "'mod2.csv'",
+      });
+
+      libraries = new RHandler().getOutputs(
+        'test.uri',
+        'pdf(width = 100, height = 100,\r\n    file = "test.pdf")',
+      );
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: 'pdf - "test.pdf"',
+        type: 'figure',
+        path: '"test.pdf"',
+      });
+
+      libraries = new RHandler().getOutputs(
+        'test.uri',
+        'png(width=100,file="c:\\\\data\\\\test.pdf",height=100)',
+      );
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: 'png - "c:\\\\data\\\\test.pdf"',
+        type: 'figure',
+        path: '"c:\\\\data\\\\test.pdf"',
+      });
+    });
+    it('should handle named open parameter for output connections', () => {
+      const libraries = new RHandler().getOutputs(
+        'test.uri',
+        'f = file("test.txt", open = "wb", blocking=FALSE)',
+      );
+      expect(libraries.length).toEqual(1);
+      expect(libraries[0]).toMatchObject({
+        id: 'file - "test.txt"',
+        type: 'data',
+        path: '"test.txt"',
+      });
+    });
     describe('getInputs', () => {
       it('should handle empty/blank inputs', () => {
         expect(new RHandler().getInputs('test.uri', '').length).toEqual(0);
@@ -833,6 +876,35 @@ describe('services', () => {
         );
         expect(new RHandler().getInputs('test.uri', " #source('./test.R')").length).toEqual(0);
         expect(new RHandler().getInputs('test.uri', "  #   source ( 'test.r' )").length).toEqual(0);
+      });
+      it('should retrieve input file locations from named file parameters', () => {
+        let libraries = new RHandler().getInputs('test.uri', 'read_csv(file="storms.csv")');
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'read_csv - "storms.csv"',
+          type: 'data',
+          path: '"storms.csv"',
+        });
+
+        libraries = new RHandler().getInputs('test.uri', "source(file='helpers.r')");
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: "source - 'helpers.r'",
+          type: 'code',
+          path: "'helpers.r'",
+        });
+      });
+      it('should handle named open parameter for input connections', () => {
+        const libraries = new RHandler().getInputs(
+          'test.uri',
+          'f = gzfile("test.gz", open = "rb")',
+        );
+        expect(libraries.length).toEqual(1);
+        expect(libraries[0]).toMatchObject({
+          id: 'gzfile - "test.gz"',
+          type: 'data',
+          path: '"test.gz"',
+        });
       });
     });
     describe('getLibraryId', () => {

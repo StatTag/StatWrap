@@ -225,7 +225,7 @@ export default class ProjectUtil {
         }
       }
 
-      // If assetClone is just a stub, and now it has no children (after recusive filtering)
+      // If assetClone is just a stub, and now it has no children (after recursive filtering)
       // we don't want to return the stub at all - just return null.
       if (isStub && assetClone.children.length === 0) {
         return null;
@@ -268,7 +268,7 @@ export default class ProjectUtil {
   }
 
   /**
-   * Internal worker function to recusively add valid assets to the flat array
+    * Internal worker function to recursively add valid assets to the flat array
    * @param {object} asset The current asset we are processing
    * @param {array} flattenedList The flat array of assets that we will add to
    */
@@ -353,11 +353,11 @@ export default class ProjectUtil {
     // We get back a flat list of dependencies, so no recursive processing is needed for these
     const ioFilter = { category: Constants.FilterCategory.INPUTS_OUTPUTS, values: [] };
     const dependencyFilter = { category: Constants.FilterCategory.DEPENDENCIES, values: [] };
-    const assetDepedencies = WorkflowUtil.getAllDependencies(filteredAssets);
-    if (!assetDepedencies) {
+    const assetDependencies = WorkflowUtil.getAllDependencies(filteredAssets);
+    if (!assetDependencies) {
       return filters;
     }
-    assetDepedencies.forEach((x) => {
+    assetDependencies.forEach((x) => {
       if (x.assetType && x.assetType !== Constants.AssetType.GENERIC) {
         x.dependencies.forEach((d) => {
           const type = d.type ? d.type : Constants.DependencyType.DEPENDENCY;
@@ -479,7 +479,7 @@ export default class ProjectUtil {
       const existingGroup = project.assetGroups.find((p) => p.id === group.id);
       if (existingGroup) {
         // Copy over only what attributes need to be saved in the directory.  Some
-        // attributs may be specific to the project entry for the person.
+        // attributes may be specific to the project entry for the person.
         existingGroup.name = group.name;
         existingGroup.details = group.details;
         existingGroup.assets = group.assets;
@@ -808,7 +808,7 @@ export default class ProjectUtil {
    * Utility function to save a project's configuration details.
    *
    * This function assumes that the project's assets are absolute and need
-   * to be convered to relative.
+    * to be converted to relative.
    * @param {object} project The project object that needs to be saved
    * @param {object} projectService an instance of ProjectService to be used for saving
    * @returns

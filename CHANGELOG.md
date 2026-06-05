@@ -82,7 +82,7 @@ Many thanks to numerous contributions from the community, including our [OSRE24 
 
 - Add TIER Protocol project template
 - Shorten long strings in workflow graph view and filter list
-- Fix issue with SAS %inclulde statement parsing
+- Fix issue with SAS %include statement parsing
 
 ## 0.0.12 - January 17, 2023
 

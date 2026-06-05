@@ -64,6 +64,19 @@ describe('utils', () => {
         expect(AssetUtil.filterIncludedFileAssets(undefined)).toBeNull();
       });
 
+      it('should return null for ignored assets', () => {
+        const asset = {
+          uri: '/Test/Asset/node_modules',
+          metadata: [
+            {
+              id: 'StatWrap.FileHandler',
+              include: true,
+            },
+          ],
+        };
+        expect(AssetUtil.filterIncludedFileAssets(asset)).toBeNull();
+      });
+
       it('should return null if the asset is not included', () => {
         const asset = {
           uri: '/Test/Asset',
@@ -1595,16 +1608,16 @@ describe('utils', () => {
       expect(AssetUtil.includeAsset('   ')).toBeFalsy();
     });
 
-    it('should exclude files we want to skip', () => {
-      expect(AssetUtil.includeAsset('/User/test/Project/.DS_Store')).toBeFalsy();
-      expect(AssetUtil.includeAsset('C:/test/Project/Thumbs.db')).toBeFalsy();
-      expect(AssetUtil.includeAsset(Constants.StatWrapFiles.PROJECT)).toBeFalsy();
-    });
-
     it('should include allowable files and folders', () => {
       expect(AssetUtil.includeAsset('/User/test/Project/DS/Store')).toBeTruthy();
       expect(AssetUtil.includeAsset('C:/test/Project/Thumbnail-1.jpg')).toBeTruthy();
       expect(AssetUtil.includeAsset('Manuscript-v1.docx')).toBeTruthy();
+    });
+
+    it('should exclude files we want to skip', () => {
+      expect(AssetUtil.includeAsset('/User/test/Project/.DS_Store')).toBeFalsy();
+      expect(AssetUtil.includeAsset('C:/test/Project/Thumbs.db')).toBeFalsy();
+      expect(AssetUtil.includeAsset('/User/test/Project/node_modules')).toBeFalsy();
     });
   });
 

@@ -62,7 +62,7 @@ const searchSettings = (props) => {
     if (props.projects && searchSettings) {
       ipcRenderer.send(Messages.SEARCH_INDEX_INIT_REQUEST, props.projects, searchSettings);
     } else {
-      console.log('Defering index status request until all configuration data is available');
+      console.log('Deferring index status request until all configuration data is available');
     }
   }, [searchSettings, props.projects]);
 

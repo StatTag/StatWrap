@@ -14,11 +14,15 @@ import StataHandler from './services/assets/handlers/stata';
 import JavaHandler from './services/assets/handlers/java';
 import RustHandler from './services/assets/handlers/rust';
 import GoHandler from './services/assets/handlers/go';
+import ScalaHandler from './services/assets/handlers/scala';
 import SQLHandler from './services/assets/handlers/sql';
 import JavaScriptHandler from './services/assets/handlers/javascript';
+import TypeScriptHandler from './services/assets/handlers/typescript';
 import CppHandler from './services/assets/handlers/cpp';
 import CHandler from './services/assets/handlers/c';
+import CSharpHandler from './services/assets/handlers/csharp';
 import DartHandler from './services/assets/handlers/dart';
+import JuliaHandler from './services/assets/handlers/julia';
 import AssetUtil from './utils/asset';
 import ProjectUtil from './utils/project';
 import Constants from './constants/constants';
@@ -65,9 +69,13 @@ contextBridge.exposeInMainWorld('workerElectronBridge', {
           new SQLHandler(),
           new GoHandler(),
           new JavaScriptHandler(),
+          new TypeScriptHandler(),
           new CppHandler(),
           new CHandler(),
+          new CSharpHandler(),
           new DartHandler(),
+          new ScalaHandler(),
+          new JuliaHandler(),
         ]);
         response.assets = service.scan(project.path); // Returns absolute paths
 
