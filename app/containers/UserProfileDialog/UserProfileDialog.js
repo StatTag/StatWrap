@@ -22,13 +22,14 @@ function PaperComponent(props) {
 class UserProfileDialog extends Component {
   constructor(props) {
     super(props);
+    const { id = null, name = null, affiliation = null } = props;
     this.state = {
       errorMessage: null,
-      id: props.id ? props.id : Constants.UndefinedDefaults.USER,
-      displayName: props.name ? props.name.display : '',
-      firstName: props.name ? props.name.first : '',
-      lastName: props.name ? props.name.last : '',
-      affiliation: props.affiliation ? props.affiliation : '',
+      id: id ? id : Constants.UndefinedDefaults.USER,
+      displayName: name ? name.display : '',
+      firstName: name ? name.first : '',
+      lastName: name ? name.last : '',
+      affiliation: affiliation ? affiliation : '',
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -82,6 +83,7 @@ class UserProfileDialog extends Component {
   }
 
   render() {
+    const { onClose, open = false } = this.props;
     let error = null;
     if (this.state.errorMessage) {
       error = <Error style={{ marginTop: '15px' }}>{this.state.errorMessage}</Error>;
@@ -89,10 +91,10 @@ class UserProfileDialog extends Component {
 
     return (
       <Dialog
-        onClose={this.props.onClose}
+        onClose={onClose}
         aria-labelledby="user-profile-dialog-title"
         PaperComponent={PaperComponent}
-        open={this.props.open}
+        open={open}
         fullWidth
         maxWidth="sm"
       >
@@ -157,7 +159,7 @@ class UserProfileDialog extends Component {
           <Button color="primary" onClick={this.handleSaveUserProfile}>
             Save
           </Button>
-          <Button color="primary" onClick={this.props.onClose}>
+          <Button color="primary" onClick={onClose}>
             Cancel
           </Button>
         </DialogActions>
@@ -174,14 +176,6 @@ UserProfileDialog.propTypes = {
   open: PropTypes.bool,
   // Triggered on a successful save of the person
   onSave: PropTypes.func,
-};
-
-UserProfileDialog.defaultProps = {
-  id: null,
-  name: null,
-  affiliation: null,
-  open: false,
-  onSave: null,
 };
 
 UserProfileDialog.contextType = UserContext;

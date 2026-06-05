@@ -5,7 +5,7 @@ import styles from './ProjectUpdateSummary.css';
 import ProjectUtil from '../../../utils/project';
 
 function projectUpdateSummary(props) {
-  const { updates } = props;
+  const { updates = null } = props;
   let control = null;
   // We only want to display content if the user has looked at the
   // project before (not a "first view"), and there is something
@@ -33,10 +33,6 @@ function projectUpdateSummary(props) {
 projectUpdateSummary.propTypes = {
   updates: PropTypes.object,
   onClickLink: PropTypes.func.isRequired,
-};
-
-projectUpdateSummary.defaultProps = {
-  updates: null,
 };
 
 export default projectUpdateSummary;

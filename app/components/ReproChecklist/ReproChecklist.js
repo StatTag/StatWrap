@@ -27,17 +27,16 @@ const scanFunctions = {
   Documentation: ChecklistUtil.findDocumentationFiles,
 };
 
-function ReproChecklist(props) {
-  const {
-    project,
-    checklist,
-    error,
-    onUpdated,
-    onAddedNote,
-    onUpdatedNote,
-    onDeletedNote,
-    onSelectedAsset,
-  } = props;
+function ReproChecklist({
+  project = null,
+  checklist = null,
+  error = null,
+  onUpdated = null,
+  onAddedNote = null,
+  onUpdatedNote = null,
+  onDeletedNote = null,
+  onSelectedAsset = null,
+}) {
   const [openExportDialog, setOpenExportDialog] = useState(false);
 
   // this useEffect hook is here to load the scan results for all the checklist statements
@@ -137,17 +136,6 @@ ReproChecklist.propTypes = {
   onUpdatedNote: PropTypes.func.isRequired,
   onDeletedNote: PropTypes.func.isRequired,
   onSelectedAsset: PropTypes.func.isRequired,
-};
-
-ReproChecklist.defaultProps = {
-  project: null,
-  checklist: null,
-  error: null,
-  onUpdated: null,
-  onAddedNote: null,
-  onUpdatedNote: null,
-  onDeletedNote: null,
-  onSelectedAsset: null,
 };
 
 export default ReproChecklist;

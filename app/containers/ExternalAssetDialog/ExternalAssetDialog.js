@@ -23,12 +23,13 @@ function PaperComponent(props) {
 class ExternalAssetDialog extends Component {
   constructor(props) {
     super(props);
+    const { uri = null, name = null, type = Constants.AssetType.URL, isNew = true } = props;
     this.state = {
       errorMessage: null,
-      uri: props.uri || '',
-      name: props.name || '',
-      type: props.type || Constants.AssetType.URL,
-      isNew: props.isNew !== undefined ? props.isNew : true,
+      uri: uri || '',
+      name: name || '',
+      type: type || Constants.AssetType.URL,
+      isNew: isNew !== undefined ? isNew : true,
       validPath: true
     };
 
@@ -119,6 +120,7 @@ class ExternalAssetDialog extends Component {
   };
 
   render() {
+    const { onClose, open = false } = this.props;
     let error = null;
     if (this.state.errorMessage) {
       error = <Error style={{ marginTop: '15px' }}>{this.state.errorMessage}</Error>;
@@ -133,10 +135,10 @@ class ExternalAssetDialog extends Component {
 
     return (
       <Dialog
-        onClose={this.props.onClose}
+        onClose={onClose}
         aria-labelledby="external-asset-dialog-title"
         PaperComponent={PaperComponent}
-        open={this.props.open}
+        open={open}
         fullWidth
         maxWidth="sm"
       >
@@ -200,7 +202,7 @@ class ExternalAssetDialog extends Component {
           <Button color="primary" onClick={this.handleSave}>
             Save
           </Button>
-          <Button color="primary" onClick={this.props.onClose}>
+          <Button color="primary" onClick={onClose}>
             Cancel
           </Button>
         </DialogActions>
@@ -218,15 +220,6 @@ ExternalAssetDialog.propTypes = {
   open: PropTypes.bool,
   // Triggered on a successful save
   onSave: PropTypes.func,
-};
-
-ExternalAssetDialog.defaultProps = {
-  uri: null,
-  type: Constants.AssetType.URL,
-  name: null,
-  isNew: true,
-  open: false,
-  onSave: null,
 };
 
 ExternalAssetDialog.contextType = UserContext;

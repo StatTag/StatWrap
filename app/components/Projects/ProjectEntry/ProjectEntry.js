@@ -19,6 +19,7 @@ const CustomTooltip = styled(({ className, ...props }) => (
 }));
 
 function projectEntry(props) {
+  const { selected = false, hasUpdate = false } = props;
   const [isTooltipOpen, setTooltipOpen] = useState(false);
 
   const iconClasses = [styles.favoriteIicon];
@@ -37,12 +38,12 @@ function projectEntry(props) {
   }
 
   const divClasses = [styles.container];
-  if (props.selected) {
+  if (selected) {
     divClasses.push(styles.selected);
   }
 
   let updateIcon = null;
-  if (props.hasUpdate) {
+  if (hasUpdate) {
     updateIcon = <FontAwesomeIcon className={styles.updateIcon} icon="bell" />;
   }
 
@@ -91,11 +92,6 @@ function projectEntry(props) {
 projectEntry.propTypes = {
   selected: PropTypes.bool,
   hasUpdate: PropTypes.bool,
-};
-
-projectEntry.defaultProps = {
-  selected: false,
-  hasUpdate: false,
 };
 
 export default projectEntry;

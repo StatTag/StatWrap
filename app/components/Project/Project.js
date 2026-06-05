@@ -59,14 +59,15 @@ class Project extends Component<Props> {
   }
 
   aboutDetailsUpdateHandler = (descriptionText, descriptionUri, categories) => {
-    const project = { ...this.props.project, categories };
+    const { project, onUpdated } = this.props;
+    const updatedProject = { ...project, categories };
     // If the description URI is set, we will use that for the description content.  Otherwise
     // we will fall back to use the provided description text.
     if (descriptionUri) {
       // If the user has provided custom text for the description before, we're going to preserve it.
       // This may be unnecessary, but the concern is the user accidentally switching over to a file
       // and then wanting to revert back to their content.
-      project.description = {
+      updatedProject.description = {
         contentType: DescriptionContentType.URI,
         uri: descriptionUri,
         content: descriptionText
@@ -75,22 +76,22 @@ class Project extends Component<Props> {
       // If the user is entering a custom description, we're going to clear out the URI if one was
       // selected before. If the user accidentally switched, it's less of a concern for them to have
       // to re-link a file because it's quick to do.
-      project.description = {
+      updatedProject.description = {
         contentType: DescriptionContentType.MARKDOWN,
         content: descriptionText
       };
     }
 
-    if (this.props.onUpdated) {
+    if (onUpdated) {
       const user = this.context;
-      this.props.onUpdated(
-        project,
+      onUpdated(
+        updatedProject,
         ActionType.ABOUT_DETAILS_UPDATED,
         EntityType.PROJECT,
-        project.id,
+        updatedProject.id,
         ActionType.ABOUT_DETAILS_UPDATED,
         `${user} updated the project details in the 'About' page`,
-        { description: project.description, categories }
+        { description: updatedProject.description, categories }
       );
     }
   };
@@ -172,6 +173,7 @@ class Project extends Component<Props> {
       return;
     }
 
+    const { onUpdated } = this.props;
     const currentProject = { ...this.props.project };
     if (currentProject.id !== project.id) {
       console.warn(
@@ -190,8 +192,8 @@ class Project extends Component<Props> {
       note
     );
 
-    if (this.props.onUpdated) {
-      this.props.onUpdated(
+    if (onUpdated) {
+      onUpdated(
         currentProject,
         action.type,
         EntityType.PROJECT,
@@ -208,6 +210,7 @@ class Project extends Component<Props> {
       return;
     }
 
+    const { onUpdated } = this.props;
     const currentProject = { ...this.props.project };
 
     const action = { type: '', title: '', description: '', details: null };
@@ -220,8 +223,8 @@ class Project extends Component<Props> {
       note
     );
 
-    if (this.props.onUpdated) {
-      this.props.onUpdated(
+    if (onUpdated) {
+      onUpdated(
         currentProject,
         action.type,
         EntityType.PERSON,
@@ -246,6 +249,7 @@ class Project extends Component<Props> {
       return;
     }
 
+    const { onUpdated } = this.props;
     const project = { ...this.props.project };
     let assetsCopy = null;
     // Depending on if this is a core asset or an external asset, we need to select the correct container.  The rest of
@@ -286,8 +290,8 @@ class Project extends Component<Props> {
       project.assets = assetsCopy;
     }
 
-    if (this.props.onUpdated) {
-      this.props.onUpdated(
+    if (onUpdated) {
+      onUpdated(
         project,
         action.type,
         isExternalAsset ? EntityType.EXTERNAL_ASSET : EntityType.ASSET,
@@ -312,6 +316,7 @@ class Project extends Component<Props> {
       return;
     }
 
+    const { onChecklistUpdated, checklistResponse } = this.props;
     const currentProject = { ...this.props.project };
     const action = { type: '', title: '', description: '', details: null };
     this.upsertNoteHandler(
@@ -323,7 +328,7 @@ class Project extends Component<Props> {
       note
     );
     // Once the checklist item is updated, we must also update the entire checklist linked to the project.
-    const updatedChecklist = this.props.checklistResponse.checklist.map(x => {
+    const updatedChecklist = checklistResponse.checklist.map(x => {
       if (x.id === checklistItem.id) {
         return checklistItem;
       }
@@ -331,8 +336,8 @@ class Project extends Component<Props> {
     });
     // Updates the checklist linked to the current project and saves the changes to the checklist file.
     // Note that the checklist object is not directly attached to the project object, as opposed to the asset and person objects.
-    if (this.props.onChecklistUpdated) {
-      this.props.onChecklistUpdated(
+    if (onChecklistUpdated) {
+      onChecklistUpdated(
         currentProject,
         updatedChecklist,
         action.type,
@@ -390,7 +395,7 @@ class Project extends Component<Props> {
   };
 
   performAssetAttributeUpdate = (assetUri, name, value, clearDescendants) => {
-
+    const { onUpdated } = this.props;
     const project = cloneDeep(this.props.project);
     const assetsCopy = project.assets;
 
@@ -413,8 +418,8 @@ class Project extends Component<Props> {
       AssetUtil.clearArchivedAttributeForDescendants(existingAsset);
     }
 
-    if (this.props.onUpdated) {
-      this.props.onUpdated(
+    if (onUpdated) {
+      onUpdated(
         project,
         ActionType.ATTRIBUTE_UPDATED,
         EntityType.ASSET,
@@ -452,6 +457,7 @@ class Project extends Component<Props> {
    * @param {object} note The note to remove
    */
   assetDeleteNoteHandler = (asset, note) => {
+    const { onUpdated } = this.props;
     const project = { ...this.props.project };
 
     // Depending on if this is an external asset or a main asset, determine the right collection
@@ -481,8 +487,8 @@ class Project extends Component<Props> {
       project.assets = assetsCopy;
     }
 
-    if (this.props.onUpdated) {
-      this.props.onUpdated(
+    if (onUpdated) {
+      onUpdated(
         project,
         ActionType.NOTE_DELETED,
         isExternalAsset ? EntityType.EXTERNAL_ASSET : EntityType.ASSET,
@@ -495,6 +501,7 @@ class Project extends Component<Props> {
   };
 
   projectDeleteNoteHandler = (project, note) => {
+    const { onUpdated } = this.props;
     const currentProject = { ...this.props.project };
     if (currentProject.id !== project.id) {
       console.warn(
@@ -509,8 +516,8 @@ class Project extends Component<Props> {
       project.name,
       note
     );
-    if (this.props.onUpdated) {
-      this.props.onUpdated(
+    if (onUpdated) {
+      onUpdated(
         project,
         ActionType.NOTE_DELETED,
         EntityType.PROJECT,
@@ -523,6 +530,7 @@ class Project extends Component<Props> {
   };
 
   personDeleteNoteHandler = (person, note) => {
+    const { onUpdated } = this.props;
     const currentProject = { ...this.props.project };
     const actionDescription = this.deleteNoteHandler(
       person,
@@ -530,8 +538,8 @@ class Project extends Component<Props> {
       GeneralUtil.formatName(person.name),
       note
     );
-    if (this.props.onUpdated) {
-      this.props.onUpdated(
+    if (onUpdated) {
+      onUpdated(
         currentProject,
         ActionType.NOTE_DELETED,
         EntityType.PERSON,
@@ -549,6 +557,7 @@ class Project extends Component<Props> {
    * @param {object} note The note to delete
    */
   checklistDeleteNoteHandler = (checklistItem, note) => {
+    const { onChecklistUpdated, checklistResponse } = this.props;
     const currentProject = { ...this.props.project };
     const actionDescription = this.deleteNoteHandler(
       checklistItem,
@@ -557,7 +566,7 @@ class Project extends Component<Props> {
       note
     );
     // Once the checklist item is updated, we must also update the entire checklist linked to the project.
-    const updatedChecklist = this.props.checklistResponse.checklist.map(x => {
+    const updatedChecklist = checklistResponse.checklist.map(x => {
       if (x.id === checklistItem.id) {
         return checklistItem;
       }
@@ -565,8 +574,8 @@ class Project extends Component<Props> {
     });
     // Updates the checklist linked to the current project and saves the changes to the checklist file.
     // Note that the checklist object is not directly attached to the project object, as opposed to the asset and person objects.
-    if (this.props.onChecklistUpdated) {
-      this.props.onChecklistUpdated(
+    if (onChecklistUpdated) {
+      onChecklistUpdated(
         currentProject,
         updatedChecklist,
         ActionType.NOTE_DELETED,
@@ -580,6 +589,7 @@ class Project extends Component<Props> {
   }
 
   deletePersonHandler = person => {
+    const { onUpdated } = this.props;
     const currentProject = { ...this.props.project };
 
     if (!currentProject.people) {
@@ -599,8 +609,8 @@ class Project extends Component<Props> {
     const actionDescription = `${user} deleted person ${GeneralUtil.formatName(
       person.name
     )} from project`;
-    if (this.props.onUpdated) {
-      this.props.onUpdated(
+    if (onUpdated) {
+      onUpdated(
         currentProject,
         ActionType.PERSON_DELETED,
         EntityType.PROJECT,
@@ -613,6 +623,7 @@ class Project extends Component<Props> {
   };
 
   createUpdatePersonHandler = person => {
+    const { onUpdated } = this.props;
     const currentProject = { ...this.props.project };
 
     if (!currentProject.people) {
@@ -641,8 +652,8 @@ class Project extends Component<Props> {
       };
     }
 
-    if (this.props.onUpdated) {
-      this.props.onUpdated(
+    if (onUpdated) {
+      onUpdated(
         currentProject,
         action,
         EntityType.PROJECT,
@@ -655,6 +666,7 @@ class Project extends Component<Props> {
   };
 
   assetGroupDeletedHandler = group => {
+    const { onUpdated } = this.props;
     const currentProject = { ...this.props.project };
 
     const action = {
@@ -665,8 +677,8 @@ class Project extends Component<Props> {
     };
 
     ProjectUtil.removeAssetGroup(currentProject, group);
-    if (this.props.onUpdated) {
-      this.props.onUpdated(
+    if (onUpdated) {
+      onUpdated(
         currentProject,
         action.type,
         EntityType.PROJECT,
@@ -679,6 +691,7 @@ class Project extends Component<Props> {
   };
 
   assetGroupAddedHandler = group => {
+    const { onUpdated } = this.props;
     const user = this.context;
     const currentProject = { ...this.props.project };
 
@@ -690,8 +703,8 @@ class Project extends Component<Props> {
     };
 
     ProjectUtil.upsertAssetGroup(currentProject, group);
-    if (this.props.onUpdated) {
-      this.props.onUpdated(
+    if (onUpdated) {
+      onUpdated(
         currentProject,
         action.type,
         EntityType.PROJECT,
@@ -704,6 +717,7 @@ class Project extends Component<Props> {
   };
 
   assetGroupUpdatedHandler = group => {
+    const { onUpdated } = this.props;
     const user = this.context;
     const currentProject = { ...this.props.project };
 
@@ -716,8 +730,8 @@ class Project extends Component<Props> {
     };
 
     ProjectUtil.upsertAssetGroup(currentProject, group);
-    if (this.props.onUpdated) {
-      this.props.onUpdated(
+    if (onUpdated) {
+      onUpdated(
         currentProject,
         action.type,
         EntityType.PROJECT,
@@ -730,6 +744,7 @@ class Project extends Component<Props> {
   };
 
   externalAssetDeletedHandler = asset => {
+    const { onUpdated } = this.props;
     const currentProject = { ...this.props.project };
 
     const action = {
@@ -740,8 +755,8 @@ class Project extends Component<Props> {
     };
 
     ProjectUtil.removeExternalAsset(currentProject, asset);
-    if (this.props.onUpdated) {
-      this.props.onUpdated(
+    if (onUpdated) {
+      onUpdated(
         currentProject,
         action.type,
         EntityType.PROJECT,
@@ -754,6 +769,7 @@ class Project extends Component<Props> {
   };
 
   externalAssetAddedHandler = asset => {
+    const { onUpdated } = this.props;
     const user = this.context;
     const currentProject = { ...this.props.project };
 
@@ -765,8 +781,8 @@ class Project extends Component<Props> {
     };
 
     ProjectUtil.upsertExternalAsset(currentProject, asset);
-    if (this.props.onUpdated) {
-      this.props.onUpdated(
+    if (onUpdated) {
+      onUpdated(
         currentProject,
         action.type,
         EntityType.PROJECT,
@@ -779,6 +795,7 @@ class Project extends Component<Props> {
   };
 
   externalAssetUpdatedHandler = asset => {
+    const { onUpdated } = this.props;
     const user = this.context;
     const currentProject = { ...this.props.project };
     const oldExternalAsset = cloneDeep(this.props.project.externalAssets.children ?
@@ -791,8 +808,8 @@ class Project extends Component<Props> {
     };
 
     ProjectUtil.upsertExternalAsset(currentProject, asset);
-    if (this.props.onUpdated) {
-      this.props.onUpdated(
+    if (onUpdated) {
+      onUpdated(
         currentProject,
         action.type,
         EntityType.PROJECT,
@@ -819,11 +836,12 @@ class Project extends Component<Props> {
       return;
     }
 
+    const { onRename } = this.props;
     const currentProject = { ...this.props.project };
     currentProject.name = name;
 
-    if (this.props.onRename) {
-      this.props.onRename(
+    if (onRename) {
+      onRename(
         currentProject,
         name
       );
@@ -831,43 +849,57 @@ class Project extends Component<Props> {
   }
 
   render() {
+    const {
+      project = null,
+      onUpdated = null,
+      onAssetSelected = null,
+      onChecklistUpdated = null,
+      onDirtyStateChange = null,
+      onFavoriteClick,
+      logs = null,
+      checklistResponse = null,
+      configuration = null,
+      assetDynamicDetails = null,
+      scanStatus = null,
+    } = this.props;
+
     let content = <Welcome />;
-    if (this.props.project) {
-      const about = this.props.project ? (
+    if (project) {
+      const about = (
         <About
           onUpdateDetails={this.aboutDetailsUpdateHandler}
           onAddedNote={this.projectUpsertNoteHandler}
           onUpdatedNote={this.projectUpsertNoteHandler}
           onDeletedNote={this.projectDeleteNoteHandler}
-          project={this.props.project}
-          updates={this.props.logs ? this.props.logs.updates : null}
+          project={project}
+          updates={logs ? logs.updates : null}
           onClickUpdatesLink={this.clickUpdatesLinkHandler}
-          onDirtyStateChange={this.props.onDirtyStateChange}
+          onDirtyStateChange={onDirtyStateChange}
         />
-      ) : null;
-      const assets = this.props.project ? (
+      );
+      const assets = (
         <Assets
-          project={this.props.project}
+          project={project}
           onAddedAssetNote={this.assetUpsertNoteHandler}
           onUpdatedAssetNote={this.assetUpsertNoteHandler}
           onDeletedAssetNote={this.assetDeleteNoteHandler}
           onUpdatedAssetAttribute={this.assetUpdateAttributeHandler}
-          onSelectedAsset={this.props.onAssetSelected}
+          onSelectedAsset={onAssetSelected}
           onAddedAssetGroup={this.assetGroupAddedHandler}
           onUpdatedAssetGroup={this.assetGroupUpdatedHandler}
           onDeletedAssetGroup={this.assetGroupDeletedHandler}
           onAddedExternalAsset={this.externalAssetAddedHandler}
           onUpdatedExternalAsset={this.externalAssetUpdatedHandler}
           onDeletedExternalAsset={this.externalAssetDeletedHandler}
-          assetAttributes={this.props.configuration.assetAttributes}
-          dynamicDetails={this.props.assetDynamicDetails}
-          scanStatus={this.props.scanStatus}
+          assetAttributes={configuration.assetAttributes}
+          dynamicDetails={assetDynamicDetails}
+          scanStatus={scanStatus}
         />
-      ) : null;
-      const workflow = this.props.project ? <Workflow project={this.props.project} /> : null;
-      const name = this.props.project ? (
+      );
+      const workflow = <Workflow project={project} />;
+      const name = (
         <EditableLabel
-          text={this.props.project.name}
+          text={project.name}
           labelFontWeight="bold"
           containerClassName={styles.projectName}
           inputFontWeight="bold"
@@ -875,25 +907,25 @@ class Project extends Component<Props> {
           inputWidth="100%"
           onFocusOut={this.projectNameUpdateHandler}
         />
-      ) : null;
+      );
 
-      const projectPath = this.props.project ? (
-        <div className={styles.projectPath}>{this.props.project.path}</div>
-      ) : null;
+      const projectPath = (
+        <div className={styles.projectPath}>{project.path}</div>
+      );
 
-      const projectNotes = this.props.project ? (
+      const projectNotes = (
         <ProjectNotes
-          project={this.props.project}
+          project={project}
           onAddedNote={this.projectUpsertNoteHandler}
           onUpdatedNote={this.projectUpsertNoteHandler}
           onDeletedNote={this.projectDeleteNoteHandler}
         />
-      ) : null;
+      );
 
-      const people = this.props.project ? (
+      const people = (
         <People
-          project={this.props.project}
-          list={this.props.project.people}
+          project={project}
+          list={project.people}
           mode="project"
           onSave={this.createUpdatePersonHandler}
           onDelete={this.deletePersonHandler}
@@ -901,31 +933,31 @@ class Project extends Component<Props> {
           onUpdatedPersonNote={this.personUpsertNoteHandler}
           onDeletedPersonNote={this.personDeleteNoteHandler}
         />
-      ) : null;
+      );
 
       const projectLog =
-        this.props.project && this.props.logs ? (
+        logs ? (
           <ProjectLog
-            project={this.props.project}
-            error={this.props.logs.errorMessage}
-            feed={this.props.logs.logs}
-            updates={this.props.logs.updates}
+            project={project}
+            error={logs.errorMessage}
+            feed={logs.logs}
+            updates={logs.updates}
             showUpdates={this.state.showLogUpdatesOnly}
           />
         ) : null;
 
       const checklist =
-        this.props.project && this.props.checklistResponse ? (
+        checklistResponse ? (
           <ReproChecklist
-            project={this.props.project}
-            checklist={this.props.checklistResponse.checklist}
-            error={this.props.checklistResponse.errorMessage}
-            onUpdated={this.props.onChecklistUpdated}
+            project={project}
+            checklist={checklistResponse.checklist}
+            error={checklistResponse.errorMessage}
+            onUpdated={onChecklistUpdated}
             onAddedNote={this.checklistUpsertNoteHandler}
             onUpdatedNote={this.checklistUpsertNoteHandler}
             onDeletedNote={this.checklistDeleteNoteHandler}
-            onSelectedAsset={this.props.onAssetSelected}
-            scanStatus={this.props.scanStatus}
+            onSelectedAsset={onAssetSelected}
+            scanStatus={scanStatus}
           />
         ) : null;
 
@@ -935,9 +967,9 @@ class Project extends Component<Props> {
             <div className={styles.titleContainer}>
               <IconButton
                 color="inherit"
-                onClick={() => this.props.onFavoriteClick(this.props.project.id)}
+                onClick={() => onFavoriteClick(project.id)}
               >
-                {this.props.project && this.props.project.favorite ? <Star /> : <StarBorder />}
+                {project.favorite ? <Star /> : <StarBorder />}
               </IconButton>
               <div className={styles.title}>
                 {name}
@@ -1042,19 +1074,6 @@ Project.propTypes = {
   // * started - The scan is in progress
   // * error  - There was an error initiating or completing the scan.  Display results to user
   scanStatus: PropTypes.string
-};
-
-Project.defaultProps = {
-  project: null,
-  onUpdated: null,
-  onAssetSelected: null,
-  onChecklistUpdated: null,
-  onDirtyStateChange: null,
-  logs: null,
-  checklistResponse: null,
-  configuration: null,
-  assetDynamicDetails: null,
-  scanStatus: null
 };
 
 Project.contextType = UserContext;

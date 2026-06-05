@@ -7,12 +7,12 @@ import styles from './PeopleCardList.css';
 function peopleCardList(props) {
   const {
     mode,
-    list,
-    onEdit,
-    onDelete,
-    onAddedPersonNote,
-    onUpdatedPersonNote,
-    onDeletedPersonNote,
+    list = [],
+    onEdit = null,
+    onDelete = null,
+    onAddedPersonNote = null,
+    onUpdatedPersonNote = null,
+    onDeletedPersonNote = null,
   } = props;
 
   const deletePersonHandler = (person) => {
@@ -77,15 +77,6 @@ peopleCardList.propTypes = {
   onAddedPersonNote: PropTypes.func,
   onUpdatedPersonNote: PropTypes.func,
   onDeletedPersonNote: PropTypes.func,
-};
-
-peopleCardList.defaultProps = {
-  list: [],
-  onEdit: null,
-  onDelete: null,
-  onAddedPersonNote: null,
-  onUpdatedPersonNote: null,
-  onDeletedPersonNote: null,
 };
 
 export default peopleCardList;

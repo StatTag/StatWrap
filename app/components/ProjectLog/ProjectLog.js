@@ -79,7 +79,7 @@ function projectLog(props) {
   const [filterText, setFilterText] = useState('');
   const [expandAll, setExpandAll] = useState(false);
   const [tableKey, setTableKey] = useState(0);
-  const { feed, error, updates } = props;
+  const { feed = null, error = null, updates = null } = props;
   const hasWhatsNewUpdates = updates !== null && !updates.upToDate;
   const [filterWhatsNew, setFilterWhatsNew] = useState(hasWhatsNewUpdates);
   const [pending, setPending] = useState(true);
@@ -183,12 +183,6 @@ projectLog.propTypes = {
   feed: PropTypes.arrayOf(PropTypes.object),
   updates: PropTypes.object,
   error: PropTypes.string,
-};
-
-projectLog.defaultProps = {
-  feed: null,
-  updates: null,
-  error: null,
 };
 
 export default projectLog;

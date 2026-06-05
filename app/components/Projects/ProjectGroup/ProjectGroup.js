@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import ProjectEntry from '../ProjectEntry/ProjectEntry';
 import styles from './ProjectGroup.css';
 
-function projectGroup(props) {
+function projectGroup({ emptyMessage = 'There are no projects to display in this list', projects = [], ...rest }) {
+  const props = { emptyMessage, projects, ...rest };
   let projectList = <div className={styles.emptyMessage}>{props.emptyMessage}</div>;
   if (props.projects && props.projects.length > 0) {
     projectList = props.projects.map((item) => <ProjectEntry key={item.id} project={item} />);
@@ -21,11 +22,6 @@ projectGroup.propTypes = {
   title: PropTypes.string.isRequired,
   emptyMessage: PropTypes.string,
   projects: PropTypes.array,
-};
-
-projectGroup.defaultProps = {
-  emptyMessage: 'There are no projects to display in this list',
-  projects: [],
 };
 
 export default projectGroup;

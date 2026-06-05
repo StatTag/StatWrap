@@ -2,18 +2,18 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { List, ListItemButton, ListItemText } from '@mui/material';
 
-function ProjectTemplateList(props) {
+function ProjectTemplateList({ templates, selectedTemplate = null, onSelect }) {
   let projectTypeList = null;
-  if (props.templates !== null) {
-    projectTypeList = props.templates.map((type) => (
+  if (templates !== null) {
+    projectTypeList = templates.map((type) => (
       <ListItemButton
         selected={
-          (props.selectedTemplate &&
-          type.id === props.selectedTemplate.id &&
-          type.version === props.selectedTemplate.version)
+          (selectedTemplate &&
+          type.id === selectedTemplate.id &&
+          type.version === selectedTemplate.version)
         }
         key={type.id}
-        onClick={() => props.onSelect(type.id, type.version)}
+        onClick={() => onSelect(type.id, type.version)}
       >
         <ListItemText primary={type.name} secondary={type.description} />
       </ListItemButton>
@@ -22,10 +22,6 @@ function ProjectTemplateList(props) {
 
   return <List dense>{projectTypeList}</List>;
 }
-
-ProjectTemplateList.defaultProps = {
-  selectedTemplate: null,
-};
 
 ProjectTemplateList.propTypes = {
   templates: PropTypes.array.isRequired,

@@ -7,12 +7,13 @@ import styles from './SelectProjectTemplate.css';
 
 class SelectProjectTemplate extends Component {
   render() {
+    const { projectTemplates, selectedTemplate = null, onSelectProjectTemplate } = this.props;
     let template = null;
-    if (this.props.projectTemplates && this.props.selectedTemplate) {
-      template = this.props.projectTemplates.find(
+    if (projectTemplates && selectedTemplate) {
+      template = projectTemplates.find(
         (x) =>
-          x.id === this.props.selectedTemplate.id &&
-          x.version === this.props.selectedTemplate.version,
+          x.id === selectedTemplate.id &&
+          x.version === selectedTemplate.version,
       );
     }
     return (
@@ -20,9 +21,9 @@ class SelectProjectTemplate extends Component {
         <div className={styles.templateList}>
           <strong>Available templates:</strong>
           <ProjectTemplateList
-            templates={this.props.projectTemplates}
-            selectedTemplate={this.props.selectedTemplate}
-            onSelect={this.props.onSelectProjectTemplate}
+            templates={projectTemplates}
+            selectedTemplate={selectedTemplate}
+            onSelect={onSelectProjectTemplate}
           />
         </div>
         <div className={styles.templatePreview}>
@@ -37,10 +38,6 @@ SelectProjectTemplate.propTypes = {
   projectTemplates: PropTypes.array.isRequired,
   selectedTemplate: PropTypes.object,
   onSelectProjectTemplate: PropTypes.func.isRequired,
-};
-
-SelectProjectTemplate.defaultProps = {
-  selectedTemplate: null,
 };
 
 export default SelectProjectTemplate;

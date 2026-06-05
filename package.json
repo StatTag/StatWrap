@@ -204,7 +204,7 @@
     "opencollective-postinstall": "^2.0.2",
     "optimize-css-assets-webpack-plugin": "^6.0.1",
     "prettier": "^3.5.3",
-    "react-test-renderer": "18.3.0",
+    "react-test-renderer": "^18.3.0",
     "sass-loader": "^14.2.1",
     "style-loader": "^4.0.0",
     "stylelint": "^16.15.0",

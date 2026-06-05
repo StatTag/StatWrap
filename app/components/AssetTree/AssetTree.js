@@ -12,25 +12,39 @@ import styles from './AssetTree.css';
 class AssetTree extends Component {
   constructor(props) {
     super(props);
+
+    const {
+      selectedAsset = null,
+      checkboxes = false,
+      onCheckAsset = null,
+      rootSelectable = true
+    } = props;
+
     this.state = { expandedNodes: [], checkedNodes: [] };
   }
 
   handleClick = (node) => {
+    const {
+      assets,
+      onSelectAsset,
+      rootSelectable = true
+    } = this.props;
+
     // Determine if this is selectable.  We don't consider a selection if:
     // 1. The asset collection is null
     // 2. The selected node is null
     // 3. Root selection is disabled and this is the root item
     //
     // To handle unselectable items, we trigger to clear the active selection.
-    if (this.props.assets === null || node === null) {
-      this.props.onSelectAsset(null);
+    if (assets === null || node === null) {
+      onSelectAsset(null);
       return;
-    } else if (!this.props.rootSelectable && (node.uri === this.props.assets.uri)) {
-      this.props.onSelectAsset(null);
+    } else if (!rootSelectable && (node.uri === assets.uri)) {
+      onSelectAsset(null);
       return;
     }
 
-    this.props.onSelectAsset(node);
+    onSelectAsset(node);
   };
 
   onToggle = (node) => {
@@ -64,6 +78,8 @@ class AssetTree extends Component {
   };
 
   setExpandAll = (expand) => {
+    const { assets } = this.props;
+
     this.setState(() => {
       const expandedNodes = [];
       // If we're collapsing, we just set this to an empty array.  Easy!
@@ -72,15 +88,17 @@ class AssetTree extends Component {
       }
 
       // If we're expanding, we need to recursively add every folder URI.
-      expandedNodes.push(this.props.assets.uri);
-      if (this.props.assets.children) {
-        this.props.assets.children.forEach((c) => this.setNodeExpanded(c, expandedNodes));
+      expandedNodes.push(assets.uri);
+      if (assets.children) {
+        assets.children.forEach((c) => this.setNodeExpanded(c, expandedNodes));
       }
       return { expandedNodes };
     });
   };
 
   handleCheck = (node, value) => {
+    const { onCheckAsset = null } = this.props;
+
     this.setState((prevState) => {
       const checkedNodes = [...prevState.checkedNodes];
       const index = checkedNodes.indexOf(node.uri);
@@ -92,22 +110,30 @@ class AssetTree extends Component {
       return { checkedNodes };
     });
 
-    if (this.props.onCheckAsset) {
-      this.props.onCheckAsset(node, value);
+    if (onCheckAsset) {
+      onCheckAsset(node, value);
     }
   };
 
   render() {
-    const assetTree = !this.props.assets ? null : (
+    const {
+      assets,
+      selectedAsset = null,
+      checkboxes = false,
+    } = this.props;
+
+    const { expandedNodes, checkedNodes } = this.state;
+
+    const assetTree = !assets ? null : (
       <AssetNode
         onClick={this.handleClick}
         root
-        key={this.props.assets.uri}
-        node={this.props.assets}
-        openNodes={this.state.expandedNodes}
-        checkedNodes={this.state.checkedNodes}
-        selectedAsset={this.props.selectedAsset}
-        checkboxes={this.props.checkboxes}
+        key={assets.uri}
+        node={assets}
+        openNodes={expandedNodes}
+        checkedNodes={checkedNodes}
+        selectedAsset={selectedAsset}
+        checkboxes={checkboxes}
         onToggle={this.onToggle}
         onCheck={this.handleCheck}
       />
@@ -124,13 +150,6 @@ AssetTree.propTypes = {
   selectedAsset: PropTypes.object,
   checkboxes: PropTypes.bool,
   rootSelectable: PropTypes.bool
-};
-
-AssetTree.defaultProps = {
-  selectedAsset: null,
-  checkboxes: false,
-  onCheckAsset: null,
-  rootSelectable: true
 };
 
 export default AssetTree;

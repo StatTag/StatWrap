@@ -14,20 +14,22 @@ class Projects extends Component {
       return null;
     }
 
+    const { selectedProject, onSelect, onFavoriteClick, onMenuClick } = this.props;
+
     const projectEntries = projects.map((item) => (
       <ProjectEntry
         key={item.id}
         hasUpdate={item.hasUpdate}
         project={item}
-        selected={this.props.selectedProject && this.props.selectedProject.id === item.id}
-        onSelect={() => this.props.onSelect(item)}
+        selected={selectedProject && selectedProject.id === item.id}
+        onSelect={() => onSelect(item)}
         onFavoriteClick={(e) => {
           e.stopPropagation();
-          this.props.onFavoriteClick(item.id);
+          onFavoriteClick(item.id);
         }}
         onMenuClick={(event) => {
           event.stopPropagation();
-          this.props.onMenuClick(event.currentTarget, item);
+          onMenuClick(event.currentTarget, item);
         }}
       />
     ));
@@ -44,33 +46,43 @@ class Projects extends Component {
   }
 
   render() {
+    const {
+      loaded,
+      error,
+      errorMessage = null,
+      projects,
+      onRefresh,
+      onAddProject,
+      onSelect,
+    } = this.props;
+
     let projectDetails = <CircularProgress className={styles.progress} />;
-    
-    if (this.props.loaded) {
-      if (this.props.error) {
+
+    if (loaded) {
+      if (error) {
         projectDetails = (
           <Error>
-            {this.props.errorMessage}
-            <button type="button" onClick={this.props.onRefresh}>
+            {errorMessage}
+            <button type="button" onClick={onRefresh}>
               Reload Projects
             </button>
           </Error>
         );
       } else {
         // Create three project categories
-        const pinnedProjects = this.props.projects.filter((x) => x.favorite);
-        const activeProjects = this.props.projects.filter((x) => !x.favorite && (!x.status || x.status === Constants.ProjectStatus.ACTIVE));
-        const pastProjects = this.props.projects.filter((x) => !x.favorite && x.status === Constants.ProjectStatus.PAST);
+        const pinnedProjects = projects.filter((x) => x.favorite);
+        const activeProjects = projects.filter((x) => !x.favorite && (!x.status || x.status === Constants.ProjectStatus.ACTIVE));
+        const pastProjects = projects.filter((x) => !x.favorite && x.status === Constants.ProjectStatus.PAST);
         const sections = [];
-        
+
         if (pinnedProjects.length > 0) {
           sections.push(this.renderProjectSection(pinnedProjects, 'PINNED PROJECTS', pinnedProjects.length));
         }
-        
+
         if (activeProjects.length > 0) {
           sections.push(this.renderProjectSection(activeProjects, 'ACTIVE PROJECTS', activeProjects.length));
         }
-        
+
         if (pastProjects.length > 0) {
           sections.push(this.renderProjectSection(pastProjects, 'PAST PROJECTS', pastProjects.length));
         }
@@ -92,10 +104,10 @@ class Projects extends Component {
       <div className={styles.container} data-tid="container">
         <div className={styles.titleContainer}>
           <div className={styles.title}>Projects</div>
-          <IconButton color="inherit" onClick={this.props.onAddProject}>
+          <IconButton color="inherit" onClick={onAddProject}>
             <AddIcon />
           </IconButton>
-          <IconButton className={styles.floatRight} color="inherit" onClick={this.props.onRefresh}>
+          <IconButton className={styles.floatRight} color="inherit" onClick={onRefresh}>
             <RefreshIcon />
           </IconButton>
         </div>
@@ -104,7 +116,7 @@ class Projects extends Component {
           className={styles.filler}
           onClick={(e) => {
             e.stopPropagation();
-            this.props.onSelect(null);
+            onSelect(null);
           }}
         />
       </div>
@@ -123,11 +135,6 @@ Projects.propTypes = {
   onFavoriteClick: PropTypes.func.isRequired,
   onMenuClick: PropTypes.func.isRequired,
   onAddProject: PropTypes.func.isRequired,
-};
-
-Projects.defaultProps = {
-  errorMessage: null,
-  selectedProject: null,
 };
 
 export default Projects;

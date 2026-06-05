@@ -31,13 +31,14 @@ function PaperComponent(props) {
 class CreateUpdatePersonDialog extends Component {
   constructor(props) {
     super(props);
+    const { id = null, name = null, affiliation = null, roles = [] } = props;
     this.state = {
       errorMessage: null,
-      id: props.id ? props.id : '',
-      firstName: props.name ? props.name.first : '',
-      lastName: props.name ? props.name.last : '',
-      affiliation: props.affiliation ? props.affiliation : '',
-      roles: props.roles ? props.roles : [],
+      id: id ? id : '',
+      firstName: name ? name.first : '',
+      lastName: name ? name.last : '',
+      affiliation: affiliation ? affiliation : '',
+      roles: roles ? roles : [],
       pendingRoleInput: '',
     };
 
@@ -135,12 +136,13 @@ class CreateUpdatePersonDialog extends Component {
   }
 
   render() {
-    const dialogTitle = this.props.id ? 'Edit Person' : 'Add Person';
+    const { id, onClose, open = false, mode, directory = [], user = null, project = null } = this.props;
+    const dialogTitle = id ? 'Edit Person' : 'Add Person';
     let error = null;
     if (this.state.errorMessage) {
       error = <Error style={{ marginTop: '15px' }}>{this.state.errorMessage}</Error>;
     }
-    const projectMode = this.props.mode.toLowerCase() === 'project';
+    const projectMode = mode.toLowerCase() === 'project';
     let roles = null;
     if (projectMode) {
       roles = (
@@ -155,27 +157,27 @@ class CreateUpdatePersonDialog extends Component {
     //  - We are invoking this dialog for a project
     //  - The user has a directory populated
     //  - We are in create mode (not edit mode)
-    let directory = null;
-    if (projectMode && this.props.directory && this.props.directory.length > 0 && !this.props.id) {
+    let directoryUI = null;
+    if (projectMode && directory && directory.length > 0 && !id) {
       // Sort the directory so that the most recently added person in the MRU list/directory
       // appears at the top.  Note that we are making a copy of the array because we are going
       // to (possibly) add an item to it.  We don't want to update the original array with
       // that value if we do add it.
-      const sortedDirectory = [...this.props.directory].sort((a, b) =>
+      const sortedDirectory = [...directory].sort((a, b) =>
         a.added > b.added ? -1 : b.added > a.added ? 1 : 0,
       );
 
       // If there is the user's information, push that to the top of the directory
       // as the first entry, and indicate that it is the user.
-      if (this.props.user && this.props.user.name && this.props.user.name.display) {
-        const user = { ...this.props.user, userEntry: true };
-        sortedDirectory.unshift(user);
+      if (user && user.name && user.name.display) {
+        const userEntry = { ...user, userEntry: true };
+        sortedDirectory.unshift(userEntry);
       }
 
       // Aggregate authors from project assets if we have a project loaded
       const extractedAuthors = [];
       const extractedAuthorKeys = new Set();
-      if (this.props.project && this.props.project.assets) {
+      if (project && project.assets) {
         const gatherAuthors = (asset) => {
           if (asset && asset.metadata) {
             asset.metadata.forEach(m => {
@@ -213,7 +215,7 @@ class CreateUpdatePersonDialog extends Component {
             asset.children.forEach(gatherAuthors);
           }
         };
-        gatherAuthors(this.props.project.assets);
+        gatherAuthors(project.assets);
       }
 
       // Combines and filter out extracted authors that are already in the file
@@ -225,7 +227,7 @@ class CreateUpdatePersonDialog extends Component {
 
       const fullDirectoryOptions = [...sortedDirectory, ...uniqueExtracted];
 
-      directory = (
+      directoryUI = (
         <div className={styles.directoryPanel}>
           <Autocomplete
             id="user-directory"
@@ -250,10 +252,10 @@ class CreateUpdatePersonDialog extends Component {
 
     return (
       <Dialog
-        onClose={this.props.onClose}
+        onClose={onClose}
         aria-labelledby="person-dialog-title"
         PaperComponent={PaperComponent}
-        open={this.props.open}
+        open={open}
         fullWidth
         maxWidth="sm"
       >
@@ -261,7 +263,7 @@ class CreateUpdatePersonDialog extends Component {
           {dialogTitle}
         </DialogTitle>
         <form onSubmit={this.onSubmit}>
-          {directory}
+          {directoryUI}
           <div className={styles.formBody}>
             <div className={styles.formRow}>
               <label className={styles.personLabel}>Name:</label>
@@ -302,7 +304,7 @@ class CreateUpdatePersonDialog extends Component {
           <Button color="primary" onClick={this.handleCreateUpdatePerson}>
             Save
           </Button>
-          <Button color="primary" onClick={this.props.onClose}>
+          <Button color="primary" onClick={onClose}>
             Cancel
           </Button>
         </DialogActions>
@@ -324,18 +326,6 @@ CreateUpdatePersonDialog.propTypes = {
   open: PropTypes.bool,
   // Triggered on a successful save of the person
   onSave: PropTypes.func,
-};
-
-CreateUpdatePersonDialog.defaultProps = {
-  project: null,
-  directory: [],
-  user: null,
-  id: null,
-  name: null,
-  affiliation: null,
-  roles: [],
-  open: false,
-  onSave: null,
 };
 
 CreateUpdatePersonDialog.contextType = UserContext;

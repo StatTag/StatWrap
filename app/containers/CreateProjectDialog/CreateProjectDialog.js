@@ -345,6 +345,7 @@ class CreateProjectDialog extends Component {
     });
   }
   render() {
+    const { open, onClose, projectTemplates } = this.props;
     const currentStep = this.state.step;
     const stepDetails = CreateProjectDialog.steps.find((x) => x.step === currentStep);
     const hasNextStep = stepDetails.next !== null && stepDetails.next !== undefined;
@@ -352,24 +353,24 @@ class CreateProjectDialog extends Component {
     let dialogTitle = null;
     let progressButton = null;
 
-if (hasNextStep) {
-  progressButton =
-    stepDetails.next === 'Create' ? (
-          <Button
-      color="primary"
-      disabled={!this.state.canProgress}
-      onClick={this.handleCreateProject}
-    >
-      Create Project
-      <ArrowForwardIcon />
-    </Button>
-    ) : (
-      <Button color="primary" disabled={!this.state.canProgress} onClick={this.handleNext}>
-        Next
-        <ArrowForwardIcon />
-      </Button>
-    );
-}
+    if (hasNextStep) {
+      progressButton =
+        stepDetails.next === 'Create' ? (
+              <Button
+          color="primary"
+          disabled={!this.state.canProgress}
+          onClick={this.handleCreateProject}
+        >
+          Create Project
+          <ArrowForwardIcon />
+        </Button>
+        ) : (
+          <Button color="primary" disabled={!this.state.canProgress} onClick={this.handleNext}>
+            Next
+            <ArrowForwardIcon />
+          </Button>
+        );
+    }
     let backButton = (
       <Button onClick={this.handleBack} color="primary" className={styles.backButton}>
         <ArrowBackIcon />
@@ -381,7 +382,7 @@ if (hasNextStep) {
         dialogTitle = 'Select Project Type';
         displayComponent = (
           <SelectProjectTemplate
-            projectTemplates={this.props.projectTemplates}
+            projectTemplates={projectTemplates}
             selectedTemplate={this.state.selectedTemplate}
             onSelectProjectTemplate={this.handleSelectProjectTemplate}
             onFinalizeProjectTemplate={this.handleFinalizeProjectTemplate}
@@ -469,10 +470,10 @@ if (hasNextStep) {
 
     return (
       <Dialog
-        onClose={this.props.onClose}
+        onClose={onClose}
         aria-labelledby="project-dialog-title"
         PaperComponent={PaperComponent}
-        open={this.props.open}
+        open={open}
         fullWidth
         maxWidth="md"
       >
@@ -484,7 +485,7 @@ if (hasNextStep) {
         <DialogActions>
           {backButton}
           {progressButton}
-          <Button color="primary" onClick={this.props.onClose}>
+          <Button color="primary" onClick={onClose}>
             Cancel
           </Button>
         </DialogActions>
@@ -497,10 +498,6 @@ CreateProjectDialog.propTypes = {
   projectTemplates: PropTypes.array.isRequired,
   onClose: PropTypes.func.isRequired,
   open: PropTypes.bool,
-};
-
-CreateProjectDialog.defaultProps = {
-  open: false,
 };
 
 CreateProjectDialog.contextType = UserContext;
