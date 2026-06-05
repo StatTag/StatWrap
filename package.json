@@ -1,7 +1,7 @@
 {
   "name": "statwrap",
   "productName": "StatWrap",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "Reproducible research made easy",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\" \"yarn build-worker\" \"yarn build-preload\"",
@@ -204,7 +204,7 @@
     "opencollective-postinstall": "^2.0.2",
     "optimize-css-assets-webpack-plugin": "^6.0.1",
     "prettier": "^3.5.3",
-    "react-test-renderer": "^18.3.0",
+    "react-test-renderer": "18.3.0",
     "sass-loader": "^14.2.1",
     "style-loader": "^4.0.0",
     "stylelint": "^16.15.0",
@@ -263,7 +263,7 @@
     "react-draggable": "^4.5.0",
     "react-icons": "^5.5.0",
     "react-markdown": "^10.1.0",
-    "react-resizable-panels": "^4.9.0",
+    "react-resizable-panels": "^3.0.3",
     "react-router-dom": "^7.6.2",
     "react-simplemde-editor": "^5.2.0",
     "react-tagsinput": "^3.20.3",
