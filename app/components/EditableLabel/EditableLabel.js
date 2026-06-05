@@ -44,10 +44,12 @@ export default class EditableLabel extends React.Component {
   };
 
   handleFocus = () => {
-    if (this.state.isEditing && typeof this.props.onFocusOut === 'function') {
-      this.props.onFocusOut(this.state.text);
-    } else if (typeof this.props.onFocus === 'function') {
-      this.props.onFocus(this.state.text);
+    const { onFocusOut, onFocus, emptyEdit = false } = this.props;
+
+    if (this.state.isEditing && typeof onFocusOut === 'function') {
+      onFocusOut(this.state.text);
+    } else if (typeof onFocus === 'function') {
+      onFocus(this.state.text);
     }
 
     if (this.isTextValueValid()) {
@@ -57,7 +59,7 @@ export default class EditableLabel extends React.Component {
       }));
     } else if (this.state.isEditing) {
       this.setState({
-        isEditing: this.props.emptyEdit || false,
+        isEditing: emptyEdit,
       });
     } else {
       this.setState((prevState) => ({
@@ -68,8 +70,9 @@ export default class EditableLabel extends React.Component {
   };
 
   handleSave = () => {
-    if (typeof this.props.onFocusOut === 'function') {
-      this.props.onFocusOut(this.state.text);
+    const { onFocusOut } = this.props;
+    if (typeof onFocusOut === 'function') {
+      onFocusOut(this.state.text);
     }
     this.setState({ isEditing: false });
   };
@@ -89,7 +92,8 @@ export default class EditableLabel extends React.Component {
 
   handleKeyDown = (e) => {
     // We only allow enter-completion when this is a single line editor.
-    if (e.keyCode === ENTER_KEY_CODE && !this.props.multiline) {
+    const { multiline = false } = this.props;
+    if (e.keyCode === ENTER_KEY_CODE && !multiline) {
       this.handleEnterKey();
     }
   };
@@ -99,31 +103,51 @@ export default class EditableLabel extends React.Component {
   };
 
   render() {
+    const {
+      multiline = false,
+      containerClassName = null,
+      inputClassName = null,
+      inputWidth = null,
+      inputHeight = null,
+      inputFontSize = null,
+      inputFontWeight = null,
+      inputBorderWidth = null,
+      inputMaxLength = 524288,
+      inputPlaceHolder = null,
+      inputTabIndex = 0,
+      showSaveCancel = false,
+      labelContainerClassName = null,
+      labelClassName = null,
+      labelFontSize = null,
+      labelFontWeight = null,
+      labelPlaceHolder = null,
+    } = this.props;
+
     if (this.state.isEditing) {
-      if (this.props.multiline) {
+      if (multiline) {
         return (
-          <div className={this.props.containerClassName}>
+          <div className={containerClassName}>
             <textarea
               autoFocus
-              className={this.props.inputClassName}
+              className={inputClassName}
               ref={(input) => {
                 this.textInput = input;
               }}
               value={this.state.text}
               onChange={this.handleChange}
-              onBlur={this.props.showSaveCancel ? this.handleSave : this.handleFocus}
+              onBlur={showSaveCancel ? this.handleSave : this.handleFocus}
               style={{
-                width: this.props.inputWidth,
-                height: this.props.inputHeight,
-                fontSize: this.props.inputFontSize,
-                fontWeight: this.props.inputFontWeight,
-                borderWidth: this.props.inputBorderWidth,
+                width: inputWidth,
+                height: inputHeight,
+                fontSize: inputFontSize,
+                fontWeight: inputFontWeight,
+                borderWidth: inputBorderWidth,
               }}
-              maxLength={this.props.inputMaxLength}
-              placeholder={this.props.inputPlaceHolder}
-              tabIndex={this.props.inputTabIndex}
+              maxLength={inputMaxLength}
+              placeholder={inputPlaceHolder}
+              tabIndex={inputTabIndex}
             />
-            {this.props.showSaveCancel && (
+            {showSaveCancel && (
               <div style={{ marginTop: '4px', display: 'flex', gap: '6px' }}>
                 <button
                   type="button"
@@ -148,11 +172,11 @@ export default class EditableLabel extends React.Component {
       }
 
       return (
-        <div className={this.props.containerClassName}>
+        <div className={containerClassName}>
           <input
             autoFocus
             type="text"
-            className={this.props.inputClassName}
+            className={inputClassName}
             ref={(input) => {
               this.textInput = input;
             }}
@@ -161,15 +185,15 @@ export default class EditableLabel extends React.Component {
             onBlur={this.handleFocus}
             onKeyDown={this.handleKeyDown}
             style={{
-              width: this.props.inputWidth,
-              height: this.props.inputHeight,
-              fontSize: this.props.inputFontSize,
-              fontWeight: this.props.inputFontWeight,
-              borderWidth: this.props.inputBorderWidth,
+              width: inputWidth,
+              height: inputHeight,
+              fontSize: inputFontSize,
+              fontWeight: inputFontWeight,
+              borderWidth: inputBorderWidth,
             }}
-            maxLength={this.props.inputMaxLength}
-            placeholder={this.props.inputPlaceHolder}
-            tabIndex={this.props.inputTabIndex}
+            maxLength={inputMaxLength}
+            placeholder={inputPlaceHolder}
+            tabIndex={inputTabIndex}
           />
         </div>
       );
@@ -177,18 +201,18 @@ export default class EditableLabel extends React.Component {
 
     const labelText = this.isTextValueValid()
       ? this.state.text
-      : this.props.labelPlaceHolder || DEFAULT_LABEL_PLACEHOLDER;
+      : labelPlaceHolder || DEFAULT_LABEL_PLACEHOLDER;
     return (
       <div
-        className={`${this.props.containerClassName || ''} ${this.props.labelContainerClassName || ''}`.trim()}
+        className={`${containerClassName || ''} ${labelContainerClassName || ''}`.trim()}
         onClick={this.handleFocus}
         style={{ cursor: 'text' }}
       >
         <label
-          className={this.props.labelClassName}
+          className={labelClassName}
           style={{
-            fontSize: this.props.labelFontSize,
-            fontWeight: this.props.labelFontWeight,
+            fontSize: labelFontSize,
+            fontWeight: labelFontWeight,
           }}
         >
           {labelText}
@@ -225,34 +249,6 @@ EditableLabel.propTypes = {
 
   onFocus: PropTypes.func,
   onFocusOut: PropTypes.func,
-};
-
-EditableLabel.defaultProps = {
-  isEditing: false,
-  emptyEdit: false,
-  multiline: false,
-
-  labelClassName: null,
-  labelContainerClassName: null,
-  labelFontSize: null,
-  labelFontWeight: null,
-  labelPlaceHolder: null,
-
-  showSaveCancel: false,
-  containerClassName: null,
-
-  inputMaxLength: 524288,
-  inputPlaceHolder: null,
-  inputTabIndex: 0,
-  inputWidth: null,
-  inputHeight: null,
-  inputFontSize: null,
-  inputFontWeight: null,
-  inputClassName: null,
-  inputBorderWidth: null,
-
-  onFocus: null,
-  onFocusOut: null,
 };
 
 /*

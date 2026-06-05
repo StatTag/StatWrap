@@ -19,12 +19,13 @@ function PaperComponent(props) {
 class AssetGroupDialog extends Component {
   constructor(props) {
     super(props);
+    const { id = null, name = null, details = null, assets = null } = props;
     this.state = {
       errorMessage: null,
-      id: props.id ? props.id : null,
-      name: props.name ? props.name : '',
-      details: props.details ? props.details : '',
-      assets: props.assets ? props.assets : [],
+      id: id ? id : null,
+      name: name ? name : '',
+      details: details ? details : '',
+      assets: assets ? assets : [],
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -55,6 +56,7 @@ class AssetGroupDialog extends Component {
   }
 
   render() {
+    const { onClose, open = false, onSave } = this.props;
     let error = null;
     if (this.state.errorMessage) {
       error = <Error style={{ marginTop: '15px' }}>{this.state.errorMessage}</Error>;
@@ -62,10 +64,10 @@ class AssetGroupDialog extends Component {
 
     return (
       <Dialog
-        onClose={this.props.onClose}
+        onClose={onClose}
         aria-labelledby="asset-group-dialog-title"
         PaperComponent={PaperComponent}
-        open={this.props.open}
+        open={open}
         fullWidth
         maxWidth="sm"
       >
@@ -105,7 +107,7 @@ class AssetGroupDialog extends Component {
           <Button color="primary" onClick={this.handleSaveAssetGroup}>
             Save
           </Button>
-          <Button color="primary" onClick={this.props.onClose}>
+          <Button color="primary" onClick={onClose}>
             Cancel
           </Button>
         </DialogActions>
@@ -123,15 +125,6 @@ AssetGroupDialog.propTypes = {
   open: PropTypes.bool,
   // Triggered on a successful save of the group
   onSave: PropTypes.func,
-};
-
-AssetGroupDialog.defaultProps = {
-  id: null,
-  name: null,
-  details: null,
-  assets: null,
-  open: false,
-  onSave: null,
 };
 
 AssetGroupDialog.contextType = UserContext;

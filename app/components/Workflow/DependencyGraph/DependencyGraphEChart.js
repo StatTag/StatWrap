@@ -70,8 +70,7 @@ function getIcon(node) {
   return iconUrl;
 }
 
-function DependencyGraphEChart(props) {
-  const { assets, zoomLevel } = props;
+function DependencyGraphEChart({ assets = null, zoomLevel = 1 }) {
   const [graphData, setGraphData] = useState(null);
   const [filter, setFilter] = useState([]);
 
@@ -166,11 +165,6 @@ function DependencyGraphEChart(props) {
 DependencyGraphEChart.propTypes = {
   assets: PropTypes.object,
   zoomLevel: PropTypes.number,
-};
-
-DependencyGraphEChart.defaultProps = {
-  assets: null,
-  zoomLevel: 1,
 };
 
 export default DependencyGraphEChart;

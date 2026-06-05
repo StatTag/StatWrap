@@ -1,4 +1,3 @@
-
 import React, { useState, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { FaTh, FaThList } from 'react-icons/fa';
@@ -9,18 +8,16 @@ import PeopleTable from './PeopleTable/PeopleTable';
 import SettingsContext from '../../contexts/Settings';
 import styles from './People.css';
 
-function people(props) {
-  const {
-    project,
-    mode,
-    list,
-    onDelete,
-    onSave,
-    onAddedPersonNote,
-    onUpdatedPersonNote,
-    onDeletedPersonNote,
-  } = props;
-
+function people({
+  project = null,
+  mode,
+  list = [],
+  onDelete = null,
+  onSave = null,
+  onAddedPersonNote = null,
+  onUpdatedPersonNote = null,
+  onDeletedPersonNote = null,
+}) {
   // This key is part of a trick to get React to throw out and recreate the Create Project
   // dialog when we have disposed of it - either by creating a project or cancelling.  This
   // tracks a sequential number that, when changed, signals React that the dialog can be
@@ -164,16 +161,6 @@ people.propTypes = {
   onAddedPersonNote: PropTypes.func,
   onUpdatedPersonNote: PropTypes.func,
   onDeletedPersonNote: PropTypes.func,
-};
-
-people.defaultProps = {
-  project: null,
-  list: [],
-  onSave: null,
-  onDelete: null,
-  onAddedPersonNote: null,
-  onUpdatedPersonNote: null,
-  onDeletedPersonNote: null,
 };
 
 export default people;

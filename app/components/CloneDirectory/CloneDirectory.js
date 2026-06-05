@@ -62,20 +62,30 @@ class CloneDirectory extends Component {
   };
 
   render() {
+    const {
+      sourceDirectory,
+      targetBaseDirectory,
+      projectName,
+      onSourceDirectoryChanged,
+      onTargetBaseDirectoryChanged,
+      onProjectNameChanged,
+      isValidDirectory = false,
+    } = this.props;
+
     let validation = null;
     if (this.state.validationErrorMessage) {
       validation = <Error style={{ marginTop: '15px' }}>{this.state.validationErrorMessage}</Error>;
     }
 
-    const targetDirectory = this.props.targetBaseDirectory && this.props.projectName
-      ? `${this.props.targetBaseDirectory}/${this.props.projectName}`
+    const targetDirectory = targetBaseDirectory && projectName
+      ? `${targetBaseDirectory}/${projectName}`
       : '';
 
     return (
       <div className={styles.container} data-tid="container">
         <fieldset>
           <legend>Source project directory to clone:</legend>
-          <input readOnly type="text" value={this.props.sourceDirectory} />
+          <input readOnly type="text" value={sourceDirectory} />
           <Button
             className={styles.browse}
             onClick={this.handleBrowseSourceDirectory}
@@ -87,7 +97,7 @@ class CloneDirectory extends Component {
 
         <fieldset>
           <legend>Target base directory:</legend>
-          <input readOnly type="text" value={this.props.targetBaseDirectory} />
+          <input readOnly type="text" value={targetBaseDirectory} />
           <Button
             className={styles.browse}
             onClick={this.handleBrowseTargetBaseDirectory}
@@ -101,12 +111,12 @@ class CloneDirectory extends Component {
           <legend>New project name:</legend>
           <input
             type="text"
-            value={this.props.projectName}
+            value={projectName}
             onChange={this.handleProjectNameChange}
           />
         </fieldset>
 
-        {targetDirectory && this.props.isValidDirectory && (
+        {targetDirectory && isValidDirectory && (
           <div className={styles.targetDirectoryPreview}>
             <p>New project will be created at:</p>
             <code>{targetDirectory}</code>
@@ -127,10 +137,7 @@ CloneDirectory.propTypes = {
   onSourceDirectoryChanged: PropTypes.func.isRequired,
   onTargetBaseDirectoryChanged: PropTypes.func.isRequired,
   onProjectNameChanged: PropTypes.func.isRequired,
-  isValidDirectory: PropTypes.bool, 
-};
-CloneDirectory.defaultProps = {
-  isValidDirectory: false,  // Default to false
+  isValidDirectory: PropTypes.bool,
 };
 
 export default CloneDirectory;

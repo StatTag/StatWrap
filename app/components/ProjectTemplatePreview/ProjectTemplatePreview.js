@@ -40,13 +40,15 @@ class ProjectTemplatePreview extends Component {
   }
 
   render() {
+    const { template = null } = this.props;
+
     let preview = (
       <div className={styles.placeholder}>Please select a template from a list on the left</div>
     );
-    if (this.props.template) {
+    if (template) {
       let templateContents = [];
-      if (this.props.template.contents) {
-        templateContents = contentsToNodes(this.props.template.contents);
+      if (template.contents) {
+        templateContents = contentsToNodes(template.contents);
       }
       const templateNodes = [
         {
@@ -95,10 +97,6 @@ class ProjectTemplatePreview extends Component {
 
 ProjectTemplatePreview.propTypes = {
   template: PropTypes.object,
-};
-
-ProjectTemplatePreview.defaultProps = {
-  template: null,
 };
 
 export default ProjectTemplatePreview;
