@@ -81,8 +81,12 @@ export default class FileHandler {
     // If this is a directory, we are going to traverse and get details
     // about the contained files and sub-folders
     if (asset.type === 'directory' && asset.children) {
-      const self = this;
-      asset.children.forEach((child, index) => (asset.children[index] = self.scan(child)));
+      // Skip processing if this directory was excluded during the initial scan
+      // (This is a safety check - the scan method should already have excluded them)
+      if (!AssetUtil.shouldExcludeDirectory(asset.uri)) {
+        const self = this;
+        asset.children.forEach((child, index) => (asset.children[index] = self.scan(child)));
+      }
     }
 
     // We will collect metadata for files that we would otherwise not show.
