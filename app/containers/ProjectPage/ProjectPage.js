@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { ipcRenderer } from 'electron';
-// import ResizablePanels from 'resizable-panels-react';
 import Projects from '../../components/Projects/Projects';
 import Project from '../../components/Project/Project';
 import CreateProjectDialog from '../CreateProjectDialog/CreateProjectDialog';
@@ -11,7 +10,7 @@ import UserContext from '../../contexts/User';
 import Messages from '../../constants/messages';
 import Constants from '../../constants/constants';
 import ChecklistUtil from '../../utils/checklist';
-import { Group, Panel, Separator } from 'react-resizable-panels';
+import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import {
   Dialog,
   DialogActions,
@@ -659,8 +658,8 @@ class ProjectPage extends Component {
     return (
       <div className={styles.container} data-tid="container">
         {/* Restored ResizablePanels using react-resizable-panels */}
-        <Group direction="horizontal" style={{ width: '100%', height: '100vh' }}>
-          <Panel defaultSize={"25%"} minSize={"15%"} maxSize={"50%"} style={{ height: '100%' }}>
+        <PanelGroup direction="horizontal" style={{ width: '100%', height: '100vh' }}>
+          <Panel defaultSize={25} minSize={15} maxSize={50} style={{ height: '100%' }}>
             <Projects
               projects={this.state.projects}
               selectedProject={this.state.selectedProject}
@@ -674,7 +673,7 @@ class ProjectPage extends Component {
               onSelect={this.handleSelectProjectListItem}
             />
           </Panel>
-          <Separator style={{ width: 6, background: '#eee', cursor: 'col-resize' }} />
+          <PanelResizeHandle style={{ width: 6, background: '#eee', cursor: 'col-resize' }} />
           <Panel style={{ height: '100%' }}>
             <Project
               project={this.state.selectedProject}
@@ -691,7 +690,7 @@ class ProjectPage extends Component {
               onDirtyStateChange={this.handleProjectDirtyStateChange}
             />
           </Panel>
-        </Group>
+        </PanelGroup>
         <CreateProjectDialog
           key={this.state.createProjectDialogKey}
           projectTemplates={this.state.projectTemplates}

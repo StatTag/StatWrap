@@ -8,26 +8,44 @@ import {
   faChevronRight,
   faChevronDown,
   faFolderOpen,
+  faSquareCheck,
+  faSquare,
 } from '@fortawesome/free-solid-svg-icons';
 import styles from './ProjectTemplatePreview.css';
 
-function contentsToNodes(assets) {
+function contentsToNodes(assets, selectable) {
   if (assets) {
     return assets.map((x) => ({
       value: x.path,
       label: x.name,
-      showCheckbox: false,
+      showCheckbox: selectable,
       icon:
         x.type === 'folder' ? (
           <FontAwesomeIcon icon={faFolder} />
         ) : (
           <FontAwesomeIcon icon={faFile} />
         ),
-      children: x.contents ? contentsToNodes(x.contents) : null,
+      children: x.contents ? contentsToNodes(x.contents, selectable) : null,
     }));
   }
 
   return [];
+}
+
+/**
+ * Collect all node values (paths) from a contents array, recursively.
+ */
+function collectAllPaths(contents) {
+  const paths = [];
+  if (contents) {
+    contents.forEach((item) => {
+      paths.push(item.path);
+      if (item.contents) {
+        paths.push(...collectAllPaths(item.contents));
+      }
+    });
+  }
+  return paths;
 }
 
 class ProjectTemplatePreview extends Component {
@@ -39,16 +57,41 @@ class ProjectTemplatePreview extends Component {
     };
   }
 
+  /**
+   * When a new template arrives, auto-check all items.
+   */
+  componentDidUpdate(prevProps) {
+    if (
+      this.props.template &&
+      this.props.template !== prevProps.template &&
+      this.props.selectable
+    ) {
+      const allPaths = collectAllPaths(this.props.template.contents);
+      this.setState({ checked: allPaths }, () => {
+        if (this.props.onCheckedChange) {
+          this.props.onCheckedChange(allPaths);
+        }
+      });
+    }
+  }
+  handleCheck = (checked) => {
+    this.setState({ checked });
+    if (this.props.onCheckedChange) {
+      this.props.onCheckedChange(checked);
+    }
+  };
+
+
   render() {
-    const { template = null } = this.props;
+    const { selectable, template } = this.props; 
 
     let preview = (
       <div className={styles.placeholder}>Please select a template from a list on the left</div>
     );
     if (template) {
       let templateContents = [];
-      if (template.contents) {
-        templateContents = contentsToNodes(template.contents);
+      if (this.props.template.contents) {
+        templateContents = contentsToNodes(this.props.template.contents, selectable);
       }
       const templateNodes = [
         {
@@ -62,7 +105,17 @@ class ProjectTemplatePreview extends Component {
         <>
           <strong>Preview:</strong>
           <CheckboxTree
+          noCascade
             icons={{
+              check: (
+                <FontAwesomeIcon className="rct-icon rct-icon-check" icon={faSquareCheck} />
+              ),
+              uncheck: (
+                <FontAwesomeIcon className="rct-icon rct-icon-uncheck" icon={faSquare} />
+              ),
+              halfCheck: (
+                <FontAwesomeIcon className="rct-icon rct-icon-half-check" icon={faSquareCheck} style={{ opacity: 0.5 }} />
+              ),
               expandClose: (
                 <FontAwesomeIcon className="rct-icon rct-icon-expand-close" icon={faChevronRight} />
               ),
@@ -80,7 +133,7 @@ class ProjectTemplatePreview extends Component {
             nodes={templateNodes}
             checked={this.state.checked}
             expanded={this.state.expanded}
-            onCheck={(checked) => this.setState({ checked })}
+            onCheck={this.handleCheck}
             onExpand={(expanded) => this.setState({ expanded })}
           />
         </>
@@ -97,6 +150,14 @@ class ProjectTemplatePreview extends Component {
 
 ProjectTemplatePreview.propTypes = {
   template: PropTypes.object,
+  selectable: PropTypes.bool,
+  onCheckedChange: PropTypes.func,
+};
+
+ProjectTemplatePreview.defaultProps = {
+  template: null,
+  selectable: false,
+  onCheckedChange: null,
 };
 
 export default ProjectTemplatePreview;
