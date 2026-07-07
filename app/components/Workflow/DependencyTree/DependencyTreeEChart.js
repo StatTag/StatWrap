@@ -4,7 +4,7 @@ import WorkflowUtil from '../../../utils/workflow';
 import AssetUtil from '../../../utils/asset';
 import styles from './DependencyTree.css';
 
-const dependencyGraphEChart = (props) => {
+const dependencyTreeEChart = (props) => {
   const { assets } = props;
 
   const data = WorkflowUtil.getAllDependenciesAsTree(AssetUtil.filterIncludedFileAssets(assets));
@@ -43,4 +43,4 @@ const dependencyGraphEChart = (props) => {
   return <div className={styles.container}>{tree}</div>;
 };
 
-export default dependencyGraphEChart;
+export default dependencyTreeEChart;
