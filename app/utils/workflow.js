@@ -133,7 +133,7 @@ export default class WorkflowUtil {
    *
    * @param {object} asset The root asset to build the graph from
    * @param {array} filters The filters to apply (if applicable)
-   * @returns An react-d3-graph object containing nodes and links attributes
+   * @returns An object containing nodes and links attributes
    */
   static getAllDependenciesAsEChartGraph(asset, filters) {
     const graph = WorkflowUtil.getAllDependenciesAsGraph(asset, filters);
@@ -291,7 +291,7 @@ export default class WorkflowUtil {
    * Build a tree (hierarchy of nodes) for an asset and all of
    * its descendants
    * @param {object} asset
-   * @returns An react-d3-tree tree object containing nodes and links attributes
+   * @returns An object containing nodes and links attributes
    */
   static getAllDependenciesAsTree(asset) {
     const filteredAsset = WorkflowUtil.filterArchivedAssets(asset);
