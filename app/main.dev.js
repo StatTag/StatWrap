@@ -33,7 +33,6 @@ import ProjectUtil from './utils/project';
 import LogService from './services/log';
 import ChecklistService from './services/checklist';
 import FileHandler from './services/assets/handlers/file';
-import { CANCELLED } from 'dns';
 
 // Initialize @electron/remote
 initialize();
@@ -54,7 +53,6 @@ const projectListService = new ProjectListService();
 const sourceControlService = new SourceControlService();
 const logService = new LogService();
 const checklistService = new ChecklistService();
-const { execSync } = require('child_process');
 // The LogWatcherService requires a window from which we can send messages, so we can't
 // construct it until the BrowserWindow is created.
 let logWatcherService = null;
@@ -206,7 +204,7 @@ const createWindow = async () => {
 
 // Directory where user-created custom templates are persisted
 const getCustomTemplatesDir = () =>
-  path.join(app.getPath('userData'), 'custom-templates');
+  path.join(app.getPath('userData'), Constants.StatWrapFiles.CUSTOM_PROJECT_TEMPLATES);
 
 /**
  * Add event listeners...
@@ -442,7 +440,7 @@ ipcMain.on(Messages.RENAME_PROJECT_LIST_ENTRY_REQUEST, async (event, projectId, 
  * file extensions (.exe, .dll, .sh), and returns a template object built from
  * the folder's structure.
 */
-ipcMain.on(Messages.IMPORT_TEMPLATE_FOLDER_REQUEST, async (event)=>{
+ipcMain.on(Messages.IMPORT_PROJECT_TEMPLATE_FOLDER_REQUEST, async (event)=>{
   const response = {
     canceled: false,
     template: null,
@@ -460,7 +458,7 @@ ipcMain.on(Messages.IMPORT_TEMPLATE_FOLDER_REQUEST, async (event)=>{
 
     if(result.canceled || !result.filePaths || result.filePaths.length === 0){
       response.canceled =true;
-      event.sender.send(Messages.IMPORT_TEMPLATE_FOLDER_RESPONSE, response);
+      event.sender.send(Messages.IMPORT_PROJECT_TEMPLATE_FOLDER_RESPONSE, response);
       return;
     }
 
@@ -483,7 +481,7 @@ ipcMain.on(Messages.IMPORT_TEMPLATE_FOLDER_REQUEST, async (event)=>{
     console.log(e);
   }
 
-  event.sender.send(Messages.IMPORT_TEMPLATE_FOLDER_RESPONSE, response);
+  event.sender.send(Messages.IMPORT_PROJECT_TEMPLATE_FOLDER_RESPONSE, response);
 });
 
 /**
@@ -1018,7 +1016,7 @@ ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, mode, project, p
  * Save a custom template to disk so it persists across app restarts.
  * After saving, the template is merged into the in-memory template list.
  */
-ipcMain.on(Messages.SAVE_CUSTOM_TEMPLATE_REQUEST, async (event,template) => {
+ipcMain.on(Messages.SAVE_CUSTOM_PROJECT_TEMPLATE_REQUEST, async (event,template) => {
   const response ={
     template: null,
     error: false,
@@ -1028,7 +1026,7 @@ ipcMain.on(Messages.SAVE_CUSTOM_TEMPLATE_REQUEST, async (event,template) => {
   try{
     // Generate a unique ID if the template does not have one
     if(!template.id || template.id === 'STATWRAP-CUSTOM'){
-      template.id = `CUSTOM-${Date.now()}`;
+      template.id = uuidv4();
     }
     template.version = template.version || '1';
 
@@ -1049,7 +1047,7 @@ ipcMain.on(Messages.SAVE_CUSTOM_TEMPLATE_REQUEST, async (event,template) => {
     console.log(e);
   }
 
-  event.sender.send(Messages.SAVE_CUSTOM_TEMPLATE_RESPONSE, response);
+  event.sender.send(Messages.SAVE_CUSTOM_PROJECT_TEMPLATE_RESPONSE, response);
 });
 
 /**
@@ -1274,7 +1272,7 @@ ipcMain.on(Messages.SEARCH_INDEX_REINDEX_REQUEST, async (event, searchSettings) 
 /**
  * Delete a custom template from disk
  */
-ipcMain.on(Messages.DELETE_CUSTOM_TEMPLATE_REQUEST, async (event, templateId) => {
+ipcMain.on(Messages.DELETE_CUSTOM_PROJECT_TEMPLATE_REQUEST, async (event, templateId) => {
   const response ={
     templateId,
     error: false,
@@ -1294,7 +1292,7 @@ ipcMain.on(Messages.DELETE_CUSTOM_TEMPLATE_REQUEST, async (event, templateId) =>
     console.log(e);
   }
 
-  event.sender.send(Messages.DELETE_CUSTOM_TEMPLATE_RESPONSE, response);
+  event.sender.send(Messages.DELETE_CUSTOM_PROJECT_TEMPLATE_RESPONSE, response);
 });
 
 /**
@@ -1396,7 +1394,7 @@ ipcMain.on(Messages.SEARCH_GET_SUGGESTIONS_REQUEST, async (event, query) => {
   event.sender.send(Messages.SEARCH_GET_SUGGESTIONS_RESPONSE, response);
 });
 
-ipcMain.on(Messages.IMPORT_TEMPLATE_ZIP_REQUEST, async (event) => {
+ipcMain.on(Messages.IMPORT_PROJECT_TEMPLATE_ZIP_REQUEST, async (event) => {
   const response = {
     canceled: false,
     template: null,
@@ -1419,7 +1417,7 @@ ipcMain.on(Messages.IMPORT_TEMPLATE_ZIP_REQUEST, async (event) => {
       result.filePaths.length === 0
     ) {
       response.canceled = true;
-      event.sender.send(Messages.IMPORT_TEMPLATE_ZIP_RESPONSE, response);
+      event.sender.send(Messages.IMPORT_PROJECT_TEMPLATE_ZIP_RESPONSE, response);
       return;
     }
 
@@ -1431,10 +1429,11 @@ ipcMain.on(Messages.IMPORT_TEMPLATE_ZIP_REQUEST, async (event) => {
     if(zipstats.size> MAX_ZIP_SIZE){
       response.error = true;
       response.errorMessage = `The zip file is ${(zipstats.size / (1024 * 1024)).toFixed(1)} MB, which exceeds the 5 MB limit.`;
-      event.sender.send(Messages.IMPORT_TEMPLATE_ZIP_RESPONSE,response);
+      event.sender.send(Messages.IMPORT_PROJECT_TEMPLATE_ZIP_RESPONSE,response);
       return;
     }
-     
+
+    const AdmZip = require('adm-zip');
 
     // Create a temporary directory for extraction
     const tempDir = path.join(
@@ -1445,19 +1444,20 @@ ipcMain.on(Messages.IMPORT_TEMPLATE_ZIP_REQUEST, async (event) => {
 
     // Extract the zip
     try {
-      execSync(`unzip -q "${zipFilePath}" -d "${tempDir}"`);
+      const zip = new AdmZip(zipFilePath);
+      zip.extractAllTo(tempDir, true);
     } catch (zipErr) {
       response.error = true;
       response.errorMessage =
         'Failed to extract zip file. Please make sure it is a valid zip archive.';
-      event.sender.send(Messages.IMPORT_TEMPLATE_ZIP_RESPONSE, response);
+      event.sender.send(Messages.IMPORT_PROJECT_TEMPLATE_ZIP_RESPONSE, response);
       return;
     }
 
     let scanPath = tempDir;
     const subdirs = fs
       .readdirSync(tempDir)
-      .filter((f) => f !== '.DS_Store' && f !== '__MACOSX');
+      .filter((f) => f !== '.DS_Store' && f !== '__MACOSX' && f !=='.git');
     if (
       subdirs.length === 1 &&
       fs.statSync(path.join(tempDir, subdirs[0])).isDirectory()
@@ -1488,13 +1488,13 @@ ipcMain.on(Messages.IMPORT_TEMPLATE_ZIP_REQUEST, async (event) => {
     console.log(e);
   }
 
-  event.sender.send(Messages.IMPORT_TEMPLATE_ZIP_RESPONSE, response);
+  event.sender.send(Messages.IMPORT_PROJECT_TEMPLATE_ZIP_RESPONSE, response);
 });
 
 /**
  * Export the  Custom Template as ZIP folder(.zip)
  */
-ipcMain.on(Messages.EXPORT_CUSTOM_TEMPLATE_REQUEST, async (event, templateId) => {
+ipcMain.on(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_REQUEST, async (event, templateId) => {
   const response = {
     canceled: false,
     error: false,
@@ -1512,7 +1512,7 @@ ipcMain.on(Messages.EXPORT_CUSTOM_TEMPLATE_REQUEST, async (event, templateId) =>
     });
     if (result.canceled || !result.filePath) {
       response.canceled = true;
-      event.sender.send(Messages.EXPORT_CUSTOM_TEMPLATE_RESPONSE, response);
+      event.sender.send(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_RESPONSE, response);
       return;
     }
     // Ensure the path always ends in .zip even if the user accidentally removed it
@@ -1530,5 +1530,5 @@ ipcMain.on(Messages.EXPORT_CUSTOM_TEMPLATE_REQUEST, async (event, templateId) =>
     response.errorMessage = `Failed to export the template: ${e.message}`;
     console.log(e);
   }
-  event.sender.send(Messages.EXPORT_CUSTOM_TEMPLATE_RESPONSE, response);
+  event.sender.send(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_RESPONSE, response);
 });

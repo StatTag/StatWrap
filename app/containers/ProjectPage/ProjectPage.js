@@ -10,7 +10,7 @@ import UserContext from '../../contexts/User';
 import Messages from '../../constants/messages';
 import Constants from '../../constants/constants';
 import ChecklistUtil from '../../utils/checklist';
-import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
+import { Group, Panel, Separator } from 'react-resizable-panels';
 import {
   Dialog,
   DialogActions,
@@ -658,8 +658,8 @@ class ProjectPage extends Component {
     return (
       <div className={styles.container} data-tid="container">
         {/* Restored ResizablePanels using react-resizable-panels */}
-        <PanelGroup direction="horizontal" style={{ width: '100%', height: '100vh' }}>
-          <Panel defaultSize={25} minSize={15} maxSize={50} style={{ height: '100%' }}>
+        <Group direction="horizontal" style={{ width: '100%', height: '100vh' }}>
+          <Panel defaultSize={"25%"} minSize={"15%"} maxSize={"50%"} style={{ height: '100%' }}>
             <Projects
               projects={this.state.projects}
               selectedProject={this.state.selectedProject}
@@ -673,7 +673,7 @@ class ProjectPage extends Component {
               onSelect={this.handleSelectProjectListItem}
             />
           </Panel>
-          <PanelResizeHandle style={{ width: 6, background: '#eee', cursor: 'col-resize' }} />
+          <Separator style={{ width: 6, background: '#eee', cursor: 'col-resize' }} />
           <Panel style={{ height: '100%' }}>
             <Project
               project={this.state.selectedProject}
@@ -690,7 +690,7 @@ class ProjectPage extends Component {
               onDirtyStateChange={this.handleProjectDirtyStateChange}
             />
           </Panel>
-        </PanelGroup>
+        </Group>
         <CreateProjectDialog
           key={this.state.createProjectDialogKey}
           projectTemplates={this.state.projectTemplates}

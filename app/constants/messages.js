@@ -10,20 +10,20 @@ module.exports = {
   UPDATE_PROJECT_REQUEST: 'statwrap-update-project-request',
   UPDATE_PROJECT_RESPONSE: 'statwrap-update-project-response',
 
-  IMPORT_TEMPLATE_FOLDER_REQUEST: 'statwrap-import-template-folder-request',
-  IMPORT_TEMPLATE_FOLDER_RESPONSE: 'statwrap-import-template-folder-response',
+  IMPORT_PROJECT_TEMPLATE_FOLDER_REQUEST: 'statwrap-import-project-template-folder-request',
+  IMPORT_PROJECT_TEMPLATE_FOLDER_RESPONSE: 'statwrap-import-project-template-folder-response',
 
-  IMPORT_TEMPLATE_ZIP_REQUEST: 'statwrap-import-zip-request',
-  IMPORT_TEMPLATE_ZIP_RESPONSE: 'statwrap-import-zip-response',
+  IMPORT_PROJECT_TEMPLATE_ZIP_REQUEST: 'statwrap-import-project-template-zip-request',
+  IMPORT_PROJECT_TEMPLATE_ZIP_RESPONSE: 'statwrap-import-project-template-zip-response',
 
-  EXPORT_CUSTOM_TEMPLATE_REQUEST: 'statwrap-export-custom-template-request',
-  EXPORT_CUSTOM_TEMPLATE_RESPONSE: 'statwrap-export-custom-template-response',
+  EXPORT_CUSTOM_PROJECT_TEMPLATE_REQUEST: 'statwrap-export-custom-project-template-request',
+  EXPORT_CUSTOM_PROJECT_TEMPLATE_RESPONSE: 'statwrap-export-custom-project-template-response',
 
-  SAVE_CUSTOM_TEMPLATE_REQUEST: 'statwrap-save-custom-template-request',
-  SAVE_CUSTOM_TEMPLATE_RESPONSE: 'statwrap-save-custom-template-response',
+  SAVE_CUSTOM_PROJECT_TEMPLATE_REQUEST: 'statwrap-save-custom-project-template-request',
+  SAVE_CUSTOM_PROJECT_TEMPLATE_RESPONSE: 'statwrap-save-custom-project-template-response',
 
-  DELETE_CUSTOM_TEMPLATE_REQUEST: 'statwrap-delete-custom-template-request',
-  DELETE_CUSTOM_TEMPLATE_RESPONSE: 'statwrap-delete-custom-template-response',
+  DELETE_CUSTOM_PROJECT_TEMPLATE_REQUEST: 'statwrap-delete-custom-project-template-request',
+  DELETE_CUSTOM_PROJECT_TEMPLATE_RESPONSE: 'statwrap-delete-custom-project-template-response',
   
   // This message pair is used from the primary renderer -> main
   SCAN_PROJECT_REQUEST: 'statwrap-scan-project-request',

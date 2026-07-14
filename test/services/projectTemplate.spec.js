@@ -5,6 +5,15 @@ import ProjectTemplateService from '../../app/services/projectTemplate';
 jest.mock('fs');
 jest.mock('os');
 
+const mockWriteZip = jest.fn();
+const mockAddLocalFolder = jest.fn();
+jest.mock('adm-zip', () => {
+  return jest.fn().mockImplementation(() => ({
+    addLocalFolder: mockAddLocalFolder,
+    writeZip: mockWriteZip,
+  }));
+});
+
 const TEST_USER_HOME_PATH = '/User/test/';
 os.homedir.mockReturnValue(TEST_USER_HOME_PATH);
 
@@ -16,6 +25,9 @@ describe('services', () => {
     };
 
     beforeEach(() => {
+      mockWriteZip.mockClear();
+      mockAddLocalFolder.mockClear();
+
       if (fs.existsSync) {
         fs.existsSync.mockImplementation((path) => {
           if (typeof path === 'string' && path.includes('custom-templates')) {
@@ -189,13 +201,13 @@ describe('services', () => {
     describe('buildTemplateFromFolder', () => {
       it('should throw an error when no folder path is specified', () => {
         expect(() => new ProjectTemplateService().buildTemplateFromFolder(null)).toThrow(
-          'You must specify a folder to import',
+          'You must specify a directory to import',
         );
         expect(() => new ProjectTemplateService().buildTemplateFromFolder(undefined)).toThrow(
-          'You must specify a folder to import',
+          'You must specify a directory to import',
         );
         expect(() => new ProjectTemplateService().buildTemplateFromFolder('')).toThrow(
-          'You must specify a folder to import',
+          'You must specify a directory to import',
         );
       });
       it('should throw an error when the folder does not exist on disk', () => {
@@ -217,7 +229,9 @@ describe('services', () => {
         const result = new ProjectTemplateService().buildTemplateFromFolder(
           '/Users/researcher/my-lab-template',
         );
-        expect(result.template.id).toBe('STATWRAP-CUSTOM');
+        expect(result.template.id).toBeDefined();
+        expect(typeof result.template.id).toBe('string');
+        expect(result.template.id.length).toBeGreaterThan(0);
         expect(result.template.version).toBe('1');
         expect(result.template.name).toBe('my-lab-template');
         expect(result.template.contents).toEqual([]);
@@ -244,7 +258,7 @@ describe('services', () => {
           .mockReturnValueOnce(fileStat);
         const result = new ProjectTemplateService().buildTemplateFromFolder('/project');
         expect(result.template.contents.length).toBe(2);
-        expect(result.template.contents[0].type).toBe('folder');
+        expect(result.template.contents[0].type).toBe('directory');
         expect(result.template.contents[0].name).toBe('code');
         expect(result.template.contents[0].contents.length).toBe(1);
         expect(result.template.contents[0].contents[0].name).toBe('analysis.R');
@@ -267,7 +281,7 @@ describe('services', () => {
       });
       it('should detect blocked extensions (.exe, .dll, .sh) and exclude those files', () => {
         fs.accessSync.mockReturnValue(true);
-        fs.readdirSync.mockReturnValue(['script.sh', 'malware.exe', 'README.md']);
+        fs.readdirSync.mockReturnValue(['script.sh', 'malware.exe', 'other-file.EXE', 'README.md']);
         const fileStat = {
           isDirectory: jest.fn(() => false),
           isSymbolicLink: jest.fn(() => false),
@@ -281,7 +295,7 @@ describe('services', () => {
       });
       it('should skip data file extensions (.csv, .png) silently', () => {
         fs.accessSync.mockReturnValue(true);
-        fs.readdirSync.mockReturnValue(['data.csv', 'image.png', 'README.md']);
+        fs.readdirSync.mockReturnValue(['data.csv', 'image.png', 'additional-data.CSV', 'README.md']);
         const fileStat = {
           isDirectory: jest.fn(() => false),
           isSymbolicLink: jest.fn(() => false),
@@ -292,6 +306,33 @@ describe('services', () => {
         expect(result.template.contents.length).toBe(1);
         expect(result.template.contents[0].name).toBe('README.md');
         expect(result.blockedExtensions).toEqual([]);
+      });
+      it('should block files with dangerous extensions embedded (e.g., test-file.exe.bak)', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readdirSync.mockReturnValue(['test-file.exe.bak', 'other-images.csv.ignore', 'README.md']);
+        const fileStat = {
+          isDirectory: jest.fn(() => false),
+          isSymbolicLink: jest.fn(() => false),
+          size: 100,
+        };
+        fs.lstatSync.mockReturnValue(fileStat);
+        const result = new ProjectTemplateService().buildTemplateFromFolder('/project');
+        expect(result.blockedExtensions).toContain('.exe');
+        expect(result.template.contents.length).toBe(1);
+        expect(result.template.contents[0].name).toBe('README.md');
+      });
+      it('should NOT block files whose extension only starts with a blocked extension (e.g., test-file.exet)', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readdirSync.mockReturnValue(['test-file.exet', 'other-images.csv1', 'README.md']);
+        const fileStat = {
+          isDirectory: jest.fn(() => false),
+          isSymbolicLink: jest.fn(() => false),
+          size: 100,
+        };
+        fs.lstatSync.mockReturnValue(fileStat);
+        const result = new ProjectTemplateService().buildTemplateFromFolder('/project');
+        expect(result.blockedExtensions).toEqual([]);
+        expect(result.template.contents.length).toBe(3);
       });
       it('should ignore symbolic links entirely', () => {
         fs.accessSync.mockReturnValue(true);
@@ -379,7 +420,7 @@ describe('services', () => {
           { name: 'README.md', type: 'file', path: '/source/README.md' },
           {
             name: 'code',
-            type: 'folder',
+            type: 'directory',
             path: '/source/code',
             contents: [{ name: 'main.R', type: 'file', path: '/source/code/main.R' }],
           },
@@ -561,14 +602,6 @@ describe('services', () => {
 
     describe('exportCustomTemplate', () => {
       it('should create a ZIP at the export path containing the template files', () => {
-        const mockWriteZip = jest.fn();
-        const mockAddLocalFolder = jest.fn();
-        jest.mock('adm-zip', () => {
-          return jest.fn().mockImplementation(() => ({
-            addLocalFolder: mockAddLocalFolder,
-            writeZip: mockWriteZip,
-          }));
-        });
         fs.existsSync.mockReturnValue(true);
         new ProjectTemplateService().exportCustomTemplate(
           '/custom-templates',

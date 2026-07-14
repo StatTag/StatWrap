@@ -76,7 +76,7 @@ const createTemplateFixture = () => ({
   description: 'Imported description',
   contents: [
     {
-      type: 'folder',
+      type: 'directory',
       name: 'Chapter 1',
       path: '/chapter-1',
       contents: [
@@ -86,7 +86,7 @@ const createTemplateFixture = () => ({
           path: '/chapter-1/outline.md',
         },
         {
-          type: 'folder',
+          type: 'directory',
           name: 'data',
           path: '/chapter-1/data',
           contents: [
@@ -339,7 +339,7 @@ describe('components', () => {
         });
 
         act(() => {
-          instance.handleDesChange({
+          instance.handleDescriptionChange({
             target: { value: 'New long description for the template' },
           });
         });
@@ -370,12 +370,12 @@ describe('components', () => {
         expect(onTemplateReady).toHaveBeenCalledTimes(1);
         expect(onTemplateReady.mock.calls[0][0].contents).toEqual([
           {
-            type: 'folder',
+            type: 'directory',
             name: 'Chapter 1',
             path: '/chapter-1',
             contents: [
               {
-                type: 'folder',
+                type: 'directory',
                 name: 'data',
                 path: '/chapter-1/data',
                 contents: [
@@ -419,11 +419,11 @@ describe('components', () => {
         expect(instance.state.isScanning).toBe(true);
         expect(instance.state.importError).toBeNull();
         expect(ipcRenderer.once).toHaveBeenCalledWith(
-          Messages.IMPORT_TEMPLATE_FOLDER_RESPONSE,
+          Messages.IMPORT_PROJECT_TEMPLATE_FOLDER_RESPONSE,
           expect.any(Function),
         );
         expect(ipcRenderer.send).toHaveBeenCalledWith(
-          Messages.IMPORT_TEMPLATE_FOLDER_REQUEST,
+          Messages.IMPORT_PROJECT_TEMPLATE_FOLDER_REQUEST,
         );
       });
 
@@ -436,7 +436,7 @@ describe('components', () => {
         });
 
         act(() => {
-          ipcRenderer.__handlers[Messages.IMPORT_TEMPLATE_FOLDER_RESPONSE](null, {
+          ipcRenderer.__handlers[Messages.IMPORT_PROJECT_TEMPLATE_FOLDER_RESPONSE](null, {
             canceled: true,
           });
         });
@@ -458,7 +458,7 @@ describe('components', () => {
         });
 
         act(() => {
-          ipcRenderer.__handlers[Messages.IMPORT_TEMPLATE_FOLDER_RESPONSE](null, {
+          ipcRenderer.__handlers[Messages.IMPORT_PROJECT_TEMPLATE_FOLDER_RESPONSE](null, {
             error: true,
             errorMessage: 'Failed to read template folder',
           });
@@ -480,7 +480,7 @@ describe('components', () => {
         });
 
         act(() => {
-          ipcRenderer.__handlers[Messages.IMPORT_TEMPLATE_FOLDER_RESPONSE](null, {
+          ipcRenderer.__handlers[Messages.IMPORT_PROJECT_TEMPLATE_FOLDER_RESPONSE](null, {
             canceled: false,
             template: incomingTemplate,
           });
@@ -519,11 +519,11 @@ describe('components', () => {
         expect(instance.state.isScanning).toBe(true);
         expect(instance.state.importError).toBeNull();
         expect(ipcRenderer.once).toHaveBeenCalledWith(
-          Messages.IMPORT_TEMPLATE_ZIP_RESPONSE,
+          Messages.IMPORT_PROJECT_TEMPLATE_ZIP_RESPONSE,
           expect.any(Function),
         );
         expect(ipcRenderer.send).toHaveBeenCalledWith(
-          Messages.IMPORT_TEMPLATE_ZIP_REQUEST,
+          Messages.IMPORT_PROJECT_TEMPLATE_ZIP_REQUEST,
         );
       });
 
@@ -535,7 +535,7 @@ describe('components', () => {
         });
 
         act(() => {
-          ipcRenderer.__handlers[Messages.IMPORT_TEMPLATE_ZIP_RESPONSE](null, {
+          ipcRenderer.__handlers[Messages.IMPORT_PROJECT_TEMPLATE_ZIP_RESPONSE](null, {
             canceled: true,
           });
         });
@@ -556,7 +556,7 @@ describe('components', () => {
         });
 
         act(() => {
-          ipcRenderer.__handlers[Messages.IMPORT_TEMPLATE_ZIP_RESPONSE](null, {
+          ipcRenderer.__handlers[Messages.IMPORT_PROJECT_TEMPLATE_ZIP_RESPONSE](null, {
             error: true,
             errorMessage: 'Invalid template archive',
           });
@@ -578,7 +578,7 @@ describe('components', () => {
         });
 
         act(() => {
-          ipcRenderer.__handlers[Messages.IMPORT_TEMPLATE_ZIP_RESPONSE](null, {
+          ipcRenderer.__handlers[Messages.IMPORT_PROJECT_TEMPLATE_ZIP_RESPONSE](null, {
             canceled: false,
             template: incomingTemplate,
           });

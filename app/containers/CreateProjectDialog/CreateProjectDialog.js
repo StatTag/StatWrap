@@ -266,10 +266,10 @@ class CreateProjectDialog extends Component {
       this.state.selectedTemplate.id === 'STATWRAP-CUSTOM' &&
       this.state.customTemplate
     ) {
-      ipcRenderer.send(Messages.SAVE_CUSTOM_TEMPLATE_REQUEST, this.state.customTemplate);
+      ipcRenderer.send(Messages.SAVE_CUSTOM_PROJECT_TEMPLATE_REQUEST, this.state.customTemplate);
       
       // Reload configuration once saved so the new custom template shows up in the list
-      ipcRenderer.once(Messages.SAVE_CUSTOM_TEMPLATE_RESPONSE, () => {
+      ipcRenderer.once(Messages.SAVE_CUSTOM_PROJECT_TEMPLATE_RESPONSE, () => {
         ipcRenderer.send(Messages.LOAD_CONFIGURATION_REQUEST);
       });
       // Reset selection state to close the builder and show the main list
@@ -378,8 +378,8 @@ class CreateProjectDialog extends Component {
   confirmDeleteTemplate = () => {
     const { templateToDelete } = this.state;
     if (templateToDelete) {
-      ipcRenderer.send(Messages.DELETE_CUSTOM_TEMPLATE_REQUEST, templateToDelete.id);
-      ipcRenderer.once(Messages.DELETE_CUSTOM_TEMPLATE_RESPONSE, () => {
+      ipcRenderer.send(Messages.DELETE_CUSTOM_PROJECT_TEMPLATE_REQUEST, templateToDelete.id);
+      ipcRenderer.once(Messages.DELETE_CUSTOM_PROJECT_TEMPLATE_RESPONSE, () => {
         ipcRenderer.send(Messages.LOAD_CONFIGURATION_REQUEST);
       });
     }
@@ -430,9 +430,9 @@ class CreateProjectDialog extends Component {
   }
 
   handleExportTemplate = (templateId) => {
-    ipcRenderer.send(Messages.EXPORT_CUSTOM_TEMPLATE_REQUEST , templateId);
+    ipcRenderer.send(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_REQUEST , templateId);
 
-    ipcRenderer.once(Messages.EXPORT_CUSTOM_TEMPLATE_RESPONSE, (event, response) => {
+    ipcRenderer.once(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_RESPONSE, (event, response) => {
       if(response.canceled) return;
 
       if(response.error){
@@ -450,35 +450,36 @@ class CreateProjectDialog extends Component {
     let dialogTitle = null;
     let progressButton = null;
 
-if (hasNextStep) {
-  // Check if we are currently showing the Custom Template Builder
-  const isCustomBuilder =
-    currentStep === 'SelectNewProjectTemplate' &&
-    this.state.selectedTemplate &&
-    this.state.selectedTemplate.id === 'STATWRAP-CUSTOM';
+    if (hasNextStep) {
+      // Check if we are currently showing the Custom Template Builder
+      const isCustomBuilder =
+        currentStep === 'SelectNewProjectTemplate' &&
+        this.state.selectedTemplate &&
+        this.state.selectedTemplate.id === 'STATWRAP-CUSTOM';
 
-  progressButton =
-    stepDetails.next === 'Create' ? (
-      <Button
-        color="primary"
-        disabled={!this.state.canProgress}
-        onClick={this.handleCreateProject}
-      >
-        Create Project
-        <ArrowForwardIcon />
-      </Button>
-    ) : isCustomBuilder ? (
-      // Show "Save" button without the forward arrow icon
-      <Button color="primary" disabled={!this.state.canProgress} onClick={this.handleNext}>
-        Save
-      </Button>
-    ) : (
-      <Button color="primary" disabled={!this.state.canProgress} onClick={this.handleNext}>
-        Next
-        <ArrowForwardIcon />
-      </Button>
-    );
-}
+      progressButton =
+        stepDetails.next === 'Create' ? (
+          <Button
+            color="primary"
+            disabled={!this.state.canProgress}
+            onClick={this.handleCreateProject}
+          >
+            Create Project
+            <ArrowForwardIcon />
+          </Button>
+        ) : isCustomBuilder ? (
+          // Show "Save" button without the forward arrow icon
+          <Button color="primary" disabled={!this.state.canProgress} onClick={this.handleNext}>
+            Save
+          </Button>
+        ) : (
+          <Button color="primary" disabled={!this.state.canProgress} onClick={this.handleNext}>
+            Next
+            <ArrowForwardIcon />
+          </Button>
+        );
+    }
+    
     let backButton = (
       <Button onClick={this.handleBack} color="primary" className={styles.backButton}>
         <ArrowBackIcon />

@@ -1,11 +1,56 @@
 
 import templateList from '../constants/project-templates.json';
+import Constants from '../constants/constants';
+import { FILE } from 'dns';
+import { v4 as uuidv4 } from 'uuid';
 
 const fs = require('fs');
 const path = require('path');
+const AdmZip = require('adm-zip');
 
-const BLOCKED_TEMPLATE_EXTENSIONS =['.exe', '.dll', '.sh'];
-const SKIPPED_TEMPLATE_EXTENSIONS =['.csv', '.png'];
+const BLOCKED_TEMPLATE_EXTENSIONS = [
+  // Microsoft executables
+  '.exe', '.com',
+  // Microsoft binary libraries
+  '.dll',
+  // Microsoft executable scripts
+  '.bat', '.pif', '.scr',
+  // Shell scripts
+  '.sh',
+  // Visual Basic files
+  '.vb', '.vbe', '.vbs',
+  // Other vulnerable Microsoft files
+  '.chm', '.hlp', '.inf', '.isp', '.lnk', '.msc', '.msi', '.msp', '.reg', '.shb', '.shs',
+  '.wsc', '.wsf', '.wsh',
+  // Microsoft/Installshield Cabinet files
+  '.cab',
+  // Java binaries
+  '.jar',
+  // OS X DMG files
+  '.dmg',
+  // OS X install scripts
+  '.mpkg',
+  // Debian/RedHat packages
+  '.deb', '.rpm',
+  // Tape archives
+  '.tar', '.cpio',
+  // Compressed files
+  '.f', '.gz', '.bz', '.bz2', '.lzo', '.z', '.emz',
+  // Other compressed archives
+  '.7z', '.rar', '.lha', '.arj', '.arc', '.zoo', '.sit',
+];
+const SKIPPED_TEMPLATE_EXTENSIONS = [
+  // Images
+  '.jpg', '.jpeg', '.gif', '.png', '.tif', '.tiff', '.pcx', '.bmp',
+  // Data files
+  '.csv',
+  // Vector graphics
+  '.svg', '.eps',
+  // Windows Metafiles
+  '.wmf',
+  // Cursors and icons
+  '.ani', '.cur', '.ico',
+];
 const MAX_TOTAL_FOLDER_SIZE = 5*1024*1024; //5 MB MAX FOLDER SIZE
 
 // Recursive function to get the hierarchy of files and folders in dirPath
@@ -19,14 +64,14 @@ function getAllFiles(dirPath) {
       if (fs.statSync(filePath).isDirectory()) {
         arrayOfFiles.push({
           name: file,
-          type: 'folder',
+          type: Constants.AssetType.DIRECTORY,
           path: path.join(dirPath, '/', file),
           contents: getAllFiles(filePath),
         });
       } else {
         arrayOfFiles.push({
           name: file,
-          type: 'file',
+          type: Constants.AssetType.FILE,
           path: path.join(dirPath, '/', file),
         });
       }
@@ -34,6 +79,15 @@ function getAllFiles(dirPath) {
   });
 
   return arrayOfFiles;
+}
+
+/**
+ * Extract all extensions from a filename
+ */
+function getAllExtensions(filename) {
+  const parts = filename.split('.');
+  if (parts.length <= 1) return [];
+  return parts.slice(1).map((ext) => `.${ext.toLowerCase()}`);
 }
 
 //Recursive function to get the folders contents in the dirPath
@@ -62,7 +116,7 @@ function collectImportedFolderContents(
     if(lstats.isDirectory()){
       arrayOfFiles.push({
         name: file,
-        type: 'folder',
+        type: Constants.AssetType.DIRECTORY,
         path: path.join(dirPath,'/',file),
         contents: collectImportedFolderContents(filePath,blockedExtensions,foundExtensions,statsTracker),
       });
@@ -71,24 +125,27 @@ function collectImportedFolderContents(
 
     statsTracker.totalSize += lstats.size;
     if(statsTracker.totalSize > MAX_TOTAL_FOLDER_SIZE){
-      throw new Error(`Import Aborted : Total template size exceeds the limit of 100MB`);
+      throw new Error(`Import Aborted : Total template size exceeds the limit of 5MB`);
     }
 
-    const extension = path.extname(file).toLowerCase();
+    const extensions = getAllExtensions(file);
+    const blockedExt = extensions.find((ext) => blockedExtensions.includes(ext));
 
-    // Skip data files that shouldn't be part of a template
-    if(SKIPPED_TEMPLATE_EXTENSIONS .includes(extension)){
+    // Check if ANY extension in the filename is blocked
+    if(blockedExt){
+      foundExtensions.add(blockedExt);
       return;
     }
 
-    if(blockedExtensions.includes(extension)){
-      foundExtensions.add(extension);
+    // Check if ANY extension in the filename should be skipped
+    const skippedExt = extensions.find((ext) => SKIPPED_TEMPLATE_EXTENSIONS.includes(ext));
+    if(skippedExt){
       return;
     }
 
     arrayOfFiles.push({
       name: file,
-      type: 'file',
+      type: Constants.AssetType.FILE,
       path: path.join(dirPath, '/', file),
     });
   });
@@ -105,7 +162,7 @@ function copyContentsAndUpdatePaths(contents, targetBaseDir) {
 
   return contents.map((item) => {
     const newPath = path.join(targetBaseDir, item.name);
-    if (item.type === 'file') {
+    if (item.type === Constants.AssetType.FILE) {
       fs.copyFileSync(item.path, newPath);
       return { ...item, path: newPath };
     } else {
@@ -144,7 +201,7 @@ function createAllTemplateItems(dirPath, contents, rootdirPath = dirPath) {
       throw new Error(`Security Exception: Blocked path traversal attempt to write outside project directory.`);
     }
 
-    if (item.type === 'file') {
+    if (item.type === Constants.AssetType.FILE) {
       fs.copyFileSync(item.path, newPath);
     } else {
       fs.mkdirSync(newPath);
@@ -201,13 +258,13 @@ export default class ProjectTemplateService {
   // Building the template from the folder
   buildTemplateFromFolder = (folderPath) =>{
     if(!folderPath){
-      throw new Error('You must specify a folder to import');
+      throw new Error('You must specify a directory to import');
     }
 
     try{
       fs.accessSync(folderPath);
     }catch(err){
-      throw new Error(`The folder ${folderPath} does not exist`);
+      throw new Error(`The directory ${folderPath} does not exist`);
     }
 
     const foundExtensions = new Set();
@@ -219,7 +276,7 @@ export default class ProjectTemplateService {
 
     return{
       template: {
-        id: 'STATWRAP-CUSTOM',
+        id: uuidv4(),
         version: '1',
         name: path.basename(folderPath, '.zip'),
         contents,
@@ -360,15 +417,14 @@ export default class ProjectTemplateService {
    * Export a custom template
    */
   exportCustomTemplate = (customTemplatesDir, templateId, exportPath) => {
-  const AdmZip = require('adm-zip');
-  const zip = new AdmZip();
-  // 1. Add the template's associated files directly into the ZIP root
-  const filesDir = path.join(customTemplatesDir, 'files', templateId);
-  if (fs.existsSync(filesDir)) {
-    zip.addLocalFolder(filesDir, "");
-  }
-  // 2. Write the ZIP buffer to the exportPath
-  zip.writeZip(exportPath);
-};
+    const zip = new AdmZip();
+    // 1. Add the template's associated files directly into the ZIP root
+    const filesDir = path.join(customTemplatesDir, 'files', templateId);
+    if (fs.existsSync(filesDir)) {
+      zip.addLocalFolder(filesDir, "");
+    }
+    // 2. Write the ZIP buffer to the exportPath
+    zip.writeZip(exportPath);
+  };
 
 }

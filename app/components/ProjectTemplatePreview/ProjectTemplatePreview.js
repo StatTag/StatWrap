@@ -12,6 +12,8 @@ import {
   faSquare,
 } from '@fortawesome/free-solid-svg-icons';
 import styles from './ProjectTemplatePreview.css';
+import Constants from '../../constants/constants';
+import { collectAllPaths } from '../../utils/templateContent';
 
 function contentsToNodes(assets, selectable) {
   if (assets) {
@@ -20,7 +22,7 @@ function contentsToNodes(assets, selectable) {
       label: x.name,
       showCheckbox: selectable,
       icon:
-        x.type === 'folder' ? (
+        x.type === Constants.AssetType.DIRECTORY ? (
           <FontAwesomeIcon icon={faFolder} />
         ) : (
           <FontAwesomeIcon icon={faFile} />
@@ -30,22 +32,6 @@ function contentsToNodes(assets, selectable) {
   }
 
   return [];
-}
-
-/**
- * Collect all node values (paths) from a contents array, recursively.
- */
-function collectAllPaths(contents) {
-  const paths = [];
-  if (contents) {
-    contents.forEach((item) => {
-      paths.push(item.path);
-      if (item.contents) {
-        paths.push(...collectAllPaths(item.contents));
-      }
-    });
-  }
-  return paths;
 }
 
 class ProjectTemplatePreview extends Component {
@@ -90,8 +76,8 @@ class ProjectTemplatePreview extends Component {
     );
     if (template) {
       let templateContents = [];
-      if (this.props.template.contents) {
-        templateContents = contentsToNodes(this.props.template.contents, selectable);
+      if (template.contents) {
+        templateContents = contentsToNodes(template.contents, selectable);
       }
       const templateNodes = [
         {

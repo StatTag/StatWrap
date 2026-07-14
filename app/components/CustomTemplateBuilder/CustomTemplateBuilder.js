@@ -3,49 +3,13 @@ import PropTypes from 'prop-types';
 import { Button, TextField, IconButton } from '@mui/material';
 import DriveFolderUploadIcon from '@mui/icons-material/DriveFolderUpload';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
+import { filterContentsByPaths, collectAllPaths } from '../../utils/templateContent';
 import ProjectTemplatePreview from '../ProjectTemplatePreview/ProjectTemplatePreview';
 import Error from '../Error/Error';
 import Messages from '../../constants/messages';
 import styles from './CustomTemplateBuilder.css';
 import { ipcRenderer } from 'electron';
 
-/**
- * Keep only the items whose path is in checkedPaths.
- * Folders are kept if they are checked OR have checked descendants.
- */
-function filterContentsByPaths(contents, checkedPaths) {
-  if (!contents) return [];
-  const filtered = [];
-  contents.forEach((item) => {
-    if (item.type === 'folder') {
-      if (checkedPaths.includes(item.path)) {
-        const filteredChildren = filterContentsByPaths(item.contents, checkedPaths);
-        filtered.push({ ...item, contents: filteredChildren });
-      }
-    } else {
-      if (checkedPaths.includes(item.path)) {
-        filtered.push(item);
-      }
-    }
-  });
-  return filtered;
-}
-
-/**
- * Recursively collect all paths from template contents
- */
-function collectAllPaths(contents) {
-  const paths = [];
-  if (contents) {
-    contents.forEach((item) => {
-      paths.push(item.path);
-      if (item.type === 'folder' && item.contents) {
-        paths.push(...collectAllPaths(item.contents));
-      }
-    });
-  }
-  return paths;
-}
 
 class CustomTemplateBuilder extends Component {
     constructor(props) {
@@ -61,6 +25,37 @@ class CustomTemplateBuilder extends Component {
             checkedPaths: initial ? collectAllPaths(initial.contents) : [],
         };
     }
+
+    _handleImportResponse = (response) => {
+    if (response.canceled) {
+        this.setState({ isScanning: false });
+        return;
+    }
+    if (response.error) {
+        this.setState({
+            isScanning: false,
+            importError: response.errorMessage,
+            importedTemplate: null,
+            checkedPaths: [],
+        });
+        if (this.props.onValidationChange) {
+            this.props.onValidationChange(false);
+        }
+        return;
+    }
+    this.setState(
+        {
+            isScanning: false,
+            importedTemplate: response.template,
+            templateName: response.template.name,
+            description: response.template.description,
+            importError: null,
+        },
+        () => {
+            this.updateTemplateReady();
+        },
+    );
+    };
 
     updateTemplateReady = () => {
         const { importedTemplate, templateName, description, checkedPaths, importError } = this.state;
@@ -93,7 +88,7 @@ class CustomTemplateBuilder extends Component {
         });
     };
 
-    handleDesChange = (e) => {
+    handleDescriptionChange = (e) => {
         const description = e.target.value;
         this.setState({ description }, () => {
             this.updateTemplateReady();
@@ -112,40 +107,10 @@ class CustomTemplateBuilder extends Component {
             importError: null
         });
 
-        ipcRenderer.once(Messages.IMPORT_TEMPLATE_FOLDER_RESPONSE, (event,response) => {
-            if(response.canceled){
-                this.setState({ isScanning: false });
-                return;
-            }
-
-            if(response.error){
-                this.setState({
-                    isScanning: false,
-                    importError: response.errorMessage,
-                    importedTemplate: null,
-                    checkedPaths: [],
-                });
-
-                if (this.props.onValidationChange) {
-                    this.props.onValidationChange(false);
-                }
-                return;
-            }
-            
-            this.setState(
-                {
-                    isScanning: false,
-                    importedTemplate: response.template,
-                    templateName: response.template.name,
-                    description: response.template.description,
-                    importError: null,
-                },
-                () => {
-                    this.updateTemplateReady();
-                },
-            );
+        ipcRenderer.once(Messages.IMPORT_PROJECT_TEMPLATE_FOLDER_RESPONSE, (event,response) => {
+            this._handleImportResponse(response);
         });
-        ipcRenderer.send(Messages.IMPORT_TEMPLATE_FOLDER_REQUEST); 
+        ipcRenderer.send(Messages.IMPORT_PROJECT_TEMPLATE_FOLDER_REQUEST); 
     }
 
     handleImportExistingTemplate = () => {
@@ -154,42 +119,10 @@ class CustomTemplateBuilder extends Component {
             importError: null
         })
 
-        ipcRenderer.once(Messages.IMPORT_TEMPLATE_ZIP_RESPONSE, (event, response) =>{
-            if(response.canceled){
-                this.setState({
-                    isScanning: false
-                });
-                return;
-            }
-
-            if(response.error){
-                this.setState({
-                    isScanning: false,
-                    importError: response.errorMessage,
-                    importedTemplate: null,
-                    checkedPaths: [],
-                });
-
-                if (this.props.onValidationChange) {
-                    this.props.onValidationChange(false);
-                }
-                return;
-            }
-
-            this.setState(
-                {
-                    isScanning: false,
-                    importedTemplate: response.template,
-                    templateName: response.template.name,
-                    description: response.template.description,
-                    importError: null,
-                },
-                () => {
-                    this.updateTemplateReady();
-                },
-            );
+        ipcRenderer.once(Messages.IMPORT_PROJECT_TEMPLATE_ZIP_RESPONSE, (event, response) =>{
+            this._handleImportResponse(response);
         });
-        ipcRenderer.send(Messages.IMPORT_TEMPLATE_ZIP_REQUEST); 
+        ipcRenderer.send(Messages.IMPORT_PROJECT_TEMPLATE_ZIP_REQUEST); 
     };
 
     render() {
@@ -245,7 +178,7 @@ class CustomTemplateBuilder extends Component {
                             size="small"
                             placeholder="Describe the template"
                             value={this.state.description}
-                            onChange={this.handleDesChange}
+                            onChange={this.handleDescriptionChange}
                             variant="outlined"
                             className={styles.textField}
                             multiline
