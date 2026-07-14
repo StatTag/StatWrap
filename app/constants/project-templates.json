@@ -2,6 +2,12 @@
   "ignore": [".DS_Store", "Thumbs.db"],
   "templates": [
     {
+      "id": "STATWRAP-CUSTOM",
+      "version": "1",
+      "name": "Custom Template",
+      "description": "Design your own project structure from scratch"
+    },
+    {
       "id": "STATWRAP-EMPTY",
       "version": "1",
       "name": "Empty project",
