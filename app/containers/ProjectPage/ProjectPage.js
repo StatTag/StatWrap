@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { ipcRenderer } from 'electron';
-// import ResizablePanels from 'resizable-panels-react';
 import Projects from '../../components/Projects/Projects';
 import Project from '../../components/Project/Project';
 import CreateProjectDialog from '../CreateProjectDialog/CreateProjectDialog';

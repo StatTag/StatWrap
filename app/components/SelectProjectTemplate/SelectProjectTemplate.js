@@ -21,9 +21,12 @@ class SelectProjectTemplate extends Component {
         <div className={styles.templateList}>
           <strong>Available templates:</strong>
           <ProjectTemplateList
-            templates={projectTemplates}
-            selectedTemplate={selectedTemplate}
-            onSelect={onSelectProjectTemplate}
+            templates={this.props.projectTemplates}
+            selectedTemplate={this.props.selectedTemplate}
+            onSelect={this.props.onSelectProjectTemplate}
+            onEdit={this.props.onEditTemplate}
+            onExport={this.props.onExportTemplate}
+            onDelete={this.props.onDeleteTemplate}
           />
         </div>
         <div className={styles.templatePreview}>
@@ -38,6 +41,9 @@ SelectProjectTemplate.propTypes = {
   projectTemplates: PropTypes.array.isRequired,
   selectedTemplate: PropTypes.object,
   onSelectProjectTemplate: PropTypes.func.isRequired,
+  onEditTemplate: PropTypes.func,
+  onExportTemplate: PropTypes.func,
+  onDeleteTemplate: PropTypes.func,
 };
 
 export default SelectProjectTemplate;

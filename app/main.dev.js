@@ -9,12 +9,12 @@
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  *
  */
-import { app, shell, BrowserWindow, ipcMain, screen } from 'electron';
+import { app, shell, BrowserWindow, ipcMain, screen, dialog } from 'electron';
 // import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import fs from 'fs';
 import { URL } from 'url';
-import { orderBy } from 'lodash';
+import { orderBy, template } from 'lodash';
 import { initialize, enable as enableRemote } from '@electron/remote/main';
 import MenuBuilder from './menu';
 import LogWatcherService from './services/logWatcher';
@@ -53,7 +53,6 @@ const projectListService = new ProjectListService();
 const sourceControlService = new SourceControlService();
 const logService = new LogService();
 const checklistService = new ChecklistService();
-
 // The LogWatcherService requires a window from which we can send messages, so we can't
 // construct it until the BrowserWindow is created.
 let logWatcherService = null;
@@ -203,6 +202,10 @@ const createWindow = async () => {
   //new AppUpdater();
 };
 
+// Directory where user-created custom templates are persisted
+const getCustomTemplatesDir = () =>
+  path.join(app.getPath('userData'), Constants.StatWrapFiles.CUSTOM_PROJECT_TEMPLATES);
+
 /**
  * Add event listeners...
  */
@@ -329,6 +332,14 @@ ipcMain.on(Messages.LOAD_CONFIGURATION_REQUEST, async (event) => {
     response.projectTemplates = projectTemplateService.loadProjectTemplates(
       path.join(__dirname, './templates'),
     );
+
+    // Load and merge any user-created custom templates
+    const customTemplates = projectTemplateService.loadCustomTemplates(
+      getCustomTemplatesDir(),
+    );
+    if(customTemplates.length > 0){
+      response.projectTemplates = projectTemplateService.mergeCustomTemplates(customTemplates);
+    }
   } catch (e) {
     response.error = true;
     response.errorMessage = 'There was an unexpected error when loading the list of project types';
@@ -425,6 +436,55 @@ ipcMain.on(Messages.RENAME_PROJECT_LIST_ENTRY_REQUEST, async (event, projectId, 
 });
 
 /**
+ * Opens the native OS folder picker, scans the selected folder for dangerous
+ * file extensions (.exe, .dll, .sh), and returns a template object built from
+ * the folder's structure.
+*/
+ipcMain.on(Messages.IMPORT_PROJECT_TEMPLATE_FOLDER_REQUEST, async (event)=>{
+  const response = {
+    canceled: false,
+    template: null,
+    blockedExtensions: [],
+    error: false,
+    errorMessage: '',
+  };
+
+  try{
+    const parentWindow = BrowserWindow.fromWebContents(event.sender)|| mainWindow;
+    const result = await dialog.showOpenDialog(parentWindow, {
+      title: 'Select a folder to import',
+      properties: ['openDirectory'],
+    });
+
+    if(result.canceled || !result.filePaths || result.filePaths.length === 0){
+      response.canceled =true;
+      event.sender.send(Messages.IMPORT_PROJECT_TEMPLATE_FOLDER_RESPONSE, response);
+      return;
+    }
+
+    const folderPath = result.filePaths[0];
+    const templateResult = projectTemplateService.buildTemplateFromFolder(folderPath);
+    
+    response.template = templateResult.template;
+    response.blockedExtensions= templateResult.blockedExtensions;
+
+    if(response.blockedExtensions.length > 0){
+      response.error = true;
+      response.errorMessage = `This folder contains ${response.blockedExtensions.join(
+         ', ',
+      )} files. StatWrap does not accept this.`;
+      response.template = null;
+    }
+  }catch(e){
+    response.error = true;
+    response.errorMessage = 'There was an unexpected error while importing the template';
+    console.log(e);
+  }
+
+  event.sender.send(Messages.IMPORT_PROJECT_TEMPLATE_FOLDER_RESPONSE, response);
+});
+
+/**
  * Create a new project - instantiating the project metadata within the project root,
  * and also registering the project within the user's project list.
  */
@@ -454,12 +514,31 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
             response.errorMessage = `No project template was specified or selected`;
           } else {
             projectService.initializeNewProject(validationReport.project, project.template);
-            projectTemplateService.createTemplateContents(
+
+            // Custom imported templates use createTemplateContentsFromContents
+            // because they aren't in the projectTemplates cache.
+            // Built-in templates use the existing createTemplateContents which
+            // looks up the template by ID and version from the cache.
+
+            if(project.template.id === 'STATWRAP-CUSTOM'){
+              if (!project.customTemplate || !project.customTemplate.contents) {
+                response.error = true;
+                response.errorMessage = 'Custom template was not imported or is empty';
+              } else {
+                projectTemplateService.createTemplateContentsFromContents(
+                  validationReport.project.path,
+                  project.customTemplate.contents,
+                );
+              }
+            }else{
+              projectTemplateService.createTemplateContents(
               validationReport.project.path,
               project.template.id,
               project.template.version,
             );
+          }
 
+          if (!response.error) {
             // We are going to do just a FileHandler scan of the assets.  Even when we have more handlers, we don't
             // need to store or cache those results in the project file (at least initially).  If that changes, we
             // should see if we can have a single initialization of the AssetService instead of doing it here and
@@ -468,7 +547,8 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
             validationReport.project.assets = assetService.scan(validationReport.project.path);
             projectService.saveProjectFile(validationReport.project.path, validationReport.project);
           }
-          break;
+          }
+          break;   
         }
         case Constants.ProjectType.EXISTING_PROJECT_TYPE: {
           // Let's see if a StatWrap project configuration file already exists at that location.
@@ -931,6 +1011,45 @@ ipcMain.on(Messages.CREATE_UPDATE_PERSON_REQUEST, async (event, mode, project, p
   event.sender.send(Messages.CREATE_UPDATE_PERSON_RESPONSE, response);
 });
 
+
+/**
+ * Save a custom template to disk so it persists across app restarts.
+ * After saving, the template is merged into the in-memory template list.
+ */
+ipcMain.on(Messages.SAVE_CUSTOM_PROJECT_TEMPLATE_REQUEST, async (event,template) => {
+  const response ={
+    template: null,
+    error: false,
+    errorMessage: '',
+  };
+
+  try{
+    // Generate a unique ID if the template does not have one
+    if(!template.id || template.id === 'STATWRAP-CUSTOM'){
+      template.id = uuidv4();
+    }
+    template.version = template.version || '1';
+
+    const saved = projectTemplateService.saveCustomTemplate(
+      getCustomTemplatesDir(),
+      template,
+    );
+    response.template = saved;
+
+    // Refresh the in-memory template list
+    const customTemplates = projectTemplateService.loadCustomTemplates(
+      getCustomTemplatesDir(),
+    );
+    projectTemplateService.mergeCustomTemplates(customTemplates);
+  }catch(e){
+    response.error = true;
+    response.errorMessage = 'Failed to save the custom template';
+    console.log(e);
+  }
+
+  event.sender.send(Messages.SAVE_CUSTOM_PROJECT_TEMPLATE_RESPONSE, response);
+});
+
 /**
  * Received when the current user's profile information needs to be saved
  */
@@ -1150,6 +1269,31 @@ ipcMain.on(Messages.SEARCH_INDEX_REINDEX_REQUEST, async (event, searchSettings) 
   event.sender.send(Messages.SEARCH_INDEX_REINDEX_RESPONSE, response);
 });
 
+/**
+ * Delete a custom template from disk
+ */
+ipcMain.on(Messages.DELETE_CUSTOM_PROJECT_TEMPLATE_REQUEST, async (event, templateId) => {
+  const response ={
+    templateId,
+    error: false,
+    errorMessage: '',
+  };
+
+  try{
+    projectTemplateService.deleteCustomTemplate(getCustomTemplatesDir(),templateId);
+    //Refresh the in-memory template list
+    const customTemplates = projectTemplateService.loadCustomTemplates(
+      getCustomTemplatesDir(),
+    );
+    projectTemplateService.mergeCustomTemplates(customTemplates);
+  }catch(e){
+    response.error = true;
+    response.errorMessage = 'Failed to delete the custom template';
+    console.log(e);
+  }
+
+  event.sender.send(Messages.DELETE_CUSTOM_PROJECT_TEMPLATE_RESPONSE, response);
+});
 
 /**
  * Handle a request to delete the search index
@@ -1248,4 +1392,143 @@ ipcMain.on(Messages.SEARCH_GET_SUGGESTIONS_REQUEST, async (event, query) => {
   }
 
   event.sender.send(Messages.SEARCH_GET_SUGGESTIONS_RESPONSE, response);
+});
+
+ipcMain.on(Messages.IMPORT_PROJECT_TEMPLATE_ZIP_REQUEST, async (event) => {
+  const response = {
+    canceled: false,
+    template: null,
+    error: false,
+    errorMessage: '',
+  };
+
+  try {
+    const parentWindow =
+      BrowserWindow.fromWebContents(event.sender) || mainWindow;
+    const result = await dialog.showOpenDialog(parentWindow, {
+      title: 'Select a template zip file to import',
+      filters: [{ name: 'Zip Archives', extensions: ['zip'] }],
+      properties: ['openFile'],
+    });
+
+    if (
+      result.canceled ||
+      !result.filePaths ||
+      result.filePaths.length === 0
+    ) {
+      response.canceled = true;
+      event.sender.send(Messages.IMPORT_PROJECT_TEMPLATE_ZIP_RESPONSE, response);
+      return;
+    }
+
+    const zipFilePath = result.filePaths[0];
+    
+    // Checking for ZIP file size
+    const MAX_ZIP_SIZE = 5 * 1024 * 1024; // 5 MB Max ZIP Size
+    const zipstats = fs.statSync(zipFilePath);
+    if(zipstats.size> MAX_ZIP_SIZE){
+      response.error = true;
+      response.errorMessage = `The zip file is ${(zipstats.size / (1024 * 1024)).toFixed(1)} MB, which exceeds the 5 MB limit.`;
+      event.sender.send(Messages.IMPORT_PROJECT_TEMPLATE_ZIP_RESPONSE,response);
+      return;
+    }
+
+    const AdmZip = require('adm-zip');
+
+    // Create a temporary directory for extraction
+    const tempDir = path.join(
+      app.getPath('temp'),
+      `statwrap-template-${Date.now()}`
+    );
+    fs.mkdirSync(tempDir, { recursive: true });
+
+    // Extract the zip
+    try {
+      const zip = new AdmZip(zipFilePath);
+      zip.extractAllTo(tempDir, true);
+    } catch (zipErr) {
+      response.error = true;
+      response.errorMessage =
+        'Failed to extract zip file. Please make sure it is a valid zip archive.';
+      event.sender.send(Messages.IMPORT_PROJECT_TEMPLATE_ZIP_RESPONSE, response);
+      return;
+    }
+
+    let scanPath = tempDir;
+    const subdirs = fs
+      .readdirSync(tempDir)
+      .filter((f) => f !== '.DS_Store' && f !== '__MACOSX' && f !=='.git');
+    if (
+      subdirs.length === 1 &&
+      fs.statSync(path.join(tempDir, subdirs[0])).isDirectory()
+    ) {
+      scanPath = path.join(tempDir, subdirs[0]);
+    }
+
+    // Scanning the extracted folder for template contents
+    const templateResult =
+      projectTemplateService.buildTemplateFromFolder(scanPath);
+    response.template = templateResult.template;
+
+    response.template.name = path.basename(zipFilePath, '.zip');
+
+    // Security Checkings
+    if (templateResult.blockedExtensions.length > 0) {
+      response.error = true;
+      response.errorMessage = `This folder contains ${templateResult.blockedExtensions.join(
+        ', '
+      )} files. StatWrap does not accept this.`;
+      response.template = null;
+    }
+  } catch (e) {
+    response.error = true;
+    response.errorMessage =
+      e.message ||
+      'There was an unexpected error while importing the template';
+    console.log(e);
+  }
+
+  event.sender.send(Messages.IMPORT_PROJECT_TEMPLATE_ZIP_RESPONSE, response);
+});
+
+/**
+ * Export the  Custom Template as ZIP folder(.zip)
+ */
+ipcMain.on(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_REQUEST, async (event, templateId) => {
+  const response = {
+    canceled: false,
+    error: false,
+    errorMessage: '',
+  };
+  try {
+    const parentWindow = BrowserWindow.fromWebContents(event.sender) || mainWindow;
+    // Open a Save dialog that asks where to save the .zip file
+    const result = await dialog.showSaveDialog(parentWindow, {
+      title: 'Export Template',
+      defaultPath: `${templateId}.zip`,
+      filters: [
+        { name: 'ZIP Archive', extensions: ['zip'] },
+      ],
+    });
+    if (result.canceled || !result.filePath) {
+      response.canceled = true;
+      event.sender.send(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_RESPONSE, response);
+      return;
+    }
+    // Ensure the path always ends in .zip even if the user accidentally removed it
+    let exportPath = result.filePath;
+    if (!exportPath.endsWith('.zip')) {
+      exportPath = `${exportPath}.zip`;
+    }
+    projectTemplateService.exportCustomTemplate(
+      getCustomTemplatesDir(),
+      templateId,
+      exportPath,
+    );
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = `Failed to export the template: ${e.message}`;
+    console.log(e);
+  }
+  event.sender.send(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_RESPONSE, response);
 });

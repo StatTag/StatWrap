@@ -45,7 +45,8 @@ module.exports = {
     LOG: '.statwrap.log',
     CHECKLIST: '.statwrap-checklist.json',
     CLONED_PROJECT_MARKER: 'cloned_project_marker',
-    SEARCH_INDEX: 'search-index.json'
+    SEARCH_INDEX: 'search-index.json',
+    CUSTOM_PROJECT_TEMPLATES: 'custom-project-templates',
   },
 
   ActionType: {
