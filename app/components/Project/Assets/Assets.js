@@ -20,6 +20,26 @@ import SourceControlService from '../../../services/sourceControl';
 import styles from './Assets.css';
 import path from 'path';
 
+
+/**
+ * Load Custom Attributes for a project from localStorage.
+ */
+function loadCustomAttributes(projectId) {
+  try {
+    const stored = localStorage.getItem(`statwrap_custom_attrs_${projectId}`);
+    return stored ? JSON.parse(stored) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+/** 
+ * Save Custom Attributes for a project to localStorage.
+ */
+function saveCustomAttributes(projectId, attrs) {
+  localStorage.setItem(`statwrap_custom_attrs_${projectId}`, JSON.stringify(attrs));
+}
+
 /**
  * Utility function to safely reset available filters for a project's assets
  *
@@ -85,6 +105,9 @@ const assetsComponent = (props) => {
     project.externalAssets : AssetUtil.createEmptyExternalAssets());
   // Sensitive file state that are under version control
   const [sensitiveTrackedFiles, setSensitiveTrackedFiles] = useState([]);
+  const [localCustomAttributes, setLocalCustomAttributes] = useState(
+    project ? loadCustomAttributes(project.id) : []
+  )
 
   const sourceControlService = new SourceControlService();
   const projectService = new ProjectService();
@@ -96,15 +119,12 @@ const assetsComponent = (props) => {
     // Get a more recent copy of the asset from the updated project
     if (project && project.assets && selectedAsset) {
       const updatedAsset = AssetUtil.findDescendantAssetByUri(project.assets, selectedAsset.uri);
-      setSelectedAsset(updatedAsset);
-      if (onSelectedAsset) {
-        onSelectedAsset(updatedAsset);
-      }
-    } else {
-      setSelectedAsset(null);
-      if (onSelectedAsset) {
-        onSelectedAsset(null);
-      }
+      if (updatedAsset) {
+        setSelectedAsset(updatedAsset);
+        if (onSelectedAsset) {
+          onSelectedAsset(updatedAsset);
+        }
+      } 
     }
   }, [project]);
 
@@ -169,6 +189,13 @@ const assetsComponent = (props) => {
 
     checkSensitiveTrackedFiles();
   }, [project]);
+
+  // Reload Custom Attributes only when the project ID changes.
+  useEffect(() => {
+    if (project && project.id) {
+      setLocalCustomAttributes(loadCustomAttributes(project.id));
+    }
+  }, [project && project.id]);
 
   // Whenever the filter changes, update the list of assets to include only
   // those that should be displayed.
@@ -381,6 +408,18 @@ const assetsComponent = (props) => {
     setEditingExternalAsset(true);
   };
 
+  const handleAddLocalCustomAttribute = (newAttribute) => {
+    const updated = [...localCustomAttributes, newAttribute];
+    setLocalCustomAttributes(updated);
+    saveCustomAttributes(project.id, updated);
+  };
+
+  const handleDeleteLocalCustomAttribute = (attributeId) => {
+    const updated = localCustomAttributes.filter((a) => a.id !== attributeId);
+    setLocalCustomAttributes(updated);
+    saveCustomAttributes(project.id, updated);
+  };
+
   let assetDisplay = null;
   if (project) {
     assetDisplay = <Loading>Please wait for the list of assets to finish loading...</Loading>;
@@ -393,6 +432,9 @@ const assetsComponent = (props) => {
         onDeletedNote={onDeletedAssetNote}
         onUpdatedAttribute={onUpdatedAssetAttribute}
         assetAttributes={assetAttributes}
+        customAttributes={localCustomAttributes}
+        onAddCustomAttribute={handleAddLocalCustomAttribute}
+        onDeleteCustomAttribute={handleDeleteLocalCustomAttribute}
         sourceControlEnabled={project.sourceControlEnabled}
         dynamicDetails={dynamicDetails}
         onEdit={handleEditExternalAsset}

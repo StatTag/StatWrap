@@ -10,8 +10,7 @@
 
 .statementHeader {
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
+  flex-flow: row nowrap;
   align-items: center;
   border: 1px solid #e5e5e5;
   border-radius: 7px;
@@ -21,8 +20,8 @@
 
 .expandButton {
   background: none;
-  padding-left: 0px;
-  margin-right: 0px;
+  padding-left: 0;
+  margin-right: 0;
   align-items: center;
   display: flex;
 }
@@ -46,6 +45,9 @@
   margin-left: auto;
   margin-right: 0;
   margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .scanResult {
@@ -53,13 +55,10 @@
   font-family: 'Courier New', Courier, monospace;
 }
 
-.scanResult,
 .userDocumentation {
   padding-left: 20px;
   margin-bottom: 20px;
 }
-
-.scanKey {}
 
 .scanList {
   margin-top: 4px;
@@ -89,7 +88,7 @@
 }
 
 .assets th {
-  background-color: rgba(0, 0, 0, .05);
+  background-color: rgb(0 0 0 / 5%);
   padding: 5px;
   text-align: left;
 }
@@ -110,7 +109,7 @@
 
 .assets tr td {
   border: none;
-  border-bottom: solid 1px rgba(0, 0, 0, .12);
+  border-bottom: solid 1px rgb(0 0 0 / 12%);
   padding: 5px;
 }
 
@@ -136,7 +135,6 @@
   padding-bottom: 5px;
 }
 
-.assetDescription,
 .assetLink {
   padding-top: 5px;
   font-size: 0.85rem;
@@ -394,9 +392,6 @@ button.addAssetButton {
 .title,
 .description {
   width: 100%;
-}
-
-.description {
   margin-top: 10px;
 }
 
@@ -424,4 +419,38 @@ button.addAssetButton {
   text-align: center;
   border-bottom: solid 1px #bbb;
   margin-bottom: 15px;
+}
+
+.customActions {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  margin-right: 8px;
+}
+
+.editButton {
+  color: #639 !important;
+  transition: background-color 0.2s;
+}
+
+.editButton:hover {
+  background-color: rgb(102 51 153 / 10%) !important;
+}
+
+.deleteButton {
+  color: #639 !important;
+  transition: background-color 0.2s;
+}
+
+.deleteButton:hover {
+  background-color: rgb(102 51 153 / 10%) !important;
+}
+
+.infoButton {
+  color: #639 !important;
+  transition: background-color 0.2s;
+}
+
+.infoButton:hover {
+  background-color: rgb(102 51 153 / 10%) !important;
 }

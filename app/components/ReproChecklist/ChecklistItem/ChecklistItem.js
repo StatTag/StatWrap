@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styles from './ChecklistItem.css';
 import NoteEditor from '../../NoteEditor/NoteEditor';
-import { ContentCopy, Done, Delete } from '@mui/icons-material';
+import { ContentCopy, Done, Delete, Edit, HelpOutline } from '@mui/icons-material';
 import {
   IconButton,
   Checkbox,
@@ -24,12 +24,15 @@ const { v4: uuidv4 } = require('uuid');
 function ChecklistItem(props) {
   const {
     item,
+    displayNumber,
     project,
     onUpdatedNote,
     onDeletedNote,
     onAddedNote,
     onItemUpdate,
     onSelectedAsset,
+    onDeleteItem,
+    onEditItem,
   } = props;
 
   const treeRef = React.useRef(null);
@@ -96,11 +99,11 @@ function ChecklistItem(props) {
    *
    * @param {object} event The checkbox event
    */
-  const handleItemChecked = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleItemChecked = (event) => {
     const newValue = event.target.checked;
 
     // If it didn't change, no action is needed.
-    if (newValue === item.value) {
+    if (newValue === item.answer) {
       return;
     }
 
@@ -122,7 +125,7 @@ function ChecklistItem(props) {
    * @param {object} event The checkbox event
    * @param {object} subCheck The sub-checklist item that was updated
    */
-  const handleSubItemChecked = (event: React.ChangeEvent<HTMLInputElement>, subCheck) => {
+  const handleSubItemChecked = (event, subCheck) => {
     // TODO: This works in theory... we don't currently have a sub-checklist item, so when we
     // implement one we will need this to be tested more thoroughly.
     const newValue = event.target.checked;
@@ -270,8 +273,44 @@ function ChecklistItem(props) {
               )}
             </button>
             <span className={styles.statement}>
-              {item.id}. {item.statement}
+              {displayNumber}. {item.statement}
             </span>
+            <div className={styles.buttonContainer}>
+                {item.source === 'custom' && (
+                    <IconButton
+                      size="small"
+                      onClick={() => onEditItem(item)}
+                      className={styles.editButton}
+                      title="Edit checklist"
+                    >
+                      <Edit fontSize="small" />
+                    </IconButton>
+                )}
+                <IconButton
+                  size="small"
+                  onClick={() => onDeleteItem(item.uid || item.id)}
+                  className={styles.deleteButton}
+                  title="Delete checklist"
+                >
+                   <Delete fontSize="small" />
+                </IconButton>
+                {item.description && item.description.trim() !== '' && (
+                  <Tooltip
+                  title={item.description}
+                  arrow
+                  placement="top"
+                  enterDelay={200}
+                  >
+                    <IconButton
+                    size="small"
+                    className={styles.infoButton}
+                    >
+                      <HelpOutline fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  )}
+              
+            
             <div className={styles.buttonContainer}>
               <Checkbox
                 checked={item.answer}
@@ -282,29 +321,34 @@ function ChecklistItem(props) {
                 }}
               />
             </div>
+            </div>
           </div>
           {expanded && (
             <div className={styles.details}>
-              <div className={styles.itemSubHeading}>StatWrap Defined Documentation</div>
-              <div className={styles.scanResult}>
-                {item.scanResult &&
-                  Object.keys(item.scanResult).map((key) => {
-                    return (
-                      <div key={key}>
-                        <span className={styles.scanKey}>{key}</span>
-                        <ul className={styles.scanList}>
-                          {item.scanResult[key].length ? (
-                            item.scanResult[key].map((answer, index) => (
-                              <li key={index}>{answer}</li>
-                            ))
-                          ) : (
-                            <li>No results</li>
-                          )}
-                        </ul>
-                      </div>
-                    );
-                  })}
-              </div>
+              {item.source !== 'custom' && (
+                <>
+                <div className={styles.itemSubHeading}>StatWrap Defined Documentation</div>
+                <div className={styles.scanResult}>
+                  {item.scanResult &&
+                    Object.keys(item.scanResult).map((key) => {
+                      return (
+                        <div key={key}>
+                          <span className={styles.scanKey}>{key}</span>
+                          <ul className={styles.scanList}>
+                            {item.scanResult[key].length ? (
+                              item.scanResult[key].map((answer, index) => (
+                                <li key={index}>{answer}</li>
+                              ))
+                            ) : (
+                              <li>No results</li>
+                            )}
+                          </ul>
+                        </div>
+                      );
+                    })}
+                </div>
+                </>
+              )}
               <div className={styles.itemSubHeading}>Additional Documentation
                 <button className={styles.addAssetButton} onClick={() => setAddAsset(true)}>
                   + Add Reference
@@ -468,9 +512,12 @@ function ChecklistItem(props) {
 ChecklistItem.propTypes = {
   item: PropTypes.shape({
     id: PropTypes.number.isRequired,
+    uid: PropTypes.string,
     name: PropTypes.string.isRequired,
     statement: PropTypes.string.isRequired,
     answer: PropTypes.bool.isRequired,
+    source: PropTypes.string,
+    scanKey: PropTypes.string,
     scanResult: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
     notes: PropTypes.arrayOf(
       PropTypes.shape({
@@ -496,12 +543,15 @@ ChecklistItem.propTypes = {
       }),
     ),
   }).isRequired,
+  displayNumber: PropTypes.number.isRequired,
   project: PropTypes.object.isRequired,
   onUpdatedNote: PropTypes.func.isRequired,
   onDeletedNote: PropTypes.func.isRequired,
   onAddedNote: PropTypes.func.isRequired,
   onItemUpdate: PropTypes.func.isRequired,
   onSelectedAsset: PropTypes.func.isRequired,
+  onDeleteItem: PropTypes.func,
+  onEditItem: PropTypes.func,
 };
 
 export default ChecklistItem;
