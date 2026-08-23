@@ -889,6 +889,8 @@ class Project extends Component{
           assetAttributes={configuration.assetAttributes}
           dynamicDetails={assetDynamicDetails}
           scanStatus={scanStatus}
+          customAttributes={this.props.customAttributes}
+          onCustomAttributesUpdate={this.props.onCustomAttributesUpdate}
         />
       );
       const workflow = <Workflow project={project} />;

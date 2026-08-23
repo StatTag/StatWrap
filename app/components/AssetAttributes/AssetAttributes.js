@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Checkbox, FormControlLabel, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Tooltip, } from '@mui/material';
+import { Checkbox, FormControlLabel, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Tooltip, DialogContentText, } from '@mui/material';
 import { Add, Delete } from '@mui/icons-material';
 import styles from './AssetAttributes.css';
 import AssetsConfig from '../../constants/assets-config';
@@ -9,6 +9,8 @@ const assetAttributes = (props) => {
 
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const [newAttributeName, setNewAttributeName] = useState('');
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [attributeToDelete, setAttributeToDelete] = useState(null);
 
   const updateAttributeValue = (a) => {
     if (onUpdateAttribute) {
@@ -50,10 +52,22 @@ const assetAttributes = (props) => {
   }
 
   const handleDeleteCustomAttribute = (attributeId) => {
-    if (onDeleteCustomAttribute) {
-      onDeleteCustomAttribute(attributeId);
-    }
+    setAttributeToDelete(attributeId);
+    setOpenDeleteDialog(true);
   };
+
+  const handleConfirmDelete = () => {
+    if(attributeToDelete && onDeleteCustomAttribute){
+      onDeleteCustomAttribute(attributeToDelete.id);
+    }
+    setOpenDeleteDialog(false);
+    setAttributeToDelete(null);
+  }
+
+  const handleCancelDelete = () => {
+    setOpenDeleteDialog(false);
+    setAttributeToDelete(null);
+  }
 
   const applicableAttributes = configuration
     .map((a) => {
@@ -101,7 +115,7 @@ const assetAttributes = (props) => {
             <Tooltip title="Remove this custom attribute" enterDelay={300}>
             <IconButton
               size="small"
-              onClick={() => handleDeleteCustomAttribute(a.id)}
+              onClick={() => handleDeleteCustomAttribute(a)}
               className={styles.deleteButton}
             >
               <Delete fontSize="small" />
@@ -128,7 +142,7 @@ const assetAttributes = (props) => {
       </div>
       <ul className={styles.attributesList}>{controls}</ul>
 
-      { /*Custom Attribute Dialog */ }
+      { /* Custom Attribute Dialog */ }
       <Dialog
         open={openAddDialog}
         onClose={() => {
@@ -140,10 +154,10 @@ const assetAttributes = (props) => {
       >
         <DialogTitle className={styles.dialogTitle}>Custom Attributes</DialogTitle>
         <DialogContent className={styles.dialogContent}>
-          <label className={styles.formLabel}>Name of Attributes</label>
+          <label className={styles.formLabel}>Name of Attribute</label>
           <TextField
             autoFocus
-            placeholder='Attributes like "Experimental"'
+            placeholder='e.g., "Experimental"'
             value={newAttributeName}
             onChange={(e) => setNewAttributeName(e.target.value)}
             fullWidth
@@ -167,6 +181,35 @@ const assetAttributes = (props) => {
           >
             Cancel
           </button>
+        </DialogActions>
+      </Dialog>
+
+      { /* Delete Confirmation Dialog */}
+      <Dialog
+        open={openDeleteDialog}
+        onClose={handleCancelDelete}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle className={styles.dialogTitle}>
+          Delete Custom Attribute
+        </DialogTitle>
+        <DialogContent className={styles.dialogContent}>
+          <DialogContentText style={{ fontSize: '18px' }}>
+            Are you sure want to delete  
+            {attributeToDelete ? <strong> "{attributeToDelete.display}"</strong> : ' this custom'} attribute ?
+          </DialogContentText>
+          <DialogContentText style={{ marginTop: '4px', fontWeight: 'bold' }}>
+            Note: This will delete the custom attribute for all assets in this project.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions className={styles.dialogActions}>
+          <Button onClick={handleCancelDelete}>
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDelete} color="error">
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
     </div>

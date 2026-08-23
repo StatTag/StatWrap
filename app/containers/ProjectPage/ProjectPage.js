@@ -45,6 +45,7 @@ class ProjectPage extends Component {
       selectedProjectLogs: null,
       // The checklist for the selected project
       selectedProjectChecklist: null,
+      customAttributes: [],
 
       // UI element to inform us what the popup project list menu is attached to
       projectListMenuAnchor: null,
@@ -96,6 +97,9 @@ class ProjectPage extends Component {
     this.handleAssetSelected = this.handleAssetSelected.bind(this);
     this.handleProjectExternallyChangedResponse =
       this.handleProjectExternallyChangedResponse.bind(this);
+    this.handleCustomAttributesUpdate = this.handleCustomAttributesUpdate.bind(this);
+    this.handleLoadCustomAttributesResponse = this.handleLoadCustomAttributesResponse.bind(this);
+    this.handleWriteCustomAttributesResponse = this.handleWriteCustomAttributesResponse.bind(this);
   }
 
   componentDidMount() {
@@ -120,6 +124,8 @@ class ProjectPage extends Component {
       this.handleLoadProjectChecklistResponse,
     );
     ipcRenderer.on(Messages.WRITE_PROJECT_CHECKLIST_RESPONSE, this.handleRefreshProjectChecklist);
+    ipcRenderer.on(Messages.LOAD_CUSTOM_ATTRIBUTES_RESPONSE, this.handleLoadCustomAttributesResponse);
+    ipcRenderer.on(Messages.WRITE_CUSTOM_ATTRIBUTES_RESPONSE, this.handleWriteCustomAttributesResponse);
 
     ipcRenderer.on(
       Messages.SCAN_ASSET_DYNAMIC_DETAILS_RESPONSE,
@@ -192,6 +198,8 @@ class ProjectPage extends Component {
       this.handleProjectExternallyChangedResponse,
     );
     ipcRenderer.removeListener(Messages.TOGGLE_PROJECT_STATUS_RESPONSE, this.refreshProjectsHandler);
+    ipcRenderer.removeListener(Messages.LOAD_CUSTOM_ATTRIBUTES_RESPONSE, this.handleLoadCustomAttributesResponse);
+    ipcRenderer.removeListener(Messages.WRITE_CUSTOM_ATTRIBUTES_RESPONSE, this.handleWriteCustomAttributesResponse);
   }
 
   handleScanAssetDynamicDetailsResponse(sender, response) {
@@ -400,6 +408,7 @@ class ProjectPage extends Component {
       if (foundProject) {
         ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, foundProject);
         ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, foundProject);
+        ipcRenderer.send(Messages.LOAD_CUSTOM_ATTRIBUTES_REQUEST, foundProject);
       }
     }
   }
@@ -560,6 +569,7 @@ class ProjectPage extends Component {
               ipcRenderer.send(Messages.SCAN_PROJECT_REQUEST, finalProject);
               ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, finalProject);
               ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, finalProject);
+              ipcRenderer.send(Messages.LOAD_CUSTOM_ATTRIBUTES_REQUEST, finalProject);
             }
           }
         }
@@ -574,6 +584,7 @@ class ProjectPage extends Component {
       ipcRenderer.send(Messages.SCAN_PROJECT_REQUEST, project);
       ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, project);
       ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, project);
+      ipcRenderer.send(Messages.LOAD_CUSTOM_ATTRIBUTES_REQUEST, project);
     }
   }
 
@@ -654,6 +665,33 @@ class ProjectPage extends Component {
     }
   }
 
+  handleLoadCustomAttributesResponse(sender, response) {
+    if (!response || response.error) {
+      console.error('Error loading custom attributes:', response ? response.errorMessage : 'No response');
+      return;
+    }
+
+    if (this.state.selectedProject && response.projectId === this.state.selectedProject.id) {
+      this.setState({ customAttributes: response.customAttributes || [] });
+    }
+  }
+
+  handleWriteCustomAttributesResponse(sender, response) {
+    if (response && response.error) {
+      console.error('Error saving custom attributes:', response.errorMessage);
+    }
+  }
+
+  handleCustomAttributesUpdate(attributes) {
+    const { selectedProject } = this.state;
+    this.setState({ customAttributes: attributes });
+    ipcRenderer.send(
+      Messages.WRITE_CUSTOM_ATTRIBUTES_REQUEST,
+      selectedProject.path,
+      attributes,
+    );
+  }
+
   render() {
     return (
       <div className={styles.container} data-tid="container">
@@ -688,6 +726,8 @@ class ProjectPage extends Component {
               assetDynamicDetails={this.state.assetDynamicDetails}
               scanStatus={this.state.projectScanStatus}
               onDirtyStateChange={this.handleProjectDirtyStateChange}
+              customAttributes={this.state.customAttributes}
+              onCustomAttributesUpdate={this.handleCustomAttributesUpdate}
             />
           </Panel>
         </Group>

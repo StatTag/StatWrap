@@ -22,25 +22,6 @@ import path from 'path';
 
 
 /**
- * Load Custom Attributes for a project from localStorage.
- */
-function loadCustomAttributes(projectId) {
-  try {
-    const stored = localStorage.getItem(`statwrap_custom_attrs_${projectId}`);
-    return stored ? JSON.parse(stored) : [];
-  } catch (e) {
-    return [];
-  }
-}
-
-/** 
- * Save Custom Attributes for a project to localStorage.
- */
-function saveCustomAttributes(projectId, attrs) {
-  localStorage.setItem(`statwrap_custom_attrs_${projectId}`, JSON.stringify(attrs));
-}
-
-/**
  * Utility function to safely reset available filters for a project's assets
  *
  * @param {object} project The project we are resetting filters for
@@ -67,7 +48,9 @@ const assetsComponent = (props) => {
     onDeletedExternalAsset,
     assetAttributes,
     dynamicDetails,
-    scanStatus
+    scanStatus,
+    customAttributes,
+    onCustomAttributesUpdate,
   } = props;
   const [selectedAsset, setSelectedAsset] = useState();
   const treeRef = React.useRef(null);
@@ -105,9 +88,6 @@ const assetsComponent = (props) => {
     project.externalAssets : AssetUtil.createEmptyExternalAssets());
   // Sensitive file state that are under version control
   const [sensitiveTrackedFiles, setSensitiveTrackedFiles] = useState([]);
-  const [localCustomAttributes, setLocalCustomAttributes] = useState(
-    project ? loadCustomAttributes(project.id) : []
-  )
 
   const sourceControlService = new SourceControlService();
   const projectService = new ProjectService();
@@ -190,12 +170,6 @@ const assetsComponent = (props) => {
     checkSensitiveTrackedFiles();
   }, [project]);
 
-  // Reload Custom Attributes only when the project ID changes.
-  useEffect(() => {
-    if (project && project.id) {
-      setLocalCustomAttributes(loadCustomAttributes(project.id));
-    }
-  }, [project && project.id]);
 
   // Whenever the filter changes, update the list of assets to include only
   // those that should be displayed.
@@ -408,16 +382,18 @@ const assetsComponent = (props) => {
     setEditingExternalAsset(true);
   };
 
-  const handleAddLocalCustomAttribute = (newAttribute) => {
-    const updated = [...localCustomAttributes, newAttribute];
-    setLocalCustomAttributes(updated);
-    saveCustomAttributes(project.id, updated);
+  const handleAddCustomAttribute = (newAttribute) => {
+    if (onCustomAttributesUpdate) {
+      const updated = [...(customAttributes || []), newAttribute];
+      onCustomAttributesUpdate(updated);
+    }
   };
 
-  const handleDeleteLocalCustomAttribute = (attributeId) => {
-    const updated = localCustomAttributes.filter((a) => a.id !== attributeId);
-    setLocalCustomAttributes(updated);
-    saveCustomAttributes(project.id, updated);
+  const handleDeleteCustomAttribute = (attributeId) => {
+    if (onCustomAttributesUpdate) {
+      const updated = (customAttributes || []).filter((a) => a.id !== attributeId);
+      onCustomAttributesUpdate(updated);
+    }
   };
 
   let assetDisplay = null;
@@ -432,9 +408,9 @@ const assetsComponent = (props) => {
         onDeletedNote={onDeletedAssetNote}
         onUpdatedAttribute={onUpdatedAssetAttribute}
         assetAttributes={assetAttributes}
-        customAttributes={localCustomAttributes}
-        onAddCustomAttribute={handleAddLocalCustomAttribute}
-        onDeleteCustomAttribute={handleDeleteLocalCustomAttribute}
+        customAttributes={customAttributes} 
+        onAddCustomAttribute={handleAddCustomAttribute}
+        onDeleteCustomAttribute={handleDeleteCustomAttribute}
         sourceControlEnabled={project.sourceControlEnabled}
         dynamicDetails={dynamicDetails}
         onEdit={handleEditExternalAsset}

@@ -86,3 +86,19 @@
 .cancelButton:hover {
   opacity: 0.85;
 }
+
+.deleteConfirmButton {
+  padding: 8px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #639;
+  color: white;
+  transition: opacity 0.2s;
+}
+
+.deleteConfirmButton:hover {
+  opacity: 0.85;
+}
