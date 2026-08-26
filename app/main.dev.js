@@ -194,6 +194,13 @@ const createWindow = async () => {
   });
 
   workerWindow.loadURL(`file://${__dirname}/worker.html`);
+  
+  if (
+    process.env.NODE_ENV === 'development' ||
+    process.env.DEBUG_PROD === 'true'
+  ) {
+    workerWindow.webContents.openDevTools({ mode: 'detach' });
+  }
 
   workerWindow.on('closed', () => {
     workerWindow = null;
