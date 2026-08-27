@@ -147,14 +147,8 @@ export default class AssetService {
    * @returns An asset object which contains nested assets
    */
   scan(uri) {
-    const startTime = Date.now();
-    console.log(`[AssetService] Starting scan for ${uri}`);
-    
     const stats = { totalFiles: 0, totalDirectories: 0 };
     const result = this._buildTree(uri, stats);
-    
-    const treeBuildTime = Date.now();
-    console.log(`[AssetService] Built tree in ${treeBuildTime - startTime}ms. Found ${stats.totalFiles} files and ${stats.totalDirectories} directories.`);
 
     if (!this.handlers) {
       return result;
@@ -179,15 +173,10 @@ export default class AssetService {
       }
     } else {
       for (let index = 0; index < this.handlers.length; index++) {
-        const handlerStartTime = Date.now();
         assetEntry = this.handlers[index].scan(assetEntry);
-        const handlerId = this.handlers[index].id ? this.handlers[index].id() : index;
-        console.log(`[AssetService] Handler ${handlerId} took ${Date.now() - handlerStartTime}ms`);
       }
     }
 
-    const totalTime = Date.now() - startTime;
-    console.log(`[AssetService] Total scan completed in ${totalTime}ms`);
     return assetEntry;
   }
 }
