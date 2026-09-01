@@ -46,6 +46,17 @@ class ProjectTemplatePreview extends Component {
   /**
    * When a new template arrives, auto-check all items.
    */
+  componentDidMount() {
+    if (this.props.template && this.props.selectable) {
+      const allPaths = collectAllPaths(this.props.template.contents);
+      this.setState({ checked: allPaths }, () => {
+        if (this.props.onCheckedChange) {
+          this.props.onCheckedChange(allPaths);
+        }
+      });
+    }
+  }
+
   componentDidUpdate(prevProps) {
     if (
       this.props.template &&
@@ -60,6 +71,7 @@ class ProjectTemplatePreview extends Component {
       });
     }
   }
+
   handleCheck = (checked) => {
     this.setState({ checked });
     if (this.props.onCheckedChange) {

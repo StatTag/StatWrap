@@ -860,8 +860,7 @@ ipcMain.on(Messages.WRITE_CUSTOM_ATTRIBUTES_REQUEST, async (event, projectPath, 
   }
 
   event.sender.send(Messages.WRITE_CUSTOM_ATTRIBUTES_RESPONSE, response);
-  },
-);
+});
 
 /**
  * Load custom attributes from the project's custom attribute file

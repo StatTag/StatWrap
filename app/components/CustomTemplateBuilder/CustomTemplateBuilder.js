@@ -27,34 +27,34 @@ class CustomTemplateBuilder extends Component {
     }
 
     _handleImportResponse = (response) => {
-    if (response.canceled) {
-        this.setState({ isScanning: false });
-        return;
-    }
-    if (response.error) {
-        this.setState({
-            isScanning: false,
-            importError: response.errorMessage,
-            importedTemplate: null,
-            checkedPaths: [],
-        });
-        if (this.props.onValidationChange) {
-            this.props.onValidationChange(false);
+        if (response.canceled) {
+            this.setState({ isScanning: false });
+            return;
         }
-        return;
-    }
-    this.setState(
-        {
-            isScanning: false,
-            importedTemplate: response.template,
-            templateName: response.template.name,
-            description: response.template.description,
-            importError: null,
-        },
-        () => {
-            this.updateTemplateReady();
-        },
-    );
+        if (response.error) {
+            this.setState({
+                isScanning: false,
+                importError: response.errorMessage,
+                importedTemplate: null,
+                checkedPaths: [],
+            });
+            if (this.props.onValidationChange) {
+                this.props.onValidationChange(false);
+            }
+            return;
+        }
+        this.setState(
+            {
+                isScanning: false,
+                importedTemplate: response.template,
+                templateName: response.template.name,
+                description: response.template.description,
+                importError: null,
+            },
+            () => {
+                this.updateTemplateReady();
+            },
+        );
     };
 
     updateTemplateReady = () => {
