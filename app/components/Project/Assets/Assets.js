@@ -20,6 +20,7 @@ import SourceControlService from '../../../services/sourceControl';
 import styles from './Assets.css';
 import path from 'path';
 
+
 /**
  * Utility function to safely reset available filters for a project's assets
  *
@@ -47,7 +48,9 @@ const assetsComponent = (props) => {
     onDeletedExternalAsset,
     assetAttributes,
     dynamicDetails,
-    scanStatus
+    scanStatus,
+    customAttributes,
+    onCustomAttributesUpdate,
   } = props;
   const [selectedAsset, setSelectedAsset] = useState();
   const treeRef = React.useRef(null);
@@ -96,15 +99,12 @@ const assetsComponent = (props) => {
     // Get a more recent copy of the asset from the updated project
     if (project && project.assets && selectedAsset) {
       const updatedAsset = AssetUtil.findDescendantAssetByUri(project.assets, selectedAsset.uri);
-      setSelectedAsset(updatedAsset);
-      if (onSelectedAsset) {
-        onSelectedAsset(updatedAsset);
-      }
-    } else {
-      setSelectedAsset(null);
-      if (onSelectedAsset) {
-        onSelectedAsset(null);
-      }
+      if (updatedAsset) {
+        setSelectedAsset(updatedAsset);
+        if (onSelectedAsset) {
+          onSelectedAsset(updatedAsset);
+        }
+      } 
     }
   }, [project]);
 
@@ -169,6 +169,7 @@ const assetsComponent = (props) => {
 
     checkSensitiveTrackedFiles();
   }, [project]);
+
 
   // Whenever the filter changes, update the list of assets to include only
   // those that should be displayed.
@@ -381,6 +382,20 @@ const assetsComponent = (props) => {
     setEditingExternalAsset(true);
   };
 
+  const handleAddCustomAttribute = (newAttribute) => {
+    if (onCustomAttributesUpdate) {
+      const updated = [...(customAttributes || []), newAttribute];
+      onCustomAttributesUpdate(updated);
+    }
+  };
+
+  const handleDeleteCustomAttribute = (attributeId) => {
+    if (onCustomAttributesUpdate) {
+      const updated = (customAttributes || []).filter((a) => a.id !== attributeId);
+      onCustomAttributesUpdate(updated);
+    }
+  };
+
   let assetDisplay = null;
   if (project) {
     assetDisplay = <Loading>Please wait for the list of assets to finish loading...</Loading>;
@@ -393,6 +408,9 @@ const assetsComponent = (props) => {
         onDeletedNote={onDeletedAssetNote}
         onUpdatedAttribute={onUpdatedAssetAttribute}
         assetAttributes={assetAttributes}
+        customAttributes={customAttributes} 
+        onAddCustomAttribute={handleAddCustomAttribute}
+        onDeleteCustomAttribute={handleDeleteCustomAttribute}
         sourceControlEnabled={project.sourceControlEnabled}
         dynamicDetails={dynamicDetails}
         onEdit={handleEditExternalAsset}

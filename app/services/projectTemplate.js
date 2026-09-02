@@ -192,12 +192,12 @@ function isSafeTargetPath(baseDir, targetPath) {
 
 // For a given template, create all of the files and folders in dirPath
 // This handles recursively defined template structures.
-function createAllTemplateItems(dirPath, contents, rootdirPath = dirPath) {
+function createAllTemplateItems(dirPath, contents, rootDirPath = dirPath) {
   contents.forEach(function (item) {
-    const rootname = path.basename(item.name);
-    const newPath = path.join(dirPath, rootname);
+    const rootName = path.basename(item.name);
+    const newPath = path.join(dirPath, rootName);
 
-    if(!isSafeTargetPath(rootdirPath, newPath)){
+    if(!isSafeTargetPath(rootDirPath, newPath)){
       throw new Error(`Security Exception: Blocked path traversal attempt to write outside project directory.`);
     }
 
@@ -205,7 +205,7 @@ function createAllTemplateItems(dirPath, contents, rootdirPath = dirPath) {
       fs.copyFileSync(item.path, newPath);
     } else {
       fs.mkdirSync(newPath);
-      createAllTemplateItems(newPath, item.contents, rootdirPath);
+      createAllTemplateItems(newPath, item.contents, rootDirPath);
     }
   });
 }
@@ -406,6 +406,12 @@ export default class ProjectTemplateService {
 
   deleteCustomTemplate = (customTemplatesDir, templateId) => {
     const filePath = path.join(customTemplatesDir, `${templateId}.json`);
+    const filesDir = path.join(customTemplatesDir, 'files', templateId);
+
+    if (fs.existsSync(filesDir)) {
+      fs.rmSync(filesDir, { recursive: true });
+    }
+
     if(fs.existsSync(filePath)){
       fs.unlinkSync(filePath);
       return true;

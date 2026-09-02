@@ -44,6 +44,7 @@ module.exports = {
     PROJECT: '.statwrap-project.json',
     LOG: '.statwrap.log',
     CHECKLIST: '.statwrap-checklist.json',
+    CUSTOM_ATTRIBUTES: '.statwrap-custom-attributes.json',
     CLONED_PROJECT_MARKER: 'cloned_project_marker',
     SEARCH_INDEX: 'search-index.json',
     CUSTOM_PROJECT_TEMPLATES: 'custom-project-templates',
@@ -116,6 +117,11 @@ module.exports = {
   },
 
   MAX_GRAPH_LABEL_LENGTH: 31,
+  CHECKLIST_NAME_MAX_LENGTH: 250,
+  CHECKLIST_DESCRIPTION_MAX_LENGTH: 1000,
+  CHECKLIST_IMPORT_MAX_FILE_SIZE: 1*1024*1024, // 1 MB 
+  CHECKLIST_EXPORT_TYPE: 'statwrap-checklist',
+  CHECKLIST_EXPORT_VERSION: 1,
 
   CHECKLIST: [
     ['Dependency', 'Software dependencies for the project are documented.'],
@@ -124,5 +130,44 @@ module.exports = {
     ['Documentation', 'Includes project documentation.'],
     ['VersionControl', 'Version control of some kind is in place.'],
     ['AbsolutePaths', 'Avoids using absolute paths in the code.'],
+  ],
+
+  CHECKLIST_DEFAULTS: [
+    {
+      name: 'Dependency',
+      statement: 'Software dependencies for the project are documented.',
+      description: '',
+      scankey: 'Dependency'
+    },
+    {
+      name: 'Data',
+      statement: 'Data file(s) used in the project are documented.',
+      description: '',
+      scankey: 'Data'
+    },
+    {
+      name: 'Entrypoint',
+      statement: 'Indication of file(s) that are used to run the analysis (e.g., wrapper/entry script).',
+      description: '',
+      scankey: 'Entrypoint'
+    },
+    {
+      name: 'Documentation', 
+      statement: 'Includes project documentation.',
+      description: '',
+      scankey: 'Documentation'
+    },
+    {
+      name: 'VersionControl',
+      statement: 'Version control of some kind is in place.',
+      description: '',
+      scankey: 'VersionControl'
+    },
+    {
+      name: 'AbsolutePaths',
+      statement: 'Avoids using absolute paths in the code.',
+      description: '',
+      scankey: 'AbsolutePaths',
+    },
   ],
 };

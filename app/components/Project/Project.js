@@ -31,12 +31,7 @@ import GeneralUtil from '../../utils/general';
 import styles from './Project.css';
 import UserContext from '../../contexts/User';
 
-type Props = {
-  onDirtyStateChange?: (boolean) => void,
-};
-
-class Project extends Component<Props> {
-  props: Props;
+class Project extends Component{
 
   constructor(props) {
     super(props);
@@ -894,6 +889,8 @@ class Project extends Component<Props> {
           assetAttributes={configuration.assetAttributes}
           dynamicDetails={assetDynamicDetails}
           scanStatus={scanStatus}
+          customAttributes={this.props.customAttributes}
+          onCustomAttributesUpdate={this.props.onCustomAttributesUpdate}
         />
       );
       const workflow = <Workflow project={project} />;

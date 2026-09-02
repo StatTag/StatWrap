@@ -27,11 +27,12 @@ import UserService, { DefaultSettingsFile } from './services/user';
 import SearchService from './services/SearchService';
 import Messages from './constants/messages';
 import Constants from './constants/constants';
-import AssetsConfig from './constants/assets-config';
+import AssetsConfig, { attributes } from './constants/assets-config';
 import AssetUtil from './utils/asset';
 import ProjectUtil from './utils/project';
 import LogService from './services/log';
 import ChecklistService from './services/checklist';
+import CustomAttributesService from './services/customAttributes';
 import FileHandler from './services/assets/handlers/file';
 
 // Initialize @electron/remote
@@ -53,6 +54,7 @@ const projectListService = new ProjectListService();
 const sourceControlService = new SourceControlService();
 const logService = new LogService();
 const checklistService = new ChecklistService();
+const customAttributesService = new CustomAttributesService();
 // The LogWatcherService requires a window from which we can send messages, so we can't
 // construct it until the BrowserWindow is created.
 let logWatcherService = null;
@@ -837,6 +839,64 @@ ipcMain.on(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, async (event, project) => {
 
     response.checklist = checklist;
     event.sender.send(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, response);
+  });
+});
+
+/**
+ * Write custom attributes to the project's custom file
+ */
+ipcMain.on(Messages.WRITE_CUSTOM_ATTRIBUTES_REQUEST, async (event, projectPath, attributes) => {
+  let response = {
+    error: false,
+    errorMessage: '',
+  };
+
+  try{
+    customAttributesService.writeCustomAttributes(projectPath,attributes);
+  } catch (e) {
+    response.error = true;
+    response.errorMessage = 'There was an error saving Custom Attribute';
+    console.log(e);
+  }
+
+  event.sender.send(Messages.WRITE_CUSTOM_ATTRIBUTES_RESPONSE, response);
+});
+
+/**
+ * Load custom attributes from the project's custom attribute file
+ */
+ipcMain.on(Messages.LOAD_CUSTOM_ATTRIBUTES_REQUEST, async (event, project) => {
+  let response = {
+    projectId: project ? project.id : null,
+    customAttributes: [],
+    error: false,
+    errorMessage: '',
+  };
+
+  if(!project){
+    response.error = true;
+    response.errorMessage = 'No Project was selected';
+    event.sender.send(Messages.LOAD_CUSTOM_ATTRIBUTES_RESPONSE, response); 
+    return;
+  }
+
+  if(!fs.existsSync(project.path)){
+    response.error = true;
+    response.errorMessage = 'The selected project is not available';
+    event.sender.send(Messages.LOAD_CUSTOM_ATTRIBUTES_RESPONSE, response);
+    return;
+  }
+
+  customAttributesService.loadCustomAttributes(project.path, (error, attributes) => {
+    if(error & !attributes){
+      response.error = true;
+      response.errorMessage = `There was an error reading custom attributes: ${error}`;
+      event.sender.send(Messages.LOAD_CUSTOM_ATTRIBUTES_RESPONSE, response);
+      return;
+    }
+
+    response.customAttributes = attributes || [];
+    event.sender.send(Messages.LOAD_CUSTOM_ATTRIBUTES_RESPONSE, response);
   });
 });
 

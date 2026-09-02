@@ -14,11 +14,9 @@ function filterContentsByPaths(contents, checkedPaths) {
         const filteredChildren = filterContentsByPaths(item.contents, checkedPaths);
         filtered.push({ ...item, contents: filteredChildren });
       }
-    } else {
-      if (checkedPaths.includes(item.path)) {
+    } else if (checkedPaths.includes(item.path)) {
         filtered.push(item);
       }
-    }
   });
   return filtered;
 }

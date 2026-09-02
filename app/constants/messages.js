@@ -66,6 +66,10 @@ module.exports = {
   LOAD_PROJECT_CHECKLIST_REQUEST: 'statwrap-load-project-checklist-request',
   LOAD_PROJECT_CHECKLIST_RESPONSE: 'statwrap-load-project-checklist-response',
 
+  WRITE_CUSTOM_ATTRIBUTES_REQUEST: 'statwrap-write-custom-attributes-request',
+  WRITE_CUSTOM_ATTRIBUTES_RESPONSE: 'statwrap-write-custom-attributes-response',
+  LOAD_CUSTOM_ATTRIBUTES_REQUEST: 'statwrap-load-custom-attributes-request',
+  LOAD_CUSTOM_ATTRIBUTES_RESPONSE: 'statwrap-load-custom-attributes-response',
   // LOAD_PROJECT_CHANGES_REQUEST: 'statwrap-load-project-changes-request',
   // LOAD_PROJECT_CHANGES_RESPONSE: 'statwrap-load-project-changes-response',
 

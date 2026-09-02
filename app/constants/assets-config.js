@@ -205,4 +205,5 @@ module.exports = {
     //   patterns: [/\.md$/i]
     // }
   ],
+  CUSTOM_ATTRIBUTE_NAME_MAX_LENGTH: 100,
 };

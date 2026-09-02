@@ -7,7 +7,7 @@ import styles from './SelectProjectTemplate.css';
 
 class SelectProjectTemplate extends Component {
   render() {
-    const { projectTemplates, selectedTemplate = null, onSelectProjectTemplate } = this.props;
+    const { projectTemplates, selectedTemplate = null, onSelectProjectTemplate, onEditTemplate, onExportTemplate, onDeleteTemplate } = this.props;
     let template = null;
     if (projectTemplates && selectedTemplate) {
       template = projectTemplates.find(
@@ -21,12 +21,12 @@ class SelectProjectTemplate extends Component {
         <div className={styles.templateList}>
           <strong>Available templates:</strong>
           <ProjectTemplateList
-            templates={this.props.projectTemplates}
-            selectedTemplate={this.props.selectedTemplate}
-            onSelect={this.props.onSelectProjectTemplate}
-            onEdit={this.props.onEditTemplate}
-            onExport={this.props.onExportTemplate}
-            onDelete={this.props.onDeleteTemplate}
+            templates={projectTemplates}
+            selectedTemplate={selectedTemplate}
+            onSelect={onSelectProjectTemplate}
+            onEdit={onEditTemplate}
+            onExport={onExportTemplate}
+            onDelete={onDeleteTemplate}
           />
         </div>
         <div className={styles.templatePreview}>

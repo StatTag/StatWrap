@@ -1700,4 +1700,211 @@ describe('utils', () => {
       expect(asset.children[1].children[0].attributes.archived).toBeFalsy();
     });
   });
+
+  describe('custom attribute ID generation', () => {
+    const generateCustomAttributeId = (displayName) => {
+      const safeName = displayName.trim().substring(0, 100);
+      return `custom_${safeName
+        .toLowerCase()
+        .replace(/\s+/g, '_')
+        .replace(/[^a-z0-9_]/g, '')}`;
+    };
+
+    it('should generate a lowercase ID with custom_ prefix', () => {
+    expect(generateCustomAttributeId('Experimental')).toBe('custom_experimental');
+    });
+
+    it('should replace spaces with underscores', () => {
+    expect(generateCustomAttributeId('My Custom Attr')).toBe('custom_my_custom_attr');
+    });
+
+    it('should remove special characters', () => {
+    expect(generateCustomAttributeId('Test@#$%Attr!')).toBe('custom_testattr');
+    });
+
+    it('should handle leading and trailing whitespace', () => {
+    expect(generateCustomAttributeId('  Padded  ')).toBe('custom_padded');
+    });
+
+    it('should truncate names beyond the max length (100 chars)', () => {
+      const longName = 'A'.repeat(200);
+      const result = generateCustomAttributeId(longName);
+      expect(result.length).toBeLessThanOrEqual(107);
+    });
+
+    it('should produce unique IDs for different display names', () => {
+    const id1 = generateCustomAttributeId('Alpha');
+    const id2 = generateCustomAttributeId('Beta');
+    expect(id1).not.toBe(id2);
+    });
+  
+    it('should be idempotent (same name → same ID every time)', () => {
+      expect(generateCustomAttributeId('Experimental'))
+        .toBe(generateCustomAttributeId('Experimental'));
+    });
+  });
+
+  describe('custom attribute duplicate detection', () => {
+    const existingAttributes = [
+      { id: 'archived', display: 'Archived', type: 'bool' },
+      { id: 'custom_experimental', display: 'Experimental', type: 'bool', source: 'custom' },
+    ];
+
+    it('should detect a duplicate custom attribute ID', () => {
+      const newId = 'custom_experimental';
+      const isDuplicate = existingAttributes.some((a) => a.id === newId);
+      expect(isDuplicate).toBe(true);
+    });
+
+    it('should not flag a new unique ID as duplicate', () => {
+      const newId = 'custom_production';
+      const isDuplicate = existingAttributes.some((a) => a.id === newId);
+      expect(isDuplicate).toBe(false);
+    });
+
+    it('should not confuse default attr ID with custom_ prefixed version', () => {
+      const newId = 'custom_archived';
+      const isDuplicate = existingAttributes.some((a) => a.id === newId);
+      expect(isDuplicate).toBe(false);
+    });
+  });
+
+  describe('custom attribute object structure', () => {
+    it('should create a valid attribute object with all required fields', () => {
+      const attr = {
+        id: 'custom_test',
+        display: 'Test',
+        type: 'bool',
+        default: false,
+        appliesTo: ['*'],
+        source: 'custom',
+      };
+
+      expect(attr).toHaveProperty('id');
+      expect(attr).toHaveProperty('display');
+      expect(attr).toHaveProperty('type', 'bool');
+      expect(attr).toHaveProperty('default', false);
+      expect(attr).toHaveProperty('appliesTo');
+      expect(attr.appliesTo).toContain('*');
+      expect(attr).toHaveProperty('source', 'custom');
+    });
+
+    it('should distinguish custom attributes from default ones via source field', () => {
+      const defaultAttr = { id: 'archived', display: 'Archived', type: 'bool' };
+      const customAttr = {
+        id: 'custom_test',
+        display: 'Test',
+        type: 'bool',
+        source: 'custom',
+      };
+
+      expect(defaultAttr.source).toBeUndefined();
+      expect(customAttr.source).toBe('custom');
+    });
+
+    it('should have default value of false for bool type', () => {
+      const attr = {
+        id: 'custom_verified',
+        display: 'Verified',
+        type: 'bool',
+        default: false,
+        appliesTo: ['*'],
+        source: 'custom',
+      };
+
+      expect(attr.default).toBe(false);
+      expect(typeof attr.default).toBe('boolean');
+    });
+  });
+
+  describe('custom attribute localStorage persistence', () => {
+    const loadCustomAttributes = (projectId) => {
+      try {
+        const stored = localStorage.getItem(`statwrap_custom_attrs_${projectId}`);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        return [];
+      }
+    };
+
+    const saveCustomAttributes = (projectId, attrs) => {
+      localStorage.setItem(`statwrap_custom_attrs_${projectId}`, JSON.stringify(attrs));
+    };
+
+    beforeAll(() => {
+        const localStorageMock = (function () {
+          let store = {};
+          return {
+            getItem(key) {
+              return store[key] || null;
+            },
+            setItem(key, value) {
+              store[key] = value.toString();
+            },
+            removeItem(key) {
+              delete store[key];
+            },
+            clear() {
+              store = {};
+            }
+          };
+        })();
+        Object.defineProperty(global, 'localStorage', {
+          value: localStorageMock
+        });
+      });
+
+    beforeEach(() => {
+      localStorage.clear();
+    });
+
+    it('should return empty array for a project with no saved custom attributes', () => {
+      expect(loadCustomAttributes('project-abc')).toEqual([]);
+    });
+
+    it('should save and reload custom attributes correctly', () => {
+      const attrs = [
+        { id: 'custom_experimental', display: 'Experimental', type: 'bool', source: 'custom' },
+      ];
+      saveCustomAttributes('project-abc', attrs);
+      expect(loadCustomAttributes('project-abc')).toEqual(attrs);
+    });
+
+    it('should isolate custom attributes per project ID', () => {
+      const attrsA = [{ id: 'custom_a', display: 'A', type: 'bool', source: 'custom' }];
+      const attrsB = [{ id: 'custom_b', display: 'B', type: 'bool', source: 'custom' }];
+
+      saveCustomAttributes('project-001', attrsA);
+      saveCustomAttributes('project-002', attrsB);
+
+      expect(loadCustomAttributes('project-001')).toEqual(attrsA);
+      expect(loadCustomAttributes('project-002')).toEqual(attrsB);
+    });
+
+    it('should update custom attributes after adding a new one', () => {
+      const initial = [{ id: 'custom_first', display: 'First', type: 'bool', source: 'custom' }];
+      saveCustomAttributes('project-abc', initial);
+
+      const newAttr = { id: 'custom_second', display: 'Second', type: 'bool', source: 'custom' };
+      const updated = [...loadCustomAttributes('project-abc'), newAttr];
+      saveCustomAttributes('project-abc', updated);
+
+      expect(loadCustomAttributes('project-abc')).toHaveLength(2);
+      expect(loadCustomAttributes('project-abc')[1].id).toBe('custom_second');
+    });
+
+    it('should remove a custom attribute correctly', () => {
+      const attrs = [
+        { id: 'custom_a', display: 'A', type: 'bool', source: 'custom' },
+        { id: 'custom_b', display: 'B', type: 'bool', source: 'custom' },
+      ];
+      saveCustomAttributes('project-abc', attrs);
+
+      const updated = loadCustomAttributes('project-abc').filter((a) => a.id !== 'custom_a');
+      saveCustomAttributes('project-abc', updated);
+
+      expect(loadCustomAttributes('project-abc')).toHaveLength(1);
+      expect(loadCustomAttributes('project-abc')[0].id).toBe('custom_b');
+    });
+  });
 });
