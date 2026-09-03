@@ -1,5 +1,5 @@
 import GeneralUtil from '../../utils/general';
-import AssetUtil from '../../utils/asset';
+import AssetUtil, { FILE_IGNORE_LIST } from '../../utils/asset';
 
 const fs = require('fs');
 const path = require('path');
@@ -106,8 +106,11 @@ export default class AssetService {
     }
 
     const type = this.assetType(details);
-    if (type === 'file') stats.totalFiles++;
-    else if (type === 'directory') stats.totalDirectories++;
+    if (type === 'file') {
+      stats.totalFiles++;
+    } else if (type === 'directory') {
+      stats.totalDirectories++;
+    }
 
     result = {
       uri,
@@ -124,7 +127,7 @@ export default class AssetService {
       const children = [];
       files.forEach(function eachFile(file) {
         // Skip common large dependency/hidden directories to save massive memory and time
-        if (['node_modules', '.git', '.venv', 'venv', '__pycache__', '.pytest_cache', '.idea'].includes(file)) {
+        if (FILE_IGNORE_LIST.includes(file)) {
           return; // continue in forEach
         }
         

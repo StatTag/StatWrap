@@ -8,7 +8,8 @@ import FileHandler from '../services/assets/handlers/file';
 
 // All file and folder names (exact match - currently not supporting regex patterns)
 // that we want to hide from view.
-const FILE_IGNORE_LIST = [
+export const FILE_IGNORE_LIST = [
+  '.idea',
   '.DS_Store',
   'Thumbs.db',
   '.keep', // We use these within our template projects
