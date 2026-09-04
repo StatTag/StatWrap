@@ -24,6 +24,7 @@ const ICON_TYPES = {
   CSHARP: `${ICON_PATH}csharp.svg`,
   SCALA: `${ICON_PATH}scala.svg`,
   JULIA: `${ICON_PATH}julia.svg`,
+  JUPYTER: `${ICON_PATH}jupyter.svg`,
 };
 
 /**
@@ -66,6 +67,8 @@ function CodeNode({ node, renderType }) {
     iconUrl = ICON_TYPES.SCALA;
   } else if (node.assetType === 'julia') {
     iconUrl = ICON_TYPES.JULIA;
+  } else if (node.assetType === 'jupyter') {
+    iconUrl = ICON_TYPES.JUPYTER;
   } else if (node.assetType === Constants.DependencyType.DATA) {
     iconUrl = ICON_TYPES.DATA;
   } else if (node.assetType === Constants.DependencyType.FIGURE) {
