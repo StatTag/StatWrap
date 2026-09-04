@@ -615,6 +615,9 @@ describe('utils', () => {
         expect(WorkflowUtil.getAssetType({ metadata: [{ id: 'StatWrap.JuliaHandler' }] })).toEqual(
           'julia',
         );
+        expect(WorkflowUtil.getAssetType({ metadata: [{ id: 'StatWrap.JupyterHandler' }] })).toEqual(
+          'jupyter',
+        );
       });
 
       it('should return a default value for unkown types', () => {

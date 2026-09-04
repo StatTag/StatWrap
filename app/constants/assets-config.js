@@ -40,6 +40,11 @@ module.exports = {
       categories: ['code'],
     },
     {
+      name: 'Jupyter',
+      extensions: ['ipynb'],
+      categories: ['code'],
+    },
+    {
       name: 'SAS',
       extensions: ['sas'],
       categories: ['code'],
