@@ -1,5 +1,5 @@
 import GeneralUtil from '../../utils/general';
-import AssetUtil from '../../utils/asset';
+import AssetUtil, { FILE_IGNORE_LIST } from '../../utils/asset';
 
 const fs = require('fs');
 const path = require('path');
@@ -86,12 +86,17 @@ export default class AssetService {
    * @param {string} uri The base URI to recursively scan
    * @returns An asset object which contains nested assets
    */
-  scan(uri) {
+  /**
+   * Internal recursive function to build the asset tree without applying handlers.
+   * This operates extremely quickly (tree-only scan).
+   * @param {string} uri The current URI
+   * @param {object} stats Object to keep track of total files and directories
+   * @returns An asset object
+   */
+  _buildTree(uri, stats) {
     // This will throw an error if it can't access the uri
     fs.accessSync(uri);
 
-    // TODO: When we move past file/folder assets, this will need to account for
-    // other types of assets that aren't reachable via the file system.
     const details = fs.statSync(uri);
     let result = {};
 
@@ -100,9 +105,16 @@ export default class AssetService {
       return result;
     }
 
+    const type = this.assetType(details);
+    if (type === 'file') {
+      stats.totalFiles++;
+    } else if (type === 'directory') {
+      stats.totalDirectories++;
+    }
+
     result = {
       uri,
-      type: this.assetType(details),
+      type,
       contentTypes: this.assetContentTypes(uri, details),
       metadata: [],
     };
@@ -114,12 +126,32 @@ export default class AssetService {
       const files = fs.readdirSync(uri);
       const children = [];
       files.forEach(function eachFile(file) {
+        // Skip common large dependency/hidden directories to save massive memory and time
+        if (FILE_IGNORE_LIST.includes(file)) {
+          return; // continue in forEach
+        }
+        
         const filePath = path.join(uri, file);
-        children.push(self.scan(filePath));
+        children.push(self._buildTree(filePath, stats));
       });
 
       result.children = children;
     }
+    
+    return result;
+  }
+
+  /**
+   * Scan a URI for all available assets.  This is done recursively for all available assets.
+   *
+   * This will return URIs as absolute paths (not relative).
+   *
+   * @param {string} uri The base URI to recursively scan
+   * @returns An asset object which contains nested assets
+   */
+  scan(uri) {
+    const stats = { totalFiles: 0, totalDirectories: 0 };
+    const result = this._buildTree(uri, stats);
 
     if (!this.handlers) {
       return result;
@@ -130,9 +162,24 @@ export default class AssetService {
     }
 
     let assetEntry = result;
-    for (let index = 0; index < this.handlers.length; index++) {
-      assetEntry = this.handlers[index].scan(assetEntry);
+    
+    // Performance threshold check: if files exceed 10000, skip deep code handler scan
+    // We only apply FileHandler which is fast because it uses already existing fs.stat.
+    // The rest of the handlers are skipped to prevent UI lockup and memory exhaustion.
+    const MAX_DEEP_SCAN_FILES = 10000;
+    if (stats.totalFiles > MAX_DEEP_SCAN_FILES) {
+      console.warn(`[AssetService] Project has ${stats.totalFiles} files, exceeding limit of ${MAX_DEEP_SCAN_FILES}. Skipping deep code handlers.`);
+      for (let index = 0; index < this.handlers.length; index++) {
+        if (this.handlers[index].id && this.handlers[index].id() === 'StatWrap.FileHandler') {
+          assetEntry = this.handlers[index].scan(assetEntry);
+        }
+      }
+    } else {
+      for (let index = 0; index < this.handlers.length; index++) {
+        assetEntry = this.handlers[index].scan(assetEntry);
+      }
     }
+
     return assetEntry;
   }
 }
