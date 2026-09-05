@@ -350,6 +350,26 @@ export default class ProjectUtil {
       filters.push(fileTypeFilter);
     }
 
+        const directoryFilter = { category: Constants.FilterCategory.DIRECTORY, values: [] };
+    const rootPath = filteredAssets.uri;
+    const directoryFunc = (x) => {
+      if (x.type === Constants.AssetType.DIRECTORY || x.type === Constants.AssetType.FOLDER) {
+        if (x.uri && x.uri !== rootPath) {
+          const relPath = AssetUtil.absoluteToRelativePath(rootPath, x);
+          if (relPath) {
+            return relPath;
+          }
+        }
+      }
+      return null;
+    };
+    ProjectUtil._processAssetAndDescendantsForFilter(
+      filteredAssets,
+      directoryFilter,
+      directoryFunc,
+    );
+    ProjectUtil._sortAndAddFilter(directoryFilter, filters);
+    
     // We get back a flat list of dependencies, so no recursive processing is needed for these
     const ioFilter = { category: Constants.FilterCategory.INPUTS_OUTPUTS, values: [] };
     const dependencyFilter = { category: Constants.FilterCategory.DEPENDENCIES, values: [] };
