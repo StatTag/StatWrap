@@ -512,7 +512,7 @@ export default class RHandler extends BaseCodeHandler {
 
     for (let line of lines) {
       line = line.trim();
-      if (!line) continue;
+      if (!line) {continue;}
 
       // new list item
       if (line.startsWith('-')) {
@@ -520,7 +520,7 @@ export default class RHandler extends BaseCodeHandler {
         if (val === '') {
         } else if (val.startsWith('name:')) {
           const parsedName = val.replace('name:', '').trim().replace(/^['"]|['"]$/g, '');
-          if (parsedName) authors.push(parsedName);
+          if (parsedName) {authors.push(parsedName);}
         } else if (val.includes(':')) {
           // grabs the value of the first attribute
         } else {
@@ -531,7 +531,7 @@ export default class RHandler extends BaseCodeHandler {
         // Not starting with '-', its a property of an object in a list
         if (line.startsWith('name:')) {
           const parsedName = line.replace('name:', '').trim().replace(/^['"]|['"]$/g, '');
-          if (parsedName) authors.push(parsedName);
+          if (parsedName) {authors.push(parsedName);}
         }
       }
     }

@@ -137,7 +137,7 @@ const searchSettings = (props) => {
 
   const handleImportIndex = (event) => {
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file) {return;}
 
     const reader = new FileReader();
     reader.onload = (e) => {
