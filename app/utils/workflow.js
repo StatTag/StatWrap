@@ -187,7 +187,7 @@ export default class WorkflowUtil {
     // Create a map of relative URIs to assets for faster lookup
     const assetMap = new Map();
     const buildAssetMap = (asset) => {
-      if (!asset) return;
+      if (!asset) {return;}
       const relativeUri = filteredAsset.uri
         ? asset.uri.replace(filteredAsset.uri, '').replace(/^\\+|\/+/, '')
         : asset.uri;

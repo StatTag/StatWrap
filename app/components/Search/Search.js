@@ -259,7 +259,7 @@ const Search = (props) => {
       ipcRenderer.removeListener(Messages.SEARCH_GET_SUGGESTIONS_RESPONSE, handleSearchSuggestionsResponse);
 
       document.removeEventListener('keydown', handleKeyDown);
-      if (searchTimeout) clearTimeout(searchTimeout);
+      if (searchTimeout) {clearTimeout(searchTimeout);}
     };
   }, []);
 
@@ -436,7 +436,7 @@ const Search = (props) => {
   };
 
   const highlightText = (text, query) => {
-    if (!query || !text || typeof text !== 'string') return text;
+    if (!query || !text || typeof text !== 'string') {return text;}
 
     try {
       const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
@@ -897,13 +897,13 @@ const ResultsList = ({
   );
 };
 const formatPersonName = (name) => {
-  if (!name) return '';
-  if (typeof name === 'string') return name;
+  if (!name) {return '';}
+  if (typeof name === 'string') {return name;}
 
   const parts = [];
-  if (name.first) parts.push(name.first);
-  if (name.middle) parts.push(name.middle);
-  if (name.last) parts.push(name.last);
+  if (name.first) {parts.push(name.first);}
+  if (name.middle) {parts.push(name.middle);}
+  if (name.last) {parts.push(name.last);}
 
   return parts.join(' ').trim();
 };
@@ -944,19 +944,19 @@ const ResultItemComponent = ({
   };
 
   const getRelevanceColor = (relevance) => {
-    if (relevance >= 80) return 'success';
-    if (relevance >= 60) return 'warning';
-    if (relevance >= 40) return 'info';
+    if (relevance >= 80) {return 'success';}
+    if (relevance >= 60) {return 'warning';}
+    if (relevance >= 40) {return 'info';}
     return 'default';
   };
 
   const renderTags = () => {
-    if (!item.tags || (!Array.isArray(item.tags) && typeof item.tags !== 'string')) return null;
+    if (!item.tags || (!Array.isArray(item.tags) && typeof item.tags !== 'string')) {return null;}
 
     const tagArray = Array.isArray(item.tags)
       ? item.tags
       : item.tags.split(' ').filter((t) => t.trim());
-    if (tagArray.length === 0) return null;
+    if (tagArray.length === 0) {return null;}
 
     return (
       <Box mt={1} display="flex" gap={0.5} flexWrap="wrap">

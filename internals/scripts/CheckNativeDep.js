@@ -5,7 +5,7 @@ import { execSync } from 'child_process';
 import { dependencies } from '../../package.json';
 
 (() => {
-  if (!dependencies) return;
+  if (!dependencies) {return;}
   const dependenciesKeys = Object.keys(dependencies);
   const nativeDeps = fs
     .readdirSync('node_modules')
