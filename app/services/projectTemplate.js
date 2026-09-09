@@ -1,4 +1,5 @@
 import templateList from '../constants/project-templates.json';
+import Constants from '../constants/constants';
 
 const fs = require('fs');
 const path = require('path');
@@ -14,14 +15,14 @@ function getAllFiles(dirPath) {
       if (fs.statSync(filePath).isDirectory()) {
         arrayOfFiles.push({
           name: file,
-          type: 'folder',
+          type: Constants.AssetType.DIRECTORY,
           path: path.join(dirPath, '/', file),
           contents: getAllFiles(filePath),
         });
       } else {
         arrayOfFiles.push({
           name: file,
-          type: 'file',
+          type: Constants.AssetType.FILE,
           path: path.join(dirPath, '/', file),
         });
       }
@@ -36,7 +37,7 @@ function getAllFiles(dirPath) {
 function createAllTemplateItems(dirPath, contents) {
   contents.forEach(function (item) {
     const newPath = path.join(dirPath, item.name);
-    if (item.type === 'file') {
+    if (item.type === Constants.AssetType.FILE) {
       fs.copyFileSync(item.path, newPath);
     } else {
       fs.mkdirSync(newPath);

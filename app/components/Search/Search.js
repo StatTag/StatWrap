@@ -404,10 +404,10 @@ const Search = (props) => {
         // We have some search metadata (non-search results) that we need to skip.
         if (Array.isArray(filtered[key])) {
           filtered[key] = filtered[key].filter((result) => {
-            if (result.type === 'file' && result.item.extension) {
+            if (result.type === Constants.AssetType.FILE && result.item.extension) {
               return result.item.extension === searchFilters.fileType;
             }
-            return result.type !== 'file';
+            return result.type !== Constants.AssetType.FILE;
           });
         }
       });

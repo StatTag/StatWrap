@@ -2,6 +2,7 @@
 // in this case.
 import AssetUtil from '../../../utils/asset';
 import { StatWrapFiles } from '../../../constants/constants';
+import Constants from '../../../constants/constants';
 
 const fs = require('fs');
 const path = require('path');
@@ -46,7 +47,7 @@ export default class FileHandler {
     }
 
     // Only handle files and directories
-    if (asset.type !== 'file' && asset.type !== 'directory') {
+    if (asset.type !== Constants.AssetType.FILE && asset.type !== Constants.AssetType.DIRECTORY) {
       return asset;
     }
 
@@ -80,7 +81,7 @@ export default class FileHandler {
 
     // If this is a directory, we are going to traverse and get details
     // about the contained files and sub-folders
-    if (asset.type === 'directory' && asset.children) {
+    if (asset.type === Constants.AssetType.DIRECTORY && asset.children) {
       const self = this;
       asset.children.forEach((child, index) => (asset.children[index] = self.scan(child)));
     }
