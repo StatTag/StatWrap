@@ -9,6 +9,7 @@ import {
   faChevronDown,
   faFolderOpen,
 } from '@fortawesome/free-solid-svg-icons';
+import Constants from '../../constants/constants';
 import styles from './ProjectTemplatePreview.css';
 
 function contentsToNodes(assets) {
@@ -18,7 +19,7 @@ function contentsToNodes(assets) {
       label: x.name,
       showCheckbox: false,
       icon:
-        x.type === 'folder' ? (
+        x.type === Constants.AssetType.DIRECTORY ? (
           <FontAwesomeIcon icon={faFolder} />
         ) : (
           <FontAwesomeIcon icon={faFile} />

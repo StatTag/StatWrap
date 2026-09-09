@@ -1,4 +1,5 @@
 import AssetUtil from '../../../utils/asset';
+import Constants from '../../../constants/constants';
 
 const fs = require('fs');
 const path = require('path');
@@ -75,14 +76,14 @@ export default class BaseCodeHandler {
     }
 
     // Only handle files, but need to include directories for recursive processing
-    if (asset.type !== 'file' && asset.type !== 'directory') {
+    if (asset.type !== Constants.AssetType.FILE && asset.type !== Constants.AssetType.DIRECTORY) {
       return asset;
     }
 
     const metadata = { id: this.id() };
     // If this is a directory, we are going to traverse and get details
     // about the contained files and sub-folders
-    if (asset.type === 'directory' && asset.children) {
+    if (asset.type === Constants.AssetType.DIRECTORY && asset.children) {
       const self = this;
       asset.children.forEach((child, index) => (asset.children[index] = self.scan(child)));
     } else {
@@ -101,7 +102,7 @@ export default class BaseCodeHandler {
         metadata.libraries = this.getLibraries(asset.uri, contents);
         metadata.outputs = this.getOutputs(asset.uri, contents);
         metadata.inputs = this.getInputs(asset.uri, contents);
-        // If it's implemented anywhere, it will run automatically and attach the extracted authors.                 
+        // If it's implemented anywhere, it will run automatically and attach the extracted authors.
         if (this.getAuthors) {
           metadata.authors = this.getAuthors(asset.uri, contents);
         }

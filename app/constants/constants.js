@@ -25,6 +25,10 @@ module.exports = {
     URL: 'url',
     GENERIC: 'generic',
 
+    // Not typical assets, but valid asset types
+    SOCKET: 'socket',
+    SYMLINK: 'symlink',
+
     // These are not a real asset types, but are used in our various controls
     ASSET_GROUP: 'asset-group',
     FILTER: 'filter',

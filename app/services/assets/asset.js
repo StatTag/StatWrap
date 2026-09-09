@@ -39,16 +39,16 @@ export default class AssetService {
     }
 
     if (details.isDirectory()) {
-      return 'directory';
+      return Constants.AssetType.DIRECTORY;
     }
     if (details.isFile()) {
-      return 'file';
+      return Constants.AssetType.FILE;
     }
     if (details.isSocket()) {
-      return 'socket';
+      return Constants.AssetType.SOCKET;
     }
     if (details.isSymbolicLink()) {
-      return 'symlink';
+      return Constants.AssetType.SYMLINK;
     }
 
     return 'other';
@@ -106,9 +106,9 @@ export default class AssetService {
     }
 
     const type = this.assetType(details);
-    if (type === 'file') {
+    if (type === Constants.AssetType.FILE) {
       stats.totalFiles++;
-    } else if (type === 'directory') {
+    } else if (type === Constants.AssetType.DIRECTORY) {
       stats.totalDirectories++;
     }
 
@@ -121,7 +121,7 @@ export default class AssetService {
 
     // If this is a directory, we are going to traverse and get details
     // about the contained files and sub-folders
-    if (result.type === 'directory') {
+    if (result.type === Constants.AssetType.DIRECTORY) {
       const self = this;
       const files = fs.readdirSync(uri);
       const children = [];
@@ -130,14 +130,14 @@ export default class AssetService {
         if (FILE_IGNORE_LIST.includes(file)) {
           return; // continue in forEach
         }
-        
+
         const filePath = path.join(uri, file);
         children.push(self._buildTree(filePath, stats));
       });
 
       result.children = children;
     }
-    
+
     return result;
   }
 
@@ -162,7 +162,7 @@ export default class AssetService {
     }
 
     let assetEntry = result;
-    
+
     // Performance threshold check: if files exceed 10000, skip deep code handler scan
     // We only apply FileHandler which is fast because it uses already existing fs.stat.
     // The rest of the handlers are skipped to prevent UI lockup and memory exhaustion.

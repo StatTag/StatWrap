@@ -2,6 +2,7 @@ import BaseCodeHandler from './baseCode';
 import PythonHandler from './python';
 import RHandler from './r';
 import AssetUtil from '../../../utils/asset';
+import Constants from '../../../constants/constants';
 
 const fs = require('fs');
 
@@ -67,14 +68,14 @@ export default class JupyterHandler extends BaseCodeHandler {
     }
 
     // Only handle files, but need to include directories for recursive processing
-    if (asset.type !== 'file' && asset.type !== 'directory') {
+    if (asset.type !== Constants.AssetType.FILE && asset.type !== Constants.AssetType.DIRECTORY) {
       return asset;
     }
 
     const metadata = { id: this.id() };
     // If this is a directory, we are going to traverse and get details
     // about the contained files and sub-folders
-    if (asset.type === 'directory' && asset.children) {
+    if (asset.type === Constants.AssetType.DIRECTORY && asset.children) {
       const self = this;
       asset.children.forEach((child, index) => {
         asset.children[index] = self.scan(child);
@@ -94,7 +95,7 @@ export default class JupyterHandler extends BaseCodeHandler {
         const contents = fs.readFileSync(asset.uri, 'utf8');
         const notebook = JSON.parse(contents);
         const code = this.extractCode(notebook);
-        
+
         let language = 'python'; // default for Jupyter
         if (notebook.metadata) {
           if (notebook.metadata.language_info && notebook.metadata.language_info.name) {
