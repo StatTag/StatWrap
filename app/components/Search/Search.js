@@ -315,9 +315,12 @@ const Search = (props) => {
 
   const handleAutocompleteChange = (event, newValue) => {
     setSearchTerm(newValue || '');
+  };
 
-    if (newValue && newValue.trim() && suggestions.includes(newValue)) {
-      performSearch(newValue);
+  const handleOptionSelect = (event, selectedValue) => {
+    if (selectedValue && selectedValue.trim()) {
+      setSearchTerm(selectedValue);
+      performSearch(selectedValue);
       setShowSuggestions(false);
     }
   };
@@ -559,12 +562,10 @@ const Search = (props) => {
                 <Autocomplete
                   freeSolo
                   disabled={isInitializing}
-                  // TODO - search history is disabled (along with suggestions) because it isn't working properly.
-                  // if you select something from the search history, it shows 0 results even if the search actually
-                  // did have results.  Need to investigate this.
-                  options={showSuggestions ? suggestions : []} //searchHistory}
+                  options={[...new Set([...searchHistory, ...(showSuggestions ? suggestions : [])])]}
                   value={searchTerm}
                   onInputChange={handleAutocompleteChange}
+                  onChange={handleOptionSelect}
                   onClose={() => setShowSuggestions(false)}
                   renderInput={(params) => (
                     <TextField
