@@ -276,8 +276,10 @@ class Project extends Component<Props> {
       action.type = ActionType.NOTE_ADDED;
       action.description = `Added note to asset ${asset.uri}`;
       action.details = note;
-      // TODO - fix bug here - should be failing
-      assetsCopy.push(newAsset);
+      if (!assetsCopy.children) {
+        assetsCopy.children = [];
+      }
+      assetsCopy.children.push(newAsset);
     } else {
       this.upsertNoteHandler(existingAsset, EntityType.ASSET, asset.uri, action, text, note);
     }
