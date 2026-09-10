@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid';
 import ProjectUtil from '../../app/utils/project';
 import Constants from '../../app/constants/constants';
 import WorkflowUtil from '../../app/utils/workflow';
+import AssetUtil from '../../app/utils/asset';
 
 jest.mock('uuid');
 
@@ -1546,6 +1547,53 @@ describe('utils', () => {
       };
       ProjectUtil.removeExternalAsset(project, asset);
       expect(project.externalAssets.children.length).toEqual(1);
+    });
+    describe('absoluteToRelativePathForAssetGroups', () => {
+      it('should return an empty array if assetGroups is null', () => {
+        expect(ProjectUtil.absoluteToRelativePathForAssetGroups('/project', null)).toEqual([]);
+      });
+
+      it('should return an empty array if assetGroups is undefined', () => {
+        expect(ProjectUtil.absoluteToRelativePathForAssetGroups('/project', undefined)).toEqual([]);
+      });
+
+      it('should call AssetUtil.absoluteToRelativePathForArray for each asset group', () => {
+        const spy = jest.spyOn(AssetUtil, 'absoluteToRelativePathForArray').mockImplementation((p, a) => a);
+        const assetGroups = [
+          { name: 'Group 1', assets: ['/project/file1'] },
+          { name: 'Group 2', assets: ['/project/file2'] },
+        ];
+        const result = ProjectUtil.absoluteToRelativePathForAssetGroups('/project', assetGroups);
+        expect(spy).toHaveBeenCalledTimes(2);
+        expect(spy).toHaveBeenCalledWith('/project', ['/project/file1']);
+        expect(spy).toHaveBeenCalledWith('/project', ['/project/file2']);
+        expect(result).toEqual(assetGroups);
+        spy.mockRestore();
+      });
+    });
+
+    describe('relativeToAbsolutePathForAssetGroups', () => {
+      it('should return an empty array if assetGroups is null', () => {
+        expect(ProjectUtil.relativeToAbsolutePathForAssetGroups('/project', null)).toEqual([]);
+      });
+
+      it('should return an empty array if assetGroups is undefined', () => {
+        expect(ProjectUtil.relativeToAbsolutePathForAssetGroups('/project', undefined)).toEqual([]);
+      });
+
+      it('should call AssetUtil.relativeToAbsolutePathForArray for each asset group', () => {
+        const spy = jest.spyOn(AssetUtil, 'relativeToAbsolutePathForArray').mockImplementation((p, a) => a);
+        const assetGroups = [
+          { name: 'Group 1', assets: ['file1'] },
+          { name: 'Group 2', assets: ['file2'] },
+        ];
+        const result = ProjectUtil.relativeToAbsolutePathForAssetGroups('/project', assetGroups);
+        expect(spy).toHaveBeenCalledTimes(2);
+        expect(spy).toHaveBeenCalledWith('/project', ['file1']);
+        expect(spy).toHaveBeenCalledWith('/project', ['file2']);
+        expect(result).toEqual(assetGroups);
+        spy.mockRestore();
+      });
     });
   });
 });
