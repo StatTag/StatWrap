@@ -562,7 +562,7 @@ const Search = (props) => {
                 <Autocomplete
                   freeSolo
                   disabled={isInitializing}
-                  options={[...new Set([...searchHistory, ...(showSuggestions ? suggestions : [])])]}
+                  options={searchHistory}
                   value={searchTerm}
                   onInputChange={handleAutocompleteChange}
                   onChange={handleOptionSelect}
