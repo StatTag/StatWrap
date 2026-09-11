@@ -29,6 +29,7 @@ module.exports = {
     'jest/no-standalone-expect': 0,
     'jest/expect-expect': 0,
     'no-unused-vars': 0,
+    curly: ['error', 'all'],
   },
   settings: {
     'import/resolver': {

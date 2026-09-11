@@ -437,7 +437,7 @@ class Project extends Component<Props> {
 
   handleConfirmUnarchive = (alsoDescendants) => {
     const { pendingUnarchive } = this.state;
-    if (!pendingUnarchive) return;
+    if (!pendingUnarchive) {return;}
 
     this.performAssetAttributeUpdate(
       pendingUnarchive.assetUri,

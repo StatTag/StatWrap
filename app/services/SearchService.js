@@ -490,7 +490,7 @@ class SearchService {
 
     // Check for path changes
     const projectsToUpdate = currentProjects.filter((p) => {
-      if (!indexedProjectIds.has(p.id)) return false;
+      if (!indexedProjectIds.has(p.id)) {return false;}
 
       const indexedProject = this.indexedProjectsMap.get(p.id);
       return indexedProject.path !== p.path;
@@ -1014,7 +1014,7 @@ class SearchService {
   }
 
   async indexPerson(person, project) {
-    if (!person || !person.id) return;
+    if (!person || !person.id) {return;}
 
     const searchableContent = [
       this.formatPersonName(person.name),
@@ -1056,7 +1056,7 @@ class SearchService {
   }
 
   async indexNote(note, project, entityType, entityName) {
-    if (!note || !note.content) return;
+    if (!note || !note.content) {return;}
 
     const docId = this.generateDocumentId('note', note.id || Date.now(), entityType);
 
@@ -1085,7 +1085,7 @@ class SearchService {
   }
 
   async indexAssetGroup(group, project) {
-    if (!group || !group.id) return;
+    if (!group || !group.id) {return;}
 
     const searchableContent = [
       group.name || '',
@@ -1117,14 +1117,14 @@ class SearchService {
   }
 
   formatPersonName(name) {
-    if (!name) return '';
+    if (!name) {return '';}
 
-    if (typeof name === 'string') return name;
+    if (typeof name === 'string') {return name;}
 
     const parts = [];
-    if (name.first) parts.push(name.first);
-    if (name.middle) parts.push(name.middle);
-    if (name.last) parts.push(name.last);
+    if (name.first) {parts.push(name.first);}
+    if (name.middle) {parts.push(name.middle);}
+    if (name.last) {parts.push(name.last);}
 
     return parts.join(' ').trim();
   }
@@ -1514,7 +1514,7 @@ class SearchService {
    * Calculate proximity score (how close query terms appear to each other)
    */
   calculateProximityScore(content, queryTerms) {
-    if (queryTerms.length < 2) return 0;
+    if (queryTerms.length < 2) {return 0;}
 
     let proximityScore = 0;
     const positions = {};
@@ -1940,7 +1940,7 @@ class SearchService {
 
   getFromCache(key) {
     const cached = this.resultCache.get(key);
-    if (!cached) return null;
+    if (!cached) {return null;}
 
     if (Date.now() - cached.timestamp > this.cacheTTL) {
       this.resultCache.delete(key);

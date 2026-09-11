@@ -119,9 +119,9 @@ export default class ProjectUtil {
         return null;
       }
       const attrs = [];
-      if (x.attributes.archived) attrs.push('archived');
-      if (x.attributes.entrypoint) attrs.push('entrypoint');
-      if (x.attributes.sensitive) attrs.push('sensitive');
+      if (x.attributes.archived) {attrs.push('archived');}
+      if (x.attributes.entrypoint) {attrs.push('entrypoint');}
+      if (x.attributes.sensitive) {attrs.push('sensitive');}
       return attrs.length > 0 ? attrs : null;
     };
     ProjectUtil._processAssetAndDescendantsForFilter(assets, attributeFilter, attributeFunc);
