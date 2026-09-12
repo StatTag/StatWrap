@@ -47,6 +47,7 @@ class SearchService {
     this.resultCache = new Map();
     this.maxCacheSize = SearchConfig?.performance?.resultCacheSize || 100;
     this.cacheTTL = SearchConfig?.performance?.resultCacheTTL || 600000; // 10 minutes
+    this.updateTimeout = null;
   }
 
   /**
@@ -695,6 +696,11 @@ class SearchService {
         }
 
         this.isInitialized = true;
+        if (this.updateTimeout) {
+          clearTimeout(this.updateTimeout);
+          this.updateTimeout = null;
+        }
+
         const fileSizeChanged =
           this.previousMaxFileSize !== null && this.previousMaxFileSize !== maxFileSize;
         if (fileSizeChanged) {
@@ -703,24 +709,38 @@ class SearchService {
           );
           this.maxIndexingFileSize = maxFileSize;
 
-          setTimeout(async () => {
-            this.indexingInProgress = true;
-            const updateResults = await this.compareAndUpdateIndex(projects);
-            this.indexingInProgress = false;
-            await this.saveIndexToFile();
-            console.log('SearchService: Background update completed:', updateResults);
+          this.updateTimeout = setTimeout(async () => {
+            try {
+              this.indexingInProgress = true;
+              const updateResults = await this.compareAndUpdateIndex(projects);
+              this.indexingInProgress = false;
+              await this.saveIndexToFile();
+              console.log('SearchService: Background update completed:', updateResults);
+            } catch (error) {
+              console.error('SearchService: Background update error:', error);
+              this.indexingInProgress = false;
+            } finally {
+              this.updateTimeout = null;
+            }
           }, 100);
         } else {
-          setTimeout(async () => {
-            this.indexingInProgress = true;
-            const updateResults = await this.compareAndUpdateIndex(projects);
-            this.indexingInProgress = false;
+          this.updateTimeout = setTimeout(async () => {
+            try {
+              this.indexingInProgress = true;
+              const updateResults = await this.compareAndUpdateIndex(projects);
+              this.indexingInProgress = false;
 
-            if (updateResults.added > 0 || updateResults.removed > 0 || updateResults.updated > 0) {
-              await this.saveIndexToFile();
-              console.log('SearchService: Incremental update completed:', updateResults);
-            } else {
-              console.log('SearchService: No changes detected, index is up to date');
+              if (updateResults.added > 0 || updateResults.removed > 0 || updateResults.updated > 0) {
+                await this.saveIndexToFile();
+                console.log('SearchService: Incremental update completed:', updateResults);
+              } else {
+                console.log('SearchService: No changes detected, index is up to date');
+              }
+            } catch (error) {
+              console.error('SearchService: Background update error:', error);
+              this.indexingInProgress = false;
+            } finally {
+              this.updateTimeout = null;
             }
           }, 100);
         }
@@ -762,6 +782,10 @@ class SearchService {
    * Clear all indices and document store
    */
   clearIndices() {
+    if (this.updateTimeout) {
+      clearTimeout(this.updateTimeout);
+      this.updateTimeout = null;
+    }
     this.documentStore.clear();
     this.resultCache.clear();
     this.indexedProjectsMap.clear();

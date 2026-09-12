@@ -139,6 +139,10 @@ describe('SearchService', () => {
     jest.clearAllMocks();
 
     // Completely reset the SearchService instance state
+    if (SearchServiceInstance.updateTimeout) {
+      clearTimeout(SearchServiceInstance.updateTimeout);
+      SearchServiceInstance.updateTimeout = null;
+    }
     SearchServiceInstance.isInitialized = false;
     SearchServiceInstance.documentStore.clear();
     SearchServiceInstance.projectsData = [];
