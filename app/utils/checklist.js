@@ -71,7 +71,7 @@ export default class ChecklistUtil {
             contentType.extensions.includes(ext)
           ) {
             // Initialize the language in the object if it doesn't already exist
-            if (!dependencies.hasOwnProperty(contentType.name)) {
+            if (!Object.prototype.hasOwnProperty.call(dependencies, contentType.name)) {
               dependencies[contentType.name] = [];
             }
 

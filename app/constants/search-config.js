@@ -4,7 +4,7 @@ module.exports = {
     maxFileSize: 0.1 * 1024 * 1024,
     excludedDirectories: ['node_modules', '.git', '.statwrap',
       // Python
-      '__pycache__', '.venv', 'venv', '.pytest_cache', '.pybuilder', '.ipynb_checkpoints',, '__pypackages__',
+      '__pycache__', '.venv', 'venv', '.pytest_cache', '.pybuilder', '.ipynb_checkpoints', '__pypackages__',
       // R and RStudio
       '.Rproj.user'
     ],

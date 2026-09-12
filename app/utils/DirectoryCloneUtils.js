@@ -79,17 +79,13 @@ export const createStatWrapConfig = async (targetDir, id, name) => {
  * @returns {Promise<string>} - The path to the created project
  */
 export const performCloneOperation = async (sourceDir, targetBaseDir, projectName) => {
-  try {
-    const targetDir = path.join(targetBaseDir, projectName);
+  const targetDir = path.join(targetBaseDir, projectName);
 
-    // Clone the directory structure
-    await cloneDirectoryStructure(sourceDir, targetDir);
+  // Clone the directory structure
+  await cloneDirectoryStructure(sourceDir, targetDir);
 
-    // Create StatWrap configuration
-    await createStatWrapConfig(targetDir);
+  // Create StatWrap configuration
+  await createStatWrapConfig(targetDir);
 
-    return targetDir;
-  } catch (error) {
-    throw error;
-  }
+  return targetDir;
 };

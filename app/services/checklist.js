@@ -68,22 +68,20 @@ export default class ChecklistService {
   formatStatWrapScanResults(scanResult) {
     if (scanResult === null || scanResult === undefined) {
       return [];
-    } else {
-      return Object.keys(scanResult).map((key) => {
-        return [
-          { text: key, marginLeft: 25 },
-          {
-            ul:
-              scanResult[key].length > 0
-                ? scanResult[key].map((dep, depIndex) => dep)
-                : ['No results'],
-            marginLeft: 30,
-          },
-        ];
-      });
     }
 
-    return [];
+    return Object.keys(scanResult).map((key) => {
+      return [
+        { text: key, marginLeft: 25 },
+        {
+          ul:
+            scanResult[key].length > 0
+              ? scanResult[key].map((dep, depIndex) => dep)
+              : ['No results'],
+          marginLeft: 30,
+        },
+      ];
+    });
   }
 
   generateReport(checklist, reportFileName, exportNotes, project) {

@@ -24,6 +24,7 @@ import {
 } from '@mui/icons-material';
 import SettingsContext from '../../../contexts/Settings';
 import Messages from '../../../constants/messages';
+import SearchService from '../../../services/SearchService';
 import styles from './SearchSettings.css';
 
 /**
@@ -144,8 +145,8 @@ const searchSettings = (props) => {
       try {
         const importData = JSON.parse(e.target.result);
         SearchService.importIndex(importData);
-        updateSearchStats();
-        updateIndexFileInfo();
+        //updateSearchStats();
+        //updateIndexFileInfo();
         setIsInitializing(false);
         console.log('Search: Successfully imported search index');
         alert('Index imported successfully!');

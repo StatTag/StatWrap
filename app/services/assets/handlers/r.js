@@ -516,14 +516,11 @@ export default class RHandler extends BaseCodeHandler {
 
       // new list item
       if (line.startsWith('-')) {
-        let val = line.substring(1).trim();
-        if (val === '') {
-        } else if (val.startsWith('name:')) {
+        const val = line.substring(1).trim();
+        if (val.startsWith('name:')) {
           const parsedName = val.replace('name:', '').trim().replace(/^['"]|['"]$/g, '');
           if (parsedName) {authors.push(parsedName);}
-        } else if (val.includes(':')) {
-          // grabs the value of the first attribute
-        } else {
+        } else if (!val.includes(':') && val !== '') {
           // Simple array element
           authors.push(val.replace(/^['"]|['"]$/g, ''));
         }
