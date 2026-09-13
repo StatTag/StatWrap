@@ -130,7 +130,7 @@ const assetsComponent = (props) => {
       // Collecting all sensitive marked files
       const sensitiveFiles = [];
       const collectSensitiveFiles = (asset) => {
-        if (!asset) return;
+        if (!asset) {return;}
         if (asset.type === Constants.AssetType.FILE && asset.attributes && asset.attributes.sensitive) {
           sensitiveFiles.push(asset.uri);
         }

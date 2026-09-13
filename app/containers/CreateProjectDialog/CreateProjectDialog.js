@@ -149,7 +149,7 @@ class CreateProjectDialog extends Component {
            targetBaseDir && targetBaseDir !== '' &&
            name && name !== '';
 
-    if (!hasRequiredFields) return { isValid: false, errorMessage: null };
+    if (!hasRequiredFields) {return { isValid: false, errorMessage: null };}
 
     // Normalize paths to handle different path separators
     const normalizedSource = sourceDir.replace(/\\/g, '/');

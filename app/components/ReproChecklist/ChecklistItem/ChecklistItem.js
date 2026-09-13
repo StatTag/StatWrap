@@ -126,12 +126,13 @@ function ChecklistItem(props) {
     // TODO: This works in theory... we don't currently have a sub-checklist item, so when we
     // implement one we will need this to be tested more thoroughly.
     const newValue = event.target.checked;
+    let oldAnswer = subCheck.answer;
     const updatedItem = {
       ...item,
       subChecklist: item.subChecklist.map((sub) => {
         if (sub.id === subCheck.id) {
           oldAnswer = sub.answer;
-          return { ...sub, answer: true };
+          return { ...sub, answer: newValue };
         }
         return sub;
       }),
@@ -140,8 +141,8 @@ function ChecklistItem(props) {
     handleItemUpdate(updatedItem,
       Constants.ActionType.CHECKLIST_UPDATED,
       Constants.ActionType.CHECKLIST_UPDATED,
-      `Set sub-item ${subCheck.id} of ${updatedItem.statement} to "Yes"`,
-      { oldValue: 'No', newValue: 'Yes' }
+      `Set sub-item ${subCheck.id} of ${updatedItem.statement} to "${formatYesNo(newValue)}"`,
+      { oldValue: formatYesNo(oldAnswer), newValue: formatYesNo(newValue) }
     );
   };
 

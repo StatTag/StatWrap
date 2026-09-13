@@ -24,6 +24,7 @@ import {
 } from '@mui/icons-material';
 import SettingsContext from '../../../contexts/Settings';
 import Messages from '../../../constants/messages';
+import SearchService from '../../../services/SearchService';
 import styles from './SearchSettings.css';
 
 /**
@@ -137,15 +138,15 @@ const searchSettings = (props) => {
 
   const handleImportIndex = (event) => {
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file) {return;}
 
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const importData = JSON.parse(e.target.result);
         SearchService.importIndex(importData);
-        updateSearchStats();
-        updateIndexFileInfo();
+        //updateSearchStats();
+        //updateIndexFileInfo();
         setIsInitializing(false);
         console.log('Search: Successfully imported search index');
         alert('Index imported successfully!');
