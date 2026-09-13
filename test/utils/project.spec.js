@@ -1548,52 +1548,73 @@ describe('utils', () => {
       ProjectUtil.removeExternalAsset(project, asset);
       expect(project.externalAssets.children.length).toEqual(1);
     });
-    describe('absoluteToRelativePathForAssetGroups', () => {
-      it('should return an empty array if assetGroups is null', () => {
-        expect(ProjectUtil.absoluteToRelativePathForAssetGroups('/project', null)).toEqual([]);
-      });
+  });
 
-      it('should return an empty array if assetGroups is undefined', () => {
-        expect(ProjectUtil.absoluteToRelativePathForAssetGroups('/project', undefined)).toEqual([]);
-      });
-
-      it('should call AssetUtil.absoluteToRelativePathForArray for each asset group', () => {
-        const spy = jest.spyOn(AssetUtil, 'absoluteToRelativePathForArray').mockImplementation((p, a) => a);
-        const assetGroups = [
-          { name: 'Group 1', assets: ['/project/file1'] },
-          { name: 'Group 2', assets: ['/project/file2'] },
-        ];
-        const result = ProjectUtil.absoluteToRelativePathForAssetGroups('/project', assetGroups);
-        expect(spy).toHaveBeenCalledTimes(2);
-        expect(spy).toHaveBeenCalledWith('/project', ['/project/file1']);
-        expect(spy).toHaveBeenCalledWith('/project', ['/project/file2']);
-        expect(result).toEqual(assetGroups);
-        spy.mockRestore();
-      });
+  describe('absoluteToRelativePathForAssetGroups', () => {
+    it('should return an empty array if assetGroups is null', () => {
+      expect(ProjectUtil.absoluteToRelativePathForAssetGroups('/project', null)).toEqual([]);
     });
 
-    describe('relativeToAbsolutePathForAssetGroups', () => {
-      it('should return an empty array if assetGroups is null', () => {
-        expect(ProjectUtil.relativeToAbsolutePathForAssetGroups('/project', null)).toEqual([]);
-      });
+    it('should return an empty array if assetGroups is undefined', () => {
+      expect(ProjectUtil.absoluteToRelativePathForAssetGroups('/project', undefined)).toEqual([]);
+    });
 
-      it('should return an empty array if assetGroups is undefined', () => {
-        expect(ProjectUtil.relativeToAbsolutePathForAssetGroups('/project', undefined)).toEqual([]);
-      });
+    it('should convert absolute paths to relative paths for each asset group', () => {
+      const isWin = process.platform === 'win32';
+      const projectPath = isWin ? 'C:\\project' : '/project';
+      
+      const file1Path = isWin ? 'C:\\project\\file1' : '/project/file1';
+      const file2Path = isWin ? 'C:\\project\\dir\\file2' : '/project/dir/file2';
+      const file3Path = isWin ? 'C:\\project\\file3' : '/project/file3';
+      
+      const testAssetGroups = [
+        { name: 'Group 1', assets: [{ uri: file1Path, type: Constants.AssetType.FILE }, { uri: file2Path, type: Constants.AssetType.FILE }] },
+        { name: 'Group 2', assets: [{ uri: file3Path, type: Constants.AssetType.FILE }] },
+      ];
 
-      it('should call AssetUtil.relativeToAbsolutePathForArray for each asset group', () => {
-        const spy = jest.spyOn(AssetUtil, 'relativeToAbsolutePathForArray').mockImplementation((p, a) => a);
-        const assetGroups = [
-          { name: 'Group 1', assets: ['file1'] },
-          { name: 'Group 2', assets: ['file2'] },
-        ];
-        const result = ProjectUtil.relativeToAbsolutePathForAssetGroups('/project', assetGroups);
-        expect(spy).toHaveBeenCalledTimes(2);
-        expect(spy).toHaveBeenCalledWith('/project', ['file1']);
-        expect(spy).toHaveBeenCalledWith('/project', ['file2']);
-        expect(result).toEqual(assetGroups);
-        spy.mockRestore();
-      });
+      // Clone the test groups carefully to avoid in-place modification issues
+      const inputGroups = JSON.parse(JSON.stringify(testAssetGroups));
+      const result = ProjectUtil.absoluteToRelativePathForAssetGroups(projectPath, inputGroups);
+      
+      // The method normalizes separators to POSIX internally
+      const expectedFile2Relative = 'dir/file2';
+      
+      // Assert the realistic outcome
+      expect(result[0].assets).toEqual([{ uri: 'file1', type: Constants.AssetType.FILE }, { uri: expectedFile2Relative, type: Constants.AssetType.FILE }]);
+      expect(result[1].assets).toEqual([{ uri: 'file3', type: Constants.AssetType.FILE }]);
+    });
+  });
+
+  describe('relativeToAbsolutePathForAssetGroups', () => {
+    it('should return an empty array if assetGroups is null', () => {
+      expect(ProjectUtil.relativeToAbsolutePathForAssetGroups('/project', null)).toEqual([]);
+    });
+
+    it('should return an empty array if assetGroups is undefined', () => {
+      expect(ProjectUtil.relativeToAbsolutePathForAssetGroups('/project', undefined)).toEqual([]);
+    });
+
+    it('should convert relative paths to absolute paths for each asset group', () => {
+      const isWin = process.platform === 'win32';
+      const projectPath = isWin ? 'C:\\project' : '/project';
+      
+      const expectedFile1 = isWin ? 'C:\\project\\file1' : '/project/file1';
+      const expectedFile2 = isWin ? 'C:\\project\\dir\\file2' : '/project/dir/file2';
+      const expectedFile3 = isWin ? 'C:\\project\\file3' : '/project/file3';
+      
+      const relativeFile2 = 'dir/file2';
+      
+      const testAssetGroups = [
+        { name: 'Group 1', assets: [{ uri: 'file1', type: Constants.AssetType.FILE }, { uri: relativeFile2, type: Constants.AssetType.FILE }] },
+        { name: 'Group 2', assets: [{ uri: 'file3', type: Constants.AssetType.FILE }] },
+      ];
+
+      const inputGroups = JSON.parse(JSON.stringify(testAssetGroups));
+      const result = ProjectUtil.relativeToAbsolutePathForAssetGroups(projectPath, inputGroups);
+      
+      // Assert the realistic outcome
+      expect(result[0].assets).toEqual([{ uri: expectedFile1, type: Constants.AssetType.FILE }, { uri: expectedFile2, type: Constants.AssetType.FILE }]);
+      expect(result[1].assets).toEqual([{ uri: expectedFile3, type: Constants.AssetType.FILE }]);
     });
   });
 });
