@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Snackbar, Alert } from '@mui/material';
 import { ipcRenderer } from 'electron';
 // import ResizablePanels from 'resizable-panels-react';
 import Projects from '../../components/Projects/Projects';
@@ -46,6 +47,8 @@ class ProjectPage extends Component {
       selectedProjectLogs: null,
       // The checklist for the selected project
       selectedProjectChecklist: null,
+      // Flag for displaying the version mismatch warning pop-up
+      showVersionWarning: false,
 
       // UI element to inform us what the popup project list menu is attached to
       projectListMenuAnchor: null,
@@ -571,7 +574,10 @@ class ProjectPage extends Component {
       ipcRenderer.once(Messages.LOAD_PROJECT_LIST_RESPONSE, checkProjectStatus);
     } else {
       // Normal flow for online projects
-      this.setState({ selectedProject: project });
+      this.setState({ 
+        selectedProject: project,
+        showVersionWarning: project.newerVersionWarning === true 
+       });
       ipcRenderer.send(Messages.SCAN_PROJECT_REQUEST, project);
       ipcRenderer.send(Messages.LOAD_PROJECT_LOG_REQUEST, project);
       ipcRenderer.send(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, project);
@@ -727,6 +733,21 @@ class ProjectPage extends Component {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Backward Compatibility Warning Popup */}
+        <Snackbar
+          open={this.setState.showVersionWarning}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert
+            onClose={() => this.setState({ showVersionWarning: false })} 
+            severity="warning" 
+            sx={{ width: '100%', boxShadow: 3 }}
+          >
+            <strong>Version Mismatch:</strong> This project was modified by a newer version of StatWrap. 
+    Some features may be unavailable. Consider updating your app.
+          </Alert>
+        </Snackbar>
       </div>
     );
   }
