@@ -14,8 +14,12 @@ import {
   TextField,
   Snackbar,
   Alert,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
-import { Add, SaveAlt, FileUpload, FileDownload } from '@mui/icons-material';
+import { Add, SaveAlt, FileUpload, FileDownload, Settings } from '@mui/icons-material';
 import ChecklistService from '../../services/checklist';
 import GeneralUtil from '../../utils/general';
 import ChecklistUtil from '../../utils/checklist';
@@ -60,6 +64,7 @@ function ReproChecklist({
     message: '', 
   });
   const [nameError, setNameError] = useState('');
+  const [manageMenu, setManageMenu] = useState(null);
 
   const sortedChecklist = checklist
     ? [...checklist].sort((a, b) => (a.order || a.id || 0) - (b.order || b.id || 0))
@@ -429,11 +434,41 @@ function ReproChecklist({
           Reproducibility Checklist
         </Typography>
         <button
-            className={styles.addChecklistButton}
-            onClick={() => setOpenAddDialog(true)}
+          className={styles.manageChecklistButton}
+          onClick={(e) => setManageMenu(e.currentTarget)}
         >
-          <Add fontSize="small" /> Add Checklists
+          <Settings fontSize="small" />
+          <span>Manage Checklists</span>
         </button>
+        <Menu
+          anchorEl={manageMenu}
+          open={Boolean(manageMenu)}
+          onClose={()=> setManageMenu(null)}
+          autoFocus={false}
+        >
+          <MenuItem onClick={ () => {
+            setManageMenu(null);
+            setOpenAddDialog(true);
+          }}>
+            <ListItemIcon><Add fontSize="small" /></ListItemIcon>
+            <ListItemText>Add Checklist Items</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={ () => {
+            setManageMenu(null);
+            handleImportChecklist();
+          }}>
+            
+            <ListItemIcon><FileDownload fontSize="small" /></ListItemIcon>
+            <ListItemText>Import Checklist</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={ () => {
+            setManageMenu(null);
+            handleExportChecklist();
+          }}>
+            <ListItemIcon><FileUpload fontSize="small" /></ListItemIcon>
+            <ListItemText>Export Checklist</ListItemText>
+          </MenuItem>
+        </Menu>
       </div>
       <br />
         {sortedChecklist.map((item, index) => (
@@ -464,18 +499,6 @@ function ReproChecklist({
         ))}
         <br />
         <div className={styles.downloadContainer}>
-          <button onClick={handleImportChecklist} className={styles.downloadButton}>
-            <div className={styles.buttonContent}>
-              <span className={styles.buttonText}>Import</span>
-              <FileUpload />
-            </div>
-          </button>
-          <button onClick={handleExportChecklist} className={styles.downloadButton}>
-            <div className={styles.buttonContent}>
-              <span className={styles.buttonText}>Export</span>
-              <FileDownload />
-            </div>
-          </button>
           <button onClick={() => setOpenExportDialog(true)} className={styles.downloadButton}>
             <div className={styles.buttonContent}>
               <span className={styles.buttonText}>Report</span>
