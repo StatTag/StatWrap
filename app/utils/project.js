@@ -588,7 +588,6 @@ export default class ProjectUtil {
    * @param {array} assetGroups Array of asset group objects
    * @returns A modified copy of assetGroups that has the paths converted from absolute to relative
    */
-  // TODO - unit tests!!
   static absoluteToRelativePathForAssetGroups(projectPath, assetGroups) {
     // If the array of asset groups isn't defined, we will return an empty array just to start
     // initializing the collection.
@@ -613,7 +612,6 @@ export default class ProjectUtil {
    * @param {array} assetGroups Array of asset group objects
    * @returns A modified copy of assetGroups that has the paths converted from relative to absolute
    */
-  // TODO - unit tests!!
   static relativeToAbsolutePathForAssetGroups(projectPath, assetGroups) {
     // If the array of asset groups isn't defined, we will return an empty array just to start
     // initializing the collection.
