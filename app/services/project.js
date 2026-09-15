@@ -4,10 +4,12 @@ import { cloneDeep } from 'lodash';
 import Constants, { EntityType } from '../constants/constants';
 import AssetUtil from '../utils/asset';
 import ProjectUtil from '../utils/project';
+import { app } from 'electron';
 
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const semver = require('semver');
 
 const ProjectFileFormatVersion = '1';
 const MaximumFolderNameLength = 255;
@@ -120,6 +122,14 @@ export default class ProjectService {
 
     const fileContents = fs.readFileSync(filePath);
     const data = JSON.parse(fileContents.toString());
+    const currentAppVersion = app ? app.getVersion() : '1.0.0';
+    const projectVersion = data.statwrapVersion || '1.0.0';
+
+    if (semver.gt(projectVersion,currentAppVersion)) {
+      data.newerVersionWarning = true;
+    } else {
+      data.newerVersionWarning = false;
+    }
 
     // If the user has linked their project description to a URI, we will
     // attempt to load it.  If we fail, we will put in the content an error
@@ -179,6 +189,11 @@ export default class ProjectService {
     }
 
     const filePath = path.join(configFolderPath, Constants.StatWrapFiles.PROJECT);
+    const currentAppVersion = app ? app.getVersion() : '1.0.0';
+
+    if (!project.statwrapVersion || semver.gt(currentAppVersion,project.statwrapVersion)) {
+      project.statwrapVersion = currentAppVersion;
+    }
     fs.writeFileSync(filePath, JSON.stringify(this.stripExtraProjectData(project)));
   }
 
