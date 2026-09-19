@@ -127,28 +127,28 @@ describe('services', () => {
         new ProjectService().saveProjectFile('~/Test/Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           `${TEST_USER_HOME_PATH}Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/${Constants.StatWrapFiles.PROJECT}`,
-          '{"id":"1"}',
+          '{"id":"1","statwrapVersion":"1.0.0"}',
         );
       });
       it.onWindows('should resolve the ~ home path', () => {
         new ProjectService().saveProjectFile('~\\Test\\Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           `${TEST_USER_HOME_PATH}Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\${Constants.StatWrapFiles.PROJECT}`,
-          '{"id":"1"}',
+          '{"id":"1","statwrapVersion":"1.0.0"}',
         );
       });
       it.onMac('should save the project details', () => {
         new ProjectService().saveProjectFile('/Test/Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/${Constants.StatWrapFiles.PROJECT}`,
-          '{"id":"1"}',
+          '{"id":"1","statwrapVersion":"1.0.0"}',
         );
       });
       it.onWindows('should save the project details', () => {
         new ProjectService().saveProjectFile('C:\\Test\\Path', { id: '1' });
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\${Constants.StatWrapFiles.PROJECT}`,
-          '{"id":"1"}',
+          '{"id":"1","statwrapVersion":"1.0.0"}',
         );
       });
       it.onMac('should create the .statwrap folder', () => {
@@ -166,7 +166,7 @@ describe('services', () => {
         );
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           `/Test/Path/${Constants.StatWrapFiles.BASE_FOLDER}/${Constants.StatWrapFiles.PROJECT}`,
-          '{"id":"1"}',
+          '{"id":"1","statwrapVersion":"1.0.0"}',
         );
       });
       it.onWindows('should create the .statwrap folder', () => {
@@ -184,7 +184,7 @@ describe('services', () => {
         );
         expect(fs.writeFileSync).toHaveBeenCalledWith(
           `C:\\Test\\Path\\${Constants.StatWrapFiles.BASE_FOLDER}\\${Constants.StatWrapFiles.PROJECT}`,
-          '{"id":"1"}',
+          '{"id":"1","statwrapVersion":"1.0.0"}',
         );
       });
       it('should throw an error if the project path is invalid', () => {

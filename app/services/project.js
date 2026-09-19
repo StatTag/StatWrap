@@ -4,7 +4,6 @@ import { cloneDeep } from 'lodash';
 import Constants, { EntityType } from '../constants/constants';
 import AssetUtil from '../utils/asset';
 import ProjectUtil from '../utils/project';
-import { app } from 'electron';
 
 const fs = require('fs');
 const os = require('os');
@@ -17,6 +16,9 @@ const MaximumFolderNameLength = 255;
 export { ProjectFileFormatVersion };
 
 export default class ProjectService {
+  constructor(appVersion = '1.0.0') {
+    this.appVersion = appVersion;
+  }
   /**
    * Create a new object that contains the basic elements of a project configuration.  This will only
    * create the structure, not save it to disk.  For that, see initializeNewProject.
@@ -122,10 +124,10 @@ export default class ProjectService {
 
     const fileContents = fs.readFileSync(filePath);
     const data = JSON.parse(fileContents.toString());
-    const currentAppVersion = app ? app.getVersion() : '1.0.0';
+    const currentAppVersion = this.appVersion;
     const projectVersion = data.statwrapVersion || '1.0.0';
 
-    if (semver.gt(projectVersion,currentAppVersion)) {
+    if (semver.gte(projectVersion,currentAppVersion)) {
       data.newerVersionWarning = true;
     } else {
       data.newerVersionWarning = false;
@@ -189,9 +191,9 @@ export default class ProjectService {
     }
 
     const filePath = path.join(configFolderPath, Constants.StatWrapFiles.PROJECT);
-    const currentAppVersion = app ? app.getVersion() : '1.0.0';
+    const currentAppVersion = this.appVersion;
 
-    if (!project.statwrapVersion || semver.gt(currentAppVersion,project.statwrapVersion)) {
+    if (!project.statwrapVersion || semver.gte(currentAppVersion,project.statwrapVersion)) {
       project.statwrapVersion = currentAppVersion;
     }
     fs.writeFileSync(filePath, JSON.stringify(this.stripExtraProjectData(project)));
