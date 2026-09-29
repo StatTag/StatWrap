@@ -48,7 +48,7 @@ export default class AppUpdater {
 let mainWindow, workerWindow = null;
 
 const projectTemplateService = new ProjectTemplateService();
-const projectService = new ProjectService();
+const projectService = new ProjectService(app.getVersion());
 const projectListService = new ProjectListService();
 const sourceControlService = new SourceControlService();
 const logService = new LogService();
