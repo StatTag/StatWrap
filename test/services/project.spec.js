@@ -856,6 +856,65 @@ describe('services', () => {
         expect(updatedProject.assets.notes[0].id).toBe('1');
       });
 
+      it('adds a note to an asset when the asset is not yet registered in project.assets', () => {
+        const service = new ProjectService();
+        jest
+          .spyOn(service, 'loadProjectFile')
+          .mockReturnValue({ assets: { uri: '', type: 'directory', children: [] } });
+        const targetUri = `${TEST_PROJECT_PATH}new_unregistered_file.txt`;
+        const updatedProject = service.loadAndMergeProjectUpdates(
+          TEST_PROJECT_PATH,
+          Constants.ActionType.NOTE_ADDED,
+          Constants.EntityType.ASSET,
+          targetUri,
+          { id: '1', author: 'test', content: 'test' },
+        );
+        expect(updatedProject).not.toBeNull();
+        const foundAsset = AssetUtil.findDescendantAssetByUri(updatedProject.assets, targetUri);
+        expect(foundAsset).not.toBeNull();
+        expect(foundAsset.notes).not.toBeNull();
+        expect(foundAsset.notes[0].id).toBe('1');
+      });
+
+      it('adds a note to an asset when project.assets is null', () => {
+        const service = new ProjectService();
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ assets: null });
+        const targetUri = `${TEST_PROJECT_PATH}new_file.txt`;
+        const updatedProject = service.loadAndMergeProjectUpdates(
+          TEST_PROJECT_PATH,
+          Constants.ActionType.NOTE_ADDED,
+          Constants.EntityType.ASSET,
+          targetUri,
+          { id: '1', author: 'test', content: 'test' },
+        );
+        expect(updatedProject).not.toBeNull();
+        const foundAsset = AssetUtil.findDescendantAssetByUri(updatedProject.assets, targetUri);
+        expect(foundAsset).not.toBeNull();
+        expect(foundAsset.notes).not.toBeNull();
+        expect(foundAsset.notes[0].id).toBe('1');
+      });
+
+      it('adds a note to an external asset when externalAssets does not contain it', () => {
+        const service = new ProjectService();
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ externalAssets: null });
+        const targetUri = 'https://example.com/data';
+        const updatedProject = service.loadAndMergeProjectUpdates(
+          TEST_PROJECT_PATH,
+          Constants.ActionType.NOTE_ADDED,
+          Constants.EntityType.EXTERNAL_ASSET,
+          targetUri,
+          { id: '1', author: 'test', content: 'test' },
+        );
+        expect(updatedProject).not.toBeNull();
+        const foundAsset = AssetUtil.findDescendantAssetByUri(
+          updatedProject.externalAssets,
+          targetUri,
+        );
+        expect(foundAsset).not.toBeNull();
+        expect(foundAsset.notes).not.toBeNull();
+        expect(foundAsset.notes[0].id).toBe('1');
+      });
+
       it('adds a note to a person when the notes collectiong is empty', () => {
         const service = new ProjectService();
         jest.spyOn(service, 'loadProjectFile').mockReturnValue({ people: [{ id: '1' }] });
@@ -981,6 +1040,32 @@ describe('services', () => {
         expect(updatedProject).not.toBeNull();
         expect(updatedProject.assets.notes).not.toBeNull();
         expect(updatedProject.assets.notes.length).toBe(0);
+      });
+
+      it('handles updating a note on a non-existent asset gracefully without crashing', () => {
+        const service = new ProjectService();
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ assets: null });
+        const updatedProject = service.loadAndMergeProjectUpdates(
+          TEST_PROJECT_PATH,
+          Constants.ActionType.NOTE_UPDATED,
+          Constants.EntityType.ASSET,
+          `${TEST_PROJECT_PATH}missing.txt`,
+          { new: { id: 'a', author: 'test', content: 'test2' } },
+        );
+        expect(updatedProject).not.toBeNull();
+      });
+
+      it('handles deleting a note on a non-existent asset gracefully without crashing', () => {
+        const service = new ProjectService();
+        jest.spyOn(service, 'loadProjectFile').mockReturnValue({ assets: null });
+        const updatedProject = service.loadAndMergeProjectUpdates(
+          TEST_PROJECT_PATH,
+          Constants.ActionType.NOTE_DELETED,
+          Constants.EntityType.ASSET,
+          `${TEST_PROJECT_PATH}missing.txt`,
+          { id: 'a', author: 'test', content: 'test' },
+        );
+        expect(updatedProject).not.toBeNull();
       });
 
       it('deletes a person note', () => {

@@ -256,30 +256,36 @@ class Project extends Component<Props> {
     // the code will work the same.
     const isExternalAsset = AssetUtil.isExternalAsset(asset, this.props.project);
     if (isExternalAsset) {
-      assetsCopy = { ...project.externalAssets };
+      assetsCopy = project.externalAssets
+        ? { ...project.externalAssets }
+        : AssetUtil.createEmptyExternalAssets();
     } else {
-      assetsCopy = { ...project.assets };
+      assetsCopy = project.assets
+        ? { ...project.assets }
+        : { uri: project.path, type: AssetType.DIRECTORY, children: [] };
     }
 
     // When searching for the existing asset, remember that assets is an object and the top-level item is
     // in the root of the object.  Start there before looking at the children.
     const action = { type: '', title: '', description: '', details: null };
     const existingAsset = AssetUtil.findDescendantAssetByUri(assetsCopy, asset.uri);
+    let targetAsset = existingAsset;
     if (!existingAsset) {
       console.log('No existing asset found in project data');
       // No existing asset, so we are going to register a new entry
       const newAsset = { ...asset };
-      if (!newAsset.notes) {
-        newAsset.notes = [];
+      if (!assetsCopy.children) {
+        assetsCopy.children = [];
       }
-      newAsset.notes.push(note);
-      action.type = ActionType.NOTE_ADDED;
-      action.description = `Added note to asset ${asset.uri}`;
-      action.details = note;
-      // TODO - fix bug here - should be failing
-      assetsCopy.push(newAsset);
-    } else {
-      this.upsertNoteHandler(existingAsset, EntityType.ASSET, asset.uri, action, text, note);
+      assetsCopy.children.push(newAsset);
+      targetAsset = newAsset;
+    }
+
+    const entityName = isExternalAsset ? EntityType.EXTERNAL_ASSET : EntityType.ASSET;
+    this.upsertNoteHandler(targetAsset, entityName, asset.uri, action, text, note);
+
+    if (asset && targetAsset && asset !== targetAsset) {
+      asset.notes = targetAsset.notes;
     }
 
     // Now at the end, make sure we're updating the correct container depending on the type
@@ -359,6 +365,9 @@ class Project extends Component<Props> {
    * @returns {String} An action description that can be used for logging
    */
   deleteNoteHandler = (entity, entityName, entityId, note) => {
+    if (!entity || !entity.notes) {
+      return '';
+    }
     // Try to find the existing note, if an existing note was provided.
     const index = entity.notes.findIndex(x => x.id === note.id);
     let actionDescription = '';
@@ -465,19 +474,27 @@ class Project extends Component<Props> {
     let assetsCopy = null;
     const isExternalAsset = AssetUtil.isExternalAsset(asset, this.props.project);
     if (isExternalAsset) {
-      assetsCopy = { ...project.externalAssets };
+      assetsCopy = project.externalAssets
+        ? { ...project.externalAssets }
+        : AssetUtil.createEmptyExternalAssets();
     } else {
-      assetsCopy = { ...project.assets };
+      assetsCopy = project.assets
+        ? { ...project.assets }
+        : { uri: project.path, type: AssetType.DIRECTORY, children: [] };
     }
 
     // When searching for the existing asset, remember that assets is an object and the top-level item is
     // in the root of the object.  Start there before looking at the children.
     const existingAsset = AssetUtil.findDescendantAssetByUri(assetsCopy, asset.uri);
+    const entityName = isExternalAsset ? EntityType.EXTERNAL_ASSET : EntityType.ASSET;
     let actionDescription = '';
     if (!existingAsset) {
       console.warn('Could not find the asset to delete its note');
     } else {
-      actionDescription = this.deleteNoteHandler(asset, 'asset', asset.uri, note);
+      actionDescription = this.deleteNoteHandler(existingAsset, entityName, asset.uri, note);
+      if (asset && asset !== existingAsset && asset.notes) {
+        this.deleteNoteHandler(asset, entityName, asset.uri, note);
+      }
     }
 
     // Assign back to the right collection
@@ -493,7 +510,7 @@ class Project extends Component<Props> {
         ActionType.NOTE_DELETED,
         isExternalAsset ? EntityType.EXTERNAL_ASSET : EntityType.ASSET,
         asset.uri,
-        `Asset ${ActionType.NOTE_DELETED}`,
+        `${isExternalAsset ? 'External asset' : 'Asset'} ${ActionType.NOTE_DELETED}`,
         actionDescription,
         note
       );

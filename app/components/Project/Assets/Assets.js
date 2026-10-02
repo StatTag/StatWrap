@@ -94,8 +94,12 @@ const assetsComponent = (props) => {
   // in that case.
   useEffect(() => {
     // Get a more recent copy of the asset from the updated project
-    if (project && project.assets && selectedAsset) {
-      const updatedAsset = AssetUtil.findDescendantAssetByUri(project.assets, selectedAsset.uri);
+    if (project && selectedAsset) {
+      const isExternal = AssetUtil.isExternalAsset(selectedAsset, project);
+      const container = isExternal ? project.externalAssets : project.assets;
+      const updatedAsset = container
+        ? AssetUtil.findDescendantAssetByUri(container, selectedAsset.uri)
+        : null;
       setSelectedAsset(updatedAsset);
       if (onSelectedAsset) {
         onSelectedAsset(updatedAsset);

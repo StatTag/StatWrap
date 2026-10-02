@@ -338,9 +338,14 @@ export default class ProjectService {
    * @param {object} note The note object we are updating in the entity
    */
   _updateNote(entity, note) {
+    if (!entity || !entity.notes || !note || !note.new) {
+      return;
+    }
     const existingNote = entity.notes.find((x) => x.id === note.new.id);
-    existingNote.content = note.new.content;
-    existingNote.updated = note.new.updated;
+    if (existingNote) {
+      existingNote.content = note.new.content;
+      existingNote.updated = note.new.updated;
+    }
   }
 
   /**
@@ -349,6 +354,9 @@ export default class ProjectService {
    * @param {object} note The note object we are deleting from the entity
    */
   _deleteNote(entity, note) {
+    if (!entity || !entity.notes || !note) {
+      return;
+    }
     const index = entity.notes.findIndex((x) => x.id === note.id);
     if (index !== -1) {
       entity.notes.splice(index, 1);
@@ -407,23 +415,84 @@ export default class ProjectService {
           }
           project.notes.push(details);
         } else if (entityType === EntityType.ASSET) {
-          const asset = AssetUtil.findDescendantAssetByUri(project.assets, entityKey);
+          let asset = AssetUtil.findDescendantAssetByUri(project.assets, entityKey);
+          if (!asset) {
+            if (!project.assets) {
+              project.assets = {
+                uri: project.path,
+                type: Constants.AssetType.DIRECTORY,
+                children: [],
+              };
+            } else if (!project.assets.children) {
+              project.assets.children = [];
+            }
+            let assetType = Constants.AssetType.FILE;
+            try {
+              if (fs.existsSync(entityKey) && fs.statSync(entityKey).isDirectory()) {
+                assetType = Constants.AssetType.DIRECTORY;
+              }
+            } catch (e) {
+              // fallback to FILE
+            }
+            asset = {
+              uri: entityKey,
+              type: assetType,
+              notes: [],
+            };
+            const parentDir = AssetUtil.findDescendantAssetByUri(
+              project.assets,
+              path.dirname(entityKey),
+            );
+            if (parentDir && parentDir !== asset) {
+              if (!parentDir.children) {
+                parentDir.children = [];
+              }
+              parentDir.children.push(asset);
+            } else {
+              project.assets.children.push(asset);
+            }
+          }
           if (!asset.notes) {
             asset.notes = [];
           }
           asset.notes.push(details);
         } else if (entityType === EntityType.EXTERNAL_ASSET) {
-          const asset = AssetUtil.findDescendantAssetByUri(project.externalAssets, entityKey);
+          let asset = AssetUtil.findDescendantAssetByUri(project.externalAssets, entityKey);
+          if (!asset) {
+            if (!project.externalAssets) {
+              project.externalAssets = AssetUtil.createEmptyExternalAssets();
+            } else if (!project.externalAssets.children) {
+              project.externalAssets.children = [];
+            }
+            let assetType = Constants.AssetType.URL;
+            try {
+              if (fs.existsSync(entityKey)) {
+                assetType = fs.statSync(entityKey).isDirectory()
+                  ? Constants.AssetType.DIRECTORY
+                  : Constants.AssetType.FILE;
+              }
+            } catch (e) {
+              // fallback to URL
+            }
+            asset = {
+              uri: entityKey,
+              type: assetType,
+              notes: [],
+            };
+            project.externalAssets.children.push(asset);
+          }
           if (!asset.notes) {
             asset.notes = [];
           }
           asset.notes.push(details);
         } else if (entityType === EntityType.PERSON) {
-          const person = project.people.find((p) => p.id === entityKey);
-          if (!person.notes) {
-            person.notes = [];
+          const person = project.people ? project.people.find((p) => p.id === entityKey) : null;
+          if (person) {
+            if (!person.notes) {
+              person.notes = [];
+            }
+            person.notes.push(details);
           }
-          person.notes.push(details);
         } else {
           return null;
         }
@@ -435,13 +504,19 @@ export default class ProjectService {
           this._updateNote(project, details);
         } else if (entityType === EntityType.ASSET) {
           const asset = AssetUtil.findDescendantAssetByUri(project.assets, entityKey);
-          this._updateNote(asset, details);
+          if (asset) {
+            this._updateNote(asset, details);
+          }
         } else if (entityType === EntityType.EXTERNAL_ASSET) {
           const asset = AssetUtil.findDescendantAssetByUri(project.externalAssets, entityKey);
-          this._updateNote(asset, details);
+          if (asset) {
+            this._updateNote(asset, details);
+          }
         } else if (entityType === EntityType.PERSON) {
-          const person = project.people.find((p) => p.id === entityKey);
-          this._updateNote(person, details);
+          const person = project.people ? project.people.find((p) => p.id === entityKey) : null;
+          if (person) {
+            this._updateNote(person, details);
+          }
         } else {
           return null;
         }
@@ -453,13 +528,19 @@ export default class ProjectService {
           this._deleteNote(project, details);
         } else if (entityType === EntityType.ASSET) {
           const asset = AssetUtil.findDescendantAssetByUri(project.assets, entityKey);
-          this._deleteNote(asset, details);
+          if (asset) {
+            this._deleteNote(asset, details);
+          }
         } else if (entityType === EntityType.EXTERNAL_ASSET) {
           const asset = AssetUtil.findDescendantAssetByUri(project.externalAssets, entityKey);
-          this._deleteNote(asset, details);
+          if (asset) {
+            this._deleteNote(asset, details);
+          }
         } else if (entityType === EntityType.PERSON) {
-          const person = project.people.find((p) => p.id === entityKey);
-          this._deleteNote(person, details);
+          const person = project.people ? project.people.find((p) => p.id === entityKey) : null;
+          if (person) {
+            this._deleteNote(person, details);
+          }
         } else {
           return null;
         }
