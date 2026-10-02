@@ -10,6 +10,21 @@ module.exports = {
   UPDATE_PROJECT_REQUEST: 'statwrap-update-project-request',
   UPDATE_PROJECT_RESPONSE: 'statwrap-update-project-response',
 
+  IMPORT_PROJECT_TEMPLATE_FOLDER_REQUEST: 'statwrap-import-project-template-folder-request',
+  IMPORT_PROJECT_TEMPLATE_FOLDER_RESPONSE: 'statwrap-import-project-template-folder-response',
+
+  IMPORT_PROJECT_TEMPLATE_ZIP_REQUEST: 'statwrap-import-project-template-zip-request',
+  IMPORT_PROJECT_TEMPLATE_ZIP_RESPONSE: 'statwrap-import-project-template-zip-response',
+
+  EXPORT_CUSTOM_PROJECT_TEMPLATE_REQUEST: 'statwrap-export-custom-project-template-request',
+  EXPORT_CUSTOM_PROJECT_TEMPLATE_RESPONSE: 'statwrap-export-custom-project-template-response',
+
+  SAVE_CUSTOM_PROJECT_TEMPLATE_REQUEST: 'statwrap-save-custom-project-template-request',
+  SAVE_CUSTOM_PROJECT_TEMPLATE_RESPONSE: 'statwrap-save-custom-project-template-response',
+
+  DELETE_CUSTOM_PROJECT_TEMPLATE_REQUEST: 'statwrap-delete-custom-project-template-request',
+  DELETE_CUSTOM_PROJECT_TEMPLATE_RESPONSE: 'statwrap-delete-custom-project-template-response',
+  
   // This message pair is used from the primary renderer -> main
   SCAN_PROJECT_REQUEST: 'statwrap-scan-project-request',
   SCAN_PROJECT_RESPONSE: 'statwrap-scan-project-response',
@@ -51,6 +66,10 @@ module.exports = {
   LOAD_PROJECT_CHECKLIST_REQUEST: 'statwrap-load-project-checklist-request',
   LOAD_PROJECT_CHECKLIST_RESPONSE: 'statwrap-load-project-checklist-response',
 
+  WRITE_CUSTOM_ATTRIBUTES_REQUEST: 'statwrap-write-custom-attributes-request',
+  WRITE_CUSTOM_ATTRIBUTES_RESPONSE: 'statwrap-write-custom-attributes-response',
+  LOAD_CUSTOM_ATTRIBUTES_REQUEST: 'statwrap-load-custom-attributes-request',
+  LOAD_CUSTOM_ATTRIBUTES_RESPONSE: 'statwrap-load-custom-attributes-response',
   // LOAD_PROJECT_CHANGES_REQUEST: 'statwrap-load-project-changes-request',
   // LOAD_PROJECT_CHANGES_RESPONSE: 'statwrap-load-project-changes-response',
 

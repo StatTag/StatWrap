@@ -41,6 +41,9 @@ const assetDetails = (props) => {
     onDeletedNote,
     onUpdatedAttribute,
     assetAttributes,
+    customAttributes,
+    onAddCustomAttribute,
+    onDeleteCustomAttribute,
     sourceControlEnabled,
     dynamicDetails,
     isExternalRootAsset,
@@ -154,6 +157,9 @@ const assetDetails = (props) => {
             asset={asset}
             configuration={assetAttributes}
             onUpdateAttribute={updateAssetAttribute}
+            customAttributes={customAttributes}
+            onAddCustomAttribute={onAddCustomAttribute}
+            onDeleteCustomAttribute={onDeleteCustomAttribute}
           />
         </AccordionDetails>
       </Accordion>

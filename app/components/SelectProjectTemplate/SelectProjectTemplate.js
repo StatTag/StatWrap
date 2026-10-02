@@ -7,7 +7,7 @@ import styles from './SelectProjectTemplate.css';
 
 class SelectProjectTemplate extends Component {
   render() {
-    const { projectTemplates, selectedTemplate = null, onSelectProjectTemplate } = this.props;
+    const { projectTemplates, selectedTemplate = null, onSelectProjectTemplate, onEditTemplate, onExportTemplate, onDeleteTemplate } = this.props;
     let template = null;
     if (projectTemplates && selectedTemplate) {
       template = projectTemplates.find(
@@ -24,6 +24,9 @@ class SelectProjectTemplate extends Component {
             templates={projectTemplates}
             selectedTemplate={selectedTemplate}
             onSelect={onSelectProjectTemplate}
+            onEdit={onEditTemplate}
+            onExport={onExportTemplate}
+            onDelete={onDeleteTemplate}
           />
         </div>
         <div className={styles.templatePreview}>
@@ -38,6 +41,9 @@ SelectProjectTemplate.propTypes = {
   projectTemplates: PropTypes.array.isRequired,
   selectedTemplate: PropTypes.object,
   onSelectProjectTemplate: PropTypes.func.isRequired,
+  onEditTemplate: PropTypes.func,
+  onExportTemplate: PropTypes.func,
+  onDeleteTemplate: PropTypes.func,
 };
 
 export default SelectProjectTemplate;

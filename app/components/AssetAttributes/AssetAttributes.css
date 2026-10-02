@@ -3,3 +3,102 @@
   padding: 0;
   margin: 0;
 }
+
+.headerRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  background-color: #639;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+  gap: 2px;
+  transition: background-color 0.2s;
+}
+
+.addButton:hover {
+  background-color: #552b80;
+}
+
+.attributeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.deleteButton {
+  color: #639 !important;
+  padding: 2px !important;
+}
+
+.deleteButton:hover {
+  background-color: rgb(102 51 153 / 10%) !important;
+}
+
+.dialogTitle {
+  background-color: #aa94d1;
+  color: white !important;
+  font-weight: bold;
+  text-align: center;
+}
+
+.dialogContent {
+  padding: 20px 24px !important;
+}
+
+.formLabel {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: center;
+  padding: 8px 24px 16px;
+  gap: 16px;
+}
+
+.saveButton,
+.cancelButton {
+  padding: 8px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #639;
+  color: white;
+  transition: opacity 0.2s;
+}
+
+.saveButton:hover,
+.cancelButton:hover {
+  opacity: 0.85;
+}
+
+.deleteConfirmButton {
+  padding: 8px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #639;
+  color: white;
+  transition: opacity 0.2s;
+}
+
+.deleteConfirmButton:hover {
+  opacity: 0.85;
+}

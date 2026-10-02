@@ -11,10 +11,10 @@ import SelectProjectTemplate from '../../components/SelectProjectTemplate/Select
 import ExistingDirectory from '../../components/ExistingDirectory/ExistingDirectory';
 import NewDirectory from '../../components/NewDirectory/NewDirectory';
 import CloneDirectory from '../../components/CloneDirectory/CloneDirectory';
+import CustomTemplateBuilder from '../../components/CustomTemplateBuilder/CustomTemplateBuilder';
 import Error from '../../components/Error/Error';
 import UserContext from '../../contexts/User';
 import ChecklistUtil from '../../utils/checklist';
-
 import styles from './CreateProjectDialog.css';
 import Messages from '../../constants/messages';
 
@@ -51,6 +51,8 @@ class CreateProjectDialog extends Component {
       },
       canProgress: false,
       errorMessage: null,
+      customTemplate: null,
+      templateToDelete: null,
     }
 
     this.handleSelectAddProject = this.handleSelectAddProject.bind(this);
@@ -59,6 +61,9 @@ class CreateProjectDialog extends Component {
     this.handleBack = this.handleBack.bind(this);
     this.handleNext = this.handleNext.bind(this);
     this.handleCreateProject = this.handleCreateProject.bind(this);
+    this.handleDeleteTemplate = this.handleDeleteTemplate.bind(this);
+    this.handleExportTemplate = this.handleExportTemplate.bind(this);
+    this.handleEditTemplate = this.handleEditTemplate.bind(this);
     this.handleSelectProjectTemplate = this.handleSelectProjectTemplate.bind(this);
     this.handleProjectCreated = this.handleProjectCreated.bind(this);
     this.handleSourceDirectoryChanged = this.handleSourceDirectoryChanged.bind(this);
@@ -88,6 +93,11 @@ class CreateProjectDialog extends Component {
       step: 'SelectNewProjectTemplate',
       next: 'NewProjectDetails',
       prev: 'SelectProjectType',
+    },
+    {
+      step: 'CustomTemplateBuilder',
+      next: 'NewProjectDetails',
+      prev: 'SelectNewProjectTemplate',
     },
     {
       step: 'NewProjectDetails',
@@ -221,8 +231,25 @@ class CreateProjectDialog extends Component {
       };
     });
   }
+
   handleBack() {
     const currentStep = this.state.step;
+
+    // If we're viewing CustomTemplateBuilder, go back to the template list
+    // instead of going all the way back to SelectProjectType
+    if (
+      currentStep === 'SelectNewProjectTemplate' &&
+      this.state.selectedTemplate &&
+      this.state.selectedTemplate.id === 'STATWRAP-CUSTOM'
+    ) {
+      this.setState({
+        selectedTemplate: null,
+        customTemplate: null,
+        canProgress: false,
+      });
+      return;
+    }
+
     const stepDetails = CreateProjectDialog.steps.find((x) => x.step === currentStep);
     this.setState({ step: stepDetails.prev, canProgress: false });
   }
@@ -230,6 +257,30 @@ class CreateProjectDialog extends Component {
   handleNext() {
     const currentStep = this.state.step;
     const stepDetails = CreateProjectDialog.steps.find((x) => x.step === currentStep);
+
+    // When on template selection and "Custom Template" is selected,
+    // route to CustomTemplateBuilder instead of NewProjectDetails
+    if (
+      currentStep === 'SelectNewProjectTemplate' &&
+      this.state.selectedTemplate &&
+      this.state.selectedTemplate.id === 'STATWRAP-CUSTOM' &&
+      this.state.customTemplate
+    ) {
+      ipcRenderer.send(Messages.SAVE_CUSTOM_PROJECT_TEMPLATE_REQUEST, this.state.customTemplate);
+      
+      // Reload configuration once saved so the new custom template shows up in the list
+      ipcRenderer.once(Messages.SAVE_CUSTOM_PROJECT_TEMPLATE_RESPONSE, () => {
+        ipcRenderer.send(Messages.LOAD_CONFIGURATION_REQUEST);
+      });
+      // Reset selection state to close the builder and show the main list
+      this.setState({
+        selectedTemplate: null,
+        customTemplate: null,
+        canProgress: false,
+      });
+      return;
+    }
+
     this.setState({ step: stepDetails.next, canProgress: false });
   }
 
@@ -271,7 +322,7 @@ class CreateProjectDialog extends Component {
   }
 
   handleCreateProject() {
-    const { project, selectedTemplate } = this.state;
+    const { project, selectedTemplate, customTemplate } = this.state;
 
     // For clone projects, we need to set the directory to the final path
     if (project.type === Constants.ProjectType.CLONE_PROJECT_TYPE) {
@@ -287,6 +338,7 @@ class CreateProjectDialog extends Component {
       const normalProject = {
         ...project,
         template: selectedTemplate,
+        customTemplate,
       };
       ipcRenderer.send(Messages.CREATE_PROJECT_REQUEST, normalProject);
     }
@@ -311,6 +363,38 @@ class CreateProjectDialog extends Component {
         prevState.project.name,
       ),
     }));
+  }
+
+  handleDeleteTemplate(template) {
+    // This now just opens the confirmation dialog
+    this.setState({ templateToDelete: template });
+  }
+
+  cancelDeleteTemplate = () => {
+    // Closes the dialog without deleting
+    this.setState({ templateToDelete: null });
+  };
+
+  confirmDeleteTemplate = () => {
+    const { templateToDelete } = this.state;
+    if (templateToDelete) {
+      ipcRenderer.send(Messages.DELETE_CUSTOM_PROJECT_TEMPLATE_REQUEST, templateToDelete.id);
+      ipcRenderer.once(Messages.DELETE_CUSTOM_PROJECT_TEMPLATE_RESPONSE, () => {
+        ipcRenderer.send(Messages.LOAD_CONFIGURATION_REQUEST);
+      });
+    }
+    // Close the dialog after deleting
+    this.setState({ templateToDelete: null });
+  };
+  
+
+  handleEditTemplate(template) {
+    // Open CustomTemplateBuilder with this template pre-loaded
+    this.setState({
+      selectedTemplate: { id: 'STATWRAP-CUSTOM', version: '1' },
+      customTemplate: template,
+      canProgress: false,
+    });
   }
 
   handleNameChanged(name) {
@@ -344,6 +428,19 @@ class CreateProjectDialog extends Component {
       };
     });
   }
+
+  handleExportTemplate = (templateId) => {
+    ipcRenderer.send(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_REQUEST , templateId);
+
+    ipcRenderer.once(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_RESPONSE, (event, response) => {
+      if(response.canceled) return;
+
+      if(response.error){
+        this.setState({ errorMessage : response.errorMessage});
+      };
+    });
+  };
+
   render() {
     const { open, onClose, projectTemplates } = this.props;
     const currentStep = this.state.step;
@@ -354,16 +451,27 @@ class CreateProjectDialog extends Component {
     let progressButton = null;
 
     if (hasNextStep) {
+      // Check if we are currently showing the Custom Template Builder
+      const isCustomBuilder =
+        currentStep === 'SelectNewProjectTemplate' &&
+        this.state.selectedTemplate &&
+        this.state.selectedTemplate.id === 'STATWRAP-CUSTOM';
+
       progressButton =
         stepDetails.next === 'Create' ? (
-              <Button
-          color="primary"
-          disabled={!this.state.canProgress}
-          onClick={this.handleCreateProject}
-        >
-          Create Project
-          <ArrowForwardIcon />
-        </Button>
+          <Button
+            color="primary"
+            disabled={!this.state.canProgress}
+            onClick={this.handleCreateProject}
+          >
+            Create Project
+            <ArrowForwardIcon />
+          </Button>
+        ) : isCustomBuilder ? (
+          // Show "Save" button without the forward arrow icon
+          <Button color="primary" disabled={!this.state.canProgress} onClick={this.handleNext}>
+            Save
+          </Button>
         ) : (
           <Button color="primary" disabled={!this.state.canProgress} onClick={this.handleNext}>
             Next
@@ -371,6 +479,7 @@ class CreateProjectDialog extends Component {
           </Button>
         );
     }
+    
     let backButton = (
       <Button onClick={this.handleBack} color="primary" className={styles.backButton}>
         <ArrowBackIcon />
@@ -379,15 +488,38 @@ class CreateProjectDialog extends Component {
     );
     switch (this.state.step) {
       case 'SelectNewProjectTemplate': {
-        dialogTitle = 'Select Project Type';
-        displayComponent = (
-          <SelectProjectTemplate
-            projectTemplates={projectTemplates}
-            selectedTemplate={this.state.selectedTemplate}
-            onSelectProjectTemplate={this.handleSelectProjectTemplate}
-            onFinalizeProjectTemplate={this.handleFinalizeProjectTemplate}
-          />
-        );
+        // If the user clicked "Custom Template", show the builder.
+        // Otherwise, show the normal template list.
+        if (
+          this.state.selectedTemplate &&
+          this.state.selectedTemplate.id === 'STATWRAP-CUSTOM'
+        ) {
+          dialogTitle = 'Custom Template Builder';
+          displayComponent = (
+            <CustomTemplateBuilder
+              initialTemplate={this.state.customTemplate} 
+              onValidationChange={(isValid) => this.setState({ canProgress: isValid })}
+              onTemplateReady={(template) =>
+                this.setState({
+                  customTemplate: template,
+                  canProgress: true,
+                })
+              }
+            />
+          );
+        } else {
+          dialogTitle = 'Select Project Type';
+          displayComponent = (
+            <SelectProjectTemplate
+              projectTemplates={this.props.projectTemplates}
+              selectedTemplate={this.state.selectedTemplate}
+              onSelectProjectTemplate={this.handleSelectProjectTemplate}
+              onEditTemplate={this.handleEditTemplate}
+              onExportTemplate={this.handleExportTemplate}
+              onDeleteTemplate={this.handleDeleteTemplate}
+            />
+          );
+        }
         break;
       }
       case 'NewProjectDetails': {
@@ -489,6 +621,27 @@ class CreateProjectDialog extends Component {
             Cancel
           </Button>
         </DialogActions>
+        <Dialog 
+          open={this.state.templateToDelete !== null} 
+          onClose={this.cancelDeleteTemplate}
+        >
+          <DialogTitle style={{ color: 'white' }}>
+            Delete Custom Template?
+          </DialogTitle>
+          <div style={{ padding: '0 24px 20px 24px' }}>
+            Are you sure you want to permanently delete the template 
+            <strong> {this.state.templateToDelete ? this.state.templateToDelete.name : ''}</strong>?
+            This action cannot be undone.
+          </div>
+          <DialogActions>
+            <Button onClick={this.cancelDeleteTemplate} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={this.confirmDeleteTemplate} style={{ color: '#d32f2f' }}>
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Dialog>
     );
   }
