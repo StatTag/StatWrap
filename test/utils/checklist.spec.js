@@ -1,3 +1,4 @@
+import fs from 'fs';
 import ChecklistUtil from '../../app/utils/checklist';
 import Constants from '../../app/constants/constants';
 
@@ -904,6 +905,79 @@ describe('utils', () => {
       it('should still flag a duplicate if edit mode name matches a DIFFERENT existing item', () => {
         expect(ChecklistUtil.isDuplicateChecklist('Dependency checks', mockChecklist, 'uid-2')).toBe(true);
       });
-    });   
+    });
+
+    describe('findVersionControl', () => {
+      afterEach(() => {
+        jest.restoreAllMocks();
+      });
+
+      it('should return empty result when asset is null or undefined or missing uri', () => {
+        expect(ChecklistUtil.findVersionControl(null)).toEqual({ versionControl: [] });
+        expect(ChecklistUtil.findVersionControl(undefined)).toEqual({ versionControl: [] });
+        expect(ChecklistUtil.findVersionControl({})).toEqual({ versionControl: [] });
+        expect(ChecklistUtil.findVersionControl({ uri: '' })).toEqual({ versionControl: [] });
+      });
+
+      it('should return empty result when no version control directory is found', () => {
+        jest.spyOn(fs, 'existsSync').mockReturnValue(false);
+        expect(ChecklistUtil.findVersionControl({ uri: '/path/to/project' })).toEqual({
+          versionControl: [],
+        });
+      });
+
+      it('should detect git repository directory and active branch', () => {
+        jest.spyOn(fs, 'existsSync').mockImplementation((targetPath) => {
+          return targetPath.endsWith('.git') || targetPath.endsWith('HEAD');
+        });
+        jest.spyOn(fs, 'statSync').mockReturnValue({
+          isDirectory: () => true,
+          isFile: () => false,
+        });
+        jest.spyOn(fs, 'readFileSync').mockReturnValue('ref: refs/heads/main\n');
+
+        expect(ChecklistUtil.findVersionControl({ uri: '/path/to/project' })).toEqual({
+          versionControl: ['Git repository detected (.git)', 'Active branch: main'],
+        });
+      });
+
+      it('should detect git repository when HEAD file does not exist', () => {
+        jest.spyOn(fs, 'existsSync').mockImplementation((targetPath) => {
+          return targetPath.endsWith('.git');
+        });
+        jest.spyOn(fs, 'statSync').mockReturnValue({
+          isDirectory: () => true,
+          isFile: () => false,
+        });
+
+        expect(ChecklistUtil.findVersionControl({ uri: '/path/to/project' })).toEqual({
+          versionControl: ['Git repository detected (.git)'],
+        });
+      });
+
+      it('should detect git submodule or worktree when .git is a file', () => {
+        jest.spyOn(fs, 'existsSync').mockImplementation((targetPath) => {
+          return targetPath.endsWith('.git');
+        });
+        jest.spyOn(fs, 'statSync').mockReturnValue({
+          isDirectory: () => false,
+          isFile: () => true,
+        });
+
+        expect(ChecklistUtil.findVersionControl({ uri: '/path/to/project' })).toEqual({
+          versionControl: ['Git repository detected (.git file)'],
+        });
+      });
+
+      it('should return empty result gracefully when filesystem access throws', () => {
+        jest.spyOn(fs, 'existsSync').mockImplementation(() => {
+          throw new Error('Permission denied');
+        });
+
+        expect(ChecklistUtil.findVersionControl({ uri: '/path/to/project' })).toEqual({
+          versionControl: [],
+        });
+      });
+    });
   });
 });

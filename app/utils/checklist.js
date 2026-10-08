@@ -4,7 +4,8 @@ import AssetsConfig from '../constants/assets-config';
 import AssetUtil from './asset';
 import WorkflowUtil from './workflow';
 import { v4 as uuidv4 } from 'uuid';
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 export default class ChecklistUtil {
   /**
@@ -372,5 +373,41 @@ export default class ChecklistUtil {
     }
 
     return { documentationFiles: documentationFiles };
+  }
+
+  /**
+   * This function determines if version control is in place for the project
+   * @param {object} asset The root project asset to inspect
+   * @returns {object} An object containing the version control details found
+   */
+  static findVersionControl(asset) {
+    const results = [];
+    if (!asset || !asset.uri) {
+      return { versionControl: results };
+    }
+
+    try {
+      const gitPath = path.join(asset.uri, '.git');
+      if (fs.existsSync(gitPath)) {
+        const stats = fs.statSync(gitPath);
+        if (stats.isDirectory()) {
+          results.push('Git repository detected (.git)');
+          const headPath = path.join(gitPath, 'HEAD');
+          if (fs.existsSync(headPath)) {
+            const headContent = fs.readFileSync(headPath, 'utf8').trim();
+            if (headContent.startsWith('ref: refs/heads/')) {
+              const branchName = headContent.replace('ref: refs/heads/', '').trim();
+              results.push(`Active branch: ${branchName}`);
+            }
+          }
+        } else if (stats.isFile()) {
+          results.push('Git repository detected (.git file)');
+        }
+      }
+    } catch {
+      return { versionControl: [] };
+    }
+
+    return { versionControl: results };
   }
 }
