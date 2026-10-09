@@ -252,6 +252,8 @@ export default class ChecklistUtil {
 
   /**
    * Normalizes the source to default or custom.
+   * @param {*} source The source value to normalize
+   * @returns {string} `default` for a matching string; otherwise `custom`
    */
   static sanitizeChecklistSource(source) {
     if (typeof source !== 'string') {
