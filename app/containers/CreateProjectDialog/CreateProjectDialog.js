@@ -315,7 +315,7 @@ class CreateProjectDialog extends Component {
           this.context
         )
       }
-      this.props.onClose(true);
+      this.props.onClose(true, response.project.id);
     } else {
       this.setState({ errorMessage: response.errorMessage });
     }

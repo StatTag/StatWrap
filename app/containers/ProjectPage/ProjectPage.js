@@ -66,6 +66,7 @@ class ProjectPage extends Component {
       isProjectDirty: false,
       showDirtyConfirmation: false,
       pendingProject: null,
+      pendingNewProjectId: null,
     };
     this.handleProjectDirtyStateChange = this.handleProjectDirtyStateChange.bind(this);
     this.handleDiscardChanges = this.handleDiscardChanges.bind(this);
@@ -217,6 +218,28 @@ class ProjectPage extends Component {
   }
 
   handleLoadProjectListResponse(sender, response) {
+    if (response.error) {
+      this.setState({ ...response, loaded: true });
+      return;
+    }
+
+    // A newly added project takes precedence over the previous saved selection.
+    if (this.state.pendingNewProjectId) {
+      const project = response.projects.find(
+        (p) => String(p.id) === String(this.state.pendingNewProjectId),
+      );
+      this.setState({
+        ...response,
+        loaded: true,
+        pendingNewProjectId: project ? null : this.state.pendingNewProjectId,
+      }, () => {
+        if (project) {
+          this.handleSelectProjectListItem(project);
+        }
+      });
+      return;
+    }
+
     // Determine which project ID we should try to restore. We prioritize the prop (from App state),
     // but fallback to localStorage if that is missing.
     let projectIdToRestore = this.props.selectedProjectId;
@@ -477,15 +500,16 @@ class ProjectPage extends Component {
     this.setState({ addingProject: true });
   }
 
-  handleCloseAddProject(refresh) {
+  handleCloseAddProject(refresh, projectId) {
     this.setState((prevState) => ({
       addingProject: false,
       createProjectDialogKey: prevState.createProjectDialogKey + 1,
-    }));
-
-    if (refresh) {
-      this.refreshProjectsHandler();
-    }
+      pendingNewProjectId: refresh === true ? projectId : prevState.pendingNewProjectId,
+    }), () => {
+      if (refresh === true) {
+        this.refreshProjectsHandler();
+      }
+    });
   }
 
   handleProjectListEntryMenu(element, project) {
