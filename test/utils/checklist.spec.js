@@ -1,6 +1,10 @@
 import fs from 'fs';
 import ChecklistUtil from '../../app/utils/checklist';
 import Constants from '../../app/constants/constants';
+import { v4 as uuidv4 } from 'uuid';
+
+const MOCK_UUID = '1234-5678-9012';
+jest.mock('uuid', () => ({ v4: () => MOCK_UUID }));
 
 describe('utils', () => {
   describe('ChecklistUtil', () => {
@@ -410,47 +414,120 @@ describe('utils', () => {
       });
     });
 
-    describe('sanitizeChecklistName', () => {
+    describe('sanitizeChecklistStatement', () => {
       it('should return empty string when input is null or undefined', () => {
-        expect(ChecklistUtil.sanitizeChecklistName(null)).toBe('');
-        expect(ChecklistUtil.sanitizeChecklistName(undefined)).toBe('');
+        expect(ChecklistUtil.sanitizeChecklistStatement(null)).toBe('');
+        expect(ChecklistUtil.sanitizeChecklistStatement(undefined)).toBe('');
       });
 
       it('should return empty string when input is not a string', () => {
-        expect(ChecklistUtil.sanitizeChecklistName(123)).toBe('');
-        expect(ChecklistUtil.sanitizeChecklistName(true)).toBe('');
-        expect(ChecklistUtil.sanitizeChecklistName({})).toBe('');
-        expect(ChecklistUtil.sanitizeChecklistName([])).toBe('');
+        expect(ChecklistUtil.sanitizeChecklistStatement(123)).toBe('');
+        expect(ChecklistUtil.sanitizeChecklistStatement(true)).toBe('');
+        expect(ChecklistUtil.sanitizeChecklistStatement({})).toBe('');
+        expect(ChecklistUtil.sanitizeChecklistStatement([])).toBe('');
       });
 
       it('should trim whitespace from both ends', () => {
-        expect(ChecklistUtil.sanitizeChecklistName('  hello  ')).toBe('hello');
-        expect(ChecklistUtil.sanitizeChecklistName('\n\ttabbed\n\t')).toBe('tabbed');
+        expect(ChecklistUtil.sanitizeChecklistStatement('  hello  ')).toBe('hello');
+        expect(ChecklistUtil.sanitizeChecklistStatement('\n\ttabbed\n\t')).toBe('tabbed');
       });
 
       it('should return the name unchanged when it is within the length limit', () => {
         const shortName = 'Check data quality';
-        expect(ChecklistUtil.sanitizeChecklistName(shortName)).toBe(shortName);
+        expect(ChecklistUtil.sanitizeChecklistStatement(shortName)).toBe(shortName);
       });
 
       it('should truncate the name to the maximum allowed length', () => {
         // Create a string that is longer than the limit (250 characters)
-        const longName = 'A'.repeat(Constants.CHECKLIST_NAME_MAX_LENGTH + 100);
-        const result = ChecklistUtil.sanitizeChecklistName(longName);
-        expect(result).toHaveLength(Constants.CHECKLIST_NAME_MAX_LENGTH);
-        expect(result).toBe('A'.repeat(Constants.CHECKLIST_NAME_MAX_LENGTH));
+        const longName = 'A'.repeat(Constants.CHECKLIST_STATEMENT_MAX_LENGTH + 100);
+        const result = ChecklistUtil.sanitizeChecklistStatement(longName);
+        expect(result).toHaveLength(Constants.CHECKLIST_STATEMENT_MAX_LENGTH);
+        expect(result).toBe('A'.repeat(Constants.CHECKLIST_STATEMENT_MAX_LENGTH));
       });
 
       it('should return empty string when input is only whitespace', () => {
-        expect(ChecklistUtil.sanitizeChecklistName('     ')).toBe('');
-        expect(ChecklistUtil.sanitizeChecklistName('\n\t  ')).toBe('');
+        expect(ChecklistUtil.sanitizeChecklistStatement('     ')).toBe('');
+        expect(ChecklistUtil.sanitizeChecklistStatement('\n\t  ')).toBe('');
       });
 
       it('should preserve HTML/script tags as plain text (no stripping)', () => {
         // Security: We don't strip HTML — React renders it as plain text.
         // The sanitizer only handles length, not content.
         const htmlInput = '<script>alert("xss")</script>';
-        expect(ChecklistUtil.sanitizeChecklistName(htmlInput)).toBe(htmlInput);
+        expect(ChecklistUtil.sanitizeChecklistStatement(htmlInput)).toBe(htmlInput);
+      });
+    });
+
+    describe('sanitizeChecklistID', () => {
+      it('should generate an ID when omitted', () => {
+        expect(ChecklistUtil.sanitizeChecklistID(undefined)).toBe(MOCK_UUID);
+      });
+
+      it.each([null, 123, true, {}, []])('should generate a UUID for non-string input: %p', (id) => {
+        expect(ChecklistUtil.sanitizeChecklistID(id)).toBe(MOCK_UUID);
+      });
+
+      it('should trim whitespace from both ends', () => {
+        expect(ChecklistUtil.sanitizeChecklistID('  hello  ')).toBe('hello');
+        expect(ChecklistUtil.sanitizeChecklistID('\n\ttabbed\n\t')).toBe('tabbed');
+      });
+
+      it('should return the ID unchanged when it is within the length limit', () => {
+        const id = '12345678901234567890123456789012345678901234567890';
+        expect(ChecklistUtil.sanitizeChecklistID(id)).toBe(id);
+      });
+
+      it('should truncate overlength IDs to the maximum length', () => {
+        const longID = 'A'.repeat(Constants.CHECKLIST_ID_MAX_LENGTH + 100);
+        expect(ChecklistUtil.sanitizeChecklistID(longID)).toBe(
+          'A'.repeat(Constants.CHECKLIST_ID_MAX_LENGTH),
+        );
+      });
+
+      it('should trim before truncation and again after truncation', () => {
+        const prefix = 'A'.repeat(Constants.CHECKLIST_ID_MAX_LENGTH - 1);
+        expect(ChecklistUtil.sanitizeChecklistID(` \n${prefix} B \t`)).toBe(prefix);
+      });
+
+      it('should return empty text for empty or whitespace-only strings', () => {
+        expect(ChecklistUtil.sanitizeChecklistID('')).toBe('');
+        expect(ChecklistUtil.sanitizeChecklistID('     ')).toBe('');
+        expect(ChecklistUtil.sanitizeChecklistID('\n\t  ')).toBe('');
+      });
+
+      it('should preserve HTML/script tags as plain text (no stripping)', () => {
+        // Security: We don't strip HTML — React renders it as plain text.
+        // The sanitizer only handles length, not content.
+        const htmlInput = '<script>alert("xss")</script>';
+        expect(ChecklistUtil.sanitizeChecklistID(htmlInput)).toBe(htmlInput);
+      });
+    });
+
+    describe('sanitizeChecklistSource', () => {
+      it('should return custom when input is null or undefined', () => {
+        expect(ChecklistUtil.sanitizeChecklistSource(null)).toBe(Constants.ChecklistItemSource.CUSTOM);
+        expect(ChecklistUtil.sanitizeChecklistSource(undefined)).toBe(Constants.ChecklistItemSource.CUSTOM);
+      });
+
+      it('should return empty string when input is not a string', () => {
+        expect(ChecklistUtil.sanitizeChecklistSource(123)).toBe(Constants.ChecklistItemSource.CUSTOM);
+        expect(ChecklistUtil.sanitizeChecklistSource(true)).toBe(Constants.ChecklistItemSource.CUSTOM);
+        expect(ChecklistUtil.sanitizeChecklistSource({})).toBe(Constants.ChecklistItemSource.CUSTOM);
+        expect(ChecklistUtil.sanitizeChecklistSource([])).toBe(Constants.ChecklistItemSource.CUSTOM);
+      });
+
+      it('should trim whitespace from both ends', () => {
+        expect(ChecklistUtil.sanitizeChecklistSource('  default  ')).toBe(Constants.ChecklistItemSource.DEFAULT);
+        expect(ChecklistUtil.sanitizeChecklistSource('\n\tcustom\n\t')).toBe(Constants.ChecklistItemSource.CUSTOM);
+      });
+
+      it('should return custom if it is a non-matching string', () => {
+        expect(ChecklistUtil.sanitizeChecklistSource('fake')).toBe(Constants.ChecklistItemSource.CUSTOM);
+      });
+
+      it('should return exact matching values', () => {
+        expect(ChecklistUtil.sanitizeChecklistSource(Constants.ChecklistItemSource.DEFAULT)).toBe(Constants.ChecklistItemSource.DEFAULT);
+        expect(ChecklistUtil.sanitizeChecklistSource(Constants.ChecklistItemSource.CUSTOM)).toBe(Constants.ChecklistItemSource.CUSTOM);
       });
     });
 
@@ -535,11 +612,11 @@ describe('utils', () => {
     describe('generateChecklistExport', () => {
       it('should return an object with the correct type and version', () => {
         const checklist = [
-          { id: 1, statement: 'Test item', description: 'Desc', answer: true, notes: [], assets: [] },
+          { id: 'id-1', statement: 'Test item', description: 'Desc', answer: true, notes: [], assets: [] },
         ];
         const result = ChecklistUtil.generateChecklistExport(checklist);
         expect(result.type).toBe(Constants.CHECKLIST_EXPORT_TYPE);
-        expect(result.version).toBe(Constants.CHECKLIST_EXPORT_VERSION);
+        expect(result.version).toBe(Constants.CHECKLIST_VERSION);
       });
 
       it('should include an exportedAt timestamp in ISO format', () => {
@@ -548,10 +625,10 @@ describe('utils', () => {
         expect(new Date(result.exportedAt).toISOString()).toBe(result.exportedAt);
       });
 
-      it('should export only name and description, not notes, assets, or scanResult', () => {
+      it('should export only definition fields, not notes, assets, or scanResult', () => {
         const checklist = [
           {
-            id: 1,
+            id: 'id-1',
             statement: 'Check dependencies',
             description: 'Verify all deps',
             answer: true,
@@ -563,8 +640,8 @@ describe('utils', () => {
         const result = ChecklistUtil.generateChecklistExport(checklist);
         const exported = result.checklists[0];
 
-        // Should have ONLY name and description
-        expect(exported.name).toBe('Check dependencies');
+        // Only definition fields are exported.
+        expect(exported.statement).toBe('Check dependencies');
         expect(exported.description).toBe('Verify all deps');
 
         // Should NOT have any internal data
@@ -572,12 +649,13 @@ describe('utils', () => {
         expect(exported.assets).toBeUndefined();
         expect(exported.scanResult).toBeUndefined();
         expect(exported.answer).toBeUndefined();
-        expect(exported.id).toBeUndefined();
+        expect(exported.id).toBe('id-1');
+        expect(Object.keys(exported)).toEqual(['id', 'statement', 'description', 'source', 'scanKey']);
       });
 
       it('should handle items with no description', () => {
         const checklist = [
-          { id: 1, statement: 'No description item', answer: false },
+          { id: 'id-1', statement: 'No description item', answer: false },
         ];
         const result = ChecklistUtil.generateChecklistExport(checklist);
         expect(result.checklists[0].description).toBe('');
@@ -585,9 +663,9 @@ describe('utils', () => {
 
       it('should export all items in the checklist', () => {
         const checklist = [
-          { id: 1, statement: 'Item 1', description: '' },
-          { id: 2, statement: 'Item 2', description: 'Desc 2' },
-          { id: 3, statement: 'Item 3', description: 'Desc 3' },
+          { id: 'id-1', statement: 'Item 1', description: '' },
+          { id: 'id-2', statement: 'Item 2', description: 'Desc 2' },
+          { id: 'id-3', statement: 'Item 3', description: 'Desc 3' },
         ];
         const result = ChecklistUtil.generateChecklistExport(checklist);
         expect(result.checklists).toHaveLength(3);
@@ -603,15 +681,15 @@ describe('utils', () => {
       const makeValidExportString = (checklists) => {
         return JSON.stringify({
           type: Constants.CHECKLIST_EXPORT_TYPE,
-          version: Constants.CHECKLIST_EXPORT_VERSION,
+          version: Constants.CHECKLIST_VERSION,
           exportedAt: new Date().toISOString(),
           checklists,
         });
       };
 
       const existingChecklist = [
-        { id: 1, statement: 'Software dependencies for the project are documented.', name: 'Dependency' },
-        { id: 2, statement: 'Data file(s) used in the project are documented.', name: 'Data' },
+        { id: 'A1', statement: 'Software dependencies for the project are documented.' },
+        { id: 'B2', statement: 'Data file(s) used in the project are documented.' },
       ];
 
       describe('invalid JSON handling', () => {
@@ -629,7 +707,7 @@ describe('utils', () => {
         });
 
         it('should reject a string with broken JSON syntax', () => {
-          const broken = '{"type": "statwrap-checklist", "checklists": [{"name": "missing quote}]}';
+          const broken = '{"type": "statwrap-checklist", "checklists": [{"statement": "missing quote}]}';
           const result = ChecklistUtil.validateAndParseImport(broken, existingChecklist);
           expect(result.valid).toBe(false);
           expect(result.error).toContain('not valid JSON');
@@ -638,7 +716,7 @@ describe('utils', () => {
 
       describe('format validation', () => {
         it('should reject JSON that is missing the type field', () => {
-          const noType = JSON.stringify({ checklists: [{ name: 'Test' }] });
+          const noType = JSON.stringify({ checklists: [{ statement: 'Test' }] });
           const result = ChecklistUtil.validateAndParseImport(noType, existingChecklist);
           expect(result.valid).toBe(false);
           expect(result.error).toContain('type');
@@ -647,7 +725,7 @@ describe('utils', () => {
         it('should reject JSON with a wrong type value', () => {
           const wrongType = JSON.stringify({
             type: 'package-json',
-            checklists: [{ name: 'Test' }],
+            checklists: [{ statement: 'Test' }],
           });
           const result = ChecklistUtil.validateAndParseImport(wrongType, existingChecklist);
           expect(result.valid).toBe(false);
@@ -675,21 +753,23 @@ describe('utils', () => {
       describe('successful import', () => {
         it('should accept a valid export with new items', () => {
           const valid = makeValidExportString([
-            { name: 'New Custom Checklist', description: 'A new item' },
+            { statement: 'New Custom Checklist', description: 'A new item' },
           ]);
           const result = ChecklistUtil.validateAndParseImport(valid, existingChecklist);
           expect(result.valid).toBe(true);
           expect(result.error).toBeNull();
           expect(result.items).toHaveLength(1);
-          expect(result.items[0].name).toBe('New Custom Checklist');
+          expect(result.items[0].statement).toBe('New Custom Checklist');
           expect(result.items[0].description).toBe('A new item');
         });
 
         it('should accept multiple valid items', () => {
           const valid = makeValidExportString([
-            { name: 'Item A', description: 'Desc A' },
-            { name: 'Item B', description: 'Desc B' },
-            { name: 'Item C', description: '' },
+            { id: '1', statement: 'Item A', description: 'Desc A' },
+            { id: '2', statement: 'Item B', description: 'Desc B' },
+            // Leave off ID, one will be created.  However we only do that for one of them
+            // because we mock a constant return value from UUIDv4.
+            { statement: 'Item C', description: '' },
           ]);
           const result = ChecklistUtil.validateAndParseImport(valid, existingChecklist);
           expect(result.valid).toBe(true);
@@ -698,7 +778,7 @@ describe('utils', () => {
 
         it('should handle items with no description field', () => {
           const valid = makeValidExportString([
-            { name: 'No Desc Item' },
+            { statement: 'No Desc Item' },
           ]);
           const result = ChecklistUtil.validateAndParseImport(valid, existingChecklist);
           expect(result.valid).toBe(true);
@@ -707,53 +787,77 @@ describe('utils', () => {
       });
 
       describe('sanitization', () => {
-        it('should truncate names that exceed the maximum length', () => {
+        it('should truncate statements that exceed the maximum length', () => {
           const longName = 'X'.repeat(500);
           const valid = makeValidExportString([
-            { name: longName, description: 'Short desc' },
+            { statement: longName, description: 'Short desc' },
           ]);
           const result = ChecklistUtil.validateAndParseImport(valid, existingChecklist);
           expect(result.valid).toBe(true);
-          expect(result.items[0].name).toHaveLength(Constants.CHECKLIST_NAME_MAX_LENGTH);
+          expect(result.items[0].statement).toHaveLength(Constants.CHECKLIST_STATEMENT_MAX_LENGTH);
         });
 
         it('should truncate descriptions that exceed the maximum length', () => {
           const longDesc = 'Y'.repeat(2000);
           const valid = makeValidExportString([
-            { name: 'Valid Name', description: longDesc },
+            { statement: 'Valid Name', description: longDesc },
           ]);
           const result = ChecklistUtil.validateAndParseImport(valid, existingChecklist);
           expect(result.valid).toBe(true);
           expect(result.items[0].description).toHaveLength(Constants.CHECKLIST_DESCRIPTION_MAX_LENGTH);
         });
 
-        it('should trim whitespace from names', () => {
+        it('should trim whitespace from statements', () => {
           const valid = makeValidExportString([
-            { name: '   Padded Name   ', description: 'desc' },
+            { statement: '   Padded Name   ', description: 'desc' },
           ]);
           const result = ChecklistUtil.validateAndParseImport(valid, existingChecklist);
           expect(result.valid).toBe(true);
-          expect(result.items[0].name).toBe('Padded Name');
+          expect(result.items[0].statement).toBe('Padded Name');
         });
       });
 
       describe('duplicate handling', () => {
         it('should skip items that already exist in the current checklist (case-insensitive)', () => {
           const valid = makeValidExportString([
-            { name: 'software dependencies for the project are documented.', description: '' },
-            { name: 'Brand New Item', description: '' },
+            { statement: 'software dependencies for the project are documented.', description: '' },
+            { statement: 'Brand New Item', description: '' },
           ]);
           const result = ChecklistUtil.validateAndParseImport(valid, existingChecklist);
           expect(result.valid).toBe(true);
           expect(result.items).toHaveLength(1);
-          expect(result.items[0].name).toBe('Brand New Item');
+          expect(result.items[0].statement).toBe('Brand New Item');
           expect(result.skippedCount).toBe(1);
         });
 
-        it('should skip duplicate items within the import file itself', () => {
+        it('should skip items with the same ID, even if the statement differs', () => {
           const valid = makeValidExportString([
-            { name: 'Duplicate Item', description: 'First occurrence' },
-            { name: 'Duplicate Item', description: 'Second occurrence' },
+            { id: 'A1', statement: 'Something else', description: '' },
+            { id: 'C3', statement: 'Brand New Item', description: '' },
+          ]);
+          const result = ChecklistUtil.validateAndParseImport(valid, existingChecklist);
+          expect(result.valid).toBe(true);
+          expect(result.items).toHaveLength(1);
+          expect(result.items[0].statement).toBe('Brand New Item');
+          expect(result.skippedCount).toBe(1);
+        });
+
+        it('should skip duplicate items with the same statement within the import file itself', () => {
+          const valid = makeValidExportString([
+            { id: '1234', statement: 'Duplicate Item', description: 'First occurrence' },
+            { id: '2345', statement: 'Duplicate Item', description: 'Second occurrence' },
+          ]);
+          const result = ChecklistUtil.validateAndParseImport(valid, existingChecklist);
+          expect(result.valid).toBe(true);
+          expect(result.items).toHaveLength(1);
+          expect(result.items[0].description).toBe('First occurrence');
+          expect(result.skippedCount).toBe(1);
+        });
+
+        it('should skip duplicate items with the same ID within the import file itself', () => {
+          const valid = makeValidExportString([
+            { id: '1234', statement: 'Duplicate Item', description: 'First occurrence' },
+            { id: '1234', statement: 'Another Item', description: 'Second occurrence' },
           ]);
           const result = ChecklistUtil.validateAndParseImport(valid, existingChecklist);
           expect(result.valid).toBe(true);
@@ -764,8 +868,8 @@ describe('utils', () => {
 
         it('should return valid=false when ALL items are duplicates', () => {
           const valid = makeValidExportString([
-            { name: 'Software dependencies for the project are documented.' },
-            { name: 'Data file(s) used in the project are documented.' },
+            { statement: 'Software dependencies for the project are documented.' },
+            { statement: 'Data file(s) used in the project are documented.' },
           ]);
           const result = ChecklistUtil.validateAndParseImport(valid, existingChecklist);
           expect(result.valid).toBe(false);
@@ -774,23 +878,23 @@ describe('utils', () => {
       });
 
       describe('invalid item handling', () => {
-        it('should skip items where name is not a string', () => {
+        it('should skip items where statement is not a string', () => {
           const valid = makeValidExportString([
-            { name: 123, description: 'Not a string name' },
-            { name: 'Valid Name', description: 'Valid' },
+            { statement: 123, description: 'Not a string statement' },
+            { statement: 'Valid Name', description: 'Valid' },
           ]);
           const result = ChecklistUtil.validateAndParseImport(valid, existingChecklist);
           expect(result.valid).toBe(true);
           expect(result.items).toHaveLength(1);
-          expect(result.items[0].name).toBe('Valid Name');
+          expect(result.items[0].statement).toBe('Valid Name');
           expect(result.skippedCount).toBe(1);
         });
 
-        it('should skip items where name is empty or whitespace-only', () => {
+        it('should skip items where statement is empty or whitespace-only', () => {
           const valid = makeValidExportString([
-            { name: '', description: 'Empty name' },
-            { name: '    ', description: 'Whitespace name' },
-            { name: 'Actual Item', description: 'Valid' },
+            { statement: '', description: 'Empty statement' },
+            { statement: '    ', description: 'Whitespace statement' },
+            { statement: 'Actual Item', description: 'Valid' },
           ]);
           const result = ChecklistUtil.validateAndParseImport(valid, existingChecklist);
           expect(result.valid).toBe(true);
@@ -801,7 +905,7 @@ describe('utils', () => {
         it('should skip null items in the checklists array', () => {
           const valid = makeValidExportString([
             null,
-            { name: 'Valid After Null', description: '' },
+            { statement: 'Valid After Null', description: '' },
           ]);
           const result = ChecklistUtil.validateAndParseImport(valid, existingChecklist);
           expect(result.valid).toBe(true);
@@ -811,10 +915,11 @@ describe('utils', () => {
       });
 
       describe('security - field allowlisting', () => {
-        it('should only extract name and description, ignoring all extra fields', () => {
+        it('should only extract definition fields, ignoring project-specific extra fields', () => {
           const valid = makeValidExportString([
             {
-              name: 'Safe Item',
+              id: MOCK_UUID,
+              statement: 'Safe Item',
               description: 'Safe description',
               maliciousField: 'attack payload',
               scanResult: { Python: ['hacked'] },
@@ -828,8 +933,8 @@ describe('utils', () => {
           expect(result.items).toHaveLength(1);
 
           const item = result.items[0];
-          expect(Object.keys(item)).toEqual(['name', 'description']);
-          expect(item.name).toBe('Safe Item');
+          expect(Object.keys(item)).toEqual(['id', 'statement', 'description', 'source', 'scanKey']);
+          expect(item.statement).toBe('Safe Item');
           expect(item.description).toBe('Safe description');
 
           expect(item.maliciousField).toBeUndefined();
@@ -839,13 +944,13 @@ describe('utils', () => {
           expect(item.answer).toBeUndefined();
         });
 
-        it('should preserve HTML/script tags as plain text in name (React will escape them)', () => {
+        it('should preserve HTML/script tags as plain text in statement (React will escape them)', () => {
           const valid = makeValidExportString([
-            { name: '<script>alert("xss")</script>', description: '<img onerror=alert(1)>' },
+            { statement: '<script>alert("xss")</script>', description: '<img onerror=alert(1)>' },
           ]);
           const result = ChecklistUtil.validateAndParseImport(valid, existingChecklist);
           expect(result.valid).toBe(true);
-          expect(result.items[0].name).toBe('<script>alert("xss")</script>');
+          expect(result.items[0].statement).toBe('<script>alert("xss")</script>');
           expect(result.items[0].description).toBe('<img onerror=alert(1)>');
         });
       });
@@ -853,7 +958,7 @@ describe('utils', () => {
       describe('edge cases', () => {
         it('should work with an empty existing checklist', () => {
           const valid = makeValidExportString([
-            { name: 'New Item', description: 'Desc' },
+            { statement: 'New Item', description: 'Desc' },
           ]);
           const result = ChecklistUtil.validateAndParseImport(valid, []);
           expect(result.valid).toBe(true);
@@ -861,7 +966,7 @@ describe('utils', () => {
         });
 
         it('should handle valid JSON that is not an object (e.g., a JSON array)', () => {
-          const jsonArray = JSON.stringify([{ name: 'Test' }]);
+          const jsonArray = JSON.stringify([{ statement: 'Test' }]);
           const result = ChecklistUtil.validateAndParseImport(jsonArray, existingChecklist);
           expect(result.valid).toBe(false);
         });
@@ -875,8 +980,8 @@ describe('utils', () => {
 
     describe('isDuplicateChecklist', () => {
       const mockChecklist = [
-        { id: 1, uid: 'uid-1', statement: 'Dependency checks' },
-        { id: 2, uid: 'uid-2', statement: 'Data validation' }
+        { id: 'id-1', statement: 'Dependency checks' },
+        { id: 'id-2', statement: 'Data validation' }
       ];
 
       it('should return false if the input name or checklist is invalid', () => {
@@ -899,11 +1004,19 @@ describe('utils', () => {
       });
 
       it('should ignore the duplicate check if the matching item matches the excludeId (edit mode)', () => {
-        expect(ChecklistUtil.isDuplicateChecklist('Data validation', mockChecklist, 'uid-2')).toBe(false);
+        expect(ChecklistUtil.isDuplicateChecklist('Data validation', mockChecklist, 'id-2')).toBe(false);
       });
 
       it('should still flag a duplicate if edit mode name matches a DIFFERENT existing item', () => {
-        expect(ChecklistUtil.isDuplicateChecklist('Dependency checks', mockChecklist, 'uid-2')).toBe(true);
+        expect(ChecklistUtil.isDuplicateChecklist('Dependency checks', mockChecklist, 'id-2')).toBe(true);
+      });
+
+      it('compares sanitized question text, not scan associations or legacy UID values', () => {
+        expect(ChecklistUtil.isDuplicateChecklist('  DATA validation  ', mockChecklist)).toBe(true);
+        expect(ChecklistUtil.isDuplicateChecklist('Dependency', mockChecklist)).toBe(false);
+        expect(ChecklistUtil.isDuplicateChecklist('Data validation', [
+          { ...mockChecklist[1], uid: 'excluded' },
+        ], 'excluded')).toBe(true);
       });
     });
 
@@ -977,6 +1090,61 @@ describe('utils', () => {
         expect(ChecklistUtil.findVersionControl({ uri: '/path/to/project' })).toEqual({
           versionControl: [],
         });
+    describe('sortChecklist', () => {
+      it('sorts solely by order without mutating input or identities', () => {
+        const items = [
+          { id: 'a', order: 3 }, { id: 'z', order: 1 }, { id: 'm', order: 2 },
+        ];
+        expect(ChecklistUtil.sortChecklist(items)).toEqual([items[1], items[2], items[0]]);
+        expect(items.map((item) => item.id)).toEqual(['a', 'z', 'm']);
+      });
+
+      it('preserves input order for ties and handles empty checklists', () => {
+        const items = [{ id: 'z', order: 1 }, { id: 'a', order: 1 }];
+        expect(ChecklistUtil.sortChecklist(items)).toEqual(items);
+        expect(ChecklistUtil.sortChecklist([])).toEqual([]);
+      });
+    });
+
+    describe('getItemScanKey', () => {
+      it('should return null when input is null or undefined', () => {
+        expect(ChecklistUtil.getItemScanKey(null)).toBe(null);
+        expect(ChecklistUtil.getItemScanKey(undefined)).toBe(null);
+        expect(ChecklistUtil.getItemScanKey({})).toBe(null);
+      });
+
+      it('should return null when the name is all that is provided', () => {
+        expect(ChecklistUtil.getItemScanKey({"name" : "test"})).toBe(null);
+      });
+
+      it('should return null if the scanKey is not known', () => {
+        expect(ChecklistUtil.getItemScanKey({"name" : "test", "scanKey" : "test-key"})).toBe(null);
+      });
+
+      it('should return null when the scanKey is not provided or blank', () => {
+        expect(ChecklistUtil.getItemScanKey({"name" : "test", "scanKey" : null})).toBe(null);
+        expect(ChecklistUtil.getItemScanKey({"name" : "test", "scanKey" : undefined})).toBe(null);
+        expect(ChecklistUtil.getItemScanKey({"name" : "test", "scanKey" : ''})).toBe(null);
+        expect(ChecklistUtil.getItemScanKey({"name" : "test", "scanKey" : '   '})).toBe(null);
+      });
+
+      it('should return the matched scanKey for an existing item', () => {
+        expect(ChecklistUtil.getItemScanKey({ source: 'default', scanKey: 'Entrypoint' })).toBe("Entrypoint");
+      });
+
+      it('does not infer scans from legacy names or question text', () => {
+        expect(ChecklistUtil.getItemScanKey({ name: 'Entrypoint', statement: 'Entrypoint' })).toBeNull();
+      });
+
+      it('rejects custom, unknown, and conflicting scan associations', () => {
+        expect(ChecklistUtil.getItemScanKey({ source: 'custom', id: 'statwrap-checklist-data' })).toBeNull();
+        expect(ChecklistUtil.getItemScanKey({ source: 'default', scanKey: 'unknown' })).toBeNull();
+        expect(ChecklistUtil.getItemScanKey({ id: 'statwrap-checklist-data', scanKey: 'Dependency' })).toBeNull();
+        expect(ChecklistUtil.getItemScanKey({ id: 'custom-id', scanKey: 'Data' })).toBeNull();
+      });
+
+      it('should return the matched scanKey for an existing item matched only on ID', () => {
+        expect(ChecklistUtil.getItemScanKey({"id" : "statwrap-checklist-version-control"})).toBe("VersionControl");
       });
     });
   });

@@ -131,8 +131,10 @@ const assetAttributes = (props) => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.headerRow}>
+      <div className={styles.attributesLayout}>
+        <ul className={styles.attributesList}>{controls}</ul>
         <button
+          type="button"
           className={styles.addButton}
           onClick={() => setOpenAddDialog(true)}
         >
@@ -140,7 +142,6 @@ const assetAttributes = (props) => {
           <span>Add Attribute</span>
         </button>
       </div>
-      <ul className={styles.attributesList}>{controls}</ul>
 
       { /* Custom Attribute Dialog */ }
       <Dialog

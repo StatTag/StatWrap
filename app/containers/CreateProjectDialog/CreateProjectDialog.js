@@ -267,7 +267,7 @@ class CreateProjectDialog extends Component {
       this.state.customTemplate
     ) {
       ipcRenderer.send(Messages.SAVE_CUSTOM_PROJECT_TEMPLATE_REQUEST, this.state.customTemplate);
-      
+
       // Reload configuration once saved so the new custom template shows up in the list
       ipcRenderer.once(Messages.SAVE_CUSTOM_PROJECT_TEMPLATE_RESPONSE, () => {
         ipcRenderer.send(Messages.LOAD_CONFIGURATION_REQUEST);
@@ -315,7 +315,7 @@ class CreateProjectDialog extends Component {
           this.context
         )
       }
-      this.props.onClose(true);
+      this.props.onClose(true, response.project.id);
     } else {
       this.setState({ errorMessage: response.errorMessage });
     }
@@ -386,7 +386,7 @@ class CreateProjectDialog extends Component {
     // Close the dialog after deleting
     this.setState({ templateToDelete: null });
   };
-  
+
 
   handleEditTemplate(template) {
     // Open CustomTemplateBuilder with this template pre-loaded
@@ -429,8 +429,8 @@ class CreateProjectDialog extends Component {
     });
   }
 
-  handleExportTemplate = (templateId) => {
-    ipcRenderer.send(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_REQUEST , templateId);
+  handleExportTemplate = (template) => {
+    ipcRenderer.send(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_REQUEST , template);
 
     ipcRenderer.once(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_RESPONSE, (event, response) => {
       if(response.canceled) return;
@@ -479,7 +479,7 @@ class CreateProjectDialog extends Component {
           </Button>
         );
     }
-    
+
     let backButton = (
       <Button onClick={this.handleBack} color="primary" className={styles.backButton}>
         <ArrowBackIcon />
@@ -497,7 +497,7 @@ class CreateProjectDialog extends Component {
           dialogTitle = 'Custom Template Builder';
           displayComponent = (
             <CustomTemplateBuilder
-              initialTemplate={this.state.customTemplate} 
+              initialTemplate={this.state.customTemplate}
               onValidationChange={(isValid) => this.setState({ canProgress: isValid })}
               onTemplateReady={(template) =>
                 this.setState({
@@ -621,15 +621,15 @@ class CreateProjectDialog extends Component {
             Cancel
           </Button>
         </DialogActions>
-        <Dialog 
-          open={this.state.templateToDelete !== null} 
+        <Dialog
+          open={this.state.templateToDelete !== null}
           onClose={this.cancelDeleteTemplate}
         >
           <DialogTitle style={{ color: 'white' }}>
             Delete Custom Template?
           </DialogTitle>
           <div style={{ padding: '0 24px 20px 24px' }}>
-            Are you sure you want to permanently delete the template 
+            Are you sure you want to permanently delete the template
             <strong> {this.state.templateToDelete ? this.state.templateToDelete.name : ''}</strong>?
             This action cannot be undone.
           </div>

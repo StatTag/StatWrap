@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useMemo, useState, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import styles from './ReproChecklist.css';
 import ChecklistItem from './ChecklistItem/ChecklistItem';
@@ -36,6 +36,23 @@ const scanFunctions = {
   VersionControl: ChecklistUtil.findVersionControl,
 };
 
+/**
+ * Refreshes built-in scan results without mutating checklist items.
+ * @param {Array} checklistItems The current items, including newly imported items
+ * @param {object} project The project whose assets are scanned
+ * @returns {Array} Items with recognized automated scan results refreshed
+ */
+function scanChecklistItems(checklistItems, project) {
+  if (!project || !project.assets) {
+    return checklistItems;
+  }
+  return checklistItems.map((item) => {
+    const scanKey = ChecklistUtil.getItemScanKey(item);
+    return scanFunctions[scanKey]
+      ? { ...item, scanResult: scanFunctions[scanKey](project.assets) } : item;
+  });
+}
+
 function ReproChecklist({
   project = null,
   checklist = null,
@@ -48,13 +65,13 @@ function ReproChecklist({
 }) {
   const [openExportDialog, setOpenExportDialog] = useState(false);
   const [openAddDialog, setOpenAddDialog] = useState(false);
-  const [newChecklistName, setNewChecklistName] = useState('');
+  const [newChecklistStatement, setNewChecklistStatement] = useState('');
   const [newChecklistDescription, setNewChecklistDescription] = useState('');
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [editName, setEditName] = useState('');
+  const [editStatement, setEditStatement] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [pendingDelete, setPendingDelete] = useState(null);
   const [showUndoBanner, setShowUndoBanner] = useState(false);
@@ -62,37 +79,19 @@ function ReproChecklist({
   const [importResultDialog, setImportResultDialog] = useState({
     open: false,
     title: '',
-    message: '', 
+    message: '',
   });
-  const [nameError, setNameError] = useState('');
+  const [statementError, setStatementError] = useState('');
   const [manageMenu, setManageMenu] = useState(null);
 
-  const sortedChecklist = checklist
-    ? [...checklist].sort((a, b) => (a.order || a.id || 0) - (b.order || b.id || 0))
-    : [];
-
-  // this useEffect hook is here to load the scan results for all the checklist statements
-  useEffect(() => {
-    if (project && checklist && !error) {
-      if (project.assets) {
-        // scan the project assets for each checklist statement
-        checklist.forEach((item) => {
-          // if used here as there might be a statement that doesn't have a corresponding scan function
-          const scanKey = item.scanKey || item.name;
-          if (scanFunctions[scanKey]) {
-            item.scanResult = scanFunctions[scanKey](project.assets);
-          }
-        });
-      }
-    }
-  }, [project]);
+  const sortedChecklist = useMemo(() => checklist
+    ? ChecklistUtil.sortChecklist(error ? checklist : scanChecklistItems(checklist, project))
+    : [], [checklist, project, error]);
 
   // Handles the update of checklist for changes in the checklist items
   const handleItemUpdate = (updatedItem, actionType, entityType, entityKey, title, description, details) => {
     const updatedChecklist = checklist.map((item) => {
-      const isSameUid = item.uid && updatedItem.uid && item.uid === updatedItem.uid;
-      const isSameId = item.id && updatedItem.id && item.id === updatedItem.id;
-      return (isSameUid || isSameId) ? updatedItem : item;
+      return item.id === updatedItem.id ? updatedItem : item;
       });
     onUpdated(project, updatedChecklist, actionType, entityType, entityKey, title, description, details);
   };
@@ -100,34 +99,32 @@ function ReproChecklist({
   // Handles the generation of the reproducibility checklist report in PDF format
   const handleReportGeneration = (exportNotes) => {
     const service = new ChecklistService();
-    service.generateReport(checklist, 'Reproducibility_Checklist.pdf', exportNotes, project);
+    service.generateReport(sortedChecklist, 'Reproducibility_Checklist.pdf', exportNotes, project);
     setOpenExportDialog(false);
   };
 
   // Handles to save a custom chechlist iten
   const handleAddChecklistSave = () => {
-    const name = ChecklistUtil.sanitizeChecklistName(newChecklistName);
-    if (!name) {
-      setNameError('Checklist question cannot be empty.');
+    const statement = ChecklistUtil.sanitizeChecklistStatement(newChecklistStatement);
+    if (!statement) {
+      setStatementError('Checklist question cannot be empty.');
       return;
     }
 
-    if (ChecklistUtil.isDuplicateChecklist(name, checklist)) {
-      setNameError('A checklist item with this question already exists.');
+    if (ChecklistUtil.isDuplicateChecklist(statement, checklist)) {
+      setStatementError('A checklist item with this question already exists.');
       return;
     }
 
-    setNameError('');
+    setStatementError('');
 
     const newItem = {
-      id: checklist.length + 1,
-      uid: uuidv4(),
+      id: uuidv4(),
       order: checklist.length + 1,
-      name: name,
-      statement: name,
+      statement,
       description: ChecklistUtil.sanitizeChecklistDescription(newChecklistDescription),
       answer: false,
-      scanKey: name,         
+      scanKey: null,          // Custom items will not get a scan key
       scanResult: {},         // Always empty for custom items
       notes: [],
       assets: [],
@@ -135,29 +132,32 @@ function ReproChecklist({
       source: 'custom',
     };
 
-    const updatedChecklist = ChecklistUtil.renumberChecklist([...checklist, newItem]);
+    const updatedChecklist = ChecklistUtil.renumberChecklist([...sortedChecklist, newItem]);
 
     onUpdated(
       project,
       updatedChecklist,
       Constants.ActionType.CHECKLIST_UPDATED,
       Constants.EntityType.CHECKLIST,
-      newItem.uid,
+      newItem.id,
       Constants.ActionType.CHECKLIST_UPDATED,
-      `Added custom checklist item "${name}"`,
+      `Added custom checklist item "${statement}"`,
       newItem,
     );
 
     setOpenAddDialog(false);
-    setNewChecklistName('');
+    setNewChecklistStatement('');
     setNewChecklistDescription('');
 
   };
 
   // Handles to delete a custom checklist item
-  const handleDeleteChecklistItem = (uid) => {
-    const itemToDelete = checklist.find((item) => item.uid === uid || item.id === uid);
-    if (!itemToDelete) return;
+  const handleDeleteChecklistItem = (id) => {
+    const itemToDelete = checklist.find((item) => item.id === id);
+    if (!itemToDelete) {
+      console.warn(`Unable to delete checklist item "${id}": item not found.`);
+      return;
+    }
 
     setShowUndoBanner(false);
 
@@ -171,7 +171,7 @@ function ReproChecklist({
 
     // Remove the item and renumber
     const updatedChecklist = ChecklistUtil.renumberChecklist(
-      checklist.filter((item) => (item.uid || item.id) !== (itemToDelete.uid || itemToDelete.id))
+      sortedChecklist.filter((item) => item.id !== id)
     );
 
     onUpdated(
@@ -179,7 +179,7 @@ function ReproChecklist({
       updatedChecklist,
       Constants.ActionType.CHECKLIST_UPDATED,
       Constants.EntityType.CHECKLIST,
-      uid,
+      id,
       Constants.ActionType.CHECKLIST_UPDATED,
       `Deleted custom checklist item "${itemToDelete.statement}"`,
       itemToDelete,
@@ -210,7 +210,7 @@ function ReproChecklist({
       pendingDelete.originalChecklist,
       Constants.ActionType.CHECKLIST_UPDATED,
       Constants.EntityType.CHECKLIST,
-      pendingDelete.item.uid || pendingDelete.item.id,
+      pendingDelete.item.id,
       Constants.ActionType.CHECKLIST_UPDATED,
       `Restored checklist item "${pendingDelete.item.statement}"`,
       pendingDelete.item,
@@ -233,31 +233,30 @@ function ReproChecklist({
   // Hnadles to edit dialog for a custom item
   const handleEditChecklistItem = (item) => {
     setEditingItem(item);
-    setEditName(item.statement);
+    setEditStatement(item.statement);
     setEditDescription(item.description || '');
     setOpenEditDialog(true);
   };
 
   // Handles to save edits to a custom item
   const handleEditChecklistSave = () => {
-    const sanitizedName = ChecklistUtil.sanitizeChecklistName(editName);
+    const sanitizedStatement = ChecklistUtil.sanitizeChecklistStatement(editStatement);
 
-    if (!editingItem || !sanitizedName) {
-      setNameError('Checklist question cannot be empty.');
+    if (!editingItem || !sanitizedStatement) {
+      setStatementError('Checklist question cannot be empty.');
       return;
     }
 
-    if (ChecklistUtil.isDuplicateChecklist(sanitizedName, checklist, editingItem.uid || editingItem.id)) {
-      setNameError('A checklist item with this question already exists.');
+    if (ChecklistUtil.isDuplicateChecklist(sanitizedStatement, checklist, editingItem.id)) {
+      setStatementError('A checklist item with this question already exists.');
       return;
     }
 
-    setNameError('');
+    setStatementError('');
 
     const updatedItem = {
       ...editingItem,
-      name: sanitizedName,
-      statement: sanitizedName,
+      statement: sanitizedStatement,
       description: ChecklistUtil.sanitizeChecklistDescription(editDescription),
     };
 
@@ -265,7 +264,7 @@ function ReproChecklist({
       updatedItem,
       Constants.ActionType.CHECKLIST_UPDATED,
       Constants.EntityType.CHECKLIST,
-      updatedItem.uid || updatedItem.id,
+      updatedItem.id,
       Constants.ActionType.CHECKLIST_UPDATED,
       `Edited custom checklist item "${updatedItem.statement}"`,
       updatedItem,
@@ -273,11 +272,11 @@ function ReproChecklist({
 
     setOpenEditDialog(false);
     setEditingItem(null);
-    setEditName('');
+    setEditStatement('');
     setEditDescription('');
   };
 
-  // Handles Drag and  Drop
+  // Handles Drag and Drop
   const handleDragStart = useCallback((index) => {
     setDraggedIndex(index);
   }, []);
@@ -294,7 +293,7 @@ function ReproChecklist({
       return;
     }
 
-    const nextChecklist = [...checklist].sort((a, b) => (a.order || a.id || 0) - (b.order || b.id || 0));
+    const nextChecklist = ChecklistUtil.sortChecklist(checklist);
     const [movedItem] = nextChecklist.splice(draggedIndex, 1);
     nextChecklist.splice(dropIndex, 0, movedItem);
 
@@ -305,7 +304,7 @@ function ReproChecklist({
       renumbered,
       Constants.ActionType.CHECKLIST_UPDATED,
       Constants.EntityType.CHECKLIST,
-      movedItem.uid || movedItem.id,
+      movedItem.id,
       Constants.ActionType.CHECKLIST_UPDATED,
       `Moved checklist item "${movedItem.statement}"`,
       movedItem,
@@ -320,7 +319,7 @@ function ReproChecklist({
       setDragOverIndex(null);
     }, []);
 
-  // Export the current checklist names to a JSON file
+  // Export checklist definitions without project-specific responses or documentation.
   const handleExportChecklist = () => {
     if (!checklist || checklist.length === 0) return;
 
@@ -347,7 +346,9 @@ function ReproChecklist({
 
     input.onchange = (event) => {
       const file = event.target.files[0];
-      if (!file) return;
+      if (!file) {
+        return;
+      }
 
       if (file.size > Constants.CHECKLIST_IMPORT_MAX_FILE_SIZE) {
         setImportResultDialog({
@@ -374,22 +375,22 @@ function ReproChecklist({
         }
 
         const newItems = result.items.map((item, index) => ({
-          id: checklist.length + index + 1,
-          uid: uuidv4(),
+          id: item.id,
           order: checklist.length + index + 1,
-          name: item.name,
-          statement: item.name,
+          statement: item.statement,
           description: item.description,
           answer: false,
-          scanKey: item.name,
+          scanKey: item.scanKey,
           scanResult: {},
           notes: [],
           assets: [],
           subChecklist: [],
-          source: 'custom',
+          source: item.source || Constants.ChecklistItemSource.CUSTOM,
         }));
 
-        const updatedChecklist = ChecklistUtil.renumberChecklist([...checklist, ...newItems]);
+        const updatedChecklist = scanChecklistItems(ChecklistUtil.renumberChecklist([
+          ...ChecklistUtil.sortChecklist(checklist), ...newItems,
+        ]), project);
         onUpdated(
           project,
           updatedChecklist,
@@ -404,6 +405,9 @@ function ReproChecklist({
         let message = `Successfully imported ${newItems.length} checklist item(s).`;
         if (result.skippedCount > 0) {
           message += ` ${result.skippedCount} item(s) were skipped (duplicates or invalid).`;
+        }
+        if (result.invalidReasons.length > 0) {
+          message += ` ${result.invalidReasons.join(' ')}`;
         }
 
         setImportResultDialog({
@@ -427,7 +431,9 @@ function ReproChecklist({
 
   let content = <div className={styles.empty}>Checklist not configured.</div>;
 
-  if (sortedChecklist && sortedChecklist.length > 0) {
+  if (error) {
+    content = <Error>There was an error loading the project checklist: {error}</Error>;
+  } else if (sortedChecklist && sortedChecklist.length > 0) {
     content = (
       <div>
       <div className={styles.headerRow}>
@@ -439,7 +445,7 @@ function ReproChecklist({
           onClick={(e) => setManageMenu(e.currentTarget)}
         >
           <Settings fontSize="small" />
-          <span>Manage Checklists</span>
+          <span>Manage Checklist</span>
         </button>
         <Menu
           anchorEl={manageMenu}
@@ -452,13 +458,13 @@ function ReproChecklist({
             setOpenAddDialog(true);
           }}>
             <ListItemIcon><Add fontSize="small" /></ListItemIcon>
-            <ListItemText>Add Checklist Items</ListItemText>
+            <ListItemText>Add Checklist Item</ListItemText>
           </MenuItem>
           <MenuItem onClick={ () => {
             setManageMenu(null);
             handleImportChecklist();
           }}>
-            
+
             <ListItemIcon><FileDownload fontSize="small" /></ListItemIcon>
             <ListItemText>Import Checklist</ListItemText>
           </MenuItem>
@@ -474,7 +480,7 @@ function ReproChecklist({
       <br />
         {sortedChecklist.map((item, index) => (
           <div
-            key={item.uid || item.id}
+            key={item.id}
             draggable
             onDragStart={() => handleDragStart(index)}
             onDragOver={(e) => handleDragOver(e, index)}
@@ -533,7 +539,7 @@ function ReproChecklist({
         >
           <DialogTitle className={styles.addDialogTitle}>
             <Add fontSize="small" style={{ marginRight: 8, verticalAlign: 'middle' }} />
-            Add New Checklist
+            Add New Checklist Item
           </DialogTitle>
           <DialogContent className={styles.addDialogContent}>
             <div className={styles.addFormGroup}>
@@ -541,23 +547,23 @@ function ReproChecklist({
               <TextField
                 autoFocus
                 placeholder="Write any reproducibility checklist question"
-                value={newChecklistName}
+                value={newChecklistStatement}
                 onChange={(event) => {
-                  setNewChecklistName(event.target.value);
-                  setNameError(''); 
+                  setNewChecklistStatement(event.target.value);
+                  setStatementError('');
                 }}
                 fullWidth
                 variant="outlined"
                 size="small"
-                error={!!nameError} 
-                inputProps={{ maxLength: Constants.CHECKLIST_NAME_MAX_LENGTH }}
-                helperText={nameError ? nameError : `${newChecklistName.length}/${Constants.CHECKLIST_NAME_MAX_LENGTH}`}
+                error={!!statementError}
+                inputProps={{ maxLength: Constants.CHECKLIST_STATEMENT_MAX_LENGTH }}
+                helperText={statementError ? statementError : `${newChecklistStatement.length}/${Constants.CHECKLIST_STATEMENT_MAX_LENGTH}`}
               />
             </div>
             <div className={styles.addFormGroup}>
-              <label className={styles.addFormLabel}>Description(Optional)</label>
+              <label className={styles.addFormLabel}>Description (Optional)</label>
               <TextField
-                placeholder="Describe the checklist"
+                placeholder="Describe the checklist item"
                 value={newChecklistDescription}
                 onChange={(event) => setNewChecklistDescription(event.target.value)}
                 fullWidth
@@ -571,12 +577,6 @@ function ReproChecklist({
             </div>
           </DialogContent>
           <DialogActions className={styles.addDialogActions}>
-            <button
-              onClick={() => setOpenAddDialog(false)}
-              className={styles.backButton}
-            >
-              Back
-            </button>
             <div>
               <button
                 onClick={handleAddChecklistSave}
@@ -587,9 +587,9 @@ function ReproChecklist({
               <button
                 onClick={() => {
                   setOpenAddDialog(false);
-                  setNewChecklistName('');
+                  setNewChecklistStatement('');
                   setNewChecklistDescription('');
-                  setNameError('');
+                  setStatementError('');
                 }}
                 className={styles.cancelDialogButton}
               >
@@ -611,20 +611,20 @@ function ReproChecklist({
               <label className={styles.addFormLabel}>Checklist Question</label>
               <TextField
                 autoFocus
-                value={editName}
+                value={editStatement}
                 onChange={(event) => {
-                  setEditName(event.target.value);
-                  setNameError('');
+                  setEditStatement(event.target.value);
+                  setStatementError('');
                 }}
                 fullWidth
                 variant="outlined"
                 size="small"
-                error={!!nameError}
-                helperText={nameError}
+                error={!!statementError}
+                helperText={statementError}
               />
             </div>
             <div className={styles.addFormGroup}>
-              <label className={styles.addFormLabel}>Description(Optional)</label>
+              <label className={styles.addFormLabel}>Description (Optional)</label>
               <TextField
                 value={editDescription}
                 onChange={(event) => setEditDescription(event.target.value)}
@@ -637,15 +637,12 @@ function ReproChecklist({
             </div>
           </DialogContent>
           <DialogActions className={styles.addDialogActions}>
-            <button onClick={() => setOpenEditDialog(false)} className={styles.backButton}>
-              Back
-            </button>
             <div>
               <button onClick={handleEditChecklistSave} className={styles.saveButton}>
                 Save
               </button>
               <button
-                onClick={() => { setOpenEditDialog(false); setEditingItem(null); setNameError(''); }}
+                onClick={() => { setOpenEditDialog(false); setEditingItem(null); setStatementError(''); }}
                 className={styles.cancelDialogButton}
               >
                 Cancel
@@ -674,7 +671,7 @@ function ReproChecklist({
           </DialogActions>
         </Dialog>
         <Snackbar
-          key={pendingDelete ? (pendingDelete.item.uid || pendingDelete.item.id) : 'none'}
+          key={pendingDelete ? pendingDelete.item.id : 'none'}
           open={showUndoBanner}
           autoHideDuration={10000}
           onClose={handleCloseUndoBanner}
@@ -695,13 +692,11 @@ function ReproChecklist({
               </Button>
             }
           >
-            You deleted this checklist
+            Your checklist item has been deleted
           </Alert>
         </Snackbar>
       </div>
     );
-  } else if (error) {
-    content = <Error>There was an error loading the project checklist: {error}</Error>;
   }
 
   return <div>{content}</div>;

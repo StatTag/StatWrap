@@ -5,7 +5,7 @@
       "id": "STATWRAP-CUSTOM",
       "version": "1",
       "name": "Custom Template",
-      "description": "Design your own project structure from scratch"
+      "description": "Create your own project structure from an existing directory or import a custom project template"
     },
     {
       "id": "STATWRAP-EMPTY",

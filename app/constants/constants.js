@@ -120,58 +120,64 @@ module.exports = {
     ATTRIBUTE: 'Attribute',
   },
 
-  MAX_GRAPH_LABEL_LENGTH: 31,
-  CHECKLIST_NAME_MAX_LENGTH: 250,
-  CHECKLIST_DESCRIPTION_MAX_LENGTH: 1000,
-  CHECKLIST_IMPORT_MAX_FILE_SIZE: 1*1024*1024, // 1 MB 
-  CHECKLIST_EXPORT_TYPE: 'statwrap-checklist',
-  CHECKLIST_EXPORT_VERSION: 1,
+  ChecklistItemSource: {
+    DEFAULT: 'default',
+    CUSTOM: 'custom'
+  },
 
-  CHECKLIST: [
+  MAX_GRAPH_LABEL_LENGTH: 31,
+  CHECKLIST_ID_MAX_LENGTH: 50,
+  CHECKLIST_STATEMENT_MAX_LENGTH: 250,
+  CHECKLIST_DESCRIPTION_MAX_LENGTH: 1000,
+  CHECKLIST_IMPORT_MAX_FILE_SIZE: 1*1024*1024, // 1 MB
+  CHECKLIST_EXPORT_TYPE: 'statwrap-checklist',
+  CHECKLIST_VERSION: 2,
+
+  /*CHECKLIST: [
     ['Dependency', 'Software dependencies for the project are documented.'],
     ['Data', 'Data file(s) used in the project are documented.'],
     ['Entrypoint', 'Indication of file(s) that are used to run the analysis (e.g., wrapper/entry script).'],
     ['Documentation', 'Includes project documentation.'],
     ['VersionControl', 'Version control of some kind is in place.'],
     ['AbsolutePaths', 'Avoids using absolute paths in the code.'],
-  ],
+  ],*/
 
   CHECKLIST_DEFAULTS: [
     {
-      name: 'Dependency',
+      id: 'statwrap-checklist-dependency',
       statement: 'Software dependencies for the project are documented.',
       description: '',
-      scankey: 'Dependency'
+      scanKey: 'Dependency'
     },
     {
-      name: 'Data',
+      id: 'statwrap-checklist-data',
       statement: 'Data file(s) used in the project are documented.',
       description: '',
-      scankey: 'Data'
+      scanKey: 'Data'
     },
     {
-      name: 'Entrypoint',
+      id: 'statwrap-checklist-entrypoint',
       statement: 'Indication of file(s) that are used to run the analysis (e.g., wrapper/entry script).',
       description: '',
-      scankey: 'Entrypoint'
+      scanKey: 'Entrypoint'
     },
     {
-      name: 'Documentation', 
+      id: 'statwrap-checklist-documentation',
       statement: 'Includes project documentation.',
       description: '',
-      scankey: 'Documentation'
+      scanKey: 'Documentation'
     },
     {
-      name: 'VersionControl',
+      id: 'statwrap-checklist-version-control',
       statement: 'Version control of some kind is in place.',
       description: '',
-      scankey: 'VersionControl'
+      scanKey: 'VersionControl'
     },
     {
-      name: 'AbsolutePaths',
+      id: 'statwrap-checklist-absolute-paths',
       statement: 'Avoids using absolute paths in the code.',
       description: '',
-      scankey: 'AbsolutePaths',
+      scanKey: 'AbsolutePaths',
     },
   ],
 };

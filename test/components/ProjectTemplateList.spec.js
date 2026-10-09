@@ -36,7 +36,7 @@ jest.mock('@mui/icons-material/Delete', () => {
 const ProjectTemplateList =
   require('../../app/components/ProjectTemplateList/ProjectTemplateList').default;
 
-  
+
 const builtInTemplate = {
   id: 'STATWRAP-BASIC',
   version: '1',
@@ -96,7 +96,7 @@ describe('components', () => {
           onDelete={jest.fn()}
         />,
       );
-      
+
       const iconButtons = renderer.root.findAllByType('mock-icon-button');
       expect(iconButtons.length).toBe(3);
     });
@@ -139,7 +139,7 @@ describe('components', () => {
         />,
       );
       const iconButtons = renderer.root.findAllByType('mock-icon-button');
-     
+
       act(() => { iconButtons[0].props.onClick(); });
       expect(onEdit).toHaveBeenCalledWith(customTemplate);
     });
@@ -157,9 +157,9 @@ describe('components', () => {
         />,
       );
       const iconButtons = renderer.root.findAllByType('mock-icon-button');
-      
+
       act(() => { iconButtons[1].props.onClick(); });
-      expect(onExport).toHaveBeenCalledWith('CUSTOM-12345');
+      expect(onExport).toHaveBeenCalledWith(customTemplate);
     });
 
     it('should call onDelete with the full template object when the delete icon is clicked', () => {
@@ -175,7 +175,7 @@ describe('components', () => {
         />,
       );
       const iconButtons = renderer.root.findAllByType('mock-icon-button');
-  
+
       act(() => { iconButtons[2].props.onClick(); });
       expect(onDelete).toHaveBeenCalledWith(customTemplate);
     });

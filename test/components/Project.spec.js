@@ -235,5 +235,31 @@ describe('components', () => {
         projectComponent.assetDeleteNoteHandler({ uri: '/nonexistent' }, noteToDelete);
       }).not.toThrow();
     });
+      it('targets checklist notes by stable ID after reorder and delete/add', () => {
+        const items = [
+          { id: 'new-id', order: 1, statement: 'New question', notes: [], weight: 4 },
+          { id: 'retained-id', order: 2, statement: 'Retained question', notes: [], weight: 7 },
+        ];
+        const onChecklistUpdated = jest.fn();
+        const comp = createProjectComponent({
+          project: getBaseProject(),
+          checklistResponse: { checklist: items },
+          onChecklistUpdated,
+        });
+        comp.checklistUpsertNoteHandler(items[1], 'First note');
+        expect(onChecklistUpdated.mock.calls[0][4]).toBe('retained-id');
+        expect(items[0].notes).toEqual([]);
+        const note = items[1].notes[0];
+        expect(note.content).toBe('First note');
+        comp.checklistUpsertNoteHandler(items[1], 'Edited note', note);
+        expect(onChecklistUpdated.mock.calls[1][3]).toBe(EntityType.CHECKLIST);
+        expect(onChecklistUpdated.mock.calls[1][6]).toContain('Retained question');
+        expect(items[1].notes[0].content).toBe('Edited note');
+        comp.checklistDeleteNoteHandler(items[1], note);
+        expect(onChecklistUpdated.mock.calls[2][4]).toBe('retained-id');
+        expect(items[1].notes).toEqual([]);
+        expect(items[0].weight).toBe(4);
+        expect(items[1].weight).toBe(7);
+    });
   });
 });

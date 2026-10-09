@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "projectPolicy": { "reviewRequired": true },
+  "checklist": [
+    {
+      "id": 7,
+      "uid": "unreleased-custom-uid",
+      "name": "Can another researcher reproduce the result?",
+      "source": "custom",
+      "description": "Run the documented analysis.",
+      "answer": true,
+      "notes": [
+        {
+          "id": 12,
+          "author": "Researcher",
+          "content": "Verified independently.",
+          "updated": "2025-01-02"
+        }
+      ],
+      "assets": [
+        {
+          "uri": "analysis.R",
+          "name": "Analysis script",
+          "description": "Entry script",
+          "extra": { "retained": true }
+        }
+      ],
+      "subChecklist": [{ "id": 3, "statement": "The result matches.", "answer": true }],
+      "extra": { "reviewers": ["Researcher"], "approved": true }
+    },
+    {
+      "id": 2,
+      "uid": "unreleased-data-uid",
+      "name": "Data",
+      "statement": "Our input data is documented.",
+      "description": "Includes the raw inputs.",
+      "answer": false,
+      "scanResult": { "dataFiles": ["input.csv"] },
+      "notes": [],
+      "assets": [],
+      "subChecklist": []
+    }
+  ]
+}

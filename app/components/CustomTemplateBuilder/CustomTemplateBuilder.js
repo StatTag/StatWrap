@@ -110,7 +110,7 @@ class CustomTemplateBuilder extends Component {
         ipcRenderer.once(Messages.IMPORT_PROJECT_TEMPLATE_FOLDER_RESPONSE, (event,response) => {
             this._handleImportResponse(response);
         });
-        ipcRenderer.send(Messages.IMPORT_PROJECT_TEMPLATE_FOLDER_REQUEST); 
+        ipcRenderer.send(Messages.IMPORT_PROJECT_TEMPLATE_FOLDER_REQUEST);
     }
 
     handleImportExistingTemplate = () => {
@@ -122,7 +122,7 @@ class CustomTemplateBuilder extends Component {
         ipcRenderer.once(Messages.IMPORT_PROJECT_TEMPLATE_ZIP_RESPONSE, (event, response) =>{
             this._handleImportResponse(response);
         });
-        ipcRenderer.send(Messages.IMPORT_PROJECT_TEMPLATE_ZIP_REQUEST); 
+        ipcRenderer.send(Messages.IMPORT_PROJECT_TEMPLATE_ZIP_REQUEST);
     };
 
     render() {
@@ -192,9 +192,10 @@ class CustomTemplateBuilder extends Component {
                 </div>
                 <div className={styles.rightColumn}>
                     <div className={styles.header}>Template Preview:</div>
-                    <ProjectTemplatePreview 
+                    <ProjectTemplatePreview
                         template={this.state.importedTemplate}
                         selectable={true}
+                        placeholderText={"Please select a template action from the options on the left"}
                         onCheckedChange={this.handleCheckedChange} />
                 </div>
             </div>

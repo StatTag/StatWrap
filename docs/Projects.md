@@ -10,6 +10,8 @@ The project list is something specific to the _user_ of StatWrap. This is their 
 
 Note that the `path` is also considered something specific to the user. While a project path could be shared - a URL, a shared file server - we also have local projects that might get shipped around. The `path` attribute will capture where the root of the project exists for this user.
 
+After successfully creating a project, linking an existing project, or cloning a project, StatWrap selects it as the current project once it appears in the project list. If the previously selected project has unsaved changes, the usual confirmation to discard those changes is shown before switching.
+
 ### File Location
 
 The list of projects will be stored in the user's application data folder, in a file named `.statwrap-projects.json`. The application data directory will be found using [Electron's `app.getPath('userData')`](https://www.electronjs.org/docs/api/app#appgetpathname).
