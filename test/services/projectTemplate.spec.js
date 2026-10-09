@@ -27,6 +27,7 @@ describe('services', () => {
     beforeEach(() => {
       mockWriteZip.mockClear();
       mockAddLocalFolder.mockClear();
+      fs.lstatSync.mockReset();
 
       if (fs.existsSync) {
         fs.existsSync.mockImplementation((path) => {
@@ -195,6 +196,48 @@ describe('services', () => {
         service.createTemplateContents('/Project/Dir', 'STATWRAP-BASIC', '1');
         expect(fs.copyFileSync).toHaveBeenCalledTimes(1);
         expect(fs.mkdirSync).toHaveBeenCalledTimes(4);
+      });
+
+      it('should reject a symbolic-link file destination without copying through it', () => {
+        fs.realpathSync.mockImplementation((p) => p);
+        fs.lstatSync.mockReturnValue({
+          isSymbolicLink: () => true,
+          isDirectory: () => false,
+        });
+
+        expect(() => new ProjectTemplateService().createTemplateContentsFromContents(
+          '/Project/Dir',
+          [{ name: 'README.md', type: 'file', path: '/template/README.md' }],
+        )).toThrow(/symbolic link/);
+        expect(fs.copyFileSync).not.toHaveBeenCalled();
+      });
+
+      it('should reject a symbolic-link directory destination', () => {
+        fs.realpathSync.mockImplementation((p) => p);
+        fs.lstatSync.mockReturnValue({
+          isSymbolicLink: () => true,
+          isDirectory: () => false,
+        });
+
+        expect(() => new ProjectTemplateService().createTemplateContentsFromContents(
+          '/Project/Dir',
+          [{ name: 'data', type: 'directory', contents: [] }],
+        )).toThrow(/symbolic link/);
+        expect(fs.mkdirSync).not.toHaveBeenCalled();
+      });
+
+      it('should reject an existing regular file destination instead of overwriting it', () => {
+        fs.realpathSync.mockImplementation((p) => p);
+        fs.lstatSync.mockReturnValue({
+          isSymbolicLink: () => false,
+          isDirectory: () => false,
+        });
+
+        expect(() => new ProjectTemplateService().createTemplateContentsFromContents(
+          '/Project/Dir',
+          [{ name: 'README.md', type: 'file', path: '/template/README.md' }],
+        )).toThrow(/destination already exists/);
+        expect(fs.copyFileSync).not.toHaveBeenCalled();
       });
     });
 
@@ -427,6 +470,12 @@ describe('services', () => {
         ];
         new ProjectTemplateService().createTemplateContentsFromContents('/project', contents);
         expect(fs.copyFileSync).toHaveBeenCalledTimes(2);
+        expect(fs.copyFileSync).toHaveBeenNthCalledWith(
+          1,
+          '/source/README.md',
+          '/project/README.md',
+          fs.constants.COPYFILE_EXCL,
+        );
         expect(fs.mkdirSync).toHaveBeenCalledTimes(1);
       });
     });

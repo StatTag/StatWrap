@@ -1,6 +1,6 @@
 # Project Templates
 
-StatWrap allows you to create templates for projects, which automate building a specific folder structure. When you create a new project (this is not available for an existing project/directory), the template defines the folder hierarchy that you would like created, and can optionally include some files (e.g., a README).
+StatWrap allows you to create templates for projects, which automate building a specific folder structure. When you create a new project (this is not available for an existing project/directory), the template defines the folder hierarchy that you would like created, and can optionally include some files (e.g., a README). Template application does not overwrite existing destination paths; if a template file or folder collides with an existing path, creation fails.
 
 ## Template Definition
 

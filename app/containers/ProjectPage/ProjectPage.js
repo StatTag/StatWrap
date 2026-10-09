@@ -353,6 +353,9 @@ class ProjectPage extends Component {
     // If there is an error, we need to exit since there's nothing we can do for updates.
     if (response.error) {
       console.warn(response.errorMessage);
+      if (this.state.selectedProject && response.projectId === this.state.selectedProject.id) {
+        this.setState({ selectedProjectChecklist: response });
+      }
       return;
     }
 

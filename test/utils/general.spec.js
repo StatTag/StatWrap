@@ -249,5 +249,43 @@ describe('utils', () => {
         expect(GeneralUtil.isValidResourceUrl('file:///Users/me/test.csv')).toBe(true);
       });
     });
+
+    describe('convertToSanitizedKebabCase', () => {
+      it('handles a null or undefined input string', () => {
+        expect(GeneralUtil.convertToSanitizedKebabCase(null)).toBe('empty');
+        expect(GeneralUtil.convertToSanitizedKebabCase(undefined)).toBe('empty');
+        expect(GeneralUtil.convertToSanitizedKebabCase('')).toBe('empty');
+        expect(GeneralUtil.convertToSanitizedKebabCase('    ')).toBe('empty');
+        expect(GeneralUtil.convertToSanitizedKebabCase('...!!!')).toBe('empty');
+      });
+
+      it('propagates errors when input coercion fails', () => {
+        const invalidInput = {
+          [Symbol.toPrimitive]() {
+            throw new Error('coercion failed');
+          },
+        };
+
+        expect(() => GeneralUtil.convertToSanitizedKebabCase(invalidInput)).toThrow('coercion failed');
+      });
+
+      it('handles non-string input without errors', () => {
+        expect(GeneralUtil.convertToSanitizedKebabCase(42)).toBe('42');
+        expect(GeneralUtil.convertToSanitizedKebabCase(0x54)).toBe('84');
+        expect(GeneralUtil.convertToSanitizedKebabCase({ "test": 42, "asdf": [1, 2, 3]})).toBe('object-object');
+      });
+
+      it('echoes back simple strings with appropriate kebab case formatting', () => {
+        expect(GeneralUtil.convertToSanitizedKebabCase('a')).toBe('a');
+        expect(GeneralUtil.convertToSanitizedKebabCase('AbCd Efg HiJK!')).toBe('ab-cd-efg-hi-jk');
+        expect(GeneralUtil.convertToSanitizedKebabCase('Let\'s try it with real words this time?')).toBe('lets-try-it-with-real-words-this-time');
+      });
+
+      it('removes any path traversals', () => {
+        expect(GeneralUtil.convertToSanitizedKebabCase('../testFile.zip')).toBe('test-file-zip');
+        expect(GeneralUtil.convertToSanitizedKebabCase('C:\\System\\../asdf')).toBe('c-system-asdf');
+        expect(GeneralUtil.convertToSanitizedKebabCase('/root/all../../......./the~secrets')).toBe('root-all-the-secrets');
+      });
+    });
   });
 });

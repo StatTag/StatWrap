@@ -5,13 +5,13 @@ import EditIcon from '@mui/icons-material/Edit';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-function ProjectTemplateList({ 
-  templates, 
-  selectedTemplate = null, 
-  onSelect, 
-  onEdit, 
-  onExport, 
-  onDelete 
+function ProjectTemplateList({
+  templates,
+  selectedTemplate = null,
+  onSelect,
+  onEdit,
+  onExport,
+  onDelete
  }) {
   let projectTypeList = null;
   if (templates !== null) {
@@ -25,10 +25,10 @@ function ProjectTemplateList({
         key={type.id}
         onClick={() => onSelect(type.id, type.version)}
       >
-        <ListItemText 
+        <ListItemText
           primary={
             <span>
-            {type.name} 
+            {type.name}
             {type.isCustom && (
                 <Chip
                   label="Custom"
@@ -64,7 +64,7 @@ function ProjectTemplateList({
             <Tooltip title="Export as ZIP">
               <IconButton
                 size="small"
-                onClick={() => onExport && onExport(type.id)}
+                onClick={() => onExport && onExport(type)}
               >
                 <FileUploadIcon fontSize="small" />
               </IconButton>

@@ -13,6 +13,8 @@ import { app, shell, BrowserWindow, ipcMain, screen, dialog } from 'electron';
 // import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
+import AdmZip from 'adm-zip';
 import { URL } from 'url';
 import { orderBy, template } from 'lodash';
 import { initialize, enable as enableRemote } from '@electron/remote/main';
@@ -30,6 +32,7 @@ import Messages from './constants/messages';
 import Constants from './constants/constants';
 import AssetsConfig, { attributes } from './constants/assets-config';
 import AssetUtil from './utils/asset';
+import GeneralUtil from './utils/general';
 import ProjectUtil from './utils/project';
 import LogService from './services/log';
 import ChecklistService from './services/checklist';
@@ -789,7 +792,18 @@ ipcMain.on(
     };
 
     try {
-      checklistService.writeChecklist(projectPath, checklist);
+      const migration = checklistService.writeChecklist(projectPath, checklist);
+      if (migration) {
+        logService.writeLog(
+          projectPath.replace('~', os.homedir()),
+          Constants.ActionType.CHECKLIST_UPDATED,
+          'Checklist format migrated',
+          `Migrated checklist from version ${migration.fromVersion} to version ${migration.toVersion}.`,
+          migration,
+          'info',
+          user,
+        );
+      }
       logService.writeLog(projectPath, actionType, title, description, details, level, user);
     } catch (e) {
       response.error = true;
@@ -828,7 +842,7 @@ ipcMain.on(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, async (event, project) => {
     return;
   }
 
-  checklistService.loadChecklist(project.path, (error, checklist) => {
+  checklistService.loadChecklist(project.path, (error, checklist, migration) => {
     // This checks for error when there is issue reading the checklist file,
     // not when the checklist file is not found. For the latter, we return an empty array.
     if (error && !checklist) {
@@ -838,6 +852,24 @@ ipcMain.on(Messages.LOAD_PROJECT_CHECKLIST_REQUEST, async (event, project) => {
       return;
     }
 
+    if (migration) {
+      try {
+        logService.writeLog(
+          project.path.replace('~', os.homedir()),
+          Constants.ActionType.CHECKLIST_UPDATED,
+          'Checklist format migrated',
+          `Migrated checklist from version ${migration.fromVersion} to version ${migration.toVersion}.`,
+          migration,
+          'info',
+        );
+      } catch (err) {
+        response.error = true;
+        response.errorMessage = `There was an error logging the checklist migration: ${err.message}`;
+        console.log(err);
+        event.sender.send(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, response);
+        return;
+      }
+    }
     response.checklist = checklist;
     event.sender.send(Messages.LOAD_PROJECT_CHECKLIST_RESPONSE, response);
   });
@@ -1494,8 +1526,6 @@ ipcMain.on(Messages.IMPORT_PROJECT_TEMPLATE_ZIP_REQUEST, async (event) => {
       return;
     }
 
-    const AdmZip = require('adm-zip');
-
     // Create a temporary directory for extraction
     const tempDir = path.join(
       app.getPath('temp'),
@@ -1555,18 +1585,28 @@ ipcMain.on(Messages.IMPORT_PROJECT_TEMPLATE_ZIP_REQUEST, async (event) => {
 /**
  * Export the  Custom Template as ZIP folder(.zip)
  */
-ipcMain.on(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_REQUEST, async (event, templateId) => {
+ipcMain.on(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_REQUEST, async (event, template) => {
   const response = {
     canceled: false,
     error: false,
     errorMessage: '',
   };
   try {
+    // Make sure we have a valid template object with the ID and the name provided.
+    if (template == null || template == undefined ||
+        template.id == null || template.id == undefined ||
+        template.name == null || template.name == undefined || template.name.trim() == '') {
+      response.canceled = true;
+      event.sender.send(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_RESPONSE, response);
+      return;
+    }
+
     const parentWindow = BrowserWindow.fromWebContents(event.sender) || mainWindow;
+    const templateFileName = GeneralUtil.convertToSanitizedKebabCase(template.name);
     // Open a Save dialog that asks where to save the .zip file
     const result = await dialog.showSaveDialog(parentWindow, {
       title: 'Export Template',
-      defaultPath: `${templateId}.zip`,
+      defaultPath: `${templateFileName}.zip`,
       filters: [
         { name: 'ZIP Archive', extensions: ['zip'] },
       ],
@@ -1583,7 +1623,7 @@ ipcMain.on(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_REQUEST, async (event, templa
     }
     projectTemplateService.exportCustomTemplate(
       getCustomTemplatesDir(),
-      templateId,
+      template.id,
       exportPath,
     );
   } catch (e) {

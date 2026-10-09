@@ -175,37 +175,81 @@ function copyContentsAndUpdatePaths(contents, targetBaseDir) {
   });
 }
 
-//Function to confirm target path is strictly inside target directory i.e to prevent the path traversal
-function isSafeTargetPath(baseDir, targetPath) {
+/**
+ * Inspect a path without following symbolic links.
+ * @param {string} targetPath The path to inspect
+ * @returns {object|null} The filesystem stats, or null if the path does not exist
+ * @throws {Error} If the path cannot be inspected for a reason other than not existing
+ */
+function getExistingPathStat(targetPath) {
+  try {
+    // lstat preserves symlink identity; stat would follow the link before it can be rejected.
+    return fs.lstatSync(targetPath) || null;
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return null;
+    }
+    throw error;
+  }
+}
 
-  const resolvedBase = fs.existsSync(baseDir)
-    ? fs.realpathSync(baseDir)
-    : path.resolve(baseDir);
-
-  // Normalize target path
+/**
+ * Verify a template destination is contained, symlink-free, and does not already exist.
+ * @param {string} baseDir The resolved root directory for template creation
+ * @param {string} targetPath The destination path to validate
+ * @returns {undefined} Completes if the destination is safe to create
+ * @throws {Error} If the destination escapes the root, traverses a symlink, or already exists
+ */
+function assertSafeTargetPath(baseDir, targetPath) {
+  const resolvedBase = fs.realpathSync(baseDir);
   const resolvedTarget = path.resolve(targetPath);
-
   const relative = path.relative(resolvedBase, resolvedTarget);
 
-  return relative && !relative.startsWith('..') && !path.isAbsolute(relative);
+  if (!relative || relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    throw new Error('Security Exception: Blocked path traversal attempt to write outside project directory.');
+  }
+
+  const pathSegments = relative.split(path.sep);
+  let currentPath = resolvedBase;
+  // Lexical containment alone is insufficient because an in-project parent may redirect writes.
+  pathSegments.forEach((segment, index) => {
+    currentPath = path.join(currentPath, segment);
+    const stat = getExistingPathStat(currentPath);
+    if (!stat) {
+      return;
+    }
+
+    if (stat.isSymbolicLink()) {
+      throw new Error(`Security Exception: Refusing to write through symbolic link at ${currentPath}.`);
+    }
+
+    const isDestination = index === pathSegments.length - 1;
+    if (isDestination) {
+      throw new Error(`Template destination already exists: ${currentPath}`);
+    }
+    if (!stat.isDirectory()) {
+      throw new Error(`Template destination parent is not a directory: ${currentPath}`);
+    }
+  });
 }
 
 // For a given template, create all of the files and folders in dirPath
 // This handles recursively defined template structures.
-function createAllTemplateItems(dirPath, contents, rootDirPath = dirPath) {
+function createAllTemplateItems(dirPath, contents, rootDirPath) {
+  const resolvedRootDir = rootDirPath || fs.realpathSync(dirPath);
+  const resolvedDirPath = fs.realpathSync(dirPath);
+
   contents.forEach(function (item) {
     const rootName = path.basename(item.name);
-    const newPath = path.join(dirPath, rootName);
-
-    if(!isSafeTargetPath(rootDirPath, newPath)){
-      throw new Error(`Security Exception: Blocked path traversal attempt to write outside project directory.`);
-    }
+    const newPath = path.join(resolvedDirPath, rootName);
+    assertSafeTargetPath(resolvedRootDir, newPath);
 
     if (item.type === Constants.AssetType.FILE) {
-      fs.copyFileSync(item.path, newPath);
+      // The exclusive flag also prevents a symlink introduced after validation from being followed.
+      fs.copyFileSync(item.path, newPath, fs.constants.COPYFILE_EXCL);
     } else {
       fs.mkdirSync(newPath);
-      createAllTemplateItems(newPath, item.contents, rootDirPath);
+      createAllTemplateItems(newPath, item.contents, resolvedRootDir);
     }
   });
 }

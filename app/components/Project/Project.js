@@ -323,7 +323,7 @@ class Project extends Component{
     this.upsertNoteHandler(
       checklistItem,
       EntityType.CHECKLIST,
-      checklistItem.name,
+      checklistItem.statement,
       action,
       text,
       note
@@ -574,7 +574,7 @@ class Project extends Component{
     const actionDescription = this.deleteNoteHandler(
       checklistItem,
       EntityType.CHECKLIST,
-      checklistItem.name,
+      checklistItem.statement,
       note
     );
     // Once the checklist item is updated, we must also update the entire checklist linked to the project.

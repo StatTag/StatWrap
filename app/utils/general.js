@@ -1,6 +1,8 @@
 const DefaultDisplayName = '(empty)';
 const path = require('path');
 const fs = require('fs');
+const sanitize = require("sanitize-filename");
+const _ = require('lodash');
 const AllowedUrlProtocols = ['http:', 'https:', 'ftp:', 'ssh:', 'file:', 'ws:', 'wss:', 'smb:', 's3:']
 
 export default class GeneralUtil {
@@ -214,4 +216,25 @@ export default class GeneralUtil {
       return null;
     }
   };
+
+  /**
+   * This function will take a string and convert it to kebab case, while
+   * also running it through a sanitization routine.  If using this to
+   * create a file name, do not include any part of the path or file extension
+   * as those will be included in the final name.
+   * e.g., /test/file.zip --> test-file-zip
+   *
+   * @param {string} text The text we want to convert to kebab case
+   * @returns {string} Sanitized kebab case
+   */
+  static convertToSanitizedKebabCase(text) {
+      // lodash.kebabCase will take care of scrubbing extra characters that could mess up
+      // a path, but we will add in the sanitize() call to be extra safe.
+      var kebabText = _.kebabCase(text);
+      kebabText = sanitize(kebabText);
+      if (kebabText == '') {
+        return 'empty';
+      }
+      return kebabText;
+  }
 }
