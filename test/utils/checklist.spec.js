@@ -1090,6 +1090,9 @@ describe('utils', () => {
         expect(ChecklistUtil.findVersionControl({ uri: '/path/to/project' })).toEqual({
           versionControl: [],
         });
+      });
+    });
+
     describe('sortChecklist', () => {
       it('sorts solely by order without mutating input or identities', () => {
         const items = [
