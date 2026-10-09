@@ -33,6 +33,7 @@ const scanFunctions = {
   Data: ChecklistUtil.findDataFiles,
   Entrypoint: ChecklistUtil.findEntryPointFiles,
   Documentation: ChecklistUtil.findDocumentationFiles,
+  VersionControl: ChecklistUtil.findVersionControl,
 };
 
 /**
