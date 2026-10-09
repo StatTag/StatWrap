@@ -30,6 +30,10 @@ This is just the registry of available templates, however. The actual template c
 
 Note that a template is then uniquely identified by `id` + `version`, and this is intended to represent the ID along with the **active** version of the template. The reason we are associating a version with the template in addition to a unique ID is to allow future detection if a template has been updated and there is some future action we may want to trigger in that event. For example, we could allow the user to import missing items, if they wished. The other versions of the template could still be around for reference. At this time no specific features are planned, but we want this level of data to be available.
 
+## Custom Template Export
+
+Custom templates can be exported as ZIP archives containing their associated files. Export IDs must identify a single directory, not a path. The export service rejects path traversal and template directories that resolve outside the custom-template file store, including symbolic-link redirects. Validation failures are reported as export errors without writing an archive.
+
 ### TODO
 
 - Allow user-defined templates to be specified, saved, and loaded.

@@ -147,4 +147,15 @@ describe('checklist v2 definitions', () => {
       .toEqual(Constants.CHECKLIST_DEFAULTS.map((item) => item.id));
     expect(JSON.stringify(items)).toBe(snapshot);
   });
+
+  it('does not export non-canonical default items without a recognized scan association', () => {
+    const item = {
+      ...ChecklistUtil.initializeChecklist()[0],
+      id: 'noncanonical-default',
+      scanKey: null,
+    };
+    expect(() => ChecklistUtil.generateChecklistExport([item])).toThrow(
+      'Default checklist items must have a recognized scan association.',
+    );
+  });
 });

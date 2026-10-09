@@ -54,10 +54,21 @@ describe('checklist v2 format', () => {
       { scanKey: null }, { source: 'custom' }, { answer: 'yes' },
       { description: null }, { notes: null }, { assets: {} },
       { subChecklist: null }, { scanResult: [] },
+      { id: 'noncanonical-default', source: 'default', scanKey: null },
     ])('rejects invalid current-version metadata: %p', (properties) => {
       const checklist = ChecklistUtil.initializeChecklist();
       checklist[0] = { ...checklist[0], ...properties };
       expect(() => ChecklistUtil.validateChecklist(checklist)).toThrow();
+    });
+
+    it('accepts custom items without scan associations', () => {
+      const checklist = [{
+        ...ChecklistUtil.initializeChecklist()[0],
+        id: 'custom-item',
+        source: 'custom',
+        scanKey: null,
+      }];
+      expect(ChecklistUtil.validateChecklist(checklist)).toBe(checklist);
     });
 
     it('repairs duplicate IDs and orders without mutating or dropping items', () => {

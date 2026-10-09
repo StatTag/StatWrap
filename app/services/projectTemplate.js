@@ -464,13 +464,35 @@ export default class ProjectTemplateService {
   };
 
   /**
-   * Export a custom template
+   * Export a custom template without reading outside the template file store.
+   * @param {string} customTemplatesDir The custom-template store directory
+   * @param {string} templateId The template's single-component directory ID
+   * @param {string} exportPath The destination ZIP path
+   * @returns {undefined} Completes after writing the ZIP
+   * @throws {Error} If the ID is unsafe, the source escapes the store, or export fails
    */
   exportCustomTemplate = (customTemplatesDir, templateId, exportPath) => {
+    if (typeof templateId !== 'string' || !templateId ||
+        templateId === '.' || templateId === '..' ||
+        /[/\\:]/.test(templateId) || templateId.includes('\0')) {
+      throw new Error('Invalid custom template ID.');
+    }
+
+    const filesDir = path.join(customTemplatesDir, 'files', templateId);
+    const filesExist = fs.existsSync(filesDir);
+    if (filesExist) {
+      // Resolve links as well as ".." so a template directory cannot redirect the export.
+      const filesRoot = path.join(fs.realpathSync(customTemplatesDir), 'files');
+      const relative = path.relative(filesRoot, fs.realpathSync(filesDir));
+      if (!relative || relative === '..' ||
+          relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+        throw new Error('Security Exception: Cannot export files outside the custom-template store.');
+      }
+    }
+
     const zip = new AdmZip();
     // 1. Add the template's associated files directly into the ZIP root
-    const filesDir = path.join(customTemplatesDir, 'files', templateId);
-    if (fs.existsSync(filesDir)) {
+    if (filesExist) {
       zip.addLocalFolder(filesDir, "");
     }
     // 2. Write the ZIP buffer to the exportPath

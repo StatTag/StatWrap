@@ -93,7 +93,7 @@ export default class ChecklistUtil {
       const scan = Constants.CHECKLIST_DEFAULTS.find((entry) => entry.scanKey === item.scanKey);
       if (builtin
         ? item.scanKey !== builtin.scanKey || item.source !== Constants.ChecklistItemSource.DEFAULT
-        : item.scanKey !== null && (!scan || item.source !== Constants.ChecklistItemSource.DEFAULT)) {
+        : item.source === Constants.ChecklistItemSource.DEFAULT ? !scan : item.scanKey !== null) {
         throw new Error(`${label} has conflicting or unknown scan metadata.`);
       }
       if (typeof item.answer !== 'boolean' || typeof item.description !== 'string'
@@ -292,13 +292,20 @@ export default class ChecklistUtil {
       type: Constants.CHECKLIST_EXPORT_TYPE,
       version: Constants.CHECKLIST_VERSION,
       exportedAt: new Date().toISOString(),
-      checklists: ChecklistUtil.sortChecklist(checklist).map((item) => ({
-        id: item.id,
-        statement: item.statement,
-        description: item.description || '',
-        source: item.source || Constants.ChecklistItemSource.CUSTOM,
-        scanKey: ChecklistUtil.getItemScanKey(item),
-      })),
+      checklists: ChecklistUtil.sortChecklist(checklist).map((item) => {
+        const source = item.source || Constants.ChecklistItemSource.CUSTOM;
+        const scanKey = ChecklistUtil.getItemScanKey(item);
+        if (source === Constants.ChecklistItemSource.DEFAULT && !scanKey) {
+          throw new Error('Default checklist items must have a recognized scan association.');
+        }
+        return {
+          id: item.id,
+          statement: item.statement,
+          description: item.description || '',
+          source,
+          scanKey,
+        };
+      }),
     };
   }
 

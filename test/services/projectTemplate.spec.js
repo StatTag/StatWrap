@@ -650,6 +650,10 @@ describe('services', () => {
     });
 
     describe('exportCustomTemplate', () => {
+      beforeEach(() => {
+        fs.realpathSync.mockImplementation((p) => p);
+      });
+
       it('should create a ZIP at the export path containing the template files', () => {
         fs.existsSync.mockReturnValue(true);
         new ProjectTemplateService().exportCustomTemplate(
@@ -659,9 +663,87 @@ describe('services', () => {
         );
         expect(mockWriteZip).toHaveBeenCalledWith('/exports/TPL-123.zip');
         expect(mockAddLocalFolder).toHaveBeenCalledWith(
-          expect.stringContaining('files'),
+          '/custom-templates/files/TPL-123',
           '',
         );
+      });
+
+      it.each([
+        null, undefined, '', 123, {}, '.', '..',
+        '../outside', '../../outside', '../files-other',
+        'nested/../../outside', 'nested/template', '/outside',
+        '..\\outside', 'nested\\template', 'C:\\outside', 'C:outside',
+        '\\\\server\\share', 'TPL-123\0',
+      ])('should reject unsafe template ID %p before accessing files or writing a ZIP', (templateId) => {
+        expect(() => new ProjectTemplateService().exportCustomTemplate(
+          '/custom-templates',
+          templateId,
+          '/exports/template.zip',
+        )).toThrow('Invalid custom template ID.');
+        expect(fs.existsSync).not.toHaveBeenCalled();
+        expect(fs.realpathSync).not.toHaveBeenCalled();
+        expect(mockAddLocalFolder).not.toHaveBeenCalled();
+        expect(mockWriteZip).not.toHaveBeenCalled();
+      });
+
+      it.each([
+        '/outside',
+        '/custom-templates/files-other/TPL-123',
+        '/custom-templates/files',
+      ])('should reject a template directory resolving to %s', (resolvedPath) => {
+        fs.existsSync.mockReturnValue(true);
+        fs.realpathSync.mockImplementation((p) => (
+          p === '/custom-templates' ? p : resolvedPath
+        ));
+
+        expect(() => new ProjectTemplateService().exportCustomTemplate(
+          '/custom-templates',
+          'TPL-123',
+          '/exports/template.zip',
+        )).toThrow(/outside the custom-template store/);
+        expect(mockAddLocalFolder).not.toHaveBeenCalled();
+        expect(mockWriteZip).not.toHaveBeenCalled();
+      });
+
+      it('should allow a custom-template store reached through a symbolic link', () => {
+        fs.existsSync.mockReturnValue(true);
+        fs.realpathSync.mockImplementation((p) => p.replace('/custom-templates', '/real-store'));
+
+        new ProjectTemplateService().exportCustomTemplate(
+          '/custom-templates',
+          'TPL-123',
+          '/exports/template.zip',
+        );
+        expect(mockAddLocalFolder).toHaveBeenCalledWith('/custom-templates/files/TPL-123', '');
+        expect(mockWriteZip).toHaveBeenCalledWith('/exports/template.zip');
+      });
+
+      it('should preserve empty exports for templates with no files directory', () => {
+        fs.existsSync.mockReturnValue(false);
+
+        new ProjectTemplateService().exportCustomTemplate(
+          '/custom-templates',
+          'TPL-123',
+          '/exports/template.zip',
+        );
+        expect(fs.realpathSync).not.toHaveBeenCalled();
+        expect(mockAddLocalFolder).not.toHaveBeenCalled();
+        expect(mockWriteZip).toHaveBeenCalledWith('/exports/template.zip');
+      });
+
+      it('should propagate source resolution errors without writing a ZIP', () => {
+        fs.existsSync.mockReturnValue(true);
+        fs.realpathSync.mockImplementation(() => {
+          throw new Error('Permission denied');
+        });
+
+        expect(() => new ProjectTemplateService().exportCustomTemplate(
+          '/custom-templates',
+          'TPL-123',
+          '/exports/template.zip',
+        )).toThrow('Permission denied');
+        expect(mockAddLocalFolder).not.toHaveBeenCalled();
+        expect(mockWriteZip).not.toHaveBeenCalled();
       });
     });
   });
