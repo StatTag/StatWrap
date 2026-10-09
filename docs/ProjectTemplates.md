@@ -1,6 +1,6 @@
 # Project Templates
 
-StatWrap allows you to create templates for projects, which automate building a specific folder structure. When you create a new project (this is not available for an existing project/directory), the template defines the folder hierarchy that you would like created, and can optionally include some files (e.g., a README).
+StatWrap allows you to create templates for projects, which automate building a specific folder structure. When you create a new project (this is not available for an existing project/directory), the template defines the folder hierarchy that you would like created, and can optionally include some files (e.g., a README). Template application does not overwrite existing destination paths; if a template file or folder collides with an existing path, creation fails.
 
 ## Template Definition
 
@@ -29,6 +29,10 @@ For example, the `Empty project` template is defined as follows:
 This is just the registry of available templates, however. The actual template content is found under `app/templates` in a directory tied to the `id` and `version`. This is to make the process of creating and applying templates more straightforward (e.g., `STATWRAP-EMPTY/1` for version 1 of the `STATWRAP-EMPTY` template).
 
 Note that a template is then uniquely identified by `id` + `version`, and this is intended to represent the ID along with the **active** version of the template. The reason we are associating a version with the template in addition to a unique ID is to allow future detection if a template has been updated and there is some future action we may want to trigger in that event. For example, we could allow the user to import missing items, if they wished. The other versions of the template could still be around for reference. At this time no specific features are planned, but we want this level of data to be available.
+
+## Custom Template Export
+
+Custom templates can be exported as ZIP archives containing their associated files. Export IDs must identify a single directory, not a path. The export service rejects path traversal and template directories that resolve outside the custom-template file store, including symbolic-link redirects. Validation failures are reported as export errors without writing an archive.
 
 ### TODO
 

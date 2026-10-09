@@ -13,13 +13,13 @@ export default class ChecklistUtil {
    */
   static initializeChecklist() {
     const checklist = [];
-    Constants.CHECKLIST.forEach((statement, index) => {
+    Constants.CHECKLIST_DEFAULTS.forEach((item, index) => {
       checklist.push({
-        id: index + 1,
-        uid: uuidv4(), 
-        order: index + 1, 
-        name: statement[0],
-        statement: statement[1],
+        id: item.id,
+        order: index + 1,
+        scanKey: item.scanKey,
+        statement: item.statement,
+        description: item.description,
         answer: false,
         scanResult: {},
         notes: [],
@@ -33,15 +33,240 @@ export default class ChecklistUtil {
 
 
   /**
-   * Sanitizes a checklist name by trimming whitespace and enforcing the max length.
-   * @param {string} name The raw name string to sanitize
-   * @returns {string} The sanitized name, or empty string if input is invalid
+   * Sanitizes question text by trimming whitespace and enforcing the max length.
+   * @param {string} statement The raw question text
+   * @returns {string} The sanitized statement, or empty string if input is invalid
    */
-  static sanitizeChecklistName(name) {
-    if (typeof name !== 'string') {
+  static sanitizeChecklistStatement(statement) {
+    if (typeof statement !== 'string') {
       return '';
     }
-    return name.trim().substring(0, Constants.CHECKLIST_NAME_MAX_LENGTH);
+    return statement.trim().substring(0, Constants.CHECKLIST_STATEMENT_MAX_LENGTH);
+  }
+
+  /**
+   * Trims and limits string IDs, or generates a UUID for non-string input.
+   * @param {*} id The user-supplied ID to sanitize
+   * @returns {string} The trimmed, length-limited ID (possibly blank), or a new UUID for non-string input
+   */
+  static sanitizeChecklistID(id) {
+    if (typeof id !== 'string') {
+      return uuidv4();
+    }
+    return id.trim().substring(0, Constants.CHECKLIST_ID_MAX_LENGTH).trim();
+  }
+
+  /**
+   * Validates current checklist fields and repairs duplicate IDs and orders without mutating input.
+   * Later ID duplicates receive UUIDs; later order duplicates move to the end and orders are renumbered.
+   * @param {Array} checklist The current-version checklist items to validate
+   * @returns {Array} The original array if unchanged, or repaired items preserving content and unknown fields
+   * @throws {Error} If known fields are invalid or a unique replacement ID cannot be generated in five attempts
+   */
+  static validateChecklist(checklist) {
+    if (!Array.isArray(checklist)) {
+      throw new Error('Checklist must be an array.');
+    }
+    checklist.forEach((item, index) => {
+      const label = `Checklist item ${index + 1}`;
+      if (!item || typeof item !== 'object' || Array.isArray(item)) {
+        throw new Error(`${label} must be an object.`);
+      }
+      if (Object.prototype.hasOwnProperty.call(item, 'uid')
+        || Object.prototype.hasOwnProperty.call(item, 'name')) {
+        throw new Error(`${label} contains a legacy name or uid field.`);
+      }
+      if (typeof item.id !== 'string' || !item.id.trim()
+        || ChecklistUtil.sanitizeChecklistID(item.id) !== item.id) {
+        throw new Error(`${label} must have a valid string ID without surrounding whitespace.`);
+      }
+      if (!Number.isInteger(item.order) || item.order < 1 || item.order > checklist.length) {
+        throw new Error(`${label} must have an order between 1 and ${checklist.length}.`);
+      }
+      if (typeof item.statement !== 'string' || !item.statement.trim()) {
+        throw new Error(`${label} must have a nonblank statement.`);
+      }
+      if (!Object.values(Constants.ChecklistItemSource).includes(item.source)) {
+        throw new Error(`${label} has an invalid source.`);
+      }
+      const builtin = Constants.CHECKLIST_DEFAULTS.find((entry) => entry.id === item.id);
+      const scan = Constants.CHECKLIST_DEFAULTS.find((entry) => entry.scanKey === item.scanKey);
+      if (builtin
+        ? item.scanKey !== builtin.scanKey || item.source !== Constants.ChecklistItemSource.DEFAULT
+        : item.source === Constants.ChecklistItemSource.DEFAULT ? !scan : item.scanKey !== null) {
+        throw new Error(`${label} has conflicting or unknown scan metadata.`);
+      }
+      if (typeof item.answer !== 'boolean' || typeof item.description !== 'string'
+        || !item.scanResult || typeof item.scanResult !== 'object' || Array.isArray(item.scanResult)
+        || ['notes', 'assets', 'subChecklist'].some((key) => !Array.isArray(item[key]))) {
+        throw new Error(`${label} has invalid answer, description, scan results, or collections.`);
+      }
+    });
+    const reservedIds = new Set(checklist.map((item) => item.id));
+    const ids = new Set();
+    const orders = new Set();
+    const duplicates = [];
+    let changed = false;
+    const retained = [];
+    checklist.forEach((item) => {
+      let updated = item;
+      if (ids.has(item.id)) {
+        let id;
+        let attempts = 0;
+        do {
+          id = uuidv4();
+          attempts++;
+        } while (reservedIds.has(id) && attempts < 5);
+        if (reservedIds.has(id)) {
+          throw new Error('Unable to correct a duplicated checklist item ID.');
+        }
+        reservedIds.add(id);
+        updated = { ...item, id };
+        changed = true;
+      }
+      ids.add(item.id);
+      if (orders.has(item.order)) {
+        duplicates.push(updated);
+      } else {
+        orders.add(item.order);
+        retained.push(updated);
+      }
+    });
+    if (duplicates.length) {
+      return ChecklistUtil.renumberChecklist([
+        ...retained.sort((a, b) => a.order - b.order),
+        ...duplicates,
+      ]);
+    }
+    return changed ? retained : checklist;
+  }
+
+  /**
+   * Converts legacy items to the current schema, recovering identities, questions, and scan associations.
+   * Preserves content and unknown metadata while removing top-level name/uid and normalizing order.
+   * @param {Array} checklist The version 1 checklist items
+   * @returns {Array} Converted, validated items without mutating the legacy input or nested identities
+   * @throws {Error} If legacy data is malformed, recognized metadata conflicts, or validation/repair fails
+   */
+  static convertChecklistV1(checklist) {
+    if (!Array.isArray(checklist)) {
+      throw new Error('Version 1 checklist must be an array.');
+    }
+    const legacyOrders = new Set();
+    const positioned = checklist.map((item, index) => {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) {
+        throw new Error(`Version 1 checklist item ${index + 1} must be an object.`);
+      }
+      if (item.source !== undefined && (typeof item.source !== 'string'
+        || !Object.values(Constants.ChecklistItemSource).includes(item.source.trim().toLowerCase()))) {
+        throw new Error(`Version 1 checklist item ${index + 1} has an invalid source.`);
+      }
+      const position = Number.isInteger(item.order) && item.order > 0 ? item.order
+        : Number.isInteger(item.id) && item.id > 0 ? item.id : index + 1;
+      const duplicateOrder = Number.isInteger(item.order) && item.order > 0
+        && legacyOrders.has(item.order);
+      legacyOrders.add(item.order);
+      return { item, index, position, duplicateOrder };
+    }).sort((a, b) => Number(a.duplicateOrder) - Number(b.duplicateOrder)
+      || (a.duplicateOrder ? a.index - b.index : a.position - b.position || a.index - b.index));
+
+    const converted = positioned.map(({ item, index }, orderIndex) => {
+      const label = `Version 1 checklist item ${index + 1}`;
+      const custom = typeof item.source === 'string'
+        && item.source.trim().toLowerCase() === Constants.ChecklistItemSource.CUSTOM;
+      const byId = Constants.CHECKLIST_DEFAULTS.find((entry) => entry.id === item.id);
+      const scanKey = typeof item.scanKey === 'string' ? item.scanKey.trim() : null;
+      const legacyName = typeof item.name === 'string' ? item.name.trim() : null;
+      if (item.scanKey !== undefined && item.scanKey !== null && typeof item.scanKey !== 'string') {
+        throw new Error(`${label} has an invalid scan key.`);
+      }
+      const byScan = Constants.CHECKLIST_DEFAULTS.find((entry) => entry.scanKey === scanKey);
+      const byName = custom ? null
+        : Constants.CHECKLIST_DEFAULTS.find((entry) => entry.scanKey === legacyName);
+      const matches = [byId, byScan, byName].filter(Boolean);
+      if ((custom && matches.length)
+        || matches.some((entry) => entry.id !== matches[0].id)) {
+        throw new Error(`${label} has conflicting built-in identity or scan metadata.`);
+      }
+      const builtin = matches[0];
+      const statement = typeof item.statement === 'string' && item.statement.trim()
+        ? item.statement : builtin ? builtin.statement
+          : typeof item.name === 'string' && item.name.trim() ? item.name : null;
+      if (!statement) {
+        throw new Error(`${label} has no usable question text.`);
+      }
+      if (item.id !== undefined && typeof item.id !== 'string'
+        && (!Number.isInteger(item.id) || item.id < 1)) {
+        throw new Error(`${label} has an invalid legacy ID.`);
+      }
+      const retained = { ...item };
+      delete retained.name;
+      delete retained.uid;
+      return {
+        description: '',
+        answer: false,
+        scanResult: {},
+        notes: [],
+        assets: [],
+        subChecklist: [],
+        ...retained,
+        id: builtin ? builtin.id : ChecklistUtil.sanitizeChecklistID(item.id === undefined
+          || typeof item.id === 'number' ? undefined : item.id),
+        order: orderIndex + 1,
+        statement,
+        scanKey: builtin ? builtin.scanKey : null,
+        source: builtin ? Constants.ChecklistItemSource.DEFAULT
+          : item.source === undefined ? Constants.ChecklistItemSource.CUSTOM
+            : ChecklistUtil.sanitizeChecklistSource(item.source),
+      };
+    });
+    return ChecklistUtil.validateChecklist(converted);
+  }
+
+  /**
+   * Decodes parsed file data, converting legacy formats and validating known checklist fields.
+   * Preserves unknown envelope/item fields and does not downgrade future format versions.
+   * @param {Array|object} data A legacy item array or a parsed checklist containing version and items
+   * @returns {object} The checklist with version, validated items, and migratedFromVersion (1 or null).
+   * migratedFromVersion is internal metadata, not a persisted file field.
+   * @throws {Error} If the checklist structure/version is invalid or item conversion/validation fails
+   */
+  static parseChecklistFile(data) {
+    const array = Array.isArray(data);
+    if (!array && (!data || typeof data !== 'object' || !Array.isArray(data.checklist))) {
+      throw new Error('Checklist file must contain a checklist array.');
+    }
+    const version = array || !Object.prototype.hasOwnProperty.call(data, 'version') ? 1 : data.version;
+    if (!Number.isSafeInteger(version) || version < 1) {
+      throw new Error(`Invalid checklist file version "${version}".`);
+    }
+    const checklist = array ? data : data.checklist;
+    return {
+      ...(array ? {} : data),
+      version: version === 1 ? Constants.CHECKLIST_VERSION : version,
+      checklist: version === 1 ? ChecklistUtil.convertChecklistV1(checklist)
+        : ChecklistUtil.validateChecklist(checklist),
+      migratedFromVersion: version === 1 ? version : null,
+    };
+  }
+
+  /**
+   * Normalizes the source to default or custom.
+   * @param {*} source The source value to normalize
+   * @returns {string} `default` for a matching string; otherwise `custom`
+   */
+  static sanitizeChecklistSource(source) {
+    if (typeof source !== 'string') {
+      return Constants.ChecklistItemSource.CUSTOM;
+    }
+
+    // The only time we return anything other than 'custom' is when it is default, even
+    // if there is flanking whitespace or case issues.
+    if (source.trim().toLowerCase() == Constants.ChecklistItemSource.DEFAULT) {
+      return Constants.ChecklistItemSource.DEFAULT;
+    }
+
+      return Constants.ChecklistItemSource.CUSTOM;
   }
 
 
@@ -59,26 +284,36 @@ export default class ChecklistUtil {
 
 
   /**
-   * Generates the export JSON object containing only the checklist names and descriptions.
-   * Excludes notes, assets, scan results, contents, etc.
+   * Generates definitions with identity, question text, description, source, and scan association.
+   * Excludes project-specific answers, notes, assets, order, scan results, and unknown fields.
    * @param {Array} checklist The full checklist array from the project
    * @returns {Object} The export-ready JSON object
    */
   static generateChecklistExport(checklist) {
     return {
       type: Constants.CHECKLIST_EXPORT_TYPE,
-      version: Constants.CHECKLIST_EXPORT_VERSION,
+      version: Constants.CHECKLIST_VERSION,
       exportedAt: new Date().toISOString(),
-      checklists: checklist.map((item) => ({
-        name: item.statement || item.name || '',
-        description: item.description || '',
-      })),
+      checklists: ChecklistUtil.sortChecklist(checklist).map((item) => {
+        const source = item.source || Constants.ChecklistItemSource.CUSTOM;
+        const scanKey = ChecklistUtil.getItemScanKey(item);
+        if (source === Constants.ChecklistItemSource.DEFAULT && !scanKey) {
+          throw new Error('Default checklist items must have a recognized scan association.');
+        }
+        return {
+          id: item.id,
+          statement: item.statement,
+          description: item.description || '',
+          source,
+          scanKey,
+        };
+      }),
     };
   }
 
 
   /**
-   * Validates and extracts checklst items from an imported JSON object.
+   * Validates an export and extracts allowlisted definitions, skipping invalid or duplicate items.
    * @param {string} jsonString The raw JSON string from the imported file
    * @param {Array} existingChecklist The current checklist (for duplicate detection)
    * @returns {Object} { valid, error, items, skippedCount }
@@ -97,7 +332,7 @@ export default class ChecklistUtil {
       };
     }
 
-    // Validate the Structure 
+    // Validate the Structure
     if (!parsed || parsed.type !== Constants.CHECKLIST_EXPORT_TYPE) {
       return {
         valid: false,
@@ -118,6 +353,16 @@ export default class ChecklistUtil {
       };
     }
 
+    if (parsed.version !== Constants.CHECKLIST_VERSION) {
+      return {
+        valid: false,
+        error: `Unsupported checklist export version "${parsed.version}". `
+          + `Expected version ${Constants.CHECKLIST_VERSION}.`,
+        items: [],
+        skippedCount: 0,
+      };
+    }
+
     // Check that the array is not empty.
     if (parsed.checklists.length === 0) {
       return {
@@ -128,35 +373,76 @@ export default class ChecklistUtil {
       };
     }
 
-    // Extract and sanitize each item i.e. name and description
-    const existingNames = new Set(
-      existingChecklist.map((item) => (item.statement || item.name || '').toLowerCase())
+    const existingStatements = new Set(
+      existingChecklist.map((item) => ChecklistUtil.sanitizeChecklistStatement(item.statement).toLowerCase())
     );
+
+    const existingIds = new Set(existingChecklist.map((item) => item.id));
 
     const validItems = [];
     let skippedCount = 0;
+    const invalidReasons = [];
 
-    parsed.checklists.forEach((rawItem) => {
-      // Each item must have name 
-      if (!rawItem || typeof rawItem.name !== 'string' || rawItem.name.trim() === '') {
+    parsed.checklists.forEach((rawItem, index) => {
+      if (!rawItem || typeof rawItem !== 'object' || Array.isArray(rawItem)) {
         skippedCount++;
+        invalidReasons.push(`Item ${index + 1}: checklist item must be an object.`);
         return;
       }
 
-      const sanitizedName = ChecklistUtil.sanitizeChecklistName(rawItem.name);
+      const candidateId = typeof rawItem.id === 'string'
+        ? ChecklistUtil.sanitizeChecklistID(rawItem.id) : null;
+      const builtin = Constants.CHECKLIST_DEFAULTS.find((item) => item.id === candidateId);
+      if (builtin && (rawItem.statement !== builtin.statement
+        || (rawItem.description === undefined ? '' : rawItem.description) !== builtin.description
+        || (rawItem.scanKey !== undefined && rawItem.scanKey !== builtin.scanKey))) {
+        skippedCount++;
+        invalidReasons.push(
+          `Item ${index + 1}: built-in checklist item could not be imported because it is corrupted.`
+        );
+        return;
+      }
+
+      if (typeof rawItem.statement !== 'string' || !rawItem.statement.trim()) {
+        skippedCount++;
+        invalidReasons.push(`Item ${index + 1}: question must be nonblank text.`);
+        return;
+      }
+
+      const id = ChecklistUtil.sanitizeChecklistID(rawItem.id);
+      const statement = ChecklistUtil.sanitizeChecklistStatement(rawItem.statement);
       const sanitizedDescription = ChecklistUtil.sanitizeChecklistDescription(
         rawItem.description || ''
       );
+      const source = rawItem.source === undefined && builtin
+        ? Constants.ChecklistItemSource.DEFAULT : ChecklistUtil.sanitizeChecklistSource(rawItem.source);
+      const suppliedScan = typeof rawItem.scanKey === 'string' ? rawItem.scanKey.trim() : rawItem.scanKey;
+      const knownScan = Constants.CHECKLIST_DEFAULTS.some((item) => item.scanKey === suppliedScan);
+      const scanKey = builtin ? builtin.scanKey
+        : source === Constants.ChecklistItemSource.DEFAULT && knownScan ? suppliedScan : null;
+      if (!id || (rawItem.scanKey !== undefined && rawItem.scanKey !== null
+        && (!knownScan || source === Constants.ChecklistItemSource.CUSTOM
+          || (builtin && suppliedScan !== builtin.scanKey)))
+        || (builtin && source !== Constants.ChecklistItemSource.DEFAULT)
+        || (!builtin && source === Constants.ChecklistItemSource.DEFAULT && !scanKey)) {
+        skippedCount++;
+        invalidReasons.push(`Item ${index + 1}: invalid ID or conflicting/unknown scan association.`);
+        return;
+      }
 
-      if (existingNames.has(sanitizedName.toLowerCase())) {
+      if (existingStatements.has(statement.toLowerCase()) || existingIds.has(id)) {
         skippedCount++;
         return;
       }
 
-      existingNames.add(sanitizedName.toLowerCase());
+      existingStatements.add(statement.toLowerCase());
+      existingIds.add(id);
       validItems.push({
-        name: sanitizedName,
+        id,
+        statement,
         description: sanitizedDescription,
+        source,
+        scanKey,
       });
     });
 
@@ -164,10 +450,11 @@ export default class ChecklistUtil {
       return {
         valid: false,
         error: skippedCount > 0
-          ? `All ${skippedCount} item(s) in the file were either duplicates of existing checklists or had invalid/empty names.`
+          ? `${skippedCount} item(s) were duplicates or invalid. ${invalidReasons.join(' ')}`.trim()
           : 'No valid checklist items were found in the file.',
         items: [],
         skippedCount,
+        invalidReasons,
       };
     }
 
@@ -176,6 +463,7 @@ export default class ChecklistUtil {
       error: null,
       items: validItems,
       skippedCount,
+      invalidReasons,
     };
   }
 
@@ -191,29 +479,37 @@ export default class ChecklistUtil {
     }));
   }
 
+  /**
+   * Sorts checklist items by their display order without changing their identities or input array.
+   * @param {Array} checklist The checklist items to sort
+   * @returns {Array} A new array ordered by the order field
+   */
+  static sortChecklist(checklist) {
+    return [...checklist].sort((a, b) => a.order - b.order);
+  }
 
     /**
    * Checks if a custom checklist statement already exists in the checklist.
-   * 
-   * @param {string} name - The checklist statement to check for duplication
+   *
+   * @param {string} statement - The checklist question to check for duplication
    * @param {Array} checklist - The array of current checklist items
-   * @param {string|number} - The ID or UID of the item to ignore
+   * @param {string|null} excludeId - The ID of the item to ignore when editing
    * @returns {boolean} true if a duplicate is found, false otherwise
    */
-  static isDuplicateChecklist(name, checklist, excludeId = null) {
-    if (!name || !checklist || !Array.isArray(checklist)) {
+  static isDuplicateChecklist(statement, checklist, excludeId = null) {
+    if (!statement || !checklist || !Array.isArray(checklist)) {
       return false;
     }
 
-    const sanitizedInput = ChecklistUtil.sanitizeChecklistName(name).toLowerCase();
+    const sanitizedInput = ChecklistUtil.sanitizeChecklistStatement(statement).toLowerCase();
 
     return checklist.some((item) => {
-      if (excludeId && (item.uid === excludeId || item.id === excludeId)) {
+      if (excludeId && item.id === excludeId) {
         return false;
       }
-      
-      const statement = item.statement ? item.statement.toLowerCase() : '';
-      return statement === sanitizedInput;
+
+      const existingStatement = ChecklistUtil.sanitizeChecklistStatement(item.statement).toLowerCase();
+      return existingStatement === sanitizedInput;
     });
   }
 
@@ -372,5 +668,24 @@ export default class ChecklistUtil {
     }
 
     return { documentationFiles: documentationFiles };
+  }
+
+  /**
+   * Resolves a recognized built-in scan association without using question text or legacy names.
+   * @param {object} item The checklist item or imported definition
+   * @returns {string|null} The recognized scan key, or null for custom, unknown, or conflicting metadata
+   */
+  static getItemScanKey(item) {
+    if (!item || item.source === Constants.ChecklistItemSource.CUSTOM) {
+      return null;
+    }
+
+    const builtin = Constants.CHECKLIST_DEFAULTS.find((entry) => entry.id === item.id);
+    const scanKey = typeof item.scanKey === 'string' ? item.scanKey.trim() : null;
+    if (builtin) {
+      return scanKey && scanKey !== builtin.scanKey ? null : builtin.scanKey;
+    }
+    return item.source === Constants.ChecklistItemSource.DEFAULT
+      && Constants.CHECKLIST_DEFAULTS.some((entry) => entry.scanKey === scanKey) ? scanKey : null;
   }
 }

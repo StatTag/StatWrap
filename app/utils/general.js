@@ -1,6 +1,8 @@
 const DefaultDisplayName = '(empty)';
 const path = require('path');
 const fs = require('fs');
+const sanitize = require("sanitize-filename");
+const _ = require('lodash');
 const AllowedUrlProtocols = ['http:', 'https:', 'ftp:', 'ssh:', 'file:', 'ws:', 'wss:', 'smb:', 's3:']
 
 export default class GeneralUtil {
@@ -214,4 +216,50 @@ export default class GeneralUtil {
       return null;
     }
   };
+
+  /**
+   * This function will take a string and convert it to kebab case, while
+   * also running it through a sanitization routine.  If using this to
+   * create a file name, do not include any part of the path or file extension
+   * as those will be included in the final name.
+   * e.g., /test/file.zip --> test-file-zip
+   *
+   * @param {string} text The text we want to convert to kebab case
+   * @returns {string} Sanitized kebab case
+   */
+  static convertToSanitizedKebabCase(text) {
+      // lodash.kebabCase will take care of scrubbing extra characters that could mess up
+      // a path, but we will add in the sanitize() call to be extra safe.
+      var kebabText = _.kebabCase(text);
+      kebabText = sanitize(kebabText);
+      if (kebabText == '') {
+        return 'empty';
+      }
+      return kebabText;
+  }
+
+  /**
+   * Truncates a filename to a UTF-8 byte limit without splitting a character.
+   * @param {string} filename The filename to truncate
+   * @param {number} maxBytes The maximum UTF-8 byte length
+   * @returns {string} The filename within the byte limit
+   */
+  static truncateFilename(filename, maxBytes) {
+    let truncated = '';
+    let byteLength = 0;
+    for (const character of filename) {
+      const codePoint = character.codePointAt(0);
+      // UTF-8 uses 1-4 bytes per code point; count bytes rather than JS string units.
+      const characterByteLength = codePoint <= 0x7f ? 1
+        : codePoint <= 0x7ff ? 2
+          : codePoint <= 0xffff ? 3 : 4;
+      if (byteLength + characterByteLength > maxBytes) {
+        // Stop before the character so multibyte sequences are never cut in half.
+        break;
+      }
+      truncated += character;
+      byteLength += characterByteLength;
+    }
+    return truncated;
+  }
 }

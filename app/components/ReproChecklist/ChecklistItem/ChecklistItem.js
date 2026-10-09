@@ -289,7 +289,7 @@ function ChecklistItem(props) {
                 )}
                 <IconButton
                   size="small"
-                  onClick={() => onDeleteItem(item.uid || item.id)}
+                  onClick={() => onDeleteItem(item.id)}
                   className={styles.deleteButton}
                   title="Delete checklist"
                 >
@@ -310,8 +310,8 @@ function ChecklistItem(props) {
                     </IconButton>
                   </Tooltip>
                   )}
-              
-            
+
+
             <div className={styles.buttonContainer}>
               <Checkbox
                 checked={item.answer}
@@ -512,9 +512,7 @@ function ChecklistItem(props) {
 
 ChecklistItem.propTypes = {
   item: PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    uid: PropTypes.string,
-    name: PropTypes.string.isRequired,
+    id: PropTypes.string.isRequired,
     statement: PropTypes.string.isRequired,
     answer: PropTypes.bool.isRequired,
     source: PropTypes.string,

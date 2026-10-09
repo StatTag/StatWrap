@@ -11,15 +11,15 @@ const CollapsibleMarkdown = ({ content }) => {
 
   // Consider it "long" if it's over a certain length so we can show the toggle.
   const isLong = content && content.length > 200;
-  
+
   return (
     <div className={`${styles.markdownContainer} markdown-body`}>
       <div className={expanded || !isLong ? styles.markdownFull : styles.markdownCollapsed}>
         <ReactMarkdown remarkPlugins={[gfm]} children={content} />
       </div>
       {isLong && (
-        <button 
-          className={styles.toggleButton} 
+        <button
+          className={styles.toggleButton}
           onClick={() => setExpanded(!expanded)}
           type="button"
         >
@@ -56,6 +56,12 @@ const formatValue = (key, value) => {
     }
     return JSON.stringify(value);
   }
+
+  // Explicitly convert boolean to a string so it renders properly.
+  if (typeof value == 'boolean') {
+    return value.toString();
+  }
+
   return value || '';
 };
 

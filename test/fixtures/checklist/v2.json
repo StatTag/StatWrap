@@ -1,0 +1,47 @@
+{
+  "version": 2,
+  "projectPolicy": { "reviewRequired": true },
+  "checklist": [
+    {
+      "id": "statwrap-checklist-data",
+      "order": 1,
+      "scanKey": "Data",
+      "source": "default",
+      "statement": "Our input data is documented.",
+      "description": "Includes the raw inputs.",
+      "answer": false,
+      "scanResult": { "dataFiles": ["input.csv"] },
+      "notes": [],
+      "assets": [],
+      "subChecklist": []
+    },
+    {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "order": 2,
+      "scanKey": null,
+      "source": "custom",
+      "statement": "Can another researcher reproduce the result?",
+      "description": "Run the documented analysis.",
+      "answer": true,
+      "scanResult": {},
+      "notes": [
+        {
+          "id": 12,
+          "author": "Researcher",
+          "content": "Verified independently.",
+          "updated": "2025-01-02"
+        }
+      ],
+      "assets": [
+        {
+          "uri": "analysis.R",
+          "name": "Analysis script",
+          "description": "Entry script",
+          "extra": { "retained": true }
+        }
+      ],
+      "subChecklist": [{ "id": 3, "statement": "The result matches.", "answer": true }],
+      "extra": { "reviewers": ["Researcher"], "approved": true }
+    }
+  ]
+}

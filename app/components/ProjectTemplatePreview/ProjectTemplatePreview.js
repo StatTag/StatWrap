@@ -81,10 +81,10 @@ class ProjectTemplatePreview extends Component {
 
 
   render() {
-    const { selectable, template } = this.props;
+    const { selectable, template, placeholderText } = this.props;
 
     let preview = (
-      <div className={styles.placeholder}>Please select a template from a list on the left</div>
+      <div className={styles.placeholder}>{placeholderText}</div>
     );
     if (template) {
       let templateContents = [];
@@ -150,12 +150,14 @@ ProjectTemplatePreview.propTypes = {
   template: PropTypes.object,
   selectable: PropTypes.bool,
   onCheckedChange: PropTypes.func,
+  placeholderText: PropTypes.string
 };
 
 ProjectTemplatePreview.defaultProps = {
   template: null,
   selectable: false,
   onCheckedChange: null,
+  placeholderText: "Please select a template from a list on the left"
 };
 
 export default ProjectTemplatePreview;

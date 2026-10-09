@@ -59,3 +59,6 @@ npm-debug.log.*
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
+
+# Local agent planning documents
+/docs/agent/

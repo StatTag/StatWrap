@@ -1,5 +1,36 @@
 # StatWrap Changelog
 
+## Unreleased
+
+### Breaking Changes
+
+- Project reproducibility checklists now use file format version 2, with an
+  explicit `version` and `checklist` item array. Existing unversioned/version 1
+  projects are automatically converted and saved on read. This conversion is
+  one-way: back up project metadata before upgrading, and do not edit converted
+  projects using older StatWrap versions.
+- Checklist item identity is a stable string `id`, separate from display
+  `order`. Top-level `uid` and `name` are removed; question text uses `statement`
+  and built-in scan association uses `scanKey`. Answers, notes, attached assets,
+  sub-checklists, and their nested identities are preserved during conversion.
+- Checklist definition import/export uses version 2 fields: `id`, `statement`,
+  `description`, `source`, and `scanKey`. Unsupported export versions are
+  rejected; definition exports do not include project answers, notes, or assets.
+
+### Checklist Reliability
+
+- Duplicate item IDs receive fresh UUIDs; duplicate ordered items move to the
+  end without dropping content.
+- Checklist saves use temporary-file replacement. Failed conversion/write
+  operations preserve the original file and surface errors.
+- Future project-file versions remain readable when known fields are compatible;
+  their versions and unknown fields are retained during saves.
+- Built-in scanning follows validated IDs/scan associations rather than question
+  text, and checklist load errors are displayed instead of stale content.
+
+See [checklist file format documentation](./docs/ReproducibilityChecklist.md)
+for schemas, migration behavior, and compatibility details.
+
 ## 0.0.21 - June 5, 2026
 
 ### Change Summary
