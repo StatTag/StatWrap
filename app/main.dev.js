@@ -616,6 +616,13 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
       }
 
       if (!response.error) {
+        // Return basic information about the project that was created/linked.  This will put
+        // in context which project should be activated.
+        response.project = {
+          id: validationReport.project.id,
+          path: validationReport.project.path,
+          name: validationReport.project.name,
+        };
         const userDataPath = app.getPath('userData');
         projectListService.appendAndSaveProjectToList(
           validationReport.project,
