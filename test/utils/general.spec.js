@@ -286,6 +286,11 @@ describe('utils', () => {
         expect(GeneralUtil.convertToSanitizedKebabCase('C:\\System\\../asdf')).toBe('c-system-asdf');
         expect(GeneralUtil.convertToSanitizedKebabCase('/root/all../../......./the~secrets')).toBe('root-all-the-secrets');
       });
+
+      it('truncates filenames to a UTF-8 byte limit without splitting characters', () => {
+        expect(GeneralUtil.truncateFilename('a'.repeat(300), 251)).toBe('a'.repeat(251));
+        expect(GeneralUtil.truncateFilename(`${'a'.repeat(250)}é`, 251)).toBe('a'.repeat(250));
+      });
     });
   });
 });

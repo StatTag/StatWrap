@@ -1602,7 +1602,8 @@ ipcMain.on(Messages.EXPORT_CUSTOM_PROJECT_TEMPLATE_REQUEST, async (event, templa
     }
 
     const parentWindow = BrowserWindow.fromWebContents(event.sender) || mainWindow;
-    const templateFileName = GeneralUtil.convertToSanitizedKebabCase(template.name);
+    const sanitizedTemplateName = GeneralUtil.convertToSanitizedKebabCase(template.name);
+    const templateFileName = GeneralUtil.truncateFilename(sanitizedTemplateName, 251);
     // Open a Save dialog that asks where to save the .zip file
     const result = await dialog.showSaveDialog(parentWindow, {
       title: 'Export Template',

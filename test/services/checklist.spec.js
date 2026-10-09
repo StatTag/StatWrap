@@ -289,6 +289,16 @@ describe('ChecklistService persistence', () => {
     expect(load()).toEqual([null, []]);
   });
 
+  it.each([0o600, 0o640, 0o664])(
+    'preserves existing checklist permissions (%o) when replacing the file',
+    (mode) => {
+      writeOriginal({ version: 2, checklist });
+      fs.chmodSync(filePath, mode);
+      service.writeChecklist(projectPath, checklist);
+      expect(fs.statSync(filePath).mode & 0o777).toBe(mode);
+    },
+  );
+
   it('expands home-relative paths on reads and writes', () => {
     jest.spyOn(os, 'homedir').mockReturnValue(path.dirname(projectPath));
     const relative = `~/${path.basename(projectPath)}`;
@@ -456,7 +466,14 @@ describe('ChecklistService persistence', () => {
     expect(fs.readFileSync(filePath, 'utf8')).toBe('{broken');
   });
 
-  it.each(['readFileSync', 'writeFileSync', 'fsyncSync', 'renameSync', 'openSync'])(
+  it.each([
+    'readFileSync',
+    'writeFileSync',
+    'fchmodSync',
+    'fsyncSync',
+    'renameSync',
+    'openSync',
+  ])(
     'preserves the original and cleans up owned temporary files on %s failure', (operation) => {
       writeOriginal(legacy());
       const original = fs.readFileSync(filePath, 'utf8');

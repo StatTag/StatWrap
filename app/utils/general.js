@@ -237,4 +237,29 @@ export default class GeneralUtil {
       }
       return kebabText;
   }
+
+  /**
+   * Truncates a filename to a UTF-8 byte limit without splitting a character.
+   * @param {string} filename The filename to truncate
+   * @param {number} maxBytes The maximum UTF-8 byte length
+   * @returns {string} The filename within the byte limit
+   */
+  static truncateFilename(filename, maxBytes) {
+    let truncated = '';
+    let byteLength = 0;
+    for (const character of filename) {
+      const codePoint = character.codePointAt(0);
+      // UTF-8 uses 1-4 bytes per code point; count bytes rather than JS string units.
+      const characterByteLength = codePoint <= 0x7f ? 1
+        : codePoint <= 0x7ff ? 2
+          : codePoint <= 0xffff ? 3 : 4;
+      if (byteLength + characterByteLength > maxBytes) {
+        // Stop before the character so multibyte sequences are never cut in half.
+        break;
+      }
+      truncated += character;
+      byteLength += characterByteLength;
+    }
+    return truncated;
+  }
 }

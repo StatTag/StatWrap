@@ -36,15 +36,29 @@ export default class ChecklistService {
   replaceChecklistFile(filePath, checklist) {
     // Serialize before creating a file so serialization errors leave no temporary file.
     const contents = JSON.stringify(checklist);
+    let mode;
+    try {
+      // Retain permission and special bits, excluding file-type bits; 0o666 would drop special bits.
+      mode = fs.statSync(filePath).mode & 0o7777;
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        throw error;
+      }
+    }
     // A sibling stays on the same filesystem, allowing rename to replace the original.
     const temporaryPath = `${filePath}.${uuidv4()}.tmp`;
     let descriptor;
     let owned = false;
     try {
       // 'wx' creates exclusively: a name collision must not overwrite someone else's file.
-      descriptor = fs.openSync(temporaryPath, 'wx');
+      descriptor = mode === undefined
+        ? fs.openSync(temporaryPath, 'wx')
+        : fs.openSync(temporaryPath, 'wx', mode);
       owned = true;
       fs.writeFileSync(descriptor, contents);
+      if (mode !== undefined) {
+        fs.fchmodSync(descriptor, mode);
+      }
       // Flush file contents before replacement; close alone does not guarantee a disk flush.
       fs.fsyncSync(descriptor);
       // Close before rename for platforms that restrict renaming open files.
