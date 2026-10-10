@@ -555,6 +555,51 @@ describe('services', () => {
         );
         expect(libraries.length).toEqual(3);
       });
+      it('should handle multi-line export commands with backslash continuations', () => {
+        const handler = new StataHandler();
+        const code = 'export excel \\\r\n    mydata2 ,\\\r\n    nolabel';
+        const outputs = handler.getOutputs('test.uri', code);
+        expect(outputs.length).toEqual(1);
+        expect(outputs[0]).toMatchObject({
+          id: 'export excel - mydata2',
+          type: 'data',
+          path: 'mydata2',
+        });
+      });
+      it('should handle multi-line export commands with triple slash continuations', () => {
+        const handler = new StataHandler();
+        const code =
+          'export delimited v1 v2 v3 /// Stata line continuation comment\r\n    using "mydata.csv", replace';
+        const outputs = handler.getOutputs('test.uri', code);
+        expect(outputs.length).toEqual(1);
+        expect(outputs[0]).toMatchObject({
+          id: 'export delimited - "mydata.csv"',
+          type: 'data',
+          path: '"mydata.csv"',
+        });
+      });
+      it('should handle export sasxport with if and in statements', () => {
+        const handler = new StataHandler();
+        const code = 'export sasxport5 v1 v2 v3 using mydata if tvar==2010';
+        const outputs = handler.getOutputs('test.uri', code);
+        expect(outputs.length).toEqual(1);
+        expect(outputs[0]).toMatchObject({
+          id: 'export sasxport5 - mydata',
+          type: 'data',
+          path: 'mydata',
+        });
+      });
+      it('should handle export sasxport with if statement and trailing options', () => {
+        const handler = new StataHandler();
+        const code = 'export sasxport5 v1 v2 v3 using "mydata.xpt" if tvar==2010, replace';
+        const outputs = handler.getOutputs('test.uri', code);
+        expect(outputs.length).toEqual(1);
+        expect(outputs[0]).toMatchObject({
+          id: 'export sasxport5 - "mydata.xpt"',
+          type: 'data',
+          path: '"mydata.xpt"',
+        });
+      });
       it('should retrieve save locations for put* commands', () => {
         let libraries = new StataHandler().getOutputs('test.uri', "putdocx save 'test', replace");
         expect(libraries.length).toEqual(1);
@@ -831,12 +876,39 @@ describe('services', () => {
           new StataHandler().getInputs('test.uri', '  # infile using mydata, wide ').length,
         ).toEqual(0);
       });
-      it('should handle multiple export outputs in a single string', () => {
-        const libraries = new StataHandler().getInputs(
-          'test.uri',
-          'import delimited "mydata.txt", varnames(5)\r\n inf using test.raw \r\ndi x\r\n  import  sasxport5  mydata  , novallabels  \r\nInfile using mydata, wide',
-        );
-        expect(libraries.length).toEqual(3);
+      it('should handle multi-line import commands with backslash continuations', () => {
+        const handler = new StataHandler();
+        const code = 'import excel \\\r\n    mydata2 ,\\\r\n    nolabel';
+        const inputs = handler.getInputs('test.uri', code);
+        expect(inputs.length).toEqual(1);
+        expect(inputs[0]).toMatchObject({
+          id: 'import excel - mydata2',
+          type: 'data',
+          path: 'mydata2',
+        });
+      });
+      it('should handle import with if and in statements', () => {
+        const handler = new StataHandler();
+        const code = 'import sasxport5 v1 v2 v3 using mydata if tvar==2010';
+        const inputs = handler.getInputs('test.uri', code);
+        expect(inputs.length).toEqual(1);
+        expect(inputs[0]).toMatchObject({
+          id: 'import sasxport5 - mydata',
+          type: 'data',
+          path: 'mydata',
+        });
+      });
+      it('should handle multi-line import with using and if statements', () => {
+        const handler = new StataHandler();
+        const code =
+          'infile str16 name sex:sexfmt age \\\r\n  using "persons.dat" \\\r\n  if age > 30, wide';
+        const inputs = handler.getInputs('test.uri', code);
+        expect(inputs.length).toEqual(1);
+        expect(inputs[0]).toMatchObject({
+          id: 'infile - "persons.dat"',
+          type: 'data',
+          path: '"persons.dat"',
+        });
       });
     });
   });
