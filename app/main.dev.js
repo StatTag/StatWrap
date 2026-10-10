@@ -263,6 +263,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
       path.join(userDataPath, DefaultProjectListFile),
     );
 
+    const claimedIds = new Set();
     // For all of the projects we have in our list, load the additional information that exists
     // within the project's local metadata file itself.
     projectsFromFile = projectsFromFile.map((project) => {
@@ -274,12 +275,6 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
           fullProject.errorMessage = 'Failed to load the project details';
           return fullProject;
         }
-
-        // Start the log file watcher for each project
-        logWatcherService.add(
-          path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, Constants.StatWrapFiles.LOG),
-          project.id,
-        );
 
         let metadata = null;
         try {
@@ -298,10 +293,11 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
         if (metadata == null) {
           fullProject.loadError = true;
           fullProject.errorMessage = 'Failed to load the project details';
+          claimedIds.add(fullProject.id);
         } else {
           // Reconcile project ID if metadata.id differs from project.id
           if (metadata.id && metadata.id !== project.id) {
-            const isCollision = projectsFromFile.some(
+            const isCollision = claimedIds.has(metadata.id) || projectsFromFile.some(
               (p) => p !== project && p.id === metadata.id,
             );
             if (isCollision || isClonedProject) {
@@ -321,6 +317,8 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
               }
             }
           }
+
+          claimedIds.add(fullProject.id);
 
           // Do not set the name from the project, unless our project list entry is empty.  This is because
           // the user can rename projects in their list however they want.  In the event it ends up as a
@@ -346,6 +344,12 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
           fullProject.loadError = false;
           fullProject.errorMessage = '';
         }
+
+        // Start the log file watcher for each project using its reconciled ID
+        logWatcherService.add(
+          path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, Constants.StatWrapFiles.LOG),
+          fullProject.id,
+        );
       } catch (err) {
         console.error(`Failed to load details for project at ${project ? project.path : 'unknown'}:`, err);
         fullProject.loadError = true;

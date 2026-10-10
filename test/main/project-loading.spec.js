@@ -211,6 +211,10 @@ describe('main-process project list loading resilience', () => {
       'canonical-folder-id',
       '/mock/userData/projectList.json',
     );
+    expect(logWatcherService.add).toHaveBeenCalledWith(
+      '/path/to/proj1/.statwrap/.statwrap.log',
+      'canonical-folder-id',
+    );
   });
 
   it('prevents ID collision when metadata.id is already used by another project', async () => {
@@ -244,5 +248,26 @@ describe('main-process project list loading resilience', () => {
       'proj-1',
       expect.anything(),
     );
+  });
+
+  it('prevents ID collision when two projects in list both drift to the same metadata ID', async () => {
+    projectListService.loadProjectListFromFile.mockReturnValue([
+      { id: 'local-1', name: 'Project 1', path: '/path/to/proj1' },
+      { id: 'local-2', name: 'Project 2', path: '/path/to/proj2' },
+    ]);
+    projectService.loadProjectFile.mockImplementation(() => {
+      // Both folders share duplicate metadata.id
+      return { ...validMetadata1, id: 'duplicate-uuid' };
+    });
+
+    await loadProjectList();
+
+    const [, response] = event.sender.send.mock.calls[0];
+    expect(response.error).toBe(false);
+    expect(response.projects).toHaveLength(2);
+    // Project 1 claims duplicate-uuid
+    expect(response.projects[0].id).toBe('duplicate-uuid');
+    // Project 2 must NOT take duplicate-uuid; it must keep unique local-2
+    expect(response.projects[1].id).toBe('local-2');
   });
 });
