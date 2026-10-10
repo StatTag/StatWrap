@@ -115,6 +115,7 @@ module.exports = {
     FILE_TYPE: 'File Type',
     CONTENT_TYPE: 'Content Type',
     ASSET_TYPE: 'Asset Type',
+    DIRECTORY: 'Directory',
     INPUTS_OUTPUTS: 'Inputs and Outputs',
     DEPENDENCIES: 'Dependencies/Libraries',
     ATTRIBUTE: 'Attribute',
