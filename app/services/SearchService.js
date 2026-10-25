@@ -41,6 +41,8 @@ class SearchService {
       averageSearchTime: 0,
       documentsIndexed: 0,
       searchTimes: [],
+      cacheHits: 0,
+      cacheMisses: 0,
     };
 
     // Result caching
@@ -571,6 +573,7 @@ class SearchService {
 
     // Remove from indexed projects map
     this.indexedProjectsMap.delete(projectId);
+    this.resultCache.clear();
 
     console.log(
       `SearchService: Removed project ${projectId} (${documentsToRemove.length} documents)`,
@@ -619,6 +622,8 @@ class SearchService {
       console.log(`SearchService: Successfully indexed project: ${project.name}`);
     } catch (error) {
       console.error(`SearchService: Error indexing project ${project.name}:`, error);
+    } finally {
+      this.resultCache.clear();
     }
   }
 
@@ -1263,23 +1268,26 @@ class SearchService {
       return this.getEmptyResults();
     }
 
-    const startTime = Date.now();
+    const startTime = performance.now();
 
     // Preprocess the query
     const queryPreprocessing = this.preprocessQuery(query);
     const searchQuery = queryPreprocessing.processedQuery;
     const cacheKey = this.generateCacheKey(searchQuery, options);
 
-    // Check cache first
-    console.log('Skipping cache');
-    /*const cached = this.getFromCache(cacheKey);
-    if (cached) {
-      console.log('SearchService: Returning cached results');
-      return {
-        ...cached,
-        queryPreprocessing: queryPreprocessing,
-      };
-    }*/
+    // Check cache first (bypass if actively indexing to prevent stale/partial reads)
+    if (!this.indexingInProgress) {
+      const cached = this.getFromCache(cacheKey);
+      if (cached) {
+        const cacheHitTime = performance.now() - startTime;
+        this.updateSearchStats(Number(cacheHitTime.toFixed(3)), true);
+        console.log(`SearchService: Returning cached results in ${cacheHitTime.toFixed(2)}ms`);
+        return {
+          ...cached,
+          queryPreprocessing: queryPreprocessing,
+        };
+      }
+    }
 
     try {
       const searchResults = this.performSearch(searchQuery, options);
@@ -1288,12 +1296,16 @@ class SearchService {
       // Add preprocessing information to results
       groupedResults.queryPreprocessing = queryPreprocessing;
       groupedResults.searchQuery = searchQuery;
-      const searchTime = Date.now() - startTime;
-      this.updateSearchStats(searchTime);
-      this.addToCache(cacheKey, groupedResults);
+      const totalSearchTime = performance.now() - startTime;
+      this.updateSearchStats(Number(totalSearchTime.toFixed(2)), false);
+
+      // Only cache complete results when indexing is not actively mutating data structures
+      if (!this.indexingInProgress) {
+        this.addToCache(cacheKey, groupedResults);
+      }
 
       console.log(
-        `SearchService: Search completed in ${searchTime}ms, found ${searchResults.length} results`,
+        `SearchService: Search completed in ${totalSearchTime.toFixed(2)}ms, found ${searchResults.length} results`,
       );
       console.log(`SearchService: Used query: "${searchQuery}" (processed from: "${query}")`);
 
@@ -1958,8 +1970,21 @@ class SearchService {
     return indexMap[type] || ['main'];
   }
 
-  generateCacheKey(query, options) {
-    return `${query}_${JSON.stringify(options)}`.replace(/[^a-zA-Z0-9_]/g, '_');
+  generateCacheKey(query, options = {}) {
+    if (!options || typeof options !== 'object') {
+      return `${query || ''}`.replace(/[^a-zA-Z0-9_]/g, '_');
+    }
+
+    const sortedNormalized = Object.keys(options)
+      .sort()
+      .reduce((acc, key) => {
+        if (options[key] !== undefined) {
+          acc[key] = options[key];
+        }
+        return acc;
+      }, {});
+
+    return `${query || ''}_${JSON.stringify(sortedNormalized)}`.replace(/[^a-zA-Z0-9_]/g, '_');
   }
 
   getFromCache(key) {
@@ -1986,8 +2011,13 @@ class SearchService {
     });
   }
 
-  updateSearchStats(searchTime) {
+  updateSearchStats(searchTime, isCacheHit = false) {
     this.performanceStats.totalSearches++;
+    if (isCacheHit) {
+      this.performanceStats.cacheHits = (this.performanceStats.cacheHits || 0) + 1;
+    } else {
+      this.performanceStats.cacheMisses = (this.performanceStats.cacheMisses || 0) + 1;
+    }
     this.performanceStats.searchTimes.push(searchTime);
 
     if (this.performanceStats.searchTimes.length > 100) {
@@ -1995,7 +2025,9 @@ class SearchService {
     }
 
     const sum = this.performanceStats.searchTimes.reduce((a, b) => a + b, 0);
-    this.performanceStats.averageSearchTime = sum / this.performanceStats.searchTimes.length;
+    this.performanceStats.averageSearchTime = Number(
+      (sum / this.performanceStats.searchTimes.length).toFixed(2),
+    );
   }
 
   getSearchStats() {
@@ -2024,6 +2056,8 @@ class SearchService {
       cacheStats: {
         size: this.resultCache.size,
         maxSize: this.maxCacheSize,
+        hits: this.performanceStats.cacheHits || 0,
+        misses: this.performanceStats.cacheMisses || 0,
       },
     };
   }
@@ -2086,6 +2120,8 @@ class SearchService {
           averageSearchTime: 0,
           documentsIndexed: 0,
           searchTimes: [],
+          cacheHits: 0,
+          cacheMisses: 0,
         };
 
         console.log('SearchService: Internal state reset after index deletion');

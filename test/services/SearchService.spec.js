@@ -392,18 +392,30 @@ describe('SearchService', () => {
   });
 
   describe('search', () => {
+    let groupResultsByTypeSpy;
+    let addToCacheSpy;
+
     beforeEach(() => {
       SearchServiceInstance.isInitialized = true;
-      SearchServiceInstance.groupResultsByType = jest.fn(() => ({
-        projects: [],
-        people: [],
-        assets: [],
-        files: [],
-        folders: [],
-        notes: [],
-        all: [],
-      }));
-      SearchServiceInstance.addToCache = jest.fn();
+      groupResultsByTypeSpy = jest
+        .spyOn(SearchServiceInstance, 'groupResultsByType')
+        .mockReturnValue({
+          projects: [],
+          people: [],
+          assets: [],
+          files: [],
+          folders: [],
+          notes: [],
+          all: [],
+        });
+      addToCacheSpy = jest
+        .spyOn(SearchServiceInstance, 'addToCache')
+        .mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      if (groupResultsByTypeSpy) groupResultsByTypeSpy.mockRestore();
+      if (addToCacheSpy) addToCacheSpy.mockRestore();
     });
 
     it('should return empty results for uninitialized service', () => {
@@ -421,12 +433,14 @@ describe('SearchService', () => {
     });
 
     it('should preprocess query and perform search', () => {
-      SearchServiceInstance.preprocessQuery = jest.fn(() => ({
-        processedQuery: 'test',
-        originalQuery: 'test query',
-        removedWords: ['query'],
-        keptWords: ['test'],
-      }));
+      const preprocessQuerySpy = jest
+        .spyOn(SearchServiceInstance, 'preprocessQuery')
+        .mockReturnValue({
+          processedQuery: 'test',
+          originalQuery: 'test query',
+          removedWords: ['query'],
+          keptWords: ['test'],
+        });
 
       // Mock performSearch to return empty array
       const performSearchSpy = jest
@@ -435,25 +449,46 @@ describe('SearchService', () => {
 
       SearchServiceInstance.search('test query');
 
-      expect(SearchServiceInstance.preprocessQuery).toHaveBeenCalledWith('test query');
+      expect(preprocessQuerySpy).toHaveBeenCalledWith('test query');
       expect(performSearchSpy).toHaveBeenCalledWith('test', {});
 
+      preprocessQuerySpy.mockRestore();
       performSearchSpy.mockRestore();
     });
 
-    // TODO - re-enable this test when we add caching back in
-    /*it('should return cached results when available', () => {
+    it('should return cached results when available without performing a full search', () => {
       const cachedResults = { all: [{ id: 'cached' }] };
       const getFromCacheSpy = jest
         .spyOn(SearchServiceInstance, 'getFromCache')
         .mockReturnValue(cachedResults);
+      const performSearchSpy = jest.spyOn(SearchServiceInstance, 'performSearch');
 
       const results = SearchServiceInstance.search('test');
 
       expect(results.all).toEqual(cachedResults.all);
+      expect(performSearchSpy).not.toHaveBeenCalled();
+      expect(results.queryPreprocessing).toBeDefined();
 
       getFromCacheSpy.mockRestore();
-    });*/
+      performSearchSpy.mockRestore();
+    });
+
+    it('should bypass cache when indexing is in progress', () => {
+      SearchServiceInstance.indexingInProgress = true;
+      const getFromCacheSpy = jest.spyOn(SearchServiceInstance, 'getFromCache');
+      const performSearchSpy = jest
+        .spyOn(SearchServiceInstance, 'performSearch')
+        .mockReturnValue([]);
+
+      SearchServiceInstance.search('test');
+
+      expect(getFromCacheSpy).not.toHaveBeenCalled();
+      expect(performSearchSpy).toHaveBeenCalled();
+
+      getFromCacheSpy.mockRestore();
+      performSearchSpy.mockRestore();
+      SearchServiceInstance.indexingInProgress = false;
+    });
 
     it('should handle search errors gracefully', () => {
       // Clear any cached results first
@@ -720,23 +755,43 @@ describe('SearchService', () => {
       SearchServiceInstance.cacheTTL = 600000; // 10 minutes
     });
 
-    it('should cache and retrieve search results', () => {
+    it('should cache and retrieve search results using addToCache and getFromCache', () => {
       const testData = { results: ['test'] };
       const cacheKey = 'test_query';
 
-      // Manually test the cache methods
-      SearchServiceInstance.resultCache.set(cacheKey, {
-        data: testData,
-        timestamp: Date.now(),
-      });
+      SearchServiceInstance.addToCache(cacheKey, testData);
 
-      // Verify cache entry was created
       expect(SearchServiceInstance.resultCache.size).toBe(1);
       expect(SearchServiceInstance.resultCache.has(cacheKey)).toBe(true);
 
-      // Test retrieval
-      const cacheEntry = SearchServiceInstance.resultCache.get(cacheKey);
-      expect(cacheEntry.data).toEqual(testData);
+      const cached = SearchServiceInstance.getFromCache(cacheKey);
+      expect(cached).toEqual(testData);
+    });
+
+    it('should evict oldest entry when maxCacheSize is reached', () => {
+      SearchServiceInstance.maxCacheSize = 2;
+      SearchServiceInstance.addToCache('key1', { val: 1 });
+      SearchServiceInstance.addToCache('key2', { val: 2 });
+      SearchServiceInstance.addToCache('key3', { val: 3 });
+
+      expect(SearchServiceInstance.resultCache.size).toBe(2);
+      expect(SearchServiceInstance.getFromCache('key1')).toBeNull();
+      expect(SearchServiceInstance.getFromCache('key2')).toEqual({ val: 2 });
+      expect(SearchServiceInstance.getFromCache('key3')).toEqual({ val: 3 });
+    });
+
+    it('should generate consistent cache keys regardless of options property order', () => {
+      const key1 = SearchServiceInstance.generateCacheKey('test', { a: 1, b: 2, c: undefined });
+      const key2 = SearchServiceInstance.generateCacheKey('test', { b: 2, a: 1 });
+      expect(key1).toBe(key2);
+    });
+
+    it('should clear cache on project removal', async () => {
+      SearchServiceInstance.addToCache('key1', { val: 1 });
+      expect(SearchServiceInstance.resultCache.size).toBe(1);
+
+      await SearchServiceInstance.removeProjectDocumentsOnly('project-1');
+      expect(SearchServiceInstance.resultCache.size).toBe(0);
     });
 
     it('should return null for expired cache entries', () => {
@@ -857,6 +912,16 @@ describe('SearchService', () => {
 
       expect(SearchServiceInstance.performanceStats.searchTimes.length).toBe(100);
       expect(SearchServiceInstance.performanceStats.searchTimes[0]).toBe(1); // First item should be removed
+    });
+
+    it('should track cache hits and misses separately', () => {
+      SearchServiceInstance.updateSearchStats(10, false);
+      SearchServiceInstance.updateSearchStats(0.05, true);
+
+      expect(SearchServiceInstance.performanceStats.totalSearches).toBe(2);
+      expect(SearchServiceInstance.performanceStats.cacheMisses).toBe(1);
+      expect(SearchServiceInstance.performanceStats.cacheHits).toBe(1);
+      expect(SearchServiceInstance.performanceStats.averageSearchTime).toBe(5.03);
     });
   });
 });
