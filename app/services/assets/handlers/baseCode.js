@@ -3,7 +3,7 @@ import Constants from '../../../constants/constants';
 
 const fs = require('fs');
 const path = require('path');
-const url = require('url');
+const { URL } = require('url');
 
 // All lookups should be lowercase - we will do lowercase conversion before comparison.
 const URL_PROTOCOL_LIST = ['http:', 'https:'];
@@ -22,9 +22,15 @@ export default class BaseCodeHandler {
     let fileName = null;
     // Detect if URL or path-based URI.  For now we only consider HTTP(S) as valid
     // URL protocols.
-    const urlPath = url.parse(uri);
-    if (urlPath && urlPath.protocol && URL_PROTOCOL_LIST.includes(urlPath.protocol.toLowerCase())) {
-      fileName = urlPath.pathname;
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(uri);
+    } catch {
+      parsedUrl = null;
+    }
+
+    if (parsedUrl && URL_PROTOCOL_LIST.includes(parsedUrl.protocol.toLowerCase())) {
+      fileName = parsedUrl.pathname;
     } else {
       fileName = path.basename(uri.trim());
     }
@@ -39,16 +45,6 @@ export default class BaseCodeHandler {
     if (!uri || uri === undefined) {
       return false;
     }
-
-    // let fileName = null;
-    // // Detect if URL or path-based URI.  For now we only consider HTTP(S) as valid
-    // // URL protocols.
-    // const urlPath = url.parse(uri);
-    // if (urlPath && urlPath.protocol && URL_PROTOCOL_LIST.includes(urlPath.protocol.toLowerCase())) {
-    //   fileName = urlPath.pathname;
-    // } else {
-    //   fileName = path.basename(uri.trim());
-    // }
 
     const fileName = this.getBaseFileName(uri);
     if (fileName === '') {
