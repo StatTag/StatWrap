@@ -50,6 +50,7 @@
       "templates/",
       "images/",
       "app.html",
+      "renderer-bootstrap.js",
       "worker.html",
       "worker.js",
       "main.prod.js",

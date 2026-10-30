@@ -18,7 +18,7 @@ const dist = path.join(__dirname, '..', 'dll');
 module.exports = merge(baseConfig, {
   context: path.join(__dirname, '..'),
 
-  devtool: 'eval',
+  devtool: 'source-map',
 
   mode: 'development',
 

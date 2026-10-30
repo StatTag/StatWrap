@@ -44,6 +44,23 @@ To run the Electron app in the `dev` environment (which includes hot updates as 
 yarn dev
 ```
 
+Both renderer windows enforce a Content Security Policy without `unsafe-eval`.
+The main window's local [bootstrap](app/renderer-bootstrap.js) configures its policy
+before loading application resources. Only unpackaged hot-reload sessions allow
+HTTP and WebSocket connections to `localhost` on `PORT` (default `1212`).
+Packaged builds allow only local scripts and block browser fetch/WebSocket
+connections. CSP does not restrict networking performed through Node.js APIs.
+Inline styles remain enabled for runtime styling; inline scripts are blocked.
+
+After changing the development DLL webpack configurations, rebuild the DLLs:
+
+```
+yarn build-dll
+```
+
+Do not enable `unsafe-eval` or suppress Electron's security warnings to work
+around stale DLL bundles.
+
 When you are ready to build a version of the app for deployment, you can run:
 
 ```
