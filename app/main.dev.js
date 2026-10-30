@@ -266,48 +266,69 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
     // For all of the projects we have in our list, load the additional information that exists
     // within the project's local metadata file itself.
     projectsFromFile = projectsFromFile.map((project) => {
-      // Start the log file watcher for each project
-      logWatcherService.add(
-        path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, Constants.StatWrapFiles.LOG),
-        project.id,
-      );
-
-      const metadata = projectService.loadProjectFile(project.path);
-      // TODO What if the IDs don't match?  Handle that.  Also handle if file not found, file invalid, etc.
-      // Remember that if the file can't be loaded, it may be because we're offline and the project is in
-      // a network directory.
       const fullProject = { ...project };
-      const isClonedProject = fs.existsSync(
-        path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, Constants.StatWrapFiles.CLONED_PROJECT_MARKER)
-      );
 
-      if (metadata == null) {
-        fullProject.loadError = true;
-        fullProject.errorMessage = 'Failed to load the project details';
-      } else {
-        // Do not set the name from the project, unless our project list entry is empty.  This is because
-        // the user can rename projects in their list however they want.  In the event it ends up as a
-        // blank/empty/null string, we want to be sure there is something on the list the user can see.
-        if (fullProject.name === null || fullProject.name === undefined || fullProject.name.trim() === '') {
-          fullProject.name = metadata.name;
+      try {
+        if (!project || !project.path) {
+          fullProject.loadError = true;
+          fullProject.errorMessage = 'Failed to load the project details';
+          return fullProject;
         }
 
-        fullProject.assets = AssetUtil.recursiveRelativeToAbsolutePath(
-          project.path,
-          metadata.assets,
-        );
-        fullProject.description = metadata.description;
-        fullProject.categories = metadata.categories;
-        fullProject.notes = metadata.notes;
-        fullProject.people = metadata.people;
-        fullProject.assetGroups = ProjectUtil.relativeToAbsolutePathForAssetGroups(
-          project.path,
-          metadata.assetGroups,
+        // Start the log file watcher for each project
+        logWatcherService.add(
+          path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, Constants.StatWrapFiles.LOG),
+          project.id,
         );
 
-        fullProject.externalAssets = metadata.externalAssets;
-        fullProject.loadError = false;
+        let metadata = null;
+        try {
+          metadata = projectService.loadProjectFile(project.path);
+        } catch (loadErr) {
+          metadata = null;
+        }
+
+        // TODO What if the IDs don't match?  Handle that.  Also handle if file not found, file invalid, etc.
+        // Remember that if the file can't be loaded, it may be because we're offline and the project is in
+        // a network directory.
+        const isClonedProject = fs.existsSync(
+          path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, Constants.StatWrapFiles.CLONED_PROJECT_MARKER)
+        );
+
+        if (metadata == null) {
+          fullProject.loadError = true;
+          fullProject.errorMessage = 'Failed to load the project details';
+        } else {
+          // Do not set the name from the project, unless our project list entry is empty.  This is because
+          // the user can rename projects in their list however they want.  In the event it ends up as a
+          // blank/empty/null string, we want to be sure there is something on the list the user can see.
+          if (fullProject.name === null || fullProject.name === undefined || fullProject.name.trim() === '') {
+            fullProject.name = metadata.name;
+          }
+
+          fullProject.assets = AssetUtil.recursiveRelativeToAbsolutePath(
+            project.path,
+            metadata.assets,
+          );
+          fullProject.description = metadata.description;
+          fullProject.categories = metadata.categories;
+          fullProject.notes = metadata.notes;
+          fullProject.people = metadata.people;
+          fullProject.assetGroups = ProjectUtil.relativeToAbsolutePathForAssetGroups(
+            project.path,
+            metadata.assetGroups,
+          );
+
+          fullProject.externalAssets = metadata.externalAssets;
+          fullProject.loadError = false;
+          fullProject.errorMessage = '';
+        }
+      } catch (err) {
+        console.error(`Failed to load details for project at ${project ? project.path : 'unknown'}:`, err);
+        fullProject.loadError = true;
+        fullProject.errorMessage = 'Failed to load the project details';
       }
+
       return fullProject;
     });
 
