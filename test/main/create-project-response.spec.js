@@ -52,7 +52,7 @@ describe('main-process project creation response', () => {
     projectService.loadProjectFile.mockReturnValue({ id: 'saved-id', name: 'Saved name' });
     await handler(event, { type: Constants.ProjectType.EXISTING_PROJECT_TYPE });
     expect(projectListService.appendAndSaveProjectToList).toHaveBeenCalledWith(
-      { ...project, id: 'saved-id', name: 'Saved name' }, '/user-data/projects.json',
+      { ...project, id: 'saved-id', name: 'Saved name' }, path.join('/user-data', 'projects.json'),
     );
     expect(event.sender.send).toHaveBeenCalledWith(Messages.CREATE_PROJECT_RESPONSE, {
       project: { ...project, id: 'saved-id', name: 'Saved name' },
@@ -71,7 +71,7 @@ describe('main-process project creation response', () => {
       expect.objectContaining({ project, error: false }),
     );
     expect(projectListService.appendAndSaveProjectToList).toHaveBeenCalledWith(
-      expect.objectContaining(project), '/user-data/projects.json',
+      expect.objectContaining(project), path.join('/user-data', 'projects.json'),
     );
   });
 
