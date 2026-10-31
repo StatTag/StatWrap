@@ -283,13 +283,6 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
           metadata = null;
         }
 
-        // TODO What if the IDs don't match?  Handle that.  Also handle if file not found, file invalid, etc.
-        // Remember that if the file can't be loaded, it may be because we're offline and the project is in
-        // a network directory.
-        const isClonedProject = fs.existsSync(
-          path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, Constants.StatWrapFiles.CLONED_PROJECT_MARKER)
-        );
-
         if (metadata == null) {
           fullProject.loadError = true;
           fullProject.errorMessage = 'Failed to load the project details';
@@ -300,7 +293,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
             const isCollision = claimedIds.has(metadata.id) || projectsFromFile.some(
               (p) => p !== project && p.id === metadata.id,
             );
-            if (isCollision || isClonedProject) {
+            if (isCollision) {
               // Duplicate collision: maintain unique project.id to avoid React key / log collision
               fullProject.id = project.id;
             } else {
@@ -612,7 +605,9 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
           if (projectConfig && projectConfig.id) {
             const userDataPath = app.getPath('userData');
             const projectListFilePath = path.join(userDataPath, DefaultProjectListFile);
-            const existingProjects = projectListService.loadProjectListFromFile(projectListFilePath) || [];
+            const existingProjects = typeof projectListService.loadProjectListFromFile === 'function'
+              ? projectListService.loadProjectListFromFile(projectListFilePath) || []
+              : [];
             const isCollision = existingProjects.some(
               (p) => p.id === projectConfig.id && p.path !== validationReport.project.path,
             );
