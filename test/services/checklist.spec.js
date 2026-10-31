@@ -102,7 +102,7 @@ describe('ChecklistService persistence', () => {
       expect(summary.layout.paddingBottom()).toBe(8);
       expect(GeneralUtil.convertImageToBase64).toHaveBeenCalledTimes(1);
       expect(GeneralUtil.convertImageToBase64).toHaveBeenCalledWith(
-        expect.stringContaining('images/banner.png'),
+        expect.stringContaining(path.join('images', 'banner.png')),
       );
       expect(JSON.stringify(summary)).not.toContain('"image"');
       expect(definition.content.find((node) => node.text === 'Checklist Details'))
@@ -289,7 +289,8 @@ describe('ChecklistService persistence', () => {
     expect(load()).toEqual([null, []]);
   });
 
-  it.each([0o600, 0o640, 0o664])(
+  const testWithPosixPermissions = process.platform === 'win32' ? it.skip : it;
+  testWithPosixPermissions.each([0o600, 0o640, 0o664])(
     'preserves existing checklist permissions (%o) when replacing the file',
     (mode) => {
       writeOriginal({ version: 2, checklist });

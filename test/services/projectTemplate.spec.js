@@ -1,5 +1,6 @@
 import fs from 'fs';
 import os from 'os';
+import path from 'path';
 import ProjectTemplateService from '../../app/services/projectTemplate';
 
 jest.mock('fs');
@@ -21,7 +22,10 @@ describe('services', () => {
   describe('projectTemplate', () => {
 
     const mockReaddirForTemplates = (layout) => {
-      fs.readdirSync.mockImplementation((dirPath) => layout[dirPath] || []);
+      const normalizedLayout = Object.fromEntries(
+        Object.entries(layout).map(([dirPath, entries]) => [path.normalize(dirPath), entries]),
+      );
+      fs.readdirSync.mockImplementation((dirPath) => normalizedLayout[path.normalize(dirPath)] || []);
     };
 
     beforeEach(() => {
@@ -473,7 +477,7 @@ describe('services', () => {
         expect(fs.copyFileSync).toHaveBeenNthCalledWith(
           1,
           '/source/README.md',
-          '/project/README.md',
+          path.join('/project', 'README.md'),
           fs.constants.COPYFILE_EXCL,
         );
         expect(fs.mkdirSync).toHaveBeenCalledTimes(1);
@@ -663,7 +667,7 @@ describe('services', () => {
         );
         expect(mockWriteZip).toHaveBeenCalledWith('/exports/TPL-123.zip');
         expect(mockAddLocalFolder).toHaveBeenCalledWith(
-          '/custom-templates/files/TPL-123',
+          path.join('/custom-templates', 'files', 'TPL-123'),
           '',
         );
       });
@@ -707,14 +711,19 @@ describe('services', () => {
 
       it('should allow a custom-template store reached through a symbolic link', () => {
         fs.existsSync.mockReturnValue(true);
-        fs.realpathSync.mockImplementation((p) => p.replace('/custom-templates', '/real-store'));
+        fs.realpathSync.mockImplementation((p) => (
+          p === '/custom-templates' ? path.join('/real-store')
+            : p.replace(path.join('/custom-templates'), path.join('/real-store'))
+        ));
 
         new ProjectTemplateService().exportCustomTemplate(
           '/custom-templates',
           'TPL-123',
           '/exports/template.zip',
         );
-        expect(mockAddLocalFolder).toHaveBeenCalledWith('/custom-templates/files/TPL-123', '');
+        expect(mockAddLocalFolder).toHaveBeenCalledWith(
+          path.join('/custom-templates', 'files', 'TPL-123'), '',
+        );
         expect(mockWriteZip).toHaveBeenCalledWith('/exports/template.zip');
       });
 
