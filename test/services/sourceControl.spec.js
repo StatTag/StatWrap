@@ -178,5 +178,102 @@ describe('services', () => {
         ]);
       });
     });
+
+    describe('getVersionControlDetails', () => {
+      it('should return empty array for null, undefined or empty project paths', async () => {
+        const service = new SourceControlService();
+        expect(await service.getVersionControlDetails(null)).toEqual([]);
+        expect(await service.getVersionControlDetails(undefined)).toEqual([]);
+        expect(await service.getVersionControlDetails('')).toEqual([]);
+      });
+
+      it('should return empty array when path is inaccessible', async () => {
+        fs.accessSync.mockImplementationOnce(() => {
+          throw new Error('Inaccessible');
+        });
+        const service = new SourceControlService();
+        expect(await service.getVersionControlDetails('/Invalid/Path')).toEqual([]);
+      });
+
+      it('should return empty array when .git does not exist', async () => {
+        fs.accessSync.mockImplementationOnce(() => {});
+        fs.existsSync.mockReturnValueOnce(false);
+        const service = new SourceControlService();
+        expect(await service.getVersionControlDetails('/Valid/Path')).toEqual([]);
+      });
+
+      it('should detect git directory and resolve active branch via git.currentBranch', async () => {
+        fs.accessSync.mockImplementationOnce(() => {});
+        fs.existsSync.mockImplementation((p) => p.endsWith('.git'));
+        fs.statSync.mockReturnValueOnce({
+          isDirectory: () => true,
+          isFile: () => false,
+        });
+        git.currentBranch.mockResolvedValueOnce('main');
+
+        const service = new SourceControlService();
+        expect(await service.getVersionControlDetails('/Valid/Path')).toEqual([
+          'Git repository detected (.git)',
+          'Active branch: main',
+        ]);
+      });
+
+      it('should fallback to reading HEAD file when git.currentBranch throws', async () => {
+        fs.accessSync.mockImplementationOnce(() => {});
+        fs.existsSync.mockImplementation((p) => p.endsWith('.git') || p.endsWith('HEAD'));
+        fs.statSync.mockReturnValueOnce({
+          isDirectory: () => true,
+          isFile: () => false,
+        });
+        git.currentBranch.mockRejectedValueOnce(new Error('Git error'));
+        fs.readFileSync.mockReturnValueOnce('ref: refs/heads/feature-branch\n');
+
+        const service = new SourceControlService();
+        expect(await service.getVersionControlDetails('/Valid/Path')).toEqual([
+          'Git repository detected (.git)',
+          'Active branch: feature-branch',
+        ]);
+      });
+
+      it('should detect git directory without branch when HEAD is detached or missing ref', async () => {
+        fs.accessSync.mockImplementationOnce(() => {});
+        fs.existsSync.mockImplementation((p) => p.endsWith('.git') || p.endsWith('HEAD'));
+        fs.statSync.mockReturnValueOnce({
+          isDirectory: () => true,
+          isFile: () => false,
+        });
+        git.currentBranch.mockResolvedValueOnce(undefined);
+        fs.readFileSync.mockReturnValueOnce('1a2b3c4d5e6f7a8b9c0d\n');
+
+        const service = new SourceControlService();
+        expect(await service.getVersionControlDetails('/Valid/Path')).toEqual([
+          'Git repository detected (.git)',
+        ]);
+      });
+
+      it('should detect submodule or worktree when .git is a file', async () => {
+        fs.accessSync.mockImplementationOnce(() => {});
+        fs.existsSync.mockImplementation((p) => p.endsWith('.git'));
+        fs.statSync.mockReturnValueOnce({
+          isDirectory: () => false,
+          isFile: () => true,
+        });
+
+        const service = new SourceControlService();
+        expect(await service.getVersionControlDetails('/Valid/Path')).toEqual([
+          'Git repository detected (.git file)',
+        ]);
+      });
+
+      it('should return empty array if fs.existsSync throws unexpectedly', async () => {
+        fs.accessSync.mockImplementationOnce(() => {});
+        fs.existsSync.mockImplementationOnce(() => {
+          throw new Error('Permission denied');
+        });
+
+        const service = new SourceControlService();
+        expect(await service.getVersionControlDetails('/Valid/Path')).toEqual([]);
+      });
+    });
   });
 });
