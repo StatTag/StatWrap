@@ -482,17 +482,110 @@ class SearchService {
     }
   }
 
+  /**
+   * Resolve the project ID associated with a stored search document.
+   * @param {object} doc Stored search document entry.
+   * @returns {string|null} Associated project ID, or null if not project-scoped.
+   */
+  getDocumentProjectId(doc) {
+    if (!doc) {
+      return null;
+    }
+    if (doc.projectId) {
+      return doc.projectId;
+    }
+    if (doc.item && doc.item.projectId) {
+      return doc.item.projectId;
+    }
+    if (doc.type === 'project' && doc.item && doc.item.id) {
+      return doc.item.id;
+    }
+    return null;
+  }
+
+  /**
+   * Remove a document from both the document store and all active FlexSearch indices.
+   * @param {string} docId Document ID to remove.
+   */
+  deleteDocumentFromStoreAndIndices(docId) {
+    this.documentStore.delete(docId);
+
+    if (this.indices && typeof this.indices === 'object') {
+      const uniqueIndices = new Set(Object.values(this.indices).filter(Boolean));
+      uniqueIndices.forEach((index) => {
+        if (typeof index.remove === 'function') {
+          try {
+            index.remove(docId);
+          } catch (error) {
+            console.warn(`SearchService: Error removing document ${docId} from index:`, error);
+          }
+        }
+      });
+    }
+  }
+
+  /**
+   * Purge any orphaned documents and stale project entries absent from currentProjects.
+   * @param {Array<object>} currentProjects Active project entries.
+   * @returns {{docsRemoved: number, projectsRemoved: number}} Count of purged documents and project entries.
+   */
+  removeOrphanedDocuments(currentProjects) {
+    if (!Array.isArray(currentProjects)) {
+      return { docsRemoved: 0, projectsRemoved: 0 };
+    }
+
+    const validProjectIds = new Set(
+      currentProjects.filter((p) => p && p.id).map((p) => p.id),
+    );
+
+    const orphanedDocs = [];
+    const orphanedProjectIds = new Set();
+    this.documentStore.forEach((doc, docId) => {
+      const docProjectId = this.getDocumentProjectId(doc);
+      if (docProjectId && !validProjectIds.has(docProjectId)) {
+        orphanedDocs.push({ docId, projectId: docProjectId });
+        orphanedProjectIds.add(docProjectId);
+      }
+    });
+
+    orphanedDocs.forEach(({ docId, projectId }) => {
+      this.deleteDocumentFromStoreAndIndices(docId);
+      this.indexedProjectsMap.delete(projectId);
+    });
+
+    Array.from(this.indexedProjectsMap.keys()).forEach((projectId) => {
+      if (!validProjectIds.has(projectId)) {
+        this.indexedProjectsMap.delete(projectId);
+        orphanedProjectIds.add(projectId);
+      }
+    });
+
+    if (orphanedDocs.length > 0 || orphanedProjectIds.size > 0) {
+      this.resultCache.clear();
+    }
+
+    return {
+      docsRemoved: orphanedDocs.length,
+      projectsRemoved: orphanedProjectIds.size,
+    };
+  }
+
   async compareAndUpdateIndex(currentProjects) {
-    const currentProjectIds = new Set(currentProjects.map((p) => p.id));
+    if (!Array.isArray(currentProjects)) {
+      return { added: 0, removed: 0, updated: 0 };
+    }
+
+    const validProjects = currentProjects.filter((p) => p && p.id);
+    const currentProjectIds = new Set(validProjects.map((p) => p.id));
     const indexedProjectIds = new Set(this.indexedProjectsMap.keys());
 
-    const projectsToAdd = currentProjects.filter((p) => !indexedProjectIds.has(p.id));
+    const projectsToAdd = validProjects.filter((p) => !indexedProjectIds.has(p.id));
     const projectsToRemove = Array.from(indexedProjectIds).filter(
       (id) => !currentProjectIds.has(id),
     );
 
     // Check for path changes
-    const projectsToUpdate = currentProjects.filter((p) => {
+    const projectsToUpdate = validProjects.filter((p) => {
       if (!indexedProjectIds.has(p.id)) {return false;}
 
       const indexedProject = this.indexedProjectsMap.get(p.id);
@@ -508,20 +601,25 @@ class SearchService {
       console.log(`Projects to update: ${projectsToUpdate.length}`);
     }
 
+    // Remove projects without rebuilding indices
+    for (const projectId of projectsToRemove) {
+      await this.removeProjectDocumentsOnly(projectId);
+    }
+
+    // Purge any detached orphans whose project ID was already missing from indexedProjectsMap
+    const orphanCleanup = this.removeOrphanedDocuments(validProjects);
+    const totalRemovedProjects = projectsToRemove.length + orphanCleanup.projectsRemoved;
+
     if (
       projectsToAdd.length === 0 &&
-      projectsToRemove.length === 0 &&
+      totalRemovedProjects === 0 &&
+      orphanCleanup.docsRemoved === 0 &&
       projectsToUpdate.length === 0
     ) {
       if (shouldLog) {
         console.log('SearchService: No changes detected, index is up to date');
       }
       return { added: 0, removed: 0, updated: 0 };
-    }
-
-    // Remove projects without rebuilding indices
-    for (const projectId of projectsToRemove) {
-      await this.removeProjectDocumentsOnly(projectId);
     }
 
     // Add new projects (already incremental)
@@ -547,7 +645,7 @@ class SearchService {
 
     return {
       added: projectsToAdd.length,
-      removed: projectsToRemove.length,
+      removed: totalRemovedProjects > 0 ? totalRemovedProjects : orphanCleanup.docsRemoved > 0 ? 1 : 0,
       updated: projectsToUpdate.length,
     };
   }
@@ -556,14 +654,14 @@ class SearchService {
 
     const documentsToRemove = [];
     this.documentStore.forEach((doc, docId) => {
-      if (doc.item && doc.item.projectId === projectId) {
+      if (this.getDocumentProjectId(doc) === projectId) {
         documentsToRemove.push({ docId, doc });
       }
     });
 
-    // Remove from document store
+    // Remove from document store and FlexSearch indices
     documentsToRemove.forEach(({ docId }) => {
-      this.documentStore.delete(docId);
+      this.deleteDocumentFromStoreAndIndices(docId);
     });
     if (documentsToRemove.length > 0) {
       console.log(
@@ -578,6 +676,7 @@ class SearchService {
     console.log(
       `SearchService: Removed project ${projectId} (${documentsToRemove.length} documents)`,
     );
+    return documentsToRemove.length;
   }
 
   /**
@@ -631,15 +730,21 @@ class SearchService {
    * Initialize the service with project data and optional file size limit (default 100KB)
    */
   async initialize(userDataPath, projects = [], maxFileSize = 100 * 1024) {
+    const hasValidProjectsArray = Array.isArray(projects);
+    const safeProjects = hasValidProjectsArray ? projects : [];
+
     // If already initialized, only check for changes
     if (this.isInitialized && this.indicesBuiltThisSession) {
+      if (!hasValidProjectsArray) {
+        return;
+      }
       console.log('SearchService: Already initialized this session, checking for changes...');
 
       // Updating current projects data
-      this.projectsData = projects;
+      this.projectsData = safeProjects;
 
       // Checking for project changes (additions, removals, updates)
-      const updateResults = await this.compareAndUpdateIndex(projects);
+      const updateResults = await this.compareAndUpdateIndex(safeProjects);
 
       if (updateResults.added > 0 || updateResults.removed > 0 || updateResults.updated > 0) {
         await this.saveIndexToFile();
@@ -657,14 +762,16 @@ class SearchService {
       this.initializeIndices();
       this.setupIndexFilePath();
 
-      console.log('SearchService: Projects to process:', projects.length);
+      console.log('SearchService: Projects to process:', safeProjects.length);
       console.log(
         'SearchService: Max file size for indexing:',
         (maxFileSize / (1024 * 1024)).toFixed(3),
         'MB',
       );
 
-      this.projectsData = projects;
+      if (hasValidProjectsArray) {
+        this.projectsData = safeProjects;
+      }
       this.maxIndexingFileSize = maxFileSize;
 
       // Load existing index
@@ -689,6 +796,13 @@ class SearchService {
           this.performanceStats = { ...this.performanceStats, ...existingIndex.performanceStats };
         }
 
+        // Purge removed/orphaned project records synchronously before rebuilding indices or returning stats
+        let purgedOnStartup = false;
+        if (hasValidProjectsArray) {
+          const orphanStats = this.removeOrphanedDocuments(safeProjects);
+          purgedOnStartup = orphanStats.docsRemoved > 0 || orphanStats.projectsRemoved > 0;
+        }
+
         if (!this.indicesBuiltThisSession) {
           console.log('SearchService: Building FlexSearch indices from document store...');
           const startTime = Date.now();
@@ -698,6 +812,10 @@ class SearchService {
           this.indicesBuiltThisSession = true;
         } else {
           console.log('SearchService: FlexSearch indices already built this session');
+        }
+
+        if (purgedOnStartup) {
+          await this.saveIndexToFile();
         }
 
         this.isInitialized = true;
@@ -713,29 +831,25 @@ class SearchService {
             `SearchService: File size limit changed from ${(existingIndex.maxIndexingFileSize / (1024 * 1024)).toFixed(3)}MB to ${(maxFileSize / (1024 * 1024)).toFixed(3)}MB - will reindex affected projects`,
           );
           this.maxIndexingFileSize = maxFileSize;
+        }
 
+        if (hasValidProjectsArray) {
           this.updateTimeout = setTimeout(async () => {
-            try {
-              this.indexingInProgress = true;
-              const updateResults = await this.compareAndUpdateIndex(projects);
-              this.indexingInProgress = false;
-              await this.saveIndexToFile();
-              console.log('SearchService: Background update completed:', updateResults);
-            } catch (error) {
-              console.error('SearchService: Background update error:', error);
-              this.indexingInProgress = false;
-            } finally {
+            if (!this.isInitialized || !Array.isArray(this.projectsData)) {
               this.updateTimeout = null;
+              return;
             }
-          }, 100);
-        } else {
-          this.updateTimeout = setTimeout(async () => {
             try {
               this.indexingInProgress = true;
-              const updateResults = await this.compareAndUpdateIndex(projects);
+              const updateResults = await this.compareAndUpdateIndex(this.projectsData);
               this.indexingInProgress = false;
 
-              if (updateResults.added > 0 || updateResults.removed > 0 || updateResults.updated > 0) {
+              if (
+                fileSizeChanged ||
+                updateResults.added > 0 ||
+                updateResults.removed > 0 ||
+                updateResults.updated > 0
+              ) {
                 await this.saveIndexToFile();
                 console.log('SearchService: Incremental update completed:', updateResults);
               } else {
@@ -755,10 +869,11 @@ class SearchService {
         this.indexingInProgress = true;
 
         // Index all projects
-        for (const project of projects) {
+        for (const project of safeProjects) {
           await this.indexProject(project);
         }
 
+        this.indicesBuiltThisSession = true;
         this.indexingInProgress = false;
 
         // Save the new index
@@ -1053,7 +1168,7 @@ class SearchService {
     ]
       .filter((part) => part && part.trim())
       .join(' ');
-    const docId = this.generateDocumentId('person', person.id);
+    const docId = this.generateDocumentId('person', project.id, person.id);
 
     const doc = {
       id: docId,
@@ -1087,7 +1202,7 @@ class SearchService {
   async indexNote(note, project, entityType, entityName) {
     if (!note || !note.content) {return;}
 
-    const docId = this.generateDocumentId('note', note.id || Date.now(), entityType);
+    const docId = this.generateDocumentId('note', project.id, `${note.id || Date.now()}_${entityType}`);
 
     const doc = {
       id: docId,
@@ -1124,7 +1239,7 @@ class SearchService {
       .filter((part) => part && part.trim())
       .join(' ');
 
-    const docId = this.generateDocumentId('asset-group', group.id);
+    const docId = this.generateDocumentId('asset-group', project.id, group.id);
 
     const doc = {
       id: docId,
