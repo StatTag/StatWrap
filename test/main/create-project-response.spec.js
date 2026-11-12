@@ -39,12 +39,13 @@ describe('main-process project creation response', () => {
       Constants,
       Messages,
       path,
+      uuidv4: () => 'fresh-unique-uuid',
       fs: { existsSync: () => true, writeFileSync: jest.fn() },
       require: () => ({
         cloneDirectoryStructure: jest.fn(),
         createStatWrapConfig: jest.fn(),
       }),
-      console: { log: jest.fn() },
+      console: { log: jest.fn(), warn: jest.fn(), error: jest.fn() },
     });
   });
 
@@ -84,5 +85,55 @@ describe('main-process project creation response', () => {
       Messages.CREATE_PROJECT_RESPONSE,
       expect.objectContaining({ error: true, errorMessage: expect.any(String) }),
     );
+  });
+
+  it('generates a fresh UUID and silently updates project.json on disk when duplicate UUID collides', async () => {
+    projectListService.loadProjectListFromFile = jest.fn(() => [
+      { id: 'colliding-uuid', path: '/other-folder/project' },
+    ]);
+    projectService.loadProjectFile.mockReturnValue({ id: 'colliding-uuid', name: 'Copied Project' });
+
+    await handler(event, { type: Constants.ProjectType.EXISTING_PROJECT_TYPE });
+
+    // Verifies silent on-disk update with fresh UUID
+    expect(projectService.saveProjectFile).toHaveBeenCalledWith(
+      '/project',
+      { id: 'fresh-unique-uuid', name: 'Copied Project' },
+    );
+    // Verifies local project list gets new UUID
+    expect(projectListService.appendAndSaveProjectToList).toHaveBeenCalledWith(
+      { ...project, id: 'fresh-unique-uuid', name: 'Copied Project' },
+      '/user-data/projects.json',
+    );
+    expect(event.sender.send).toHaveBeenCalledWith(Messages.CREATE_PROJECT_RESPONSE, {
+      project: { ...project, id: 'fresh-unique-uuid', name: 'Copied Project' },
+      statWrapConfigExisted: true,
+      error: false,
+      errorMessage: '',
+    });
+  });
+
+  it('falls back to local project list UUID when duplicate folder on disk is read-only', async () => {
+    projectListService.loadProjectListFromFile = jest.fn(() => [
+      { id: 'colliding-uuid', path: '/other-folder/project' },
+    ]);
+    projectService.loadProjectFile.mockReturnValue({ id: 'colliding-uuid', name: 'Read-Only Copied Project' });
+    projectService.saveProjectFile.mockImplementation(() => {
+      throw new Error('EROFS: read-only file system');
+    });
+
+    await handler(event, { type: Constants.ProjectType.EXISTING_PROJECT_TYPE });
+
+    // Verifies graceful fallback: still appends fresh UUID to project list without throwing
+    expect(projectListService.appendAndSaveProjectToList).toHaveBeenCalledWith(
+      { ...project, id: 'fresh-unique-uuid', name: 'Read-Only Copied Project' },
+      '/user-data/projects.json',
+    );
+    expect(event.sender.send).toHaveBeenCalledWith(Messages.CREATE_PROJECT_RESPONSE, {
+      project: { ...project, id: 'fresh-unique-uuid', name: 'Read-Only Copied Project' },
+      statWrapConfigExisted: true,
+      error: false,
+      errorMessage: '',
+    });
   });
 });

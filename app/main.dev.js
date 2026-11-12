@@ -263,6 +263,7 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
       path.join(userDataPath, DefaultProjectListFile),
     );
 
+    const claimedIds = new Set();
     // For all of the projects we have in our list, load the additional information that exists
     // within the project's local metadata file itself.
     projectsFromFile = projectsFromFile.map((project) => {
@@ -275,12 +276,6 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
           return fullProject;
         }
 
-        // Start the log file watcher for each project
-        logWatcherService.add(
-          path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, Constants.StatWrapFiles.LOG),
-          project.id,
-        );
-
         let metadata = null;
         try {
           metadata = projectService.loadProjectFile(project.path);
@@ -288,17 +283,36 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
           metadata = null;
         }
 
-        // TODO What if the IDs don't match?  Handle that.  Also handle if file not found, file invalid, etc.
-        // Remember that if the file can't be loaded, it may be because we're offline and the project is in
-        // a network directory.
-        const isClonedProject = fs.existsSync(
-          path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, Constants.StatWrapFiles.CLONED_PROJECT_MARKER)
-        );
-
         if (metadata == null) {
           fullProject.loadError = true;
           fullProject.errorMessage = 'Failed to load the project details';
+          claimedIds.add(fullProject.id);
         } else {
+          // Reconcile project ID if metadata.id differs from project.id
+          if (metadata.id && metadata.id !== project.id) {
+            const isCollision = claimedIds.has(metadata.id) || projectsFromFile.some(
+              (p) => p !== project && p.id === metadata.id,
+            );
+            if (isCollision) {
+              // Duplicate collision: maintain unique project.id to avoid React key / log collision
+              fullProject.id = project.id;
+            } else {
+              // Canonical folder ID: synchronize in-memory and update local registry
+              fullProject.id = metadata.id;
+              try {
+                projectListService.updateProjectId(
+                  project.id,
+                  metadata.id,
+                  path.join(userDataPath, DefaultProjectListFile),
+                );
+              } catch (updateErr) {
+                console.warn('Could not persist reconciled project ID to project list:', updateErr);
+              }
+            }
+          }
+
+          claimedIds.add(fullProject.id);
+
           // Do not set the name from the project, unless our project list entry is empty.  This is because
           // the user can rename projects in their list however they want.  In the event it ends up as a
           // blank/empty/null string, we want to be sure there is something on the list the user can see.
@@ -323,6 +337,12 @@ ipcMain.on(Messages.LOAD_PROJECT_LIST_REQUEST, async (event) => {
           fullProject.loadError = false;
           fullProject.errorMessage = '';
         }
+
+        // Start the log file watcher for each project using its reconciled ID
+        logWatcherService.add(
+          path.join(project.path, Constants.StatWrapFiles.BASE_FOLDER, Constants.StatWrapFiles.LOG),
+          fullProject.id,
+        );
       } catch (err) {
         console.error(`Failed to load details for project at ${project ? project.path : 'unknown'}:`, err);
         fullProject.loadError = true;
@@ -583,9 +603,32 @@ ipcMain.on(Messages.CREATE_PROJECT_REQUEST, async (event, project) => {
           // Note that it must at minimum have an id attribute to be considered valid.
           let projectConfig = projectService.loadProjectFile(validationReport.project.path);
           if (projectConfig && projectConfig.id) {
-            validationReport.project.id = projectConfig.id;
-            validationReport.project.name = projectConfig.name;
-            response.statWrapConfigExisted = true;
+            const userDataPath = app.getPath('userData');
+            const projectListFilePath = path.join(userDataPath, DefaultProjectListFile);
+            const existingProjects = typeof projectListService.loadProjectListFromFile === 'function'
+              ? projectListService.loadProjectListFromFile(projectListFilePath) || []
+              : [];
+            const isCollision = existingProjects.some(
+              (p) => p.id === projectConfig.id && p.path !== validationReport.project.path,
+            );
+
+            if (isCollision) {
+              // A folder copy or clone occurred. Generate a fresh unique ID so projects don't collide
+              const newId = uuidv4();
+              validationReport.project.id = newId;
+              validationReport.project.name = projectConfig.name;
+              projectConfig.id = newId;
+              try {
+                projectService.saveProjectFile(validationReport.project.path, projectConfig);
+              } catch (saveErr) {
+                console.warn('Could not update project config on disk (possibly read-only):', saveErr);
+              }
+              response.statWrapConfigExisted = true;
+            } else {
+              validationReport.project.id = projectConfig.id;
+              validationReport.project.name = projectConfig.name;
+              response.statWrapConfigExisted = true;
+            }
           } else {
             projectConfig = projectService.createProjectConfig(
               validationReport.project.id,

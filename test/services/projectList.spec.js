@@ -514,6 +514,48 @@ describe('services', () => {
       });
     });
 
+    describe('updateProjectId', () => {
+      it('should not try to save if the project list does not exist', () => {
+        fs.accessSync.mockImplementation(() => {
+          throw new Error();
+        });
+        const service = new ProjectListService();
+        expect(service.updateProjectId('old-id', 'new-id')).toBe(false);
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+      });
+
+      it('should return false if invalid arguments are provided', () => {
+        const service = new ProjectListService();
+        expect(service.updateProjectId(null, 'new-id')).toBe(false);
+        expect(service.updateProjectId('old-id', null)).toBe(false);
+        expect(service.updateProjectId('same-id', 'same-id')).toBe(false);
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+      });
+
+      it('should return false if the project ID does not exist', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListString);
+        const service = new ProjectListService();
+        expect(service.updateProjectId('non-existent-id', 'new-id')).toBe(false);
+        expect(fs.writeFileSync).not.toHaveBeenCalled();
+      });
+
+      it('should update the project ID in the project list and persist', () => {
+        fs.accessSync.mockReturnValue(true);
+        fs.readFileSync.mockReturnValue(projectListString);
+        const service = new ProjectListService();
+        const result = service.updateProjectId(
+          'd01d2925-f6ff-4f8e-988f-fca2ee193427',
+          'new-canonical-uuid',
+        );
+        expect(result).toBe(true);
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+          '.statwrap-projects.json',
+          '[{"id":"new-canonical-uuid","favorite":true,"lastAccessed":"2020-04-21T21:21:27.041Z","path":"~/Development/projects/test1","name":"Project 1"},{"id":"6ff79e02-4f24-4948-ac77-f3f1b67064e5","lastAccessed":"2020-04-21T21:21:27.041Z","path":"smb://fsmresfiles.fsm.northwestern.edu/fsmresfiles/Projects/Shared/Project2"}]',
+        );
+      });
+    });
+
     describe('setProjectLastAccessed', () => {
       it('should not try to save if the project list does not exist', () => {
         fs.accessSync.mockImplementation(() => {
