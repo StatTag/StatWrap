@@ -910,6 +910,29 @@ describe('services', () => {
           path: '"persons.dat"',
         });
       });
+      it('should not treat /// or // inside string literals as line continuations', () => {
+        const handler = new StataHandler();
+        const code = [
+          'clear',
+          'di "hello /// world"',
+          'import excel "C:\\test.xlsx", sheet("Sheet1")',
+          'di `"compound /// quote"\'',
+          'import delimited "next.csv"',
+        ].join('\n');
+        const inputs = handler.getInputs('test.uri', code);
+        expect(inputs).toEqual([
+          {
+            id: 'import excel - "C:\\test.xlsx"',
+            type: 'data',
+            path: '"C:\\test.xlsx"',
+          },
+          {
+            id: 'import delimited - "next.csv"',
+            type: 'data',
+            path: '"next.csv"',
+          },
+        ]);
+      });
     });
   });
 });

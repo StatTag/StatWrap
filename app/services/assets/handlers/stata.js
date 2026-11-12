@@ -41,10 +41,62 @@ export default class StataHandler extends BaseCodeHandler {
   }
 
   /**
+   * Inspects a single Stata line outside string literals to detect `///` or trailing `\` continuations.
+   * @param {string} line Single line of Stata code
+   * @returns {string|null} Line prefix before the continuation token, or null if none
+   */
+  extractContinuationPrefix(line) {
+    let inDoubleQuote = false;
+    let compoundDepth = 0;
+
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+
+      if (ch === '`' && i + 1 < line.length && line[i + 1] === '"') {
+        compoundDepth++;
+        i++;
+        continue;
+      }
+
+      if (compoundDepth > 0 && ch === '"' && i + 1 < line.length && line[i + 1] === "'") {
+        compoundDepth--;
+        i++;
+        continue;
+      }
+
+      if (compoundDepth === 0 && ch === '"') {
+        inDoubleQuote = !inDoubleQuote;
+        continue;
+      }
+
+      if (inDoubleQuote || compoundDepth > 0) {
+        continue;
+      }
+
+      if (line.startsWith('///', i)) {
+        return line.slice(0, i);
+      }
+
+      if (line.startsWith('//', i)) {
+        return null;
+      }
+    }
+
+    if (!inDoubleQuote && compoundDepth === 0) {
+      const backslashMatch = line.match(/^(.*?)\\[ \t]*$/);
+      if (backslashMatch) {
+        return backslashMatch[1];
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Preprocesses Stata code to handle line continuations while preserving comment lines.
    * Handles:
    * 1. Backslash continuation (\ at end of line)
-   * 2. Triple slash continuation (/// at end of line with optional comment)
+   * 2. Triple slash continuation (/// at end of line with optional comment, outside string literals)
    * @param {string} text Raw Stata file text
    * @returns {string} Preprocessed Stata text with continuations merged
    */
@@ -57,7 +109,7 @@ export default class StataHandler extends BaseCodeHandler {
     const processedLines = [];
     let currentLine = '';
 
-    for (let i = 0; i < lines.length; i += 1) {
+    for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
 
       // If currentLine is empty, this line is the beginning of a statement
@@ -69,17 +121,9 @@ export default class StataHandler extends BaseCodeHandler {
         }
       }
 
-      // Check for Stata triple slash (///) line continuation with optional trailing comment
-      const tripleSlashMatch = line.match(/^(.*?)\/\/\/[^\r\n]*$/);
-      if (tripleSlashMatch) {
-        currentLine += (currentLine ? ' ' : '') + tripleSlashMatch[1].trim();
-        continue;
-      }
-
-      // Check for backslash line continuation (\ at end of line)
-      const backslashMatch = line.match(/^(.*?)\\[ \t]*$/);
-      if (backslashMatch) {
-        currentLine += (currentLine ? ' ' : '') + backslashMatch[1].trim();
+      const continuationPrefix = this.extractContinuationPrefix(line);
+      if (continuationPrefix !== null) {
+        currentLine += (currentLine ? ' ' : '') + continuationPrefix.trim();
         continue;
       }
 
@@ -141,7 +185,7 @@ export default class StataHandler extends BaseCodeHandler {
         /^\s*?((?:import\s+(?:excel|delimited|sasxport|sasxport5|sasxport8|dbase))|(?:infile|inf|infix|xmluse))\s+(.+?)$/gm,
       ),
     ];
-    for (let index = 0; index < importMatches.length; index += 1) {
+    for (let index = 0; index < importMatches.length; index++) {
       const match = importMatches[index];
       const command = match[1].trim();
       const path = this.extractStataPath(match[2]);
@@ -168,7 +212,7 @@ export default class StataHandler extends BaseCodeHandler {
     const figureMatches = [
       ...processedText.matchAll(/^\s*(gr(?:aph)? export)\s*([\s\S]+?)(?:,[\s\S]+?)?$/gm),
     ];
-    for (let index = 0; index < figureMatches.length; index += 1) {
+    for (let index = 0; index < figureMatches.length; index++) {
       const match = figureMatches[index];
       const path = match[2].trim();
       outputs.push({
@@ -181,7 +225,7 @@ export default class StataHandler extends BaseCodeHandler {
     const logMatches = [
       ...processedText.matchAll(/^\s*((?:cmd)?log)\s*using\b([\w\W]*?)(?:$|[\r\n,])/gm),
     ];
-    for (let index = 0; index < logMatches.length; index += 1) {
+    for (let index = 0; index < logMatches.length; index++) {
       const match = logMatches[index];
       const path = match[2].trim();
       outputs.push({
@@ -196,7 +240,7 @@ export default class StataHandler extends BaseCodeHandler {
         /^\s*?((?:export\s+(?:excel|delimited|sasxport|sasxport5|sasxport8|dbase))|outfile|xmlsave)\s+(.+?)$/gm,
       ),
     ];
-    for (let index = 0; index < exportMatches.length; index += 1) {
+    for (let index = 0; index < exportMatches.length; index++) {
       const match = exportMatches[index];
       const command = match[1].trim();
       const path = this.extractStataPath(match[2]);
@@ -214,7 +258,7 @@ export default class StataHandler extends BaseCodeHandler {
         /^\s*(putdocx|putexcel|putpdf)\s+save\s+([\s\S]+?)(?:,[\s\S]+?)?$/gm,
       ),
     ];
-    for (let index = 0; index < putMatches.length; index += 1) {
+    for (let index = 0; index < putMatches.length; index++) {
       const match = putMatches[index];
       const path = match[2].trim();
       outputs.push({
@@ -231,7 +275,7 @@ export default class StataHandler extends BaseCodeHandler {
         /^\s*(est(?:out|add|tab))\s+(?:using)\s+([^,\r\n,#]+?\.[^,\r\n,#]+?)(?:[, \r\n,#]|$)/gm,
       ),
     ];
-    for (let index = 0; index < estMatches.length; index += 1) {
+    for (let index = 0; index < estMatches.length; index++) {
       const match = estMatches[index];
       const path = match[2].trim();
       outputs.push({
@@ -248,7 +292,7 @@ export default class StataHandler extends BaseCodeHandler {
         /^\s*(table1)[\s\S]+?(?:saving)\s*?\(\s*([^,\r\n,#]+?\.[^,\r\n,#]+?)\s*[,\r\n,#][\s\S]*?\)\s*?$/gm,
       ),
     ];
-    for (let index = 0; index < table1Matches.length; index += 1) {
+    for (let index = 0; index < table1Matches.length; index++) {
       const match = table1Matches[index];
       const path = match[2].trim();
       outputs.push({
@@ -285,7 +329,7 @@ export default class StataHandler extends BaseCodeHandler {
     // 0 - full match (not used)
     // 1 - handle used for plugin
     const pluginMatches = [...processedText.matchAll(/pr(?:ogram)?\s+(.+),\s+plug(?:in)?\s?$/gm)];
-    for (let index = 0; index < pluginMatches.length; index += 1) {
+    for (let index = 0; index < pluginMatches.length; index++) {
       const match = pluginMatches[index];
       libraries.push({
         id: this.getLibraryId(match[1]),
@@ -302,7 +346,7 @@ export default class StataHandler extends BaseCodeHandler {
         /pr(?:ogram)?\s+(.+),\s+plug(?:in)?\s*(?:using\s*\(\s*"(.+?)"\s*\))/gm,
       ),
     ];
-    for (let index = 0; index < pluginUsingMatches.length; index += 1) {
+    for (let index = 0; index < pluginUsingMatches.length; index++) {
       const match = pluginUsingMatches[index];
       libraries.push({
         id: this.getLibraryId(match[1], match[2]),
