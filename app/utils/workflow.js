@@ -17,6 +17,7 @@ import DartHandler from '../services/assets/handlers/dart';
 import ScalaHandler from '../services/assets/handlers/scala';
 import JuliaHandler from '../services/assets/handlers/julia';
 import JupyterHandler from '../services/assets/handlers/jupyter';
+import MatlabHandler from '../services/assets/handlers/matlab';
 import path from 'path';
 
 export default class WorkflowUtil {
@@ -88,6 +89,8 @@ export default class WorkflowUtil {
       assetType = 'julia';
     } else if (AssetUtil.getHandlerMetadata(JupyterHandler.id, asset.metadata)) {
       assetType = 'jupyter';
+    } else if (AssetUtil.getHandlerMetadata(MatlabHandler.id, asset.metadata)) {
+      assetType = 'matlab';
     }
     return assetType;
   }
@@ -401,6 +404,7 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, DartHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, JuliaHandler.id, libraries, inputs, outputs);
     WorkflowUtil._getMetadataDependencies(asset, JupyterHandler.id, libraries, inputs, outputs);
+    WorkflowUtil._getMetadataDependencies(asset, MatlabHandler.id, libraries, inputs, outputs);
     return libraries
       .map((e) => {
         return { ...e, direction: Constants.DependencyDirection.IN };
@@ -475,6 +479,7 @@ export default class WorkflowUtil {
     WorkflowUtil._getMetadataDependencies(asset, ScalaHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, JuliaHandler.id, libraries, [], []);
     WorkflowUtil._getMetadataDependencies(asset, JupyterHandler.id, libraries, [], []);
+    WorkflowUtil._getMetadataDependencies(asset, MatlabHandler.id, libraries, [], []);
 
     return libraries;
   }

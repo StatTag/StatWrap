@@ -311,7 +311,8 @@ describe('services', () => {
         expect(service.assetContentTypes('test.mAtA', stat)).toStrictEqual(['code']);
         // False leads...
         expect(service.assetContentTypes('test.dod', stat)).toStrictEqual(['other']);
-        expect(service.assetContentTypes('test.mat', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('test.mat', stat)).not.toContain('code');
+        expect(service.assetContentTypes('test.mata2', stat)).toStrictEqual(['other']);
         expect(service.assetContentTypes('test.do.other', stat)).toStrictEqual(['other']);
         expect(service.assetContentTypes('.mata', stat)).toStrictEqual(['other']);
         expect(service.assetContentTypes('.ado.other', stat)).toStrictEqual(['other']);
@@ -364,6 +365,32 @@ describe('services', () => {
         expect(service.assetContentTypes('.jl', stat)).toStrictEqual(['other']);
         stat.isFile.mockReturnValue(false);
         expect(service.assetContentTypes('folder.jl', stat)).toStrictEqual(['other']);
+      });
+
+      it('should identify MATLAB code files as code', () => {
+        const stat = new fs.Stats();
+        stat.isFile.mockReturnValue(true);
+        const service = new AssetService();
+        expect(service.assetContentTypes('test.m', stat)).toStrictEqual(['code']);
+        expect(service.assetContentTypes('test.M', stat)).toStrictEqual(['code']);
+        // False leads...
+        expect(service.assetContentTypes('test.m.bak', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.m', stat)).toStrictEqual(['other']);
+        stat.isFile.mockReturnValue(false);
+        expect(service.assetContentTypes('folder.m', stat)).toStrictEqual(['other']);
+      });
+
+      it('should identify MATLAB data files as data', () => {
+        const stat = new fs.Stats();
+        stat.isFile.mockReturnValue(true);
+        const service = new AssetService();
+        expect(service.assetContentTypes('data.mat', stat)).toStrictEqual(['data']);
+        expect(service.assetContentTypes('data.MAT', stat)).toStrictEqual(['data']);
+        // False leads...
+        expect(service.assetContentTypes('data.mat.bak', stat)).toStrictEqual(['other']);
+        expect(service.assetContentTypes('.mat', stat)).toStrictEqual(['other']);
+        stat.isFile.mockReturnValue(false);
+        expect(service.assetContentTypes('folder.mat', stat)).toStrictEqual(['other']);
       });
 
       it('should identify Stata data files as data', () => {
