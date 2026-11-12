@@ -682,6 +682,11 @@ export default class ChecklistUtil {
       return { versionControl: results };
     }
 
+    // If version control was pre-scanned in the background worker, use it directly (0ms disk I/O)
+    if (Array.isArray(asset.versionControl)) {
+      return { versionControl: asset.versionControl };
+    }
+
     try {
       const gitPath = path.join(asset.uri, '.git');
       if (fs.existsSync(gitPath)) {
