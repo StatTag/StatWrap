@@ -24,6 +24,7 @@ import CSharpHandler from './services/assets/handlers/csharp';
 import DartHandler from './services/assets/handlers/dart';
 import JuliaHandler from './services/assets/handlers/julia';
 import JupyterHandler from './services/assets/handlers/jupyter';
+import MatlabHandler from './services/assets/handlers/matlab';
 import AssetUtil from './utils/asset';
 import ProjectUtil from './utils/project';
 import Constants from './constants/constants';
@@ -78,6 +79,7 @@ contextBridge.exposeInMainWorld('workerElectronBridge', {
           new ScalaHandler(),
           new JuliaHandler(),
           new JupyterHandler(),
+          new MatlabHandler(),
         ]);
         response.assets = service.scan(project.path); // Returns absolute paths
 

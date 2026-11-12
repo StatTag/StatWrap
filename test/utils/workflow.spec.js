@@ -119,6 +119,43 @@ describe('utils', () => {
         expect(dependencies[0].assetType).toEqual('javascript');
         expect(dependencies[0].dependencies.length).toEqual(3);
       });
+
+      it('should include MATLAB metadata dependencies in the workflow list', () => {
+        const asset = {
+          uri: '/test/analysis.m',
+          metadata: [
+            {
+              id: 'StatWrap.MatlabHandler',
+              libraries: [
+                {
+                  id: 'matlab.net.http.*',
+                  package: 'matlab.net.http',
+                  import: '*',
+                },
+              ],
+              inputs: [
+                {
+                  id: "readtable - 'data/input.csv'",
+                  type: Constants.DependencyType.DATA,
+                  path: "'data/input.csv'",
+                },
+              ],
+              outputs: [
+                {
+                  id: "saveas - 'plot.png'",
+                  type: Constants.DependencyType.FIGURE,
+                  path: "'plot.png'",
+                },
+              ],
+            },
+          ],
+          children: [],
+        };
+        const dependencies = WorkflowUtil.getAllDependencies(asset);
+        expect(dependencies.length).toEqual(1);
+        expect(dependencies[0].assetType).toEqual('matlab');
+        expect(dependencies[0].dependencies.length).toEqual(3);
+      });
     });
 
     describe('getAllDependenciesAsGraph', () => {
@@ -617,6 +654,9 @@ describe('utils', () => {
         );
         expect(WorkflowUtil.getAssetType({ metadata: [{ id: 'StatWrap.JupyterHandler' }] })).toEqual(
           'jupyter',
+        );
+        expect(WorkflowUtil.getAssetType({ metadata: [{ id: 'StatWrap.MatlabHandler' }] })).toEqual(
+          'matlab',
         );
       });
 

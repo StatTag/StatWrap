@@ -32,6 +32,7 @@ const ICON_TYPES = {
   SCALA: `${ICON_PATH}scala.svg`,
   JULIA: `${ICON_PATH}julia.svg`,
   JUPYTER: `${ICON_PATH}jupyter.svg`,
+  MATLAB: `${ICON_PATH}matlab.svg`,
 };
 
 /**
@@ -77,6 +78,8 @@ function getIcon(node) {
     iconUrl = ICON_TYPES.JULIA;
   } else if (node.value === 'jupyter') {
     iconUrl = ICON_TYPES.JUPYTER;
+  } else if (node.value === 'matlab') {
+    iconUrl = ICON_TYPES.MATLAB;
   } else if (node.value === Constants.DependencyType.DATA) {
     iconUrl = ICON_TYPES.DATA;
   } else if (node.value === Constants.DependencyType.FIGURE) {
