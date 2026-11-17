@@ -1025,6 +1025,19 @@ describe('utils', () => {
         jest.restoreAllMocks();
       });
 
+      it('should return pre-scanned versionControl directly without touching the filesystem', () => {
+        const existsSpy = jest.spyOn(fs, 'existsSync');
+        const preScanned = ['Git repository detected (.git)', 'Active branch: release-v1'];
+        const asset = {
+          uri: '/path/to/project',
+          versionControl: preScanned,
+        };
+
+        const result = ChecklistUtil.findVersionControl(asset);
+        expect(result).toEqual({ versionControl: preScanned });
+        expect(existsSpy).not.toHaveBeenCalled();
+      });
+
       it('should return empty result when asset is null or undefined or missing uri', () => {
         expect(ChecklistUtil.findVersionControl(null)).toEqual({ versionControl: [] });
         expect(ChecklistUtil.findVersionControl(undefined)).toEqual({ versionControl: [] });

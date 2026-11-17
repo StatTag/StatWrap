@@ -103,4 +103,57 @@ export default class SourceControlService {
       return [];
     }
   }
+
+  /**
+   * Asynchronously inspect a project directory for version control details.
+   * Supports both standard .git directories and .git files (submodules/worktrees).
+   * @param {string} projectPath The path to the project root
+   * @returns {Promise<string[]>} Array of status strings (e.g., ['Git repository detected (.git)', 'Active branch: main'])
+   */
+  async getVersionControlDetails(projectPath) {
+    if (!projectPath || projectPath === undefined) {
+      return [];
+    }
+
+    try {
+      fs.accessSync(projectPath);
+    } catch {
+      return [];
+    }
+
+    const results = [];
+    const gitPath = path.join(projectPath, '.git');
+    try {
+      if (fs.existsSync(gitPath)) {
+        const stats = fs.statSync(gitPath);
+        if (stats.isDirectory()) {
+          results.push('Git repository detected (.git)');
+          let branch = null;
+          try {
+            branch = await git.currentBranch({ fs, dir: projectPath });
+          } catch {
+            // Fallback: read HEAD if git.currentBranch throws
+          }
+          if (!branch) {
+            const headPath = path.join(gitPath, 'HEAD');
+            if (fs.existsSync(headPath)) {
+              const headContent = fs.readFileSync(headPath, 'utf8').trim();
+              if (headContent.startsWith('ref: refs/heads/')) {
+                branch = headContent.replace('ref: refs/heads/', '').trim();
+              }
+            }
+          }
+          if (branch) {
+            results.push(`Active branch: ${branch}`);
+          }
+        } else if (stats.isFile()) {
+          results.push('Git repository detected (.git file)');
+        }
+      }
+    } catch {
+      return [];
+    }
+
+    return results;
+  }
 }

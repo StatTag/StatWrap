@@ -115,6 +115,11 @@ contextBridge.exposeInMainWorld('workerElectronBridge', {
         response.project.sourceControlEnabled = await sourceControlService.hasSourceControlEnabled(
           project.path,
         );
+        if (response.assets) {
+          response.assets.versionControl = await sourceControlService.getVersionControlDetails(
+            project.path,
+          );
+        }
         response.project.assetGroups = ProjectUtil.relativeToAbsolutePathForAssetGroups(
           project.path,
           projectConfig.assetGroups,
