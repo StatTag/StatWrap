@@ -103,7 +103,7 @@ describe('main-process project creation response', () => {
     // Verifies local project list gets new UUID
     expect(projectListService.appendAndSaveProjectToList).toHaveBeenCalledWith(
       { ...project, id: 'fresh-unique-uuid', name: 'Copied Project' },
-      '/user-data/projects.json',
+      path.join('/user-data', 'projects.json'),
     );
     expect(event.sender.send).toHaveBeenCalledWith(Messages.CREATE_PROJECT_RESPONSE, {
       project: { ...project, id: 'fresh-unique-uuid', name: 'Copied Project' },
@@ -127,7 +127,7 @@ describe('main-process project creation response', () => {
     // Verifies graceful fallback: still appends fresh UUID to project list without throwing
     expect(projectListService.appendAndSaveProjectToList).toHaveBeenCalledWith(
       { ...project, id: 'fresh-unique-uuid', name: 'Read-Only Copied Project' },
-      '/user-data/projects.json',
+      path.join('/user-data', 'projects.json'),
     );
     expect(event.sender.send).toHaveBeenCalledWith(Messages.CREATE_PROJECT_RESPONSE, {
       project: { ...project, id: 'fresh-unique-uuid', name: 'Read-Only Copied Project' },

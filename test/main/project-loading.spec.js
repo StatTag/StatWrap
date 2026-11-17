@@ -209,10 +209,10 @@ describe('main-process project list loading resilience', () => {
     expect(projectListService.updateProjectId).toHaveBeenCalledWith(
       'old-registered-id',
       'canonical-folder-id',
-      '/mock/userData/projectList.json',
+      path.join('/mock/userData', 'projectList.json'),
     );
     expect(logWatcherService.add).toHaveBeenCalledWith(
-      '/path/to/proj1/.statwrap/.statwrap.log',
+      path.join('/path/to/proj1', Constants.StatWrapFiles.BASE_FOLDER, Constants.StatWrapFiles.LOG),
       'canonical-folder-id',
     );
   });
