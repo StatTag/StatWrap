@@ -925,3 +925,258 @@ describe('SearchService', () => {
     });
   });
 });
+
+describe('SearchService real FlexSearch and filesystem cleanup', () => {
+  const realFs = jest.requireActual('fs');
+  const realPath = jest.requireActual('path');
+  const realOs = jest.requireActual('os');
+
+  let tempDirs = [];
+  let activeService = null;
+
+  function loadRealSearchService() {
+    if (activeService && activeService.updateTimeout) {
+      clearTimeout(activeService.updateTimeout);
+      activeService.updateTimeout = null;
+    }
+
+    let isolatedService;
+    jest.isolateModules(() => {
+      jest.dontMock('fs');
+      jest.dontMock('path');
+      jest.dontMock('os');
+      jest.dontMock('flexsearch');
+      jest.dontMock('../../app/constants/search-config');
+      isolatedService = require('../../app/services/SearchService').default;
+    });
+    activeService = isolatedService;
+    return activeService;
+  }
+
+  function makeTempDir(prefix) {
+    const dir = realFs.mkdtempSync(realPath.join(realOs.tmpdir(), prefix));
+    tempDirs.push(dir);
+    return dir;
+  }
+
+  function createProjectFixture({ id, name, fileName, fileContent, people = [], notes = [], assetGroups = [] }) {
+    const projectDir = makeTempDir(`statwrap-${id}-`);
+    const statwrapDir = realPath.join(projectDir, '.statwrap');
+    realFs.mkdirSync(statwrapDir, { recursive: true });
+    realFs.writeFileSync(realPath.join(statwrapDir, '.statwrap-project.json'), JSON.stringify({ id, name }));
+    realFs.writeFileSync(realPath.join(projectDir, fileName), fileContent);
+
+    return {
+      id,
+      name,
+      path: projectDir,
+      description: { content: `${name} study description` },
+      people,
+      notes,
+      assetGroups,
+      categories: ['Clinical'],
+    };
+  }
+
+  beforeEach(() => {
+    tempDirs = [];
+    loadRealSearchService();
+  });
+
+  afterEach(() => {
+    if (activeService && activeService.updateTimeout) {
+      clearTimeout(activeService.updateTimeout);
+      activeService.updateTimeout = null;
+    }
+    tempDirs.forEach((dir) => {
+      if (realFs.existsSync(dir)) {
+        realFs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+  });
+
+  it('removes all entity types from live search results and disk cache when a project is removed while preserving shared collaborators and disk metadata', async () => {
+    const userDataDir = makeTempDir('statwrap-userdata-');
+    const sharedPerson = {
+      id: 'shared-person-1',
+      name: { first: 'Gregory', last: 'House' },
+      affiliation: 'Princeton Diagnostics',
+      roles: ['Lead'],
+    };
+
+    const projA = createProjectFixture({
+      id: 'proj-a',
+      name: 'ProjectAlpha',
+      fileName: 'analysisA.R',
+      fileContent: '# alphamodel execution\nx <- 1\n',
+      people: [sharedPerson],
+      notes: [{ id: 'note-a', content: 'Alpha protocol specifics', author: 'Admin' }],
+      assetGroups: [{ id: 'ag-a', name: 'AlphaCohort', details: 'Alpha raw files' }],
+    });
+
+    const projB = createProjectFixture({
+      id: 'proj-b',
+      name: 'ProjectBeta',
+      fileName: 'analysisB.R',
+      fileContent: '# betamodel regression\ny <- 2\n',
+      people: [
+        sharedPerson,
+        { id: 'person-b-only', name: { first: 'Allison', last: 'Cameron' }, affiliation: 'Immunology', roles: ['Fellow'] },
+      ],
+      notes: [{ id: 'note-b', content: 'Lupus dosage Beta note', author: 'Dr. Smith' }],
+      assetGroups: [{ id: 'ag-b', name: 'BetaCohort', details: 'Beta genomic dataset' }],
+    });
+
+    await activeService.initialize(userDataDir, [projA, projB], 100 * 1024);
+
+    // Pre-deletion: real SearchService.search finds every Beta entity type
+    expect(activeService.search('ProjectBeta').projects).toHaveLength(1);
+    expect(activeService.search('Allison').people).toHaveLength(1);
+    expect(activeService.search('Lupus').notes).toHaveLength(1);
+    expect(activeService.search('betamodel').files).toHaveLength(1);
+    expect(activeService.search('BetaCohort').all.some((r) => r.type === 'asset-group')).toBe(true);
+    expect(activeService.search('Gregory').people.length).toBeGreaterThanOrEqual(1);
+
+    // Simulate removing ProjectBeta and reopening Search in the same session
+    await activeService.initialize(userDataDir, [projA], 100 * 1024);
+
+    expect(activeService.search('ProjectBeta').projects).toEqual([]);
+    expect(activeService.search('ProjectBeta').all).toEqual([]);
+    expect(activeService.search('Allison').people).toEqual([]);
+    expect(activeService.search('Allison').all).toEqual([]);
+    expect(activeService.search('Lupus').notes).toEqual([]);
+    expect(activeService.search('Lupus').all).toEqual([]);
+    expect(activeService.search('betamodel').files).toEqual([]);
+    expect(activeService.search('betamodel').all).toEqual([]);
+    expect(activeService.search('BetaCohort').all).toEqual([]);
+
+    // Raw FlexSearch index must not hold ghost IDs
+    expect(activeService.indices.main.search('Allison')).toEqual([]);
+    expect(activeService.indices.main.search('betamodel')).toEqual([]);
+
+    // Shared collaborator must still be searchable under ProjectAlpha
+    const sharedResults = activeService.search('Gregory');
+    expect(sharedResults.people).toHaveLength(1);
+    expect(sharedResults.people[0].item.projectName).toBe('ProjectAlpha');
+
+    const stats = activeService.getSearchStats();
+    expect(stats.indexedProjects).toBe(1);
+    expect(stats.totalDocuments).toBe(5);
+
+    const savedIndex = JSON.parse(realFs.readFileSync(activeService.indexFilePath, 'utf8'));
+    expect(Object.keys(savedIndex.indexedProjects)).toEqual(['proj-a']);
+    expect(savedIndex.documentStore.every(([, doc]) => doc.projectId === 'proj-a')).toBe(true);
+
+    // Actual project folder and .statwrap metadata on disk must remain untouched
+    const projBMetadataPath = realPath.join(projB.path, '.statwrap', '.statwrap-project.json');
+    expect(realFs.existsSync(projBMetadataPath)).toBe(true);
+    expect(JSON.parse(realFs.readFileSync(projBMetadataPath, 'utf8'))).toEqual({
+      id: 'proj-b',
+      name: 'ProjectBeta',
+    });
+    expect(realFs.existsSync(realPath.join(projB.path, 'analysisB.R'))).toBe(true);
+  });
+
+  it('purges pre-existing detached orphan entries synchronously when loading search-index.json on startup', async () => {
+    const userDataDir = makeTempDir('statwrap-userdata-');
+    const projA = createProjectFixture({
+      id: 'proj-a',
+      name: 'ProjectAlpha',
+      fileName: 'keep.R',
+      fileContent: '# keepme\n',
+    });
+
+    await activeService.initialize(userDataDir, [projA], 100 * 1024);
+
+    // Inject detached orphan documents (project absent from both indexedProjects and currentProjects)
+    const indexPath = activeService.indexFilePath;
+    const persisted = JSON.parse(realFs.readFileSync(indexPath, 'utf8'));
+    persisted.documentStore.push([
+      'project_proj-orphan_',
+      {
+        id: 'project_proj-orphan_',
+        type: 'project',
+        title: 'DetachedGhostProject',
+        content: 'DetachedGhostProject secret study',
+        item: { id: 'proj-orphan', name: 'DetachedGhostProject' },
+      },
+    ]);
+    persisted.documentStore.push([
+      'note_orphan-n1_project',
+      {
+        id: 'note_orphan-n1_project',
+        type: 'note',
+        title: 'Note: DetachedGhostProject',
+        content: 'OrphanClinicalToken note',
+        projectId: 'proj-orphan',
+        item: { id: 'orphan-n1', content: 'OrphanClinicalToken note' },
+      },
+    ]);
+    realFs.writeFileSync(indexPath, JSON.stringify(persisted));
+
+    // Simulate fresh app restart with an uninitialized SearchService instance
+    const restartedService = loadRealSearchService();
+    await restartedService.initialize(userDataDir, [projA], 100 * 1024);
+
+    expect(restartedService.search('DetachedGhostProject').all).toEqual([]);
+    expect(restartedService.search('OrphanClinicalToken').all).toEqual([]);
+    expect(restartedService.search('ProjectAlpha').projects).toHaveLength(1);
+    expect(restartedService.getSearchStats().indexedProjects).toBe(1);
+    expect(restartedService.getSearchStats().totalDocuments).toBe(2);
+
+    const cleanedDiskIndex = JSON.parse(realFs.readFileSync(indexPath, 'utf8'));
+    expect(cleanedDiskIndex.documentStore.some(([id]) => id.includes('orphan'))).toBe(false);
+
+    // Same-session compareAndUpdateIndex also purges detached orphans when no project diffs exist
+    restartedService.documentStore.set('note_orphan-live_project', {
+      id: 'note_orphan-live_project',
+      type: 'note',
+      title: 'Live Orphan',
+      content: 'LiveOrphanToken',
+      projectId: 'proj-orphan-2',
+      item: { id: 'orphan-live', content: 'LiveOrphanToken' },
+    });
+    const updateResult = await restartedService.compareAndUpdateIndex([projA]);
+    expect(updateResult.removed).toBeGreaterThan(0);
+    expect(restartedService.documentStore.has('note_orphan-live_project')).toBe(false);
+  });
+
+  it('preserves cache on null project lists and drops to zero docs and zero search hits when the last project is removed', async () => {
+    const userDataDir = makeTempDir('statwrap-userdata-');
+    const onlyProject = createProjectFixture({
+      id: 'proj-only',
+      name: 'SoloTrial',
+      fileName: 'solo.R',
+      fileContent: '# solomarker\n',
+      people: [{ id: 'p-solo', name: { first: 'Solo', last: 'Researcher' }, affiliation: 'Org', roles: ['PI'] }],
+      notes: [{ id: 'n-solo', content: 'SoloUniqueNoteContent', author: 'PI' }],
+    });
+
+    await activeService.initialize(userDataDir, [onlyProject], 100 * 1024);
+    expect(activeService.getSearchStats().totalDocuments).toBe(4);
+    expect(activeService.search('SoloTrial').projects).toHaveLength(1);
+    expect(activeService.search('Researcher').people).toHaveLength(1);
+    expect(activeService.search('SoloUniqueNoteContent').notes).toHaveLength(1);
+    expect(activeService.search('solomarker').files).toHaveLength(1);
+
+    // Passing null (e.g., failed project list load) must not crash or wipe indexed data
+    await activeService.initialize(userDataDir, null, 100 * 1024);
+    expect(activeService.getSearchStats().totalDocuments).toBe(4);
+    expect(activeService.search('SoloTrial').projects).toHaveLength(1);
+
+    await activeService.initialize(userDataDir, [], 100 * 1024);
+
+    expect(activeService.getSearchStats().totalDocuments).toBe(0);
+    expect(activeService.getSearchStats().indexedProjects).toBe(0);
+    expect(activeService.search('SoloTrial').all).toEqual([]);
+    expect(activeService.search('Researcher').all).toEqual([]);
+    expect(activeService.search('SoloUniqueNoteContent').all).toEqual([]);
+    expect(activeService.search('solomarker').all).toEqual([]);
+
+    const savedIndex = JSON.parse(realFs.readFileSync(activeService.indexFilePath, 'utf8'));
+    expect(savedIndex.documentStore).toEqual([]);
+    expect(savedIndex.indexedProjects).toEqual({});
+
+    expect(realFs.existsSync(realPath.join(onlyProject.path, '.statwrap', '.statwrap-project.json'))).toBe(true);
+  });
+});
