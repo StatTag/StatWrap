@@ -40,33 +40,162 @@ export default class StataHandler extends BaseCodeHandler {
     }
   }
 
+  /**
+   * Inspects a single Stata line outside string literals to detect `///` or trailing `\` continuations.
+   * @param {string} line Single line of Stata code
+   * @returns {string|null} Line prefix before the continuation token, or null if none
+   */
+  extractContinuationPrefix(line) {
+    let inDoubleQuote = false;
+    let compoundDepth = 0;
+
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+
+      if (ch === '`' && i + 1 < line.length && line[i + 1] === '"') {
+        compoundDepth++;
+        i++;
+        continue;
+      }
+
+      if (compoundDepth > 0 && ch === '"' && i + 1 < line.length && line[i + 1] === "'") {
+        compoundDepth--;
+        i++;
+        continue;
+      }
+
+      if (compoundDepth === 0 && ch === '"') {
+        inDoubleQuote = !inDoubleQuote;
+        continue;
+      }
+
+      if (inDoubleQuote || compoundDepth > 0) {
+        continue;
+      }
+
+      if (line.startsWith('///', i)) {
+        return line.slice(0, i);
+      }
+
+      if (line.startsWith('//', i)) {
+        return null;
+      }
+    }
+
+    if (!inDoubleQuote && compoundDepth === 0) {
+      const backslashMatch = line.match(/^(.*?)\\[ \t]*$/);
+      if (backslashMatch) {
+        return backslashMatch[1];
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Preprocesses Stata code to handle line continuations while preserving comment lines.
+   * Handles:
+   * 1. Backslash continuation (\ at end of line)
+   * 2. Triple slash continuation (/// at end of line with optional comment, outside string literals)
+   * @param {string} text Raw Stata file text
+   * @returns {string} Preprocessed Stata text with continuations merged
+   */
+  preprocessText(text) {
+    if (!text || text.trim() === '') {
+      return '';
+    }
+
+    const lines = text.split(/\r?\n/);
+    const processedLines = [];
+    let currentLine = '';
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // If currentLine is empty, this line is the beginning of a statement
+      if (currentLine === '') {
+        // If the line starts with a comment (*, //, or # as tested in StatWrap), keep it as-is
+        if (/^\s*(?:\*|\/\/|#)/.test(line)) {
+          processedLines.push(line);
+          continue;
+        }
+      }
+
+      const continuationPrefix = this.extractContinuationPrefix(line);
+      if (continuationPrefix !== null) {
+        currentLine += (currentLine ? ' ' : '') + continuationPrefix.trim();
+        continue;
+      }
+
+      // No continuation, finalize the statement line
+      if (currentLine !== '') {
+        currentLine += ` ${line.trim()}`;
+        processedLines.push(currentLine);
+        currentLine = '';
+      } else {
+        processedLines.push(line);
+      }
+    }
+
+    if (currentLine !== '') {
+      processedLines.push(currentLine);
+    }
+
+    return processedLines.join('\n');
+  }
+
+  /**
+   * Extracts the target file path from a Stata import or export command arguments string.
+   * Handles both 'using <path>' and direct '<path>' as well as trailing 'if', 'in', and options.
+   * @param {string} args Command arguments following the command name
+   * @returns {string|null} The resolved file path or null
+   */
+  extractStataPath(args) {
+    if (!args || !args.trim()) {
+      return null;
+    }
+    const trimmed = args.trim();
+
+    // 1. If 'using' is present, the path immediately follows 'using'
+    const usingMatch = trimmed.match(
+      /\busing\s+("(?:\\[\s\S]|[^"])*"|'(?:\\[\s\S]|[^'])*'|[^\s,]+)/i,
+    );
+    if (usingMatch) {
+      return usingMatch[1].trim();
+    }
+
+    // 2. Otherwise, the path is the first argument token directly following the command
+    const directMatch = trimmed.match(/^("(?:\\[\s\S]|[^"])*"|'(?:\\[\s\S]|[^'])*'|[^\s,]+)/);
+    if (directMatch) {
+      return directMatch[1].trim();
+    }
+
+    return null;
+  }
+
   getInputs(uri, text) {
     const inputs = [];
     if (!text || text.trim() === '') {
       return inputs;
     }
 
-    // TODO: The following scenarios are not currently handled
-    // 1 - Multi-line
-    //   export excel \\
-    //     mydata2 ,\\
-    //     nolabel
-    // 2 - sasxport with 'if' statement
-    //   export sasxport5 v1 v2 v3 using mydata if tvar==2010
+    const processedText = this.preprocessText(text);
     const importMatches = [
-      ...text.matchAll(
-        /^\s*?((?:import\s+(?:excel|delimited|sasxport|sasxport5|sasxport8|dbase))|(?:infile|inf|infix|xmluse))\s+?(?:(?:.*)using\s+([^,]+?)|([^,]+?))\s*?(?:$|[\r\n,])/gm,
+      ...processedText.matchAll(
+        /^\s*?((?:import\s+(?:excel|delimited|sasxport|sasxport5|sasxport8|dbase))|(?:infile|inf|infix|xmluse))\s+(.+?)$/gm,
       ),
     ];
     for (let index = 0; index < importMatches.length; index++) {
       const match = importMatches[index];
-      // Depending on what matches, the path will be either in group 2 or 3
-      const path = match[2] ? match[2].trim() : match[3].trim();
-      inputs.push({
-        id: `${match[1]} - ${path}`,
-        type: Constants.DependencyType.DATA,
-        path,
-      });
+      const command = match[1].trim();
+      const path = this.extractStataPath(match[2]);
+      if (path) {
+        inputs.push({
+          id: `${command} - ${path}`,
+          type: Constants.DependencyType.DATA,
+          path,
+        });
+      }
     }
 
     return inputs;
@@ -78,8 +207,10 @@ export default class StataHandler extends BaseCodeHandler {
       return outputs;
     }
 
+    const processedText = this.preprocessText(text);
+
     const figureMatches = [
-      ...text.matchAll(/^\s*(gr(?:aph)? export)\s*([\s\S]+?)(?:,[\s\S]+?)?$/gm),
+      ...processedText.matchAll(/^\s*(gr(?:aph)? export)\s*([\s\S]+?)(?:,[\s\S]+?)?$/gm),
     ];
     for (let index = 0; index < figureMatches.length; index++) {
       const match = figureMatches[index];
@@ -91,7 +222,9 @@ export default class StataHandler extends BaseCodeHandler {
       });
     }
 
-    const logMatches = [...text.matchAll(/^\s*((?:cmd)?log)\s*using\b([\w\W]*?)(?:$|[\r\n,])/gm)];
+    const logMatches = [
+      ...processedText.matchAll(/^\s*((?:cmd)?log)\s*using\b([\w\W]*?)(?:$|[\r\n,])/gm),
+    ];
     for (let index = 0; index < logMatches.length; index++) {
       const match = logMatches[index];
       const path = match[2].trim();
@@ -102,31 +235,28 @@ export default class StataHandler extends BaseCodeHandler {
       });
     }
 
-    // TODO: The following scenarios are not currently handled
-    // 1 - Multi-line
-    //   export excel \\
-    //     mydata2 ,\\
-    //     nolabel
-    // 2 - sasxport with 'if' statement
-    //   export sasxport5 v1 v2 v3 using mydata if tvar==2010
     const exportMatches = [
-      ...text.matchAll(
-        /^\s*?((?:export\s+(?:excel|delimited|sasxport|sasxport5|sasxport8|dbase))|outfile|xmlsave)\s+?(?:(?:.*)using\s+([^,]+?)|([^,]+?))\s*?(?:$|[\r\n,])/gm,
+      ...processedText.matchAll(
+        /^\s*?((?:export\s+(?:excel|delimited|sasxport|sasxport5|sasxport8|dbase))|outfile|xmlsave)\s+(.+?)$/gm,
       ),
     ];
     for (let index = 0; index < exportMatches.length; index++) {
       const match = exportMatches[index];
-      // Depending on what matches, the path will be either in group 2 or 3
-      const path = match[2] ? match[2].trim() : match[3].trim();
-      outputs.push({
-        id: `${match[1]} - ${path}`,
-        type: Constants.DependencyType.DATA,
-        path,
-      });
+      const command = match[1].trim();
+      const path = this.extractStataPath(match[2]);
+      if (path) {
+        outputs.push({
+          id: `${command} - ${path}`,
+          type: Constants.DependencyType.DATA,
+          path,
+        });
+      }
     }
 
     const putMatches = [
-      ...text.matchAll(/^\s*(putdocx|putexcel|putpdf)\s+save\s+([\s\S]+?)(?:,[\s\S]+?)?$/gm),
+      ...processedText.matchAll(
+        /^\s*(putdocx|putexcel|putpdf)\s+save\s+([\s\S]+?)(?:,[\s\S]+?)?$/gm,
+      ),
     ];
     for (let index = 0; index < putMatches.length; index++) {
       const match = putMatches[index];
@@ -141,7 +271,7 @@ export default class StataHandler extends BaseCodeHandler {
     // estout is a package, but used pretty widely and supported in StatTag so we
     // are supporting it here.
     const estMatches = [
-      ...text.matchAll(
+      ...processedText.matchAll(
         /^\s*(est(?:out|add|tab))\s+(?:using)\s+([^,\r\n,#]+?\.[^,\r\n,#]+?)(?:[, \r\n,#]|$)/gm,
       ),
     ];
@@ -158,7 +288,7 @@ export default class StataHandler extends BaseCodeHandler {
     // tableone is a package, but used pretty widely and supported in StatTag so we
     // are supporting it here.
     const table1Matches = [
-      ...text.matchAll(
+      ...processedText.matchAll(
         /^\s*(table1)[\s\S]+?(?:saving)\s*?\(\s*([^,\r\n,#]+?\.[^,\r\n,#]+?)\s*[,\r\n,#][\s\S]*?\)\s*?$/gm,
       ),
     ];
@@ -181,14 +311,24 @@ export default class StataHandler extends BaseCodeHandler {
       return libraries;
     }
 
-    this.processRegexGroup1Match(libraries, text, /(?:do|ru[n]?)\s+([^,"]+?)(?:,\s+nostop)?\s?$/gm);
-    this.processRegexGroup1Match(libraries, text, /(?:do|ru[n]?)\s+"(.+?)"(?:,\s+nostop)?\s?$/gm);
+    const processedText = this.preprocessText(text);
+
+    this.processRegexGroup1Match(
+      libraries,
+      processedText,
+      /(?:do|ru[n]?)\s+([^,"]+?)(?:,\s+nostop)?\s?$/gm,
+    );
+    this.processRegexGroup1Match(
+      libraries,
+      processedText,
+      /(?:do|ru[n]?)\s+"(.+?)"(?:,\s+nostop)?\s?$/gm,
+    );
 
     // Load a plugin
     // For this regex, the match groups:
     // 0 - full match (not used)
     // 1 - handle used for plugin
-    const pluginMatches = [...text.matchAll(/pr(?:ogram)?\s+(.+),\s+plug(?:in)?\s?$/gm)];
+    const pluginMatches = [...processedText.matchAll(/pr(?:ogram)?\s+(.+),\s+plug(?:in)?\s?$/gm)];
     for (let index = 0; index < pluginMatches.length; index++) {
       const match = pluginMatches[index];
       libraries.push({
@@ -202,7 +342,9 @@ export default class StataHandler extends BaseCodeHandler {
     // 1 - handle used for plugin
     // 2 - file location of plugin
     const pluginUsingMatches = [
-      ...text.matchAll(/pr(?:ogram)?\s+(.+),\s+plug(?:in)?\s*(?:using\s*\(\s*"(.+?)"\s*\))/gm),
+      ...processedText.matchAll(
+        /pr(?:ogram)?\s+(.+),\s+plug(?:in)?\s*(?:using\s*\(\s*"(.+?)"\s*\))/gm,
+      ),
     ];
     for (let index = 0; index < pluginUsingMatches.length; index++) {
       const match = pluginUsingMatches[index];
