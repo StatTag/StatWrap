@@ -244,6 +244,37 @@ We collect 3 categories of metadata for Julia code files (`.jl`):
 
 `using Package`, `using Package: func1, func2`, `import Package`, `import Package: func1`, and `import Package as Alias`.
 
+### MATLAB Code Files
+
+We collect 3 categories of metadata for MATLAB code files (`.m`):
+
+**Inputs**
+
+| Category     | Example Functions / Patterns                                                                               | Data Type |
+| ------------ | ---------------------------------------------------------------------------------------------------------- | --------- |
+| Table reads  | `readtable('file')`, `readmatrix('file')`, `readcell('file')`, `readvars('file')`, `readtimetable('file')` | `data`    |
+| Data reads   | `csvread('file')`, `dlmread('file')`, `textread('file')`, `xlsread('file')`, `importdata('file')`          | `data`    |
+| Workspace    | `load('file.mat')`, `load("file.mat")`, `load file.mat`                                                    | `data`    |
+| File reads   | `fopen('file')`, `fopen('file', 'r')`, `fopen('file', 'rt')`                                               | `data`    |
+| Figure reads | `imread('file.png')`                                                                                       | `figure`  |
+| Media reads  | `audioread('file.wav')`, `VideoReader('file.mp4')`                                                         | `data`    |
+| Script run   | `run('script.m')`, `run script.m`                                                                          | `data`    |
+
+**Outputs**
+
+| Category     | Example Functions / Patterns                                                                                                    | Data Type |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Table writes | `writetable(T, 'file')`, `writematrix(M, 'file')`, `writecell(C, 'file')`, `writetimetable(TT, 'file')`                         | `data`    |
+| Data writes  | `csvwrite('file', M)`, `dlmwrite('file', M)`, `xlswrite('file', M)`                                                             | `data`    |
+| Workspace    | `save('file.mat')`, `save("file.mat")`, `save file.mat`                                                                         | `data`    |
+| Figure saves | `saveas(fig, 'plot.png')`, `exportgraphics(ax, 'plot.pdf')`, `exportapp(app, 'app.pdf')`, `imwrite(A, 'img.png')`, `print(...)` | `figure`  |
+| Media writes | `audiowrite('file.wav', y, Fs)`                                                                                                 | `data`    |
+| File writes  | `fopen('file', 'w')`, `fopen('file', 'a')`, `fopen('file', 'w+')`                                                               | `data`    |
+
+**Libraries**
+
+`import package.*`, `import package.Class`, and `addpath('dir')`.
+
 ## Asset Groups
 
 By default StatWrap mimics the traditional hierarchical file system view. However, we realize that not all assets will be within a single file system (or may not even be files / folders). Also, we want to allow users to establish other groups of assets that make sense to them. Asset Groups will be a way for users to do this, and StatWrap will store these within the [Project](Projects.md) metadata.

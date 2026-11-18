@@ -100,6 +100,11 @@ module.exports = {
       categories: ['code'],
     },
     {
+      name: 'MATLAB',
+      extensions: ['m'],
+      categories: ['code'],
+    },
+    {
       name: 'C++',
       extensions: ['cc', 'cpp', 'cxx', 'c++', 'h', 'hh', 'hpp', 'hxx', 'ipp', 'tpp', 'inl'],
       categories: ['code'],
@@ -152,6 +157,11 @@ module.exports = {
     {
       name: 'SAS Data',
       extensions: ['sas7bdat', 'sas7bvew', 'sas7bndx', 'sd7', 'sv7', 'si7'],
+      categories: ['data'],
+    },
+    {
+      name: 'MATLAB Data',
+      extensions: ['mat'],
       categories: ['data'],
     },
     {
